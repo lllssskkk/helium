@@ -1,4 +1,7 @@
-![Helium Logo](http://www.cs.uu.nl/people/jur/Helium_0300pix.jpg)
+![Helium Logo](http://www.cs.uu.nl/people/jur/images/Helium_0300pix.jpg)
+
+[Contributors](CONTRIBUTORS.md) | [Helium Manual](HELIUM.md) | [Known Bugs](KNOWNBUGS.md)
+
 
 ### Helium
 
@@ -12,6 +15,7 @@ Helium contact [us](mailto:helium4haskell@gmail.com).
 Helium and the runtime lvmrun are on
 [Hackage](https://hackage.haskell.org/package/helium). This means that
 you can install the latest version of Helium by running
+
     cabal install helium
     cabal install lvmrun
 
@@ -31,7 +35,7 @@ Java-based programming environment Hint, originally developed by Arie
 Middelkoop.
 
 [**Download the Hint 1.8.1 jar
-file**](http://www.cs.uu.nl/people/jur/Hint-1.8.1.jar)
+file**](http://www.cs.uu.nl/people/jur/downloads/Hint-1.8.1.jar)
 
 The program can be run from the command line in the usual way
 
