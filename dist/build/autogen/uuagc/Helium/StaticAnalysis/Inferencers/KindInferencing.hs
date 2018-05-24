@@ -120,7 +120,7 @@ type T_Alternative_v1  = (T_Alternative_vIn1 ) -> (T_Alternative_vOut1 )
 data T_Alternative_vIn1  = T_Alternative_vIn1 (BindingGroups) (Int)
 data T_Alternative_vOut1  = T_Alternative_vOut1 (BindingGroups) (Int) (Alternative)
 {-# NOINLINE sem_Alternative_Hole #-}
-sem_Alternative_Hole :: T_Range  -> (Integer) -> T_Alternative 
+sem_Alternative_Hole :: T_Range  -> (String) -> T_Alternative 
 sem_Alternative_Hole arg_range_ arg_id_ = T_Alternative (return st2) where
    {-# NOINLINE st2 #-}
    st2 = let
@@ -622,7 +622,7 @@ type T_Body_v13  = (T_Body_vIn13 ) -> (T_Body_vOut13 )
 data T_Body_vIn13  = T_Body_vIn13 (ImportEnvironment) (Int)
 data T_Body_vOut13  = T_Body_vOut13 (KindConstraints) (PatternAssumptions) (Int) (Body)
 {-# NOINLINE sem_Body_Hole #-}
-sem_Body_Hole :: T_Range  -> (Integer) -> T_Body 
+sem_Body_Hole :: T_Range  -> (String) -> T_Body 
 sem_Body_Hole arg_range_ arg_id_ = T_Body (return st14) where
    {-# NOINLINE st14 #-}
    st14 = let
@@ -1226,7 +1226,7 @@ type T_Declaration_v28  = (T_Declaration_vIn28 ) -> (T_Declaration_vOut28 )
 data T_Declaration_vIn28  = T_Declaration_vIn28 (BindingGroups) (Int)
 data T_Declaration_vOut28  = T_Declaration_vOut28 (BindingGroups) (Int) (Declaration)
 {-# NOINLINE sem_Declaration_Hole #-}
-sem_Declaration_Hole :: T_Range  -> (Integer) -> T_Declaration 
+sem_Declaration_Hole :: T_Range  -> (String) -> T_Declaration 
 sem_Declaration_Hole arg_range_ arg_id_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
    st29 = let
@@ -2172,6 +2172,7 @@ sem_Expression :: Expression  -> T_Expression
 sem_Expression ( Expression_Hole range_ id_ ) = sem_Expression_Hole ( sem_Range range_ ) id_
 sem_Expression ( Expression_Feedback range_ feedback_ expression_ ) = sem_Expression_Feedback ( sem_Range range_ ) feedback_ ( sem_Expression expression_ )
 sem_Expression ( Expression_MustUse range_ expression_ ) = sem_Expression_MustUse ( sem_Range range_ ) ( sem_Expression expression_ )
+sem_Expression ( Expression_Eta range_ expansion_ expression_ ) = sem_Expression_Eta ( sem_Range range_ ) expansion_ ( sem_Expression expression_ )
 sem_Expression ( Expression_Literal range_ literal_ ) = sem_Expression_Literal ( sem_Range range_ ) ( sem_Literal literal_ )
 sem_Expression ( Expression_Variable range_ name_ ) = sem_Expression_Variable ( sem_Range range_ ) ( sem_Name name_ )
 sem_Expression ( Expression_Constructor range_ name_ ) = sem_Expression_Constructor ( sem_Range range_ ) ( sem_Name name_ )
@@ -2205,7 +2206,7 @@ type T_Expression_v40  = (T_Expression_vIn40 ) -> (T_Expression_vOut40 )
 data T_Expression_vIn40  = T_Expression_vIn40 (BindingGroups) (Int)
 data T_Expression_vOut40  = T_Expression_vOut40 (BindingGroups) (Int) (Expression)
 {-# NOINLINE sem_Expression_Hole #-}
-sem_Expression_Hole :: T_Range  -> (Integer) -> T_Expression 
+sem_Expression_Hole :: T_Range  -> (String) -> T_Expression 
 sem_Expression_Hole arg_range_ arg_id_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
    st41 = let
@@ -2317,6 +2318,47 @@ sem_Expression_MustUse arg_range_ arg_expression_ = T_Expression (return st41) w
    {-# INLINE rule257 #-}
    rule257 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
+{-# NOINLINE sem_Expression_Eta #-}
+sem_Expression_Eta :: T_Range  -> (Int) -> T_Expression  -> T_Expression 
+sem_Expression_Eta arg_range_ arg_expansion_ arg_expression_ = T_Expression (return st41) where
+   {-# NOINLINE st41 #-}
+   st41 = let
+      v40 :: T_Expression_v40 
+      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+         _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
+         _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
+         (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
+         (T_Expression_vOut40 _expressionIbindingGroups _expressionIkappaUnique _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionObindingGroups _expressionOkappaUnique)
+         _self = rule258 _expressionIself _rangeIself arg_expansion_
+         _lhsOself :: Expression
+         _lhsOself = rule259 _self
+         _lhsObindingGroups :: BindingGroups
+         _lhsObindingGroups = rule260 _expressionIbindingGroups
+         _lhsOkappaUnique :: Int
+         _lhsOkappaUnique = rule261 _expressionIkappaUnique
+         _expressionObindingGroups = rule262 _lhsIbindingGroups
+         _expressionOkappaUnique = rule263 _lhsIkappaUnique
+         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         in __result_ )
+     in C_Expression_s41 v40
+   {-# INLINE rule258 #-}
+   rule258 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) expansion_ ->
+     Expression_Eta _rangeIself expansion_ _expressionIself
+   {-# INLINE rule259 #-}
+   rule259 = \ _self ->
+     _self
+   {-# INLINE rule260 #-}
+   rule260 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
+     _expressionIbindingGroups
+   {-# INLINE rule261 #-}
+   rule261 = \ ((_expressionIkappaUnique) :: Int) ->
+     _expressionIkappaUnique
+   {-# INLINE rule262 #-}
+   rule262 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule263 #-}
+   rule263 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
 {-# NOINLINE sem_Expression_Literal #-}
 sem_Expression_Literal :: T_Range  -> T_Literal  -> T_Expression 
 sem_Expression_Literal arg_range_ arg_literal_ = T_Expression (return st41) where
@@ -2328,27 +2370,27 @@ sem_Expression_Literal arg_range_ arg_literal_ = T_Expression (return st41) wher
          _literalX86 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Literal_vOut85 _literalIself) = inv_Literal_s86 _literalX86 (T_Literal_vIn85 )
-         _self = rule258 _literalIself _rangeIself
+         _self = rule264 _literalIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule259 _self
+         _lhsOself = rule265 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule260 _lhsIbindingGroups
+         _lhsObindingGroups = rule266 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule261 _lhsIkappaUnique
+         _lhsOkappaUnique = rule267 _lhsIkappaUnique
          __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule258 #-}
-   rule258 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
+   {-# INLINE rule264 #-}
+   rule264 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
      Expression_Literal _rangeIself _literalIself
-   {-# INLINE rule259 #-}
-   rule259 = \ _self ->
+   {-# INLINE rule265 #-}
+   rule265 = \ _self ->
      _self
-   {-# INLINE rule260 #-}
-   rule260 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule266 #-}
+   rule266 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule261 #-}
-   rule261 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule267 #-}
+   rule267 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 {-# NOINLINE sem_Expression_Variable #-}
 sem_Expression_Variable :: T_Range  -> T_Name  -> T_Expression 
@@ -2361,27 +2403,27 @@ sem_Expression_Variable arg_range_ arg_name_ = T_Expression (return st41) where
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
-         _self = rule262 _nameIself _rangeIself
+         _self = rule268 _nameIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule263 _self
+         _lhsOself = rule269 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule264 _lhsIbindingGroups
+         _lhsObindingGroups = rule270 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule265 _lhsIkappaUnique
+         _lhsOkappaUnique = rule271 _lhsIkappaUnique
          __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule262 #-}
-   rule262 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule268 #-}
+   rule268 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Expression_Variable _rangeIself _nameIself
-   {-# INLINE rule263 #-}
-   rule263 = \ _self ->
+   {-# INLINE rule269 #-}
+   rule269 = \ _self ->
      _self
-   {-# INLINE rule264 #-}
-   rule264 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule270 #-}
+   rule270 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule265 #-}
-   rule265 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule271 #-}
+   rule271 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 {-# NOINLINE sem_Expression_Constructor #-}
 sem_Expression_Constructor :: T_Range  -> T_Name  -> T_Expression 
@@ -2394,27 +2436,27 @@ sem_Expression_Constructor arg_range_ arg_name_ = T_Expression (return st41) whe
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
-         _self = rule266 _nameIself _rangeIself
+         _self = rule272 _nameIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule267 _self
+         _lhsOself = rule273 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule268 _lhsIbindingGroups
+         _lhsObindingGroups = rule274 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule269 _lhsIkappaUnique
+         _lhsOkappaUnique = rule275 _lhsIkappaUnique
          __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule266 #-}
-   rule266 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule272 #-}
+   rule272 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Expression_Constructor _rangeIself _nameIself
-   {-# INLINE rule267 #-}
-   rule267 = \ _self ->
+   {-# INLINE rule273 #-}
+   rule273 = \ _self ->
      _self
-   {-# INLINE rule268 #-}
-   rule268 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule274 #-}
+   rule274 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule269 #-}
-   rule269 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule275 #-}
+   rule275 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 {-# NOINLINE sem_Expression_Parenthesized #-}
 sem_Expression_Parenthesized :: T_Range  -> T_Expression  -> T_Expression 
@@ -2427,35 +2469,35 @@ sem_Expression_Parenthesized arg_range_ arg_expression_ = T_Expression (return s
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionIbindingGroups _expressionIkappaUnique _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionObindingGroups _expressionOkappaUnique)
-         _self = rule270 _expressionIself _rangeIself
+         _self = rule276 _expressionIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule271 _self
+         _lhsOself = rule277 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule272 _expressionIbindingGroups
+         _lhsObindingGroups = rule278 _expressionIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule273 _expressionIkappaUnique
-         _expressionObindingGroups = rule274 _lhsIbindingGroups
-         _expressionOkappaUnique = rule275 _lhsIkappaUnique
+         _lhsOkappaUnique = rule279 _expressionIkappaUnique
+         _expressionObindingGroups = rule280 _lhsIbindingGroups
+         _expressionOkappaUnique = rule281 _lhsIkappaUnique
          __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule270 #-}
-   rule270 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
+   {-# INLINE rule276 #-}
+   rule276 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
      Expression_Parenthesized _rangeIself _expressionIself
-   {-# INLINE rule271 #-}
-   rule271 = \ _self ->
+   {-# INLINE rule277 #-}
+   rule277 = \ _self ->
      _self
-   {-# INLINE rule272 #-}
-   rule272 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule278 #-}
+   rule278 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
      _expressionIbindingGroups
-   {-# INLINE rule273 #-}
-   rule273 = \ ((_expressionIkappaUnique) :: Int) ->
+   {-# INLINE rule279 #-}
+   rule279 = \ ((_expressionIkappaUnique) :: Int) ->
      _expressionIkappaUnique
-   {-# INLINE rule274 #-}
-   rule274 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule280 #-}
+   rule280 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule275 #-}
-   rule275 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule281 #-}
+   rule281 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 {-# NOINLINE sem_Expression_NormalApplication #-}
 sem_Expression_NormalApplication :: T_Range  -> T_Expression  -> T_Expressions  -> T_Expression 
@@ -2470,43 +2512,43 @@ sem_Expression_NormalApplication arg_range_ arg_function_ arg_arguments_ = T_Exp
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _functionIbindingGroups _functionIkappaUnique _functionIself) = inv_Expression_s41 _functionX41 (T_Expression_vIn40 _functionObindingGroups _functionOkappaUnique)
          (T_Expressions_vOut43 _argumentsIbindingGroups _argumentsIkappaUnique _argumentsIself) = inv_Expressions_s44 _argumentsX44 (T_Expressions_vIn43 _argumentsObindingGroups _argumentsOkappaUnique)
-         _self = rule276 _argumentsIself _functionIself _rangeIself
+         _self = rule282 _argumentsIself _functionIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule277 _self
+         _lhsOself = rule283 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule278 _argumentsIbindingGroups
+         _lhsObindingGroups = rule284 _argumentsIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule279 _argumentsIkappaUnique
-         _functionObindingGroups = rule280 _lhsIbindingGroups
-         _functionOkappaUnique = rule281 _lhsIkappaUnique
-         _argumentsObindingGroups = rule282 _functionIbindingGroups
-         _argumentsOkappaUnique = rule283 _functionIkappaUnique
+         _lhsOkappaUnique = rule285 _argumentsIkappaUnique
+         _functionObindingGroups = rule286 _lhsIbindingGroups
+         _functionOkappaUnique = rule287 _lhsIkappaUnique
+         _argumentsObindingGroups = rule288 _functionIbindingGroups
+         _argumentsOkappaUnique = rule289 _functionIkappaUnique
          __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule276 #-}
-   rule276 = \ ((_argumentsIself) :: Expressions) ((_functionIself) :: Expression) ((_rangeIself) :: Range) ->
-     Expression_NormalApplication _rangeIself _functionIself _argumentsIself
-   {-# INLINE rule277 #-}
-   rule277 = \ _self ->
-     _self
-   {-# INLINE rule278 #-}
-   rule278 = \ ((_argumentsIbindingGroups) :: BindingGroups) ->
-     _argumentsIbindingGroups
-   {-# INLINE rule279 #-}
-   rule279 = \ ((_argumentsIkappaUnique) :: Int) ->
-     _argumentsIkappaUnique
-   {-# INLINE rule280 #-}
-   rule280 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
-   {-# INLINE rule281 #-}
-   rule281 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
    {-# INLINE rule282 #-}
-   rule282 = \ ((_functionIbindingGroups) :: BindingGroups) ->
-     _functionIbindingGroups
+   rule282 = \ ((_argumentsIself) :: Expressions) ((_functionIself) :: Expression) ((_rangeIself) :: Range) ->
+     Expression_NormalApplication _rangeIself _functionIself _argumentsIself
    {-# INLINE rule283 #-}
-   rule283 = \ ((_functionIkappaUnique) :: Int) ->
+   rule283 = \ _self ->
+     _self
+   {-# INLINE rule284 #-}
+   rule284 = \ ((_argumentsIbindingGroups) :: BindingGroups) ->
+     _argumentsIbindingGroups
+   {-# INLINE rule285 #-}
+   rule285 = \ ((_argumentsIkappaUnique) :: Int) ->
+     _argumentsIkappaUnique
+   {-# INLINE rule286 #-}
+   rule286 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule287 #-}
+   rule287 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule288 #-}
+   rule288 = \ ((_functionIbindingGroups) :: BindingGroups) ->
+     _functionIbindingGroups
+   {-# INLINE rule289 #-}
+   rule289 = \ ((_functionIkappaUnique) :: Int) ->
      _functionIkappaUnique
 {-# NOINLINE sem_Expression_InfixApplication #-}
 sem_Expression_InfixApplication :: T_Range  -> T_MaybeExpression  -> T_Expression  -> T_MaybeExpression  -> T_Expression 
@@ -2523,51 +2565,51 @@ sem_Expression_InfixApplication arg_range_ arg_leftExpression_ arg_operator_ arg
          (T_MaybeExpression_vOut94 _leftExpressionIbindingGroups _leftExpressionIkappaUnique _leftExpressionIself) = inv_MaybeExpression_s95 _leftExpressionX95 (T_MaybeExpression_vIn94 _leftExpressionObindingGroups _leftExpressionOkappaUnique)
          (T_Expression_vOut40 _operatorIbindingGroups _operatorIkappaUnique _operatorIself) = inv_Expression_s41 _operatorX41 (T_Expression_vIn40 _operatorObindingGroups _operatorOkappaUnique)
          (T_MaybeExpression_vOut94 _rightExpressionIbindingGroups _rightExpressionIkappaUnique _rightExpressionIself) = inv_MaybeExpression_s95 _rightExpressionX95 (T_MaybeExpression_vIn94 _rightExpressionObindingGroups _rightExpressionOkappaUnique)
-         _self = rule284 _leftExpressionIself _operatorIself _rangeIself _rightExpressionIself
+         _self = rule290 _leftExpressionIself _operatorIself _rangeIself _rightExpressionIself
          _lhsOself :: Expression
-         _lhsOself = rule285 _self
+         _lhsOself = rule291 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule286 _rightExpressionIbindingGroups
+         _lhsObindingGroups = rule292 _rightExpressionIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule287 _rightExpressionIkappaUnique
-         _leftExpressionObindingGroups = rule288 _lhsIbindingGroups
-         _leftExpressionOkappaUnique = rule289 _lhsIkappaUnique
-         _operatorObindingGroups = rule290 _leftExpressionIbindingGroups
-         _operatorOkappaUnique = rule291 _leftExpressionIkappaUnique
-         _rightExpressionObindingGroups = rule292 _operatorIbindingGroups
-         _rightExpressionOkappaUnique = rule293 _operatorIkappaUnique
+         _lhsOkappaUnique = rule293 _rightExpressionIkappaUnique
+         _leftExpressionObindingGroups = rule294 _lhsIbindingGroups
+         _leftExpressionOkappaUnique = rule295 _lhsIkappaUnique
+         _operatorObindingGroups = rule296 _leftExpressionIbindingGroups
+         _operatorOkappaUnique = rule297 _leftExpressionIkappaUnique
+         _rightExpressionObindingGroups = rule298 _operatorIbindingGroups
+         _rightExpressionOkappaUnique = rule299 _operatorIkappaUnique
          __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule284 #-}
-   rule284 = \ ((_leftExpressionIself) :: MaybeExpression) ((_operatorIself) :: Expression) ((_rangeIself) :: Range) ((_rightExpressionIself) :: MaybeExpression) ->
-     Expression_InfixApplication _rangeIself _leftExpressionIself _operatorIself _rightExpressionIself
-   {-# INLINE rule285 #-}
-   rule285 = \ _self ->
-     _self
-   {-# INLINE rule286 #-}
-   rule286 = \ ((_rightExpressionIbindingGroups) :: BindingGroups) ->
-     _rightExpressionIbindingGroups
-   {-# INLINE rule287 #-}
-   rule287 = \ ((_rightExpressionIkappaUnique) :: Int) ->
-     _rightExpressionIkappaUnique
-   {-# INLINE rule288 #-}
-   rule288 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
-   {-# INLINE rule289 #-}
-   rule289 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
    {-# INLINE rule290 #-}
-   rule290 = \ ((_leftExpressionIbindingGroups) :: BindingGroups) ->
-     _leftExpressionIbindingGroups
+   rule290 = \ ((_leftExpressionIself) :: MaybeExpression) ((_operatorIself) :: Expression) ((_rangeIself) :: Range) ((_rightExpressionIself) :: MaybeExpression) ->
+     Expression_InfixApplication _rangeIself _leftExpressionIself _operatorIself _rightExpressionIself
    {-# INLINE rule291 #-}
-   rule291 = \ ((_leftExpressionIkappaUnique) :: Int) ->
-     _leftExpressionIkappaUnique
+   rule291 = \ _self ->
+     _self
    {-# INLINE rule292 #-}
-   rule292 = \ ((_operatorIbindingGroups) :: BindingGroups) ->
-     _operatorIbindingGroups
+   rule292 = \ ((_rightExpressionIbindingGroups) :: BindingGroups) ->
+     _rightExpressionIbindingGroups
    {-# INLINE rule293 #-}
-   rule293 = \ ((_operatorIkappaUnique) :: Int) ->
+   rule293 = \ ((_rightExpressionIkappaUnique) :: Int) ->
+     _rightExpressionIkappaUnique
+   {-# INLINE rule294 #-}
+   rule294 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule295 #-}
+   rule295 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule296 #-}
+   rule296 = \ ((_leftExpressionIbindingGroups) :: BindingGroups) ->
+     _leftExpressionIbindingGroups
+   {-# INLINE rule297 #-}
+   rule297 = \ ((_leftExpressionIkappaUnique) :: Int) ->
+     _leftExpressionIkappaUnique
+   {-# INLINE rule298 #-}
+   rule298 = \ ((_operatorIbindingGroups) :: BindingGroups) ->
+     _operatorIbindingGroups
+   {-# INLINE rule299 #-}
+   rule299 = \ ((_operatorIkappaUnique) :: Int) ->
      _operatorIkappaUnique
 {-# NOINLINE sem_Expression_If #-}
 sem_Expression_If :: T_Range  -> T_Expression  -> T_Expression  -> T_Expression  -> T_Expression 
@@ -2584,51 +2626,51 @@ sem_Expression_If arg_range_ arg_guardExpression_ arg_thenExpression_ arg_elseEx
          (T_Expression_vOut40 _guardExpressionIbindingGroups _guardExpressionIkappaUnique _guardExpressionIself) = inv_Expression_s41 _guardExpressionX41 (T_Expression_vIn40 _guardExpressionObindingGroups _guardExpressionOkappaUnique)
          (T_Expression_vOut40 _thenExpressionIbindingGroups _thenExpressionIkappaUnique _thenExpressionIself) = inv_Expression_s41 _thenExpressionX41 (T_Expression_vIn40 _thenExpressionObindingGroups _thenExpressionOkappaUnique)
          (T_Expression_vOut40 _elseExpressionIbindingGroups _elseExpressionIkappaUnique _elseExpressionIself) = inv_Expression_s41 _elseExpressionX41 (T_Expression_vIn40 _elseExpressionObindingGroups _elseExpressionOkappaUnique)
-         _self = rule294 _elseExpressionIself _guardExpressionIself _rangeIself _thenExpressionIself
+         _self = rule300 _elseExpressionIself _guardExpressionIself _rangeIself _thenExpressionIself
          _lhsOself :: Expression
-         _lhsOself = rule295 _self
+         _lhsOself = rule301 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule296 _elseExpressionIbindingGroups
+         _lhsObindingGroups = rule302 _elseExpressionIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule297 _elseExpressionIkappaUnique
-         _guardExpressionObindingGroups = rule298 _lhsIbindingGroups
-         _guardExpressionOkappaUnique = rule299 _lhsIkappaUnique
-         _thenExpressionObindingGroups = rule300 _guardExpressionIbindingGroups
-         _thenExpressionOkappaUnique = rule301 _guardExpressionIkappaUnique
-         _elseExpressionObindingGroups = rule302 _thenExpressionIbindingGroups
-         _elseExpressionOkappaUnique = rule303 _thenExpressionIkappaUnique
+         _lhsOkappaUnique = rule303 _elseExpressionIkappaUnique
+         _guardExpressionObindingGroups = rule304 _lhsIbindingGroups
+         _guardExpressionOkappaUnique = rule305 _lhsIkappaUnique
+         _thenExpressionObindingGroups = rule306 _guardExpressionIbindingGroups
+         _thenExpressionOkappaUnique = rule307 _guardExpressionIkappaUnique
+         _elseExpressionObindingGroups = rule308 _thenExpressionIbindingGroups
+         _elseExpressionOkappaUnique = rule309 _thenExpressionIkappaUnique
          __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule294 #-}
-   rule294 = \ ((_elseExpressionIself) :: Expression) ((_guardExpressionIself) :: Expression) ((_rangeIself) :: Range) ((_thenExpressionIself) :: Expression) ->
-     Expression_If _rangeIself _guardExpressionIself _thenExpressionIself _elseExpressionIself
-   {-# INLINE rule295 #-}
-   rule295 = \ _self ->
-     _self
-   {-# INLINE rule296 #-}
-   rule296 = \ ((_elseExpressionIbindingGroups) :: BindingGroups) ->
-     _elseExpressionIbindingGroups
-   {-# INLINE rule297 #-}
-   rule297 = \ ((_elseExpressionIkappaUnique) :: Int) ->
-     _elseExpressionIkappaUnique
-   {-# INLINE rule298 #-}
-   rule298 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
-   {-# INLINE rule299 #-}
-   rule299 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
    {-# INLINE rule300 #-}
-   rule300 = \ ((_guardExpressionIbindingGroups) :: BindingGroups) ->
-     _guardExpressionIbindingGroups
+   rule300 = \ ((_elseExpressionIself) :: Expression) ((_guardExpressionIself) :: Expression) ((_rangeIself) :: Range) ((_thenExpressionIself) :: Expression) ->
+     Expression_If _rangeIself _guardExpressionIself _thenExpressionIself _elseExpressionIself
    {-# INLINE rule301 #-}
-   rule301 = \ ((_guardExpressionIkappaUnique) :: Int) ->
-     _guardExpressionIkappaUnique
+   rule301 = \ _self ->
+     _self
    {-# INLINE rule302 #-}
-   rule302 = \ ((_thenExpressionIbindingGroups) :: BindingGroups) ->
-     _thenExpressionIbindingGroups
+   rule302 = \ ((_elseExpressionIbindingGroups) :: BindingGroups) ->
+     _elseExpressionIbindingGroups
    {-# INLINE rule303 #-}
-   rule303 = \ ((_thenExpressionIkappaUnique) :: Int) ->
+   rule303 = \ ((_elseExpressionIkappaUnique) :: Int) ->
+     _elseExpressionIkappaUnique
+   {-# INLINE rule304 #-}
+   rule304 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule305 #-}
+   rule305 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule306 #-}
+   rule306 = \ ((_guardExpressionIbindingGroups) :: BindingGroups) ->
+     _guardExpressionIbindingGroups
+   {-# INLINE rule307 #-}
+   rule307 = \ ((_guardExpressionIkappaUnique) :: Int) ->
+     _guardExpressionIkappaUnique
+   {-# INLINE rule308 #-}
+   rule308 = \ ((_thenExpressionIbindingGroups) :: BindingGroups) ->
+     _thenExpressionIbindingGroups
+   {-# INLINE rule309 #-}
+   rule309 = \ ((_thenExpressionIkappaUnique) :: Int) ->
      _thenExpressionIkappaUnique
 {-# NOINLINE sem_Expression_Lambda #-}
 sem_Expression_Lambda :: T_Range  -> T_Patterns  -> T_Expression  -> T_Expression 
@@ -2643,35 +2685,35 @@ sem_Expression_Lambda arg_range_ arg_patterns_ arg_expression_ = T_Expression (r
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Patterns_vOut121 _patternsIself) = inv_Patterns_s122 _patternsX122 (T_Patterns_vIn121 )
          (T_Expression_vOut40 _expressionIbindingGroups _expressionIkappaUnique _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionObindingGroups _expressionOkappaUnique)
-         _self = rule304 _expressionIself _patternsIself _rangeIself
+         _self = rule310 _expressionIself _patternsIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule305 _self
+         _lhsOself = rule311 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule306 _expressionIbindingGroups
+         _lhsObindingGroups = rule312 _expressionIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule307 _expressionIkappaUnique
-         _expressionObindingGroups = rule308 _lhsIbindingGroups
-         _expressionOkappaUnique = rule309 _lhsIkappaUnique
+         _lhsOkappaUnique = rule313 _expressionIkappaUnique
+         _expressionObindingGroups = rule314 _lhsIbindingGroups
+         _expressionOkappaUnique = rule315 _lhsIkappaUnique
          __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule304 #-}
-   rule304 = \ ((_expressionIself) :: Expression) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
+   {-# INLINE rule310 #-}
+   rule310 = \ ((_expressionIself) :: Expression) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
      Expression_Lambda _rangeIself _patternsIself _expressionIself
-   {-# INLINE rule305 #-}
-   rule305 = \ _self ->
+   {-# INLINE rule311 #-}
+   rule311 = \ _self ->
      _self
-   {-# INLINE rule306 #-}
-   rule306 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule312 #-}
+   rule312 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
      _expressionIbindingGroups
-   {-# INLINE rule307 #-}
-   rule307 = \ ((_expressionIkappaUnique) :: Int) ->
+   {-# INLINE rule313 #-}
+   rule313 = \ ((_expressionIkappaUnique) :: Int) ->
      _expressionIkappaUnique
-   {-# INLINE rule308 #-}
-   rule308 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule314 #-}
+   rule314 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule309 #-}
-   rule309 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule315 #-}
+   rule315 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 {-# NOINLINE sem_Expression_Case #-}
 sem_Expression_Case :: T_Range  -> T_Expression  -> T_Alternatives  -> T_Expression 
@@ -2686,43 +2728,43 @@ sem_Expression_Case arg_range_ arg_expression_ arg_alternatives_ = T_Expression 
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionIbindingGroups _expressionIkappaUnique _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionObindingGroups _expressionOkappaUnique)
          (T_Alternatives_vOut4 _alternativesIbindingGroups _alternativesIkappaUnique _alternativesIself) = inv_Alternatives_s5 _alternativesX5 (T_Alternatives_vIn4 _alternativesObindingGroups _alternativesOkappaUnique)
-         _self = rule310 _alternativesIself _expressionIself _rangeIself
+         _self = rule316 _alternativesIself _expressionIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule311 _self
+         _lhsOself = rule317 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule312 _alternativesIbindingGroups
+         _lhsObindingGroups = rule318 _alternativesIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule313 _alternativesIkappaUnique
-         _expressionObindingGroups = rule314 _lhsIbindingGroups
-         _expressionOkappaUnique = rule315 _lhsIkappaUnique
-         _alternativesObindingGroups = rule316 _expressionIbindingGroups
-         _alternativesOkappaUnique = rule317 _expressionIkappaUnique
+         _lhsOkappaUnique = rule319 _alternativesIkappaUnique
+         _expressionObindingGroups = rule320 _lhsIbindingGroups
+         _expressionOkappaUnique = rule321 _lhsIkappaUnique
+         _alternativesObindingGroups = rule322 _expressionIbindingGroups
+         _alternativesOkappaUnique = rule323 _expressionIkappaUnique
          __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule310 #-}
-   rule310 = \ ((_alternativesIself) :: Alternatives) ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
-     Expression_Case _rangeIself _expressionIself _alternativesIself
-   {-# INLINE rule311 #-}
-   rule311 = \ _self ->
-     _self
-   {-# INLINE rule312 #-}
-   rule312 = \ ((_alternativesIbindingGroups) :: BindingGroups) ->
-     _alternativesIbindingGroups
-   {-# INLINE rule313 #-}
-   rule313 = \ ((_alternativesIkappaUnique) :: Int) ->
-     _alternativesIkappaUnique
-   {-# INLINE rule314 #-}
-   rule314 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
-   {-# INLINE rule315 #-}
-   rule315 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
    {-# INLINE rule316 #-}
-   rule316 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
-     _expressionIbindingGroups
+   rule316 = \ ((_alternativesIself) :: Alternatives) ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
+     Expression_Case _rangeIself _expressionIself _alternativesIself
    {-# INLINE rule317 #-}
-   rule317 = \ ((_expressionIkappaUnique) :: Int) ->
+   rule317 = \ _self ->
+     _self
+   {-# INLINE rule318 #-}
+   rule318 = \ ((_alternativesIbindingGroups) :: BindingGroups) ->
+     _alternativesIbindingGroups
+   {-# INLINE rule319 #-}
+   rule319 = \ ((_alternativesIkappaUnique) :: Int) ->
+     _alternativesIkappaUnique
+   {-# INLINE rule320 #-}
+   rule320 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule321 #-}
+   rule321 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule322 #-}
+   rule322 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
+     _expressionIbindingGroups
+   {-# INLINE rule323 #-}
+   rule323 = \ ((_expressionIkappaUnique) :: Int) ->
      _expressionIkappaUnique
 {-# NOINLINE sem_Expression_Let #-}
 sem_Expression_Let :: T_Range  -> T_Declarations  -> T_Expression  -> T_Expression 
@@ -2737,43 +2779,43 @@ sem_Expression_Let arg_range_ arg_declarations_ arg_expression_ = T_Expression (
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Declarations_vOut31 _declarationsIbindingGroups _declarationsIkappaUnique _declarationsIself) = inv_Declarations_s32 _declarationsX32 (T_Declarations_vIn31 _declarationsObindingGroups _declarationsOkappaUnique)
          (T_Expression_vOut40 _expressionIbindingGroups _expressionIkappaUnique _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionObindingGroups _expressionOkappaUnique)
-         _self = rule318 _declarationsIself _expressionIself _rangeIself
+         _self = rule324 _declarationsIself _expressionIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule319 _self
+         _lhsOself = rule325 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule320 _expressionIbindingGroups
+         _lhsObindingGroups = rule326 _expressionIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule321 _expressionIkappaUnique
-         _declarationsObindingGroups = rule322 _lhsIbindingGroups
-         _declarationsOkappaUnique = rule323 _lhsIkappaUnique
-         _expressionObindingGroups = rule324 _declarationsIbindingGroups
-         _expressionOkappaUnique = rule325 _declarationsIkappaUnique
+         _lhsOkappaUnique = rule327 _expressionIkappaUnique
+         _declarationsObindingGroups = rule328 _lhsIbindingGroups
+         _declarationsOkappaUnique = rule329 _lhsIkappaUnique
+         _expressionObindingGroups = rule330 _declarationsIbindingGroups
+         _expressionOkappaUnique = rule331 _declarationsIkappaUnique
          __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule318 #-}
-   rule318 = \ ((_declarationsIself) :: Declarations) ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
-     Expression_Let _rangeIself _declarationsIself _expressionIself
-   {-# INLINE rule319 #-}
-   rule319 = \ _self ->
-     _self
-   {-# INLINE rule320 #-}
-   rule320 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
-     _expressionIbindingGroups
-   {-# INLINE rule321 #-}
-   rule321 = \ ((_expressionIkappaUnique) :: Int) ->
-     _expressionIkappaUnique
-   {-# INLINE rule322 #-}
-   rule322 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
-   {-# INLINE rule323 #-}
-   rule323 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
    {-# INLINE rule324 #-}
-   rule324 = \ ((_declarationsIbindingGroups) :: BindingGroups) ->
-     _declarationsIbindingGroups
+   rule324 = \ ((_declarationsIself) :: Declarations) ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
+     Expression_Let _rangeIself _declarationsIself _expressionIself
    {-# INLINE rule325 #-}
-   rule325 = \ ((_declarationsIkappaUnique) :: Int) ->
+   rule325 = \ _self ->
+     _self
+   {-# INLINE rule326 #-}
+   rule326 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
+     _expressionIbindingGroups
+   {-# INLINE rule327 #-}
+   rule327 = \ ((_expressionIkappaUnique) :: Int) ->
+     _expressionIkappaUnique
+   {-# INLINE rule328 #-}
+   rule328 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule329 #-}
+   rule329 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule330 #-}
+   rule330 = \ ((_declarationsIbindingGroups) :: BindingGroups) ->
+     _declarationsIbindingGroups
+   {-# INLINE rule331 #-}
+   rule331 = \ ((_declarationsIkappaUnique) :: Int) ->
      _declarationsIkappaUnique
 {-# NOINLINE sem_Expression_Do #-}
 sem_Expression_Do :: T_Range  -> T_Statements  -> T_Expression 
@@ -2786,80 +2828,39 @@ sem_Expression_Do arg_range_ arg_statements_ = T_Expression (return st41) where
          _statementsX158 = Control.Monad.Identity.runIdentity (attach_T_Statements (arg_statements_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Statements_vOut157 _statementsIbindingGroups _statementsIkappaUnique _statementsIself) = inv_Statements_s158 _statementsX158 (T_Statements_vIn157 _statementsObindingGroups _statementsOkappaUnique)
-         _self = rule326 _rangeIself _statementsIself
-         _lhsOself :: Expression
-         _lhsOself = rule327 _self
-         _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule328 _statementsIbindingGroups
-         _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule329 _statementsIkappaUnique
-         _statementsObindingGroups = rule330 _lhsIbindingGroups
-         _statementsOkappaUnique = rule331 _lhsIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
-         in __result_ )
-     in C_Expression_s41 v40
-   {-# INLINE rule326 #-}
-   rule326 = \ ((_rangeIself) :: Range) ((_statementsIself) :: Statements) ->
-     Expression_Do _rangeIself _statementsIself
-   {-# INLINE rule327 #-}
-   rule327 = \ _self ->
-     _self
-   {-# INLINE rule328 #-}
-   rule328 = \ ((_statementsIbindingGroups) :: BindingGroups) ->
-     _statementsIbindingGroups
-   {-# INLINE rule329 #-}
-   rule329 = \ ((_statementsIkappaUnique) :: Int) ->
-     _statementsIkappaUnique
-   {-# INLINE rule330 #-}
-   rule330 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
-   {-# INLINE rule331 #-}
-   rule331 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
-{-# NOINLINE sem_Expression_List #-}
-sem_Expression_List :: T_Range  -> T_Expressions  -> T_Expression 
-sem_Expression_List arg_range_ arg_expressions_ = T_Expression (return st41) where
-   {-# NOINLINE st41 #-}
-   st41 = let
-      v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
-         _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
-         _expressionsX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_expressions_))
-         (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         (T_Expressions_vOut43 _expressionsIbindingGroups _expressionsIkappaUnique _expressionsIself) = inv_Expressions_s44 _expressionsX44 (T_Expressions_vIn43 _expressionsObindingGroups _expressionsOkappaUnique)
-         _self = rule332 _expressionsIself _rangeIself
+         _self = rule332 _rangeIself _statementsIself
          _lhsOself :: Expression
          _lhsOself = rule333 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule334 _expressionsIbindingGroups
+         _lhsObindingGroups = rule334 _statementsIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule335 _expressionsIkappaUnique
-         _expressionsObindingGroups = rule336 _lhsIbindingGroups
-         _expressionsOkappaUnique = rule337 _lhsIkappaUnique
+         _lhsOkappaUnique = rule335 _statementsIkappaUnique
+         _statementsObindingGroups = rule336 _lhsIbindingGroups
+         _statementsOkappaUnique = rule337 _lhsIkappaUnique
          __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule332 #-}
-   rule332 = \ ((_expressionsIself) :: Expressions) ((_rangeIself) :: Range) ->
-     Expression_List _rangeIself _expressionsIself
+   rule332 = \ ((_rangeIself) :: Range) ((_statementsIself) :: Statements) ->
+     Expression_Do _rangeIself _statementsIself
    {-# INLINE rule333 #-}
    rule333 = \ _self ->
      _self
    {-# INLINE rule334 #-}
-   rule334 = \ ((_expressionsIbindingGroups) :: BindingGroups) ->
-     _expressionsIbindingGroups
+   rule334 = \ ((_statementsIbindingGroups) :: BindingGroups) ->
+     _statementsIbindingGroups
    {-# INLINE rule335 #-}
-   rule335 = \ ((_expressionsIkappaUnique) :: Int) ->
-     _expressionsIkappaUnique
+   rule335 = \ ((_statementsIkappaUnique) :: Int) ->
+     _statementsIkappaUnique
    {-# INLINE rule336 #-}
    rule336 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
    {-# INLINE rule337 #-}
    rule337 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
-{-# NOINLINE sem_Expression_Tuple #-}
-sem_Expression_Tuple :: T_Range  -> T_Expressions  -> T_Expression 
-sem_Expression_Tuple arg_range_ arg_expressions_ = T_Expression (return st41) where
+{-# NOINLINE sem_Expression_List #-}
+sem_Expression_List :: T_Range  -> T_Expressions  -> T_Expression 
+sem_Expression_List arg_range_ arg_expressions_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
    st41 = let
       v40 :: T_Expression_v40 
@@ -2882,7 +2883,7 @@ sem_Expression_Tuple arg_range_ arg_expressions_ = T_Expression (return st41) wh
      in C_Expression_s41 v40
    {-# INLINE rule338 #-}
    rule338 = \ ((_expressionsIself) :: Expressions) ((_rangeIself) :: Range) ->
-     Expression_Tuple _rangeIself _expressionsIself
+     Expression_List _rangeIself _expressionsIself
    {-# INLINE rule339 #-}
    rule339 = \ _self ->
      _self
@@ -2898,6 +2899,47 @@ sem_Expression_Tuple arg_range_ arg_expressions_ = T_Expression (return st41) wh
    {-# INLINE rule343 #-}
    rule343 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
+{-# NOINLINE sem_Expression_Tuple #-}
+sem_Expression_Tuple :: T_Range  -> T_Expressions  -> T_Expression 
+sem_Expression_Tuple arg_range_ arg_expressions_ = T_Expression (return st41) where
+   {-# NOINLINE st41 #-}
+   st41 = let
+      v40 :: T_Expression_v40 
+      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+         _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
+         _expressionsX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_expressions_))
+         (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
+         (T_Expressions_vOut43 _expressionsIbindingGroups _expressionsIkappaUnique _expressionsIself) = inv_Expressions_s44 _expressionsX44 (T_Expressions_vIn43 _expressionsObindingGroups _expressionsOkappaUnique)
+         _self = rule344 _expressionsIself _rangeIself
+         _lhsOself :: Expression
+         _lhsOself = rule345 _self
+         _lhsObindingGroups :: BindingGroups
+         _lhsObindingGroups = rule346 _expressionsIbindingGroups
+         _lhsOkappaUnique :: Int
+         _lhsOkappaUnique = rule347 _expressionsIkappaUnique
+         _expressionsObindingGroups = rule348 _lhsIbindingGroups
+         _expressionsOkappaUnique = rule349 _lhsIkappaUnique
+         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         in __result_ )
+     in C_Expression_s41 v40
+   {-# INLINE rule344 #-}
+   rule344 = \ ((_expressionsIself) :: Expressions) ((_rangeIself) :: Range) ->
+     Expression_Tuple _rangeIself _expressionsIself
+   {-# INLINE rule345 #-}
+   rule345 = \ _self ->
+     _self
+   {-# INLINE rule346 #-}
+   rule346 = \ ((_expressionsIbindingGroups) :: BindingGroups) ->
+     _expressionsIbindingGroups
+   {-# INLINE rule347 #-}
+   rule347 = \ ((_expressionsIkappaUnique) :: Int) ->
+     _expressionsIkappaUnique
+   {-# INLINE rule348 #-}
+   rule348 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule349 #-}
+   rule349 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
 {-# NOINLINE sem_Expression_Comprehension #-}
 sem_Expression_Comprehension :: T_Range  -> T_Expression  -> T_Qualifiers  -> T_Expression 
 sem_Expression_Comprehension arg_range_ arg_expression_ arg_qualifiers_ = T_Expression (return st41) where
@@ -2911,43 +2953,43 @@ sem_Expression_Comprehension arg_range_ arg_expression_ arg_qualifiers_ = T_Expr
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionIbindingGroups _expressionIkappaUnique _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionObindingGroups _expressionOkappaUnique)
          (T_Qualifiers_vOut130 _qualifiersIbindingGroups _qualifiersIkappaUnique _qualifiersIself) = inv_Qualifiers_s131 _qualifiersX131 (T_Qualifiers_vIn130 _qualifiersObindingGroups _qualifiersOkappaUnique)
-         _self = rule344 _expressionIself _qualifiersIself _rangeIself
+         _self = rule350 _expressionIself _qualifiersIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule345 _self
+         _lhsOself = rule351 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule346 _qualifiersIbindingGroups
+         _lhsObindingGroups = rule352 _qualifiersIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule347 _qualifiersIkappaUnique
-         _expressionObindingGroups = rule348 _lhsIbindingGroups
-         _expressionOkappaUnique = rule349 _lhsIkappaUnique
-         _qualifiersObindingGroups = rule350 _expressionIbindingGroups
-         _qualifiersOkappaUnique = rule351 _expressionIkappaUnique
+         _lhsOkappaUnique = rule353 _qualifiersIkappaUnique
+         _expressionObindingGroups = rule354 _lhsIbindingGroups
+         _expressionOkappaUnique = rule355 _lhsIkappaUnique
+         _qualifiersObindingGroups = rule356 _expressionIbindingGroups
+         _qualifiersOkappaUnique = rule357 _expressionIkappaUnique
          __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule344 #-}
-   rule344 = \ ((_expressionIself) :: Expression) ((_qualifiersIself) :: Qualifiers) ((_rangeIself) :: Range) ->
-     Expression_Comprehension _rangeIself _expressionIself _qualifiersIself
-   {-# INLINE rule345 #-}
-   rule345 = \ _self ->
-     _self
-   {-# INLINE rule346 #-}
-   rule346 = \ ((_qualifiersIbindingGroups) :: BindingGroups) ->
-     _qualifiersIbindingGroups
-   {-# INLINE rule347 #-}
-   rule347 = \ ((_qualifiersIkappaUnique) :: Int) ->
-     _qualifiersIkappaUnique
-   {-# INLINE rule348 #-}
-   rule348 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
-   {-# INLINE rule349 #-}
-   rule349 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
    {-# INLINE rule350 #-}
-   rule350 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
-     _expressionIbindingGroups
+   rule350 = \ ((_expressionIself) :: Expression) ((_qualifiersIself) :: Qualifiers) ((_rangeIself) :: Range) ->
+     Expression_Comprehension _rangeIself _expressionIself _qualifiersIself
    {-# INLINE rule351 #-}
-   rule351 = \ ((_expressionIkappaUnique) :: Int) ->
+   rule351 = \ _self ->
+     _self
+   {-# INLINE rule352 #-}
+   rule352 = \ ((_qualifiersIbindingGroups) :: BindingGroups) ->
+     _qualifiersIbindingGroups
+   {-# INLINE rule353 #-}
+   rule353 = \ ((_qualifiersIkappaUnique) :: Int) ->
+     _qualifiersIkappaUnique
+   {-# INLINE rule354 #-}
+   rule354 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule355 #-}
+   rule355 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule356 #-}
+   rule356 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
+     _expressionIbindingGroups
+   {-# INLINE rule357 #-}
+   rule357 = \ ((_expressionIkappaUnique) :: Int) ->
      _expressionIkappaUnique
 {-# NOINLINE sem_Expression_Typed #-}
 sem_Expression_Typed :: T_Range  -> T_Expression  -> T_Type  -> T_Expression 
@@ -2962,59 +3004,59 @@ sem_Expression_Typed arg_range_ arg_expression_ arg_type_ = T_Expression (return
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionIbindingGroups _expressionIkappaUnique _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionObindingGroups _expressionOkappaUnique)
          (T_Type_vOut163 _typeIassumptions _typeIconstraints _typeIkappa _typeIkappaUnique _typeIself) = inv_Type_s164 _typeX164 (T_Type_vIn163 _typeOconstraints _typeOkappaUnique)
-         _typeOconstraints = rule352  ()
+         _typeOconstraints = rule358  ()
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule353 _expressionIbindingGroups _newGroup
+         _lhsObindingGroups = rule359 _expressionIbindingGroups _newGroup
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule354 _tvEnv _typeIkappaUnique
-         _newConstraint = rule355 _rangeIself _typeIkappa _typeIself
-         _tvEnv = rule356 _typeIassumptions _typeIkappaUnique
-         (_cset,_aset) = rule357 _tvEnv _typeIassumptions
-         _newGroup = rule358 _aset _cset _newConstraint _typeIconstraints
-         _self = rule359 _expressionIself _rangeIself _typeIself
+         _lhsOkappaUnique = rule360 _tvEnv _typeIkappaUnique
+         _newConstraint = rule361 _rangeIself _typeIkappa _typeIself
+         _tvEnv = rule362 _typeIassumptions _typeIkappaUnique
+         (_cset,_aset) = rule363 _tvEnv _typeIassumptions
+         _newGroup = rule364 _aset _cset _newConstraint _typeIconstraints
+         _self = rule365 _expressionIself _rangeIself _typeIself
          _lhsOself :: Expression
-         _lhsOself = rule360 _self
-         _expressionObindingGroups = rule361 _lhsIbindingGroups
-         _expressionOkappaUnique = rule362 _lhsIkappaUnique
-         _typeOkappaUnique = rule363 _expressionIkappaUnique
+         _lhsOself = rule366 _self
+         _expressionObindingGroups = rule367 _lhsIbindingGroups
+         _expressionOkappaUnique = rule368 _lhsIkappaUnique
+         _typeOkappaUnique = rule369 _expressionIkappaUnique
          __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule352 #-}
-   rule352 = \  (_ :: ()) ->
-                                []
-   {-# INLINE rule353 #-}
-   rule353 = \ ((_expressionIbindingGroups) :: BindingGroups) _newGroup ->
-                                _newGroup : _expressionIbindingGroups
-   {-# INLINE rule354 #-}
-   rule354 = \ _tvEnv ((_typeIkappaUnique) :: Int) ->
-                                _typeIkappaUnique + length _tvEnv
-   {-# INLINE rule355 #-}
-   rule355 = \ ((_rangeIself) :: Range) ((_typeIkappa) :: Kind) ((_typeIself) :: Type) ->
-                                (_typeIkappa <==> star) (mustBeStar _rangeIself "type annotation" _typeIself)
-   {-# INLINE rule356 #-}
-   rule356 = \ ((_typeIassumptions) :: Assumptions) ((_typeIkappaUnique) :: Int) ->
-                                zip (getTypeVariables _typeIassumptions) (map TVar [_typeIkappaUnique..])
-   {-# INLINE rule357 #-}
-   rule357 = \ _tvEnv ((_typeIassumptions) :: Assumptions) ->
-                                (M.fromList _tvEnv .===. _typeIassumptions) (\n -> unexpected $ "Expression.Typed " ++ show n)
    {-# INLINE rule358 #-}
-   rule358 = \ _aset _cset _newConstraint ((_typeIconstraints) :: KindConstraints) ->
-                                (M.empty, _aset, _cset ++ _typeIconstraints ++ [_newConstraint])
+   rule358 = \  (_ :: ()) ->
+                                []
    {-# INLINE rule359 #-}
-   rule359 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
-     Expression_Typed _rangeIself _expressionIself _typeIself
+   rule359 = \ ((_expressionIbindingGroups) :: BindingGroups) _newGroup ->
+                                _newGroup : _expressionIbindingGroups
    {-# INLINE rule360 #-}
-   rule360 = \ _self ->
-     _self
+   rule360 = \ _tvEnv ((_typeIkappaUnique) :: Int) ->
+                                _typeIkappaUnique + length _tvEnv
    {-# INLINE rule361 #-}
-   rule361 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
+   rule361 = \ ((_rangeIself) :: Range) ((_typeIkappa) :: Kind) ((_typeIself) :: Type) ->
+                                (_typeIkappa <==> star) (mustBeStar _rangeIself "type annotation" _typeIself)
    {-# INLINE rule362 #-}
-   rule362 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
+   rule362 = \ ((_typeIassumptions) :: Assumptions) ((_typeIkappaUnique) :: Int) ->
+                                zip (getTypeVariables _typeIassumptions) (map TVar [_typeIkappaUnique..])
    {-# INLINE rule363 #-}
-   rule363 = \ ((_expressionIkappaUnique) :: Int) ->
+   rule363 = \ _tvEnv ((_typeIassumptions) :: Assumptions) ->
+                                (M.fromList _tvEnv .===. _typeIassumptions) (\n -> unexpected $ "Expression.Typed " ++ show n)
+   {-# INLINE rule364 #-}
+   rule364 = \ _aset _cset _newConstraint ((_typeIconstraints) :: KindConstraints) ->
+                                (M.empty, _aset, _cset ++ _typeIconstraints ++ [_newConstraint])
+   {-# INLINE rule365 #-}
+   rule365 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
+     Expression_Typed _rangeIself _expressionIself _typeIself
+   {-# INLINE rule366 #-}
+   rule366 = \ _self ->
+     _self
+   {-# INLINE rule367 #-}
+   rule367 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule368 #-}
+   rule368 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule369 #-}
+   rule369 = \ ((_expressionIkappaUnique) :: Int) ->
      _expressionIkappaUnique
 {-# NOINLINE sem_Expression_RecordConstruction #-}
 sem_Expression_RecordConstruction :: T_Range  -> T_Name  -> T_RecordExpressionBindings  -> T_Expression 
@@ -3029,66 +3071,21 @@ sem_Expression_RecordConstruction arg_range_ arg_name_ arg_recordExpressionBindi
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_RecordExpressionBindings_vOut139 _recordExpressionBindingsIbindingGroups _recordExpressionBindingsIkappaUnique _recordExpressionBindingsIself) = inv_RecordExpressionBindings_s140 _recordExpressionBindingsX140 (T_RecordExpressionBindings_vIn139 _recordExpressionBindingsObindingGroups _recordExpressionBindingsOkappaUnique)
-         _self = rule364 _nameIself _rangeIself _recordExpressionBindingsIself
-         _lhsOself :: Expression
-         _lhsOself = rule365 _self
-         _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule366 _recordExpressionBindingsIbindingGroups
-         _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule367 _recordExpressionBindingsIkappaUnique
-         _recordExpressionBindingsObindingGroups = rule368 _lhsIbindingGroups
-         _recordExpressionBindingsOkappaUnique = rule369 _lhsIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
-         in __result_ )
-     in C_Expression_s41 v40
-   {-# INLINE rule364 #-}
-   rule364 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_recordExpressionBindingsIself) :: RecordExpressionBindings) ->
-     Expression_RecordConstruction _rangeIself _nameIself _recordExpressionBindingsIself
-   {-# INLINE rule365 #-}
-   rule365 = \ _self ->
-     _self
-   {-# INLINE rule366 #-}
-   rule366 = \ ((_recordExpressionBindingsIbindingGroups) :: BindingGroups) ->
-     _recordExpressionBindingsIbindingGroups
-   {-# INLINE rule367 #-}
-   rule367 = \ ((_recordExpressionBindingsIkappaUnique) :: Int) ->
-     _recordExpressionBindingsIkappaUnique
-   {-# INLINE rule368 #-}
-   rule368 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
-   {-# INLINE rule369 #-}
-   rule369 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
-{-# NOINLINE sem_Expression_RecordUpdate #-}
-sem_Expression_RecordUpdate :: T_Range  -> T_Expression  -> T_RecordExpressionBindings  -> T_Expression 
-sem_Expression_RecordUpdate arg_range_ arg_expression_ arg_recordExpressionBindings_ = T_Expression (return st41) where
-   {-# NOINLINE st41 #-}
-   st41 = let
-      v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
-         _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
-         _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
-         _recordExpressionBindingsX140 = Control.Monad.Identity.runIdentity (attach_T_RecordExpressionBindings (arg_recordExpressionBindings_))
-         (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         (T_Expression_vOut40 _expressionIbindingGroups _expressionIkappaUnique _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionObindingGroups _expressionOkappaUnique)
-         (T_RecordExpressionBindings_vOut139 _recordExpressionBindingsIbindingGroups _recordExpressionBindingsIkappaUnique _recordExpressionBindingsIself) = inv_RecordExpressionBindings_s140 _recordExpressionBindingsX140 (T_RecordExpressionBindings_vIn139 _recordExpressionBindingsObindingGroups _recordExpressionBindingsOkappaUnique)
-         _self = rule370 _expressionIself _rangeIself _recordExpressionBindingsIself
+         _self = rule370 _nameIself _rangeIself _recordExpressionBindingsIself
          _lhsOself :: Expression
          _lhsOself = rule371 _self
          _lhsObindingGroups :: BindingGroups
          _lhsObindingGroups = rule372 _recordExpressionBindingsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule373 _recordExpressionBindingsIkappaUnique
-         _expressionObindingGroups = rule374 _lhsIbindingGroups
-         _expressionOkappaUnique = rule375 _lhsIkappaUnique
-         _recordExpressionBindingsObindingGroups = rule376 _expressionIbindingGroups
-         _recordExpressionBindingsOkappaUnique = rule377 _expressionIkappaUnique
+         _recordExpressionBindingsObindingGroups = rule374 _lhsIbindingGroups
+         _recordExpressionBindingsOkappaUnique = rule375 _lhsIkappaUnique
          __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule370 #-}
-   rule370 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ((_recordExpressionBindingsIself) :: RecordExpressionBindings) ->
-     Expression_RecordUpdate _rangeIself _expressionIself _recordExpressionBindingsIself
+   rule370 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_recordExpressionBindingsIself) :: RecordExpressionBindings) ->
+     Expression_RecordConstruction _rangeIself _nameIself _recordExpressionBindingsIself
    {-# INLINE rule371 #-}
    rule371 = \ _self ->
      _self
@@ -3104,11 +3101,56 @@ sem_Expression_RecordUpdate arg_range_ arg_expression_ arg_recordExpressionBindi
    {-# INLINE rule375 #-}
    rule375 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
+{-# NOINLINE sem_Expression_RecordUpdate #-}
+sem_Expression_RecordUpdate :: T_Range  -> T_Expression  -> T_RecordExpressionBindings  -> T_Expression 
+sem_Expression_RecordUpdate arg_range_ arg_expression_ arg_recordExpressionBindings_ = T_Expression (return st41) where
+   {-# NOINLINE st41 #-}
+   st41 = let
+      v40 :: T_Expression_v40 
+      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+         _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
+         _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
+         _recordExpressionBindingsX140 = Control.Monad.Identity.runIdentity (attach_T_RecordExpressionBindings (arg_recordExpressionBindings_))
+         (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
+         (T_Expression_vOut40 _expressionIbindingGroups _expressionIkappaUnique _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionObindingGroups _expressionOkappaUnique)
+         (T_RecordExpressionBindings_vOut139 _recordExpressionBindingsIbindingGroups _recordExpressionBindingsIkappaUnique _recordExpressionBindingsIself) = inv_RecordExpressionBindings_s140 _recordExpressionBindingsX140 (T_RecordExpressionBindings_vIn139 _recordExpressionBindingsObindingGroups _recordExpressionBindingsOkappaUnique)
+         _self = rule376 _expressionIself _rangeIself _recordExpressionBindingsIself
+         _lhsOself :: Expression
+         _lhsOself = rule377 _self
+         _lhsObindingGroups :: BindingGroups
+         _lhsObindingGroups = rule378 _recordExpressionBindingsIbindingGroups
+         _lhsOkappaUnique :: Int
+         _lhsOkappaUnique = rule379 _recordExpressionBindingsIkappaUnique
+         _expressionObindingGroups = rule380 _lhsIbindingGroups
+         _expressionOkappaUnique = rule381 _lhsIkappaUnique
+         _recordExpressionBindingsObindingGroups = rule382 _expressionIbindingGroups
+         _recordExpressionBindingsOkappaUnique = rule383 _expressionIkappaUnique
+         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         in __result_ )
+     in C_Expression_s41 v40
    {-# INLINE rule376 #-}
-   rule376 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
-     _expressionIbindingGroups
+   rule376 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ((_recordExpressionBindingsIself) :: RecordExpressionBindings) ->
+     Expression_RecordUpdate _rangeIself _expressionIself _recordExpressionBindingsIself
    {-# INLINE rule377 #-}
-   rule377 = \ ((_expressionIkappaUnique) :: Int) ->
+   rule377 = \ _self ->
+     _self
+   {-# INLINE rule378 #-}
+   rule378 = \ ((_recordExpressionBindingsIbindingGroups) :: BindingGroups) ->
+     _recordExpressionBindingsIbindingGroups
+   {-# INLINE rule379 #-}
+   rule379 = \ ((_recordExpressionBindingsIkappaUnique) :: Int) ->
+     _recordExpressionBindingsIkappaUnique
+   {-# INLINE rule380 #-}
+   rule380 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule381 #-}
+   rule381 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule382 #-}
+   rule382 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
+     _expressionIbindingGroups
+   {-# INLINE rule383 #-}
+   rule383 = \ ((_expressionIkappaUnique) :: Int) ->
      _expressionIkappaUnique
 {-# NOINLINE sem_Expression_Enum #-}
 sem_Expression_Enum :: T_Range  -> T_Expression  -> T_MaybeExpression  -> T_MaybeExpression  -> T_Expression 
@@ -3125,96 +3167,55 @@ sem_Expression_Enum arg_range_ arg_from_ arg_then_ arg_to_ = T_Expression (retur
          (T_Expression_vOut40 _fromIbindingGroups _fromIkappaUnique _fromIself) = inv_Expression_s41 _fromX41 (T_Expression_vIn40 _fromObindingGroups _fromOkappaUnique)
          (T_MaybeExpression_vOut94 _thenIbindingGroups _thenIkappaUnique _thenIself) = inv_MaybeExpression_s95 _thenX95 (T_MaybeExpression_vIn94 _thenObindingGroups _thenOkappaUnique)
          (T_MaybeExpression_vOut94 _toIbindingGroups _toIkappaUnique _toIself) = inv_MaybeExpression_s95 _toX95 (T_MaybeExpression_vIn94 _toObindingGroups _toOkappaUnique)
-         _self = rule378 _fromIself _rangeIself _thenIself _toIself
+         _self = rule384 _fromIself _rangeIself _thenIself _toIself
          _lhsOself :: Expression
-         _lhsOself = rule379 _self
+         _lhsOself = rule385 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule380 _toIbindingGroups
+         _lhsObindingGroups = rule386 _toIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule381 _toIkappaUnique
-         _fromObindingGroups = rule382 _lhsIbindingGroups
-         _fromOkappaUnique = rule383 _lhsIkappaUnique
-         _thenObindingGroups = rule384 _fromIbindingGroups
-         _thenOkappaUnique = rule385 _fromIkappaUnique
-         _toObindingGroups = rule386 _thenIbindingGroups
-         _toOkappaUnique = rule387 _thenIkappaUnique
+         _lhsOkappaUnique = rule387 _toIkappaUnique
+         _fromObindingGroups = rule388 _lhsIbindingGroups
+         _fromOkappaUnique = rule389 _lhsIkappaUnique
+         _thenObindingGroups = rule390 _fromIbindingGroups
+         _thenOkappaUnique = rule391 _fromIkappaUnique
+         _toObindingGroups = rule392 _thenIbindingGroups
+         _toOkappaUnique = rule393 _thenIkappaUnique
          __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule378 #-}
-   rule378 = \ ((_fromIself) :: Expression) ((_rangeIself) :: Range) ((_thenIself) :: MaybeExpression) ((_toIself) :: MaybeExpression) ->
-     Expression_Enum _rangeIself _fromIself _thenIself _toIself
-   {-# INLINE rule379 #-}
-   rule379 = \ _self ->
-     _self
-   {-# INLINE rule380 #-}
-   rule380 = \ ((_toIbindingGroups) :: BindingGroups) ->
-     _toIbindingGroups
-   {-# INLINE rule381 #-}
-   rule381 = \ ((_toIkappaUnique) :: Int) ->
-     _toIkappaUnique
-   {-# INLINE rule382 #-}
-   rule382 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
-   {-# INLINE rule383 #-}
-   rule383 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
    {-# INLINE rule384 #-}
-   rule384 = \ ((_fromIbindingGroups) :: BindingGroups) ->
-     _fromIbindingGroups
+   rule384 = \ ((_fromIself) :: Expression) ((_rangeIself) :: Range) ((_thenIself) :: MaybeExpression) ((_toIself) :: MaybeExpression) ->
+     Expression_Enum _rangeIself _fromIself _thenIself _toIself
    {-# INLINE rule385 #-}
-   rule385 = \ ((_fromIkappaUnique) :: Int) ->
-     _fromIkappaUnique
+   rule385 = \ _self ->
+     _self
    {-# INLINE rule386 #-}
-   rule386 = \ ((_thenIbindingGroups) :: BindingGroups) ->
-     _thenIbindingGroups
+   rule386 = \ ((_toIbindingGroups) :: BindingGroups) ->
+     _toIbindingGroups
    {-# INLINE rule387 #-}
-   rule387 = \ ((_thenIkappaUnique) :: Int) ->
+   rule387 = \ ((_toIkappaUnique) :: Int) ->
+     _toIkappaUnique
+   {-# INLINE rule388 #-}
+   rule388 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule389 #-}
+   rule389 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule390 #-}
+   rule390 = \ ((_fromIbindingGroups) :: BindingGroups) ->
+     _fromIbindingGroups
+   {-# INLINE rule391 #-}
+   rule391 = \ ((_fromIkappaUnique) :: Int) ->
+     _fromIkappaUnique
+   {-# INLINE rule392 #-}
+   rule392 = \ ((_thenIbindingGroups) :: BindingGroups) ->
+     _thenIbindingGroups
+   {-# INLINE rule393 #-}
+   rule393 = \ ((_thenIkappaUnique) :: Int) ->
      _thenIkappaUnique
 {-# NOINLINE sem_Expression_Negate #-}
 sem_Expression_Negate :: T_Range  -> T_Expression  -> T_Expression 
 sem_Expression_Negate arg_range_ arg_expression_ = T_Expression (return st41) where
-   {-# NOINLINE st41 #-}
-   st41 = let
-      v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
-         _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
-         _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
-         (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         (T_Expression_vOut40 _expressionIbindingGroups _expressionIkappaUnique _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionObindingGroups _expressionOkappaUnique)
-         _self = rule388 _expressionIself _rangeIself
-         _lhsOself :: Expression
-         _lhsOself = rule389 _self
-         _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule390 _expressionIbindingGroups
-         _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule391 _expressionIkappaUnique
-         _expressionObindingGroups = rule392 _lhsIbindingGroups
-         _expressionOkappaUnique = rule393 _lhsIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
-         in __result_ )
-     in C_Expression_s41 v40
-   {-# INLINE rule388 #-}
-   rule388 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
-     Expression_Negate _rangeIself _expressionIself
-   {-# INLINE rule389 #-}
-   rule389 = \ _self ->
-     _self
-   {-# INLINE rule390 #-}
-   rule390 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
-     _expressionIbindingGroups
-   {-# INLINE rule391 #-}
-   rule391 = \ ((_expressionIkappaUnique) :: Int) ->
-     _expressionIkappaUnique
-   {-# INLINE rule392 #-}
-   rule392 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
-   {-# INLINE rule393 #-}
-   rule393 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
-{-# NOINLINE sem_Expression_NegateFloat #-}
-sem_Expression_NegateFloat :: T_Range  -> T_Expression  -> T_Expression 
-sem_Expression_NegateFloat arg_range_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
    st41 = let
       v40 :: T_Expression_v40 
@@ -3237,7 +3238,7 @@ sem_Expression_NegateFloat arg_range_ arg_expression_ = T_Expression (return st4
      in C_Expression_s41 v40
    {-# INLINE rule394 #-}
    rule394 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
-     Expression_NegateFloat _rangeIself _expressionIself
+     Expression_Negate _rangeIself _expressionIself
    {-# INLINE rule395 #-}
    rule395 = \ _self ->
      _self
@@ -3252,6 +3253,47 @@ sem_Expression_NegateFloat arg_range_ arg_expression_ = T_Expression (return st4
      _lhsIbindingGroups
    {-# INLINE rule399 #-}
    rule399 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+{-# NOINLINE sem_Expression_NegateFloat #-}
+sem_Expression_NegateFloat :: T_Range  -> T_Expression  -> T_Expression 
+sem_Expression_NegateFloat arg_range_ arg_expression_ = T_Expression (return st41) where
+   {-# NOINLINE st41 #-}
+   st41 = let
+      v40 :: T_Expression_v40 
+      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+         _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
+         _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
+         (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
+         (T_Expression_vOut40 _expressionIbindingGroups _expressionIkappaUnique _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionObindingGroups _expressionOkappaUnique)
+         _self = rule400 _expressionIself _rangeIself
+         _lhsOself :: Expression
+         _lhsOself = rule401 _self
+         _lhsObindingGroups :: BindingGroups
+         _lhsObindingGroups = rule402 _expressionIbindingGroups
+         _lhsOkappaUnique :: Int
+         _lhsOkappaUnique = rule403 _expressionIkappaUnique
+         _expressionObindingGroups = rule404 _lhsIbindingGroups
+         _expressionOkappaUnique = rule405 _lhsIkappaUnique
+         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         in __result_ )
+     in C_Expression_s41 v40
+   {-# INLINE rule400 #-}
+   rule400 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
+     Expression_NegateFloat _rangeIself _expressionIself
+   {-# INLINE rule401 #-}
+   rule401 = \ _self ->
+     _self
+   {-# INLINE rule402 #-}
+   rule402 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
+     _expressionIbindingGroups
+   {-# INLINE rule403 #-}
+   rule403 = \ ((_expressionIkappaUnique) :: Int) ->
+     _expressionIkappaUnique
+   {-# INLINE rule404 #-}
+   rule404 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule405 #-}
+   rule405 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 
 -- Expressions -------------------------------------------------
@@ -3295,43 +3337,43 @@ sem_Expressions_Cons arg_hd_ arg_tl_ = T_Expressions (return st44) where
          _tlX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_tl_))
          (T_Expression_vOut40 _hdIbindingGroups _hdIkappaUnique _hdIself) = inv_Expression_s41 _hdX41 (T_Expression_vIn40 _hdObindingGroups _hdOkappaUnique)
          (T_Expressions_vOut43 _tlIbindingGroups _tlIkappaUnique _tlIself) = inv_Expressions_s44 _tlX44 (T_Expressions_vIn43 _tlObindingGroups _tlOkappaUnique)
-         _self = rule400 _hdIself _tlIself
+         _self = rule406 _hdIself _tlIself
          _lhsOself :: Expressions
-         _lhsOself = rule401 _self
+         _lhsOself = rule407 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule402 _tlIbindingGroups
+         _lhsObindingGroups = rule408 _tlIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule403 _tlIkappaUnique
-         _hdObindingGroups = rule404 _lhsIbindingGroups
-         _hdOkappaUnique = rule405 _lhsIkappaUnique
-         _tlObindingGroups = rule406 _hdIbindingGroups
-         _tlOkappaUnique = rule407 _hdIkappaUnique
+         _lhsOkappaUnique = rule409 _tlIkappaUnique
+         _hdObindingGroups = rule410 _lhsIbindingGroups
+         _hdOkappaUnique = rule411 _lhsIkappaUnique
+         _tlObindingGroups = rule412 _hdIbindingGroups
+         _tlOkappaUnique = rule413 _hdIkappaUnique
          __result_ = T_Expressions_vOut43 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expressions_s44 v43
-   {-# INLINE rule400 #-}
-   rule400 = \ ((_hdIself) :: Expression) ((_tlIself) :: Expressions) ->
-     (:) _hdIself _tlIself
-   {-# INLINE rule401 #-}
-   rule401 = \ _self ->
-     _self
-   {-# INLINE rule402 #-}
-   rule402 = \ ((_tlIbindingGroups) :: BindingGroups) ->
-     _tlIbindingGroups
-   {-# INLINE rule403 #-}
-   rule403 = \ ((_tlIkappaUnique) :: Int) ->
-     _tlIkappaUnique
-   {-# INLINE rule404 #-}
-   rule404 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
-   {-# INLINE rule405 #-}
-   rule405 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
    {-# INLINE rule406 #-}
-   rule406 = \ ((_hdIbindingGroups) :: BindingGroups) ->
-     _hdIbindingGroups
+   rule406 = \ ((_hdIself) :: Expression) ((_tlIself) :: Expressions) ->
+     (:) _hdIself _tlIself
    {-# INLINE rule407 #-}
-   rule407 = \ ((_hdIkappaUnique) :: Int) ->
+   rule407 = \ _self ->
+     _self
+   {-# INLINE rule408 #-}
+   rule408 = \ ((_tlIbindingGroups) :: BindingGroups) ->
+     _tlIbindingGroups
+   {-# INLINE rule409 #-}
+   rule409 = \ ((_tlIkappaUnique) :: Int) ->
+     _tlIkappaUnique
+   {-# INLINE rule410 #-}
+   rule410 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule411 #-}
+   rule411 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule412 #-}
+   rule412 = \ ((_hdIbindingGroups) :: BindingGroups) ->
+     _hdIbindingGroups
+   {-# INLINE rule413 #-}
+   rule413 = \ ((_hdIkappaUnique) :: Int) ->
      _hdIkappaUnique
 {-# NOINLINE sem_Expressions_Nil #-}
 sem_Expressions_Nil ::  T_Expressions 
@@ -3340,27 +3382,27 @@ sem_Expressions_Nil  = T_Expressions (return st44) where
    st44 = let
       v43 :: T_Expressions_v43 
       v43 = \ (T_Expressions_vIn43 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
-         _self = rule408  ()
+         _self = rule414  ()
          _lhsOself :: Expressions
-         _lhsOself = rule409 _self
+         _lhsOself = rule415 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule410 _lhsIbindingGroups
+         _lhsObindingGroups = rule416 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule411 _lhsIkappaUnique
+         _lhsOkappaUnique = rule417 _lhsIkappaUnique
          __result_ = T_Expressions_vOut43 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expressions_s44 v43
-   {-# INLINE rule408 #-}
-   rule408 = \  (_ :: ()) ->
+   {-# INLINE rule414 #-}
+   rule414 = \  (_ :: ()) ->
      []
-   {-# INLINE rule409 #-}
-   rule409 = \ _self ->
+   {-# INLINE rule415 #-}
+   rule415 = \ _self ->
      _self
-   {-# INLINE rule410 #-}
-   rule410 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule416 #-}
+   rule416 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule411 #-}
-   rule411 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule417 #-}
+   rule417 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 
 -- FieldDeclaration --------------------------------------------
@@ -3406,34 +3448,34 @@ sem_FieldDeclaration_FieldDeclaration arg_range_ arg_names_ arg_type_ = T_FieldD
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Names_vOut115 _namesIself) = inv_Names_s116 _namesX116 (T_Names_vIn115 )
          (T_AnnotatedType_vOut7 _typeIassumptions _typeIconstraints _typeIkappa _typeIkappaUnique _typeIself) = inv_AnnotatedType_s8 _typeX8 (T_AnnotatedType_vIn7 _typeOconstraints _typeOkappaUnique)
-         _constraints = rule412  ()
-         _self = rule413 _namesIself _rangeIself _typeIself
+         _constraints = rule418  ()
+         _self = rule419 _namesIself _rangeIself _typeIself
          _lhsOself :: FieldDeclaration
-         _lhsOself = rule414 _self
+         _lhsOself = rule420 _self
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule415 _typeIkappaUnique
-         _typeOconstraints = rule416 _constraints
-         _typeOkappaUnique = rule417 _lhsIkappaUnique
+         _lhsOkappaUnique = rule421 _typeIkappaUnique
+         _typeOconstraints = rule422 _constraints
+         _typeOkappaUnique = rule423 _lhsIkappaUnique
          __result_ = T_FieldDeclaration_vOut46 _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_FieldDeclaration_s47 v46
-   {-# INLINE rule412 #-}
-   rule412 = \  (_ :: ()) ->
+   {-# INLINE rule418 #-}
+   rule418 = \  (_ :: ()) ->
                                               internalError "KindInferencing.ag" "n/a" "Field decls are not supported"
-   {-# INLINE rule413 #-}
-   rule413 = \ ((_namesIself) :: Names) ((_rangeIself) :: Range) ((_typeIself) :: AnnotatedType) ->
+   {-# INLINE rule419 #-}
+   rule419 = \ ((_namesIself) :: Names) ((_rangeIself) :: Range) ((_typeIself) :: AnnotatedType) ->
      FieldDeclaration_FieldDeclaration _rangeIself _namesIself _typeIself
-   {-# INLINE rule414 #-}
-   rule414 = \ _self ->
+   {-# INLINE rule420 #-}
+   rule420 = \ _self ->
      _self
-   {-# INLINE rule415 #-}
-   rule415 = \ ((_typeIkappaUnique) :: Int) ->
+   {-# INLINE rule421 #-}
+   rule421 = \ ((_typeIkappaUnique) :: Int) ->
      _typeIkappaUnique
-   {-# INLINE rule416 #-}
-   rule416 = \ _constraints ->
+   {-# INLINE rule422 #-}
+   rule422 = \ _constraints ->
      _constraints
-   {-# INLINE rule417 #-}
-   rule417 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule423 #-}
+   rule423 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 
 -- FieldDeclarations -------------------------------------------
@@ -3477,30 +3519,30 @@ sem_FieldDeclarations_Cons arg_hd_ arg_tl_ = T_FieldDeclarations (return st50) w
          _tlX50 = Control.Monad.Identity.runIdentity (attach_T_FieldDeclarations (arg_tl_))
          (T_FieldDeclaration_vOut46 _hdIkappaUnique _hdIself) = inv_FieldDeclaration_s47 _hdX47 (T_FieldDeclaration_vIn46 _hdOkappaUnique)
          (T_FieldDeclarations_vOut49 _tlIkappaUnique _tlIself) = inv_FieldDeclarations_s50 _tlX50 (T_FieldDeclarations_vIn49 _tlOkappaUnique)
-         _self = rule418 _hdIself _tlIself
+         _self = rule424 _hdIself _tlIself
          _lhsOself :: FieldDeclarations
-         _lhsOself = rule419 _self
+         _lhsOself = rule425 _self
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule420 _tlIkappaUnique
-         _hdOkappaUnique = rule421 _lhsIkappaUnique
-         _tlOkappaUnique = rule422 _hdIkappaUnique
+         _lhsOkappaUnique = rule426 _tlIkappaUnique
+         _hdOkappaUnique = rule427 _lhsIkappaUnique
+         _tlOkappaUnique = rule428 _hdIkappaUnique
          __result_ = T_FieldDeclarations_vOut49 _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_FieldDeclarations_s50 v49
-   {-# INLINE rule418 #-}
-   rule418 = \ ((_hdIself) :: FieldDeclaration) ((_tlIself) :: FieldDeclarations) ->
+   {-# INLINE rule424 #-}
+   rule424 = \ ((_hdIself) :: FieldDeclaration) ((_tlIself) :: FieldDeclarations) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule419 #-}
-   rule419 = \ _self ->
+   {-# INLINE rule425 #-}
+   rule425 = \ _self ->
      _self
-   {-# INLINE rule420 #-}
-   rule420 = \ ((_tlIkappaUnique) :: Int) ->
+   {-# INLINE rule426 #-}
+   rule426 = \ ((_tlIkappaUnique) :: Int) ->
      _tlIkappaUnique
-   {-# INLINE rule421 #-}
-   rule421 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule427 #-}
+   rule427 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
-   {-# INLINE rule422 #-}
-   rule422 = \ ((_hdIkappaUnique) :: Int) ->
+   {-# INLINE rule428 #-}
+   rule428 = \ ((_hdIkappaUnique) :: Int) ->
      _hdIkappaUnique
 {-# NOINLINE sem_FieldDeclarations_Nil #-}
 sem_FieldDeclarations_Nil ::  T_FieldDeclarations 
@@ -3509,22 +3551,22 @@ sem_FieldDeclarations_Nil  = T_FieldDeclarations (return st50) where
    st50 = let
       v49 :: T_FieldDeclarations_v49 
       v49 = \ (T_FieldDeclarations_vIn49 _lhsIkappaUnique) -> ( let
-         _self = rule423  ()
+         _self = rule429  ()
          _lhsOself :: FieldDeclarations
-         _lhsOself = rule424 _self
+         _lhsOself = rule430 _self
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule425 _lhsIkappaUnique
+         _lhsOkappaUnique = rule431 _lhsIkappaUnique
          __result_ = T_FieldDeclarations_vOut49 _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_FieldDeclarations_s50 v49
-   {-# INLINE rule423 #-}
-   rule423 = \  (_ :: ()) ->
+   {-# INLINE rule429 #-}
+   rule429 = \  (_ :: ()) ->
      []
-   {-# INLINE rule424 #-}
-   rule424 = \ _self ->
+   {-# INLINE rule430 #-}
+   rule430 = \ _self ->
      _self
-   {-# INLINE rule425 #-}
-   rule425 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule431 #-}
+   rule431 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 
 -- Fixity ------------------------------------------------------
@@ -3568,17 +3610,17 @@ sem_Fixity_Infixl arg_range_ = T_Fixity (return st53) where
       v52 = \ (T_Fixity_vIn52 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule426 _rangeIself
+         _self = rule432 _rangeIself
          _lhsOself :: Fixity
-         _lhsOself = rule427 _self
+         _lhsOself = rule433 _self
          __result_ = T_Fixity_vOut52 _lhsOself
          in __result_ )
      in C_Fixity_s53 v52
-   {-# INLINE rule426 #-}
-   rule426 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule432 #-}
+   rule432 = \ ((_rangeIself) :: Range) ->
      Fixity_Infixl _rangeIself
-   {-# INLINE rule427 #-}
-   rule427 = \ _self ->
+   {-# INLINE rule433 #-}
+   rule433 = \ _self ->
      _self
 {-# NOINLINE sem_Fixity_Infixr #-}
 sem_Fixity_Infixr :: T_Range  -> T_Fixity 
@@ -3589,17 +3631,17 @@ sem_Fixity_Infixr arg_range_ = T_Fixity (return st53) where
       v52 = \ (T_Fixity_vIn52 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule428 _rangeIself
+         _self = rule434 _rangeIself
          _lhsOself :: Fixity
-         _lhsOself = rule429 _self
+         _lhsOself = rule435 _self
          __result_ = T_Fixity_vOut52 _lhsOself
          in __result_ )
      in C_Fixity_s53 v52
-   {-# INLINE rule428 #-}
-   rule428 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule434 #-}
+   rule434 = \ ((_rangeIself) :: Range) ->
      Fixity_Infixr _rangeIself
-   {-# INLINE rule429 #-}
-   rule429 = \ _self ->
+   {-# INLINE rule435 #-}
+   rule435 = \ _self ->
      _self
 {-# NOINLINE sem_Fixity_Infix #-}
 sem_Fixity_Infix :: T_Range  -> T_Fixity 
@@ -3610,17 +3652,17 @@ sem_Fixity_Infix arg_range_ = T_Fixity (return st53) where
       v52 = \ (T_Fixity_vIn52 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule430 _rangeIself
+         _self = rule436 _rangeIself
          _lhsOself :: Fixity
-         _lhsOself = rule431 _self
+         _lhsOself = rule437 _self
          __result_ = T_Fixity_vOut52 _lhsOself
          in __result_ )
      in C_Fixity_s53 v52
-   {-# INLINE rule430 #-}
-   rule430 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule436 #-}
+   rule436 = \ ((_rangeIself) :: Range) ->
      Fixity_Infix _rangeIself
-   {-# INLINE rule431 #-}
-   rule431 = \ _self ->
+   {-# INLINE rule437 #-}
+   rule437 = \ _self ->
      _self
 
 -- FunctionBinding ---------------------------------------------
@@ -3656,7 +3698,7 @@ type T_FunctionBinding_v55  = (T_FunctionBinding_vIn55 ) -> (T_FunctionBinding_v
 data T_FunctionBinding_vIn55  = T_FunctionBinding_vIn55 (BindingGroups) (Int)
 data T_FunctionBinding_vOut55  = T_FunctionBinding_vOut55 (BindingGroups) (Int) (FunctionBinding)
 {-# NOINLINE sem_FunctionBinding_Hole #-}
-sem_FunctionBinding_Hole :: T_Range  -> (Integer) -> T_FunctionBinding 
+sem_FunctionBinding_Hole :: T_Range  -> (String) -> T_FunctionBinding 
 sem_FunctionBinding_Hole arg_range_ arg_id_ = T_FunctionBinding (return st56) where
    {-# NOINLINE st56 #-}
    st56 = let
@@ -3664,27 +3706,27 @@ sem_FunctionBinding_Hole arg_range_ arg_id_ = T_FunctionBinding (return st56) wh
       v55 = \ (T_FunctionBinding_vIn55 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule432 _rangeIself arg_id_
+         _self = rule438 _rangeIself arg_id_
          _lhsOself :: FunctionBinding
-         _lhsOself = rule433 _self
+         _lhsOself = rule439 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule434 _lhsIbindingGroups
+         _lhsObindingGroups = rule440 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule435 _lhsIkappaUnique
+         _lhsOkappaUnique = rule441 _lhsIkappaUnique
          __result_ = T_FunctionBinding_vOut55 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_FunctionBinding_s56 v55
-   {-# INLINE rule432 #-}
-   rule432 = \ ((_rangeIself) :: Range) id_ ->
+   {-# INLINE rule438 #-}
+   rule438 = \ ((_rangeIself) :: Range) id_ ->
      FunctionBinding_Hole _rangeIself id_
-   {-# INLINE rule433 #-}
-   rule433 = \ _self ->
+   {-# INLINE rule439 #-}
+   rule439 = \ _self ->
      _self
-   {-# INLINE rule434 #-}
-   rule434 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule440 #-}
+   rule440 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule435 #-}
-   rule435 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule441 #-}
+   rule441 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 {-# NOINLINE sem_FunctionBinding_Feedback #-}
 sem_FunctionBinding_Feedback :: T_Range  -> (String) -> T_FunctionBinding  -> T_FunctionBinding 
@@ -3697,35 +3739,35 @@ sem_FunctionBinding_Feedback arg_range_ arg_feedback_ arg_functionBinding_ = T_F
          _functionBindingX56 = Control.Monad.Identity.runIdentity (attach_T_FunctionBinding (arg_functionBinding_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_FunctionBinding_vOut55 _functionBindingIbindingGroups _functionBindingIkappaUnique _functionBindingIself) = inv_FunctionBinding_s56 _functionBindingX56 (T_FunctionBinding_vIn55 _functionBindingObindingGroups _functionBindingOkappaUnique)
-         _self = rule436 _functionBindingIself _rangeIself arg_feedback_
+         _self = rule442 _functionBindingIself _rangeIself arg_feedback_
          _lhsOself :: FunctionBinding
-         _lhsOself = rule437 _self
+         _lhsOself = rule443 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule438 _functionBindingIbindingGroups
+         _lhsObindingGroups = rule444 _functionBindingIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule439 _functionBindingIkappaUnique
-         _functionBindingObindingGroups = rule440 _lhsIbindingGroups
-         _functionBindingOkappaUnique = rule441 _lhsIkappaUnique
+         _lhsOkappaUnique = rule445 _functionBindingIkappaUnique
+         _functionBindingObindingGroups = rule446 _lhsIbindingGroups
+         _functionBindingOkappaUnique = rule447 _lhsIkappaUnique
          __result_ = T_FunctionBinding_vOut55 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_FunctionBinding_s56 v55
-   {-# INLINE rule436 #-}
-   rule436 = \ ((_functionBindingIself) :: FunctionBinding) ((_rangeIself) :: Range) feedback_ ->
+   {-# INLINE rule442 #-}
+   rule442 = \ ((_functionBindingIself) :: FunctionBinding) ((_rangeIself) :: Range) feedback_ ->
      FunctionBinding_Feedback _rangeIself feedback_ _functionBindingIself
-   {-# INLINE rule437 #-}
-   rule437 = \ _self ->
+   {-# INLINE rule443 #-}
+   rule443 = \ _self ->
      _self
-   {-# INLINE rule438 #-}
-   rule438 = \ ((_functionBindingIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule444 #-}
+   rule444 = \ ((_functionBindingIbindingGroups) :: BindingGroups) ->
      _functionBindingIbindingGroups
-   {-# INLINE rule439 #-}
-   rule439 = \ ((_functionBindingIkappaUnique) :: Int) ->
+   {-# INLINE rule445 #-}
+   rule445 = \ ((_functionBindingIkappaUnique) :: Int) ->
      _functionBindingIkappaUnique
-   {-# INLINE rule440 #-}
-   rule440 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule446 #-}
+   rule446 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule441 #-}
-   rule441 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule447 #-}
+   rule447 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 {-# NOINLINE sem_FunctionBinding_FunctionBinding #-}
 sem_FunctionBinding_FunctionBinding :: T_Range  -> T_LeftHandSide  -> T_RightHandSide  -> T_FunctionBinding 
@@ -3740,35 +3782,35 @@ sem_FunctionBinding_FunctionBinding arg_range_ arg_lefthandside_ arg_righthandsi
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_LeftHandSide_vOut82 _lefthandsideIself) = inv_LeftHandSide_s83 _lefthandsideX83 (T_LeftHandSide_vIn82 )
          (T_RightHandSide_vOut148 _righthandsideIbindingGroups _righthandsideIkappaUnique _righthandsideIself) = inv_RightHandSide_s149 _righthandsideX149 (T_RightHandSide_vIn148 _righthandsideObindingGroups _righthandsideOkappaUnique)
-         _self = rule442 _lefthandsideIself _rangeIself _righthandsideIself
+         _self = rule448 _lefthandsideIself _rangeIself _righthandsideIself
          _lhsOself :: FunctionBinding
-         _lhsOself = rule443 _self
+         _lhsOself = rule449 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule444 _righthandsideIbindingGroups
+         _lhsObindingGroups = rule450 _righthandsideIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule445 _righthandsideIkappaUnique
-         _righthandsideObindingGroups = rule446 _lhsIbindingGroups
-         _righthandsideOkappaUnique = rule447 _lhsIkappaUnique
+         _lhsOkappaUnique = rule451 _righthandsideIkappaUnique
+         _righthandsideObindingGroups = rule452 _lhsIbindingGroups
+         _righthandsideOkappaUnique = rule453 _lhsIkappaUnique
          __result_ = T_FunctionBinding_vOut55 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_FunctionBinding_s56 v55
-   {-# INLINE rule442 #-}
-   rule442 = \ ((_lefthandsideIself) :: LeftHandSide) ((_rangeIself) :: Range) ((_righthandsideIself) :: RightHandSide) ->
+   {-# INLINE rule448 #-}
+   rule448 = \ ((_lefthandsideIself) :: LeftHandSide) ((_rangeIself) :: Range) ((_righthandsideIself) :: RightHandSide) ->
      FunctionBinding_FunctionBinding _rangeIself _lefthandsideIself _righthandsideIself
-   {-# INLINE rule443 #-}
-   rule443 = \ _self ->
+   {-# INLINE rule449 #-}
+   rule449 = \ _self ->
      _self
-   {-# INLINE rule444 #-}
-   rule444 = \ ((_righthandsideIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule450 #-}
+   rule450 = \ ((_righthandsideIbindingGroups) :: BindingGroups) ->
      _righthandsideIbindingGroups
-   {-# INLINE rule445 #-}
-   rule445 = \ ((_righthandsideIkappaUnique) :: Int) ->
+   {-# INLINE rule451 #-}
+   rule451 = \ ((_righthandsideIkappaUnique) :: Int) ->
      _righthandsideIkappaUnique
-   {-# INLINE rule446 #-}
-   rule446 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule452 #-}
+   rule452 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule447 #-}
-   rule447 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule453 #-}
+   rule453 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 
 -- FunctionBindings --------------------------------------------
@@ -3812,43 +3854,43 @@ sem_FunctionBindings_Cons arg_hd_ arg_tl_ = T_FunctionBindings (return st59) whe
          _tlX59 = Control.Monad.Identity.runIdentity (attach_T_FunctionBindings (arg_tl_))
          (T_FunctionBinding_vOut55 _hdIbindingGroups _hdIkappaUnique _hdIself) = inv_FunctionBinding_s56 _hdX56 (T_FunctionBinding_vIn55 _hdObindingGroups _hdOkappaUnique)
          (T_FunctionBindings_vOut58 _tlIbindingGroups _tlIkappaUnique _tlIself) = inv_FunctionBindings_s59 _tlX59 (T_FunctionBindings_vIn58 _tlObindingGroups _tlOkappaUnique)
-         _self = rule448 _hdIself _tlIself
+         _self = rule454 _hdIself _tlIself
          _lhsOself :: FunctionBindings
-         _lhsOself = rule449 _self
+         _lhsOself = rule455 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule450 _tlIbindingGroups
+         _lhsObindingGroups = rule456 _tlIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule451 _tlIkappaUnique
-         _hdObindingGroups = rule452 _lhsIbindingGroups
-         _hdOkappaUnique = rule453 _lhsIkappaUnique
-         _tlObindingGroups = rule454 _hdIbindingGroups
-         _tlOkappaUnique = rule455 _hdIkappaUnique
+         _lhsOkappaUnique = rule457 _tlIkappaUnique
+         _hdObindingGroups = rule458 _lhsIbindingGroups
+         _hdOkappaUnique = rule459 _lhsIkappaUnique
+         _tlObindingGroups = rule460 _hdIbindingGroups
+         _tlOkappaUnique = rule461 _hdIkappaUnique
          __result_ = T_FunctionBindings_vOut58 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_FunctionBindings_s59 v58
-   {-# INLINE rule448 #-}
-   rule448 = \ ((_hdIself) :: FunctionBinding) ((_tlIself) :: FunctionBindings) ->
-     (:) _hdIself _tlIself
-   {-# INLINE rule449 #-}
-   rule449 = \ _self ->
-     _self
-   {-# INLINE rule450 #-}
-   rule450 = \ ((_tlIbindingGroups) :: BindingGroups) ->
-     _tlIbindingGroups
-   {-# INLINE rule451 #-}
-   rule451 = \ ((_tlIkappaUnique) :: Int) ->
-     _tlIkappaUnique
-   {-# INLINE rule452 #-}
-   rule452 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
-   {-# INLINE rule453 #-}
-   rule453 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
    {-# INLINE rule454 #-}
-   rule454 = \ ((_hdIbindingGroups) :: BindingGroups) ->
-     _hdIbindingGroups
+   rule454 = \ ((_hdIself) :: FunctionBinding) ((_tlIself) :: FunctionBindings) ->
+     (:) _hdIself _tlIself
    {-# INLINE rule455 #-}
-   rule455 = \ ((_hdIkappaUnique) :: Int) ->
+   rule455 = \ _self ->
+     _self
+   {-# INLINE rule456 #-}
+   rule456 = \ ((_tlIbindingGroups) :: BindingGroups) ->
+     _tlIbindingGroups
+   {-# INLINE rule457 #-}
+   rule457 = \ ((_tlIkappaUnique) :: Int) ->
+     _tlIkappaUnique
+   {-# INLINE rule458 #-}
+   rule458 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule459 #-}
+   rule459 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule460 #-}
+   rule460 = \ ((_hdIbindingGroups) :: BindingGroups) ->
+     _hdIbindingGroups
+   {-# INLINE rule461 #-}
+   rule461 = \ ((_hdIkappaUnique) :: Int) ->
      _hdIkappaUnique
 {-# NOINLINE sem_FunctionBindings_Nil #-}
 sem_FunctionBindings_Nil ::  T_FunctionBindings 
@@ -3857,27 +3899,27 @@ sem_FunctionBindings_Nil  = T_FunctionBindings (return st59) where
    st59 = let
       v58 :: T_FunctionBindings_v58 
       v58 = \ (T_FunctionBindings_vIn58 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
-         _self = rule456  ()
+         _self = rule462  ()
          _lhsOself :: FunctionBindings
-         _lhsOself = rule457 _self
+         _lhsOself = rule463 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule458 _lhsIbindingGroups
+         _lhsObindingGroups = rule464 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule459 _lhsIkappaUnique
+         _lhsOkappaUnique = rule465 _lhsIkappaUnique
          __result_ = T_FunctionBindings_vOut58 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_FunctionBindings_s59 v58
-   {-# INLINE rule456 #-}
-   rule456 = \  (_ :: ()) ->
+   {-# INLINE rule462 #-}
+   rule462 = \  (_ :: ()) ->
      []
-   {-# INLINE rule457 #-}
-   rule457 = \ _self ->
+   {-# INLINE rule463 #-}
+   rule463 = \ _self ->
      _self
-   {-# INLINE rule458 #-}
-   rule458 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule464 #-}
+   rule464 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule459 #-}
-   rule459 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule465 #-}
+   rule465 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 
 -- GuardedExpression -------------------------------------------
@@ -3923,43 +3965,43 @@ sem_GuardedExpression_GuardedExpression arg_range_ arg_guard_ arg_expression_ = 
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _guardIbindingGroups _guardIkappaUnique _guardIself) = inv_Expression_s41 _guardX41 (T_Expression_vIn40 _guardObindingGroups _guardOkappaUnique)
          (T_Expression_vOut40 _expressionIbindingGroups _expressionIkappaUnique _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionObindingGroups _expressionOkappaUnique)
-         _self = rule460 _expressionIself _guardIself _rangeIself
+         _self = rule466 _expressionIself _guardIself _rangeIself
          _lhsOself :: GuardedExpression
-         _lhsOself = rule461 _self
+         _lhsOself = rule467 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule462 _expressionIbindingGroups
+         _lhsObindingGroups = rule468 _expressionIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule463 _expressionIkappaUnique
-         _guardObindingGroups = rule464 _lhsIbindingGroups
-         _guardOkappaUnique = rule465 _lhsIkappaUnique
-         _expressionObindingGroups = rule466 _guardIbindingGroups
-         _expressionOkappaUnique = rule467 _guardIkappaUnique
+         _lhsOkappaUnique = rule469 _expressionIkappaUnique
+         _guardObindingGroups = rule470 _lhsIbindingGroups
+         _guardOkappaUnique = rule471 _lhsIkappaUnique
+         _expressionObindingGroups = rule472 _guardIbindingGroups
+         _expressionOkappaUnique = rule473 _guardIkappaUnique
          __result_ = T_GuardedExpression_vOut61 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_GuardedExpression_s62 v61
-   {-# INLINE rule460 #-}
-   rule460 = \ ((_expressionIself) :: Expression) ((_guardIself) :: Expression) ((_rangeIself) :: Range) ->
-     GuardedExpression_GuardedExpression _rangeIself _guardIself _expressionIself
-   {-# INLINE rule461 #-}
-   rule461 = \ _self ->
-     _self
-   {-# INLINE rule462 #-}
-   rule462 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
-     _expressionIbindingGroups
-   {-# INLINE rule463 #-}
-   rule463 = \ ((_expressionIkappaUnique) :: Int) ->
-     _expressionIkappaUnique
-   {-# INLINE rule464 #-}
-   rule464 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
-   {-# INLINE rule465 #-}
-   rule465 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
    {-# INLINE rule466 #-}
-   rule466 = \ ((_guardIbindingGroups) :: BindingGroups) ->
-     _guardIbindingGroups
+   rule466 = \ ((_expressionIself) :: Expression) ((_guardIself) :: Expression) ((_rangeIself) :: Range) ->
+     GuardedExpression_GuardedExpression _rangeIself _guardIself _expressionIself
    {-# INLINE rule467 #-}
-   rule467 = \ ((_guardIkappaUnique) :: Int) ->
+   rule467 = \ _self ->
+     _self
+   {-# INLINE rule468 #-}
+   rule468 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
+     _expressionIbindingGroups
+   {-# INLINE rule469 #-}
+   rule469 = \ ((_expressionIkappaUnique) :: Int) ->
+     _expressionIkappaUnique
+   {-# INLINE rule470 #-}
+   rule470 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule471 #-}
+   rule471 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule472 #-}
+   rule472 = \ ((_guardIbindingGroups) :: BindingGroups) ->
+     _guardIbindingGroups
+   {-# INLINE rule473 #-}
+   rule473 = \ ((_guardIkappaUnique) :: Int) ->
      _guardIkappaUnique
 
 -- GuardedExpressions ------------------------------------------
@@ -4003,43 +4045,43 @@ sem_GuardedExpressions_Cons arg_hd_ arg_tl_ = T_GuardedExpressions (return st65)
          _tlX65 = Control.Monad.Identity.runIdentity (attach_T_GuardedExpressions (arg_tl_))
          (T_GuardedExpression_vOut61 _hdIbindingGroups _hdIkappaUnique _hdIself) = inv_GuardedExpression_s62 _hdX62 (T_GuardedExpression_vIn61 _hdObindingGroups _hdOkappaUnique)
          (T_GuardedExpressions_vOut64 _tlIbindingGroups _tlIkappaUnique _tlIself) = inv_GuardedExpressions_s65 _tlX65 (T_GuardedExpressions_vIn64 _tlObindingGroups _tlOkappaUnique)
-         _self = rule468 _hdIself _tlIself
+         _self = rule474 _hdIself _tlIself
          _lhsOself :: GuardedExpressions
-         _lhsOself = rule469 _self
+         _lhsOself = rule475 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule470 _tlIbindingGroups
+         _lhsObindingGroups = rule476 _tlIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule471 _tlIkappaUnique
-         _hdObindingGroups = rule472 _lhsIbindingGroups
-         _hdOkappaUnique = rule473 _lhsIkappaUnique
-         _tlObindingGroups = rule474 _hdIbindingGroups
-         _tlOkappaUnique = rule475 _hdIkappaUnique
+         _lhsOkappaUnique = rule477 _tlIkappaUnique
+         _hdObindingGroups = rule478 _lhsIbindingGroups
+         _hdOkappaUnique = rule479 _lhsIkappaUnique
+         _tlObindingGroups = rule480 _hdIbindingGroups
+         _tlOkappaUnique = rule481 _hdIkappaUnique
          __result_ = T_GuardedExpressions_vOut64 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_GuardedExpressions_s65 v64
-   {-# INLINE rule468 #-}
-   rule468 = \ ((_hdIself) :: GuardedExpression) ((_tlIself) :: GuardedExpressions) ->
-     (:) _hdIself _tlIself
-   {-# INLINE rule469 #-}
-   rule469 = \ _self ->
-     _self
-   {-# INLINE rule470 #-}
-   rule470 = \ ((_tlIbindingGroups) :: BindingGroups) ->
-     _tlIbindingGroups
-   {-# INLINE rule471 #-}
-   rule471 = \ ((_tlIkappaUnique) :: Int) ->
-     _tlIkappaUnique
-   {-# INLINE rule472 #-}
-   rule472 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
-   {-# INLINE rule473 #-}
-   rule473 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
    {-# INLINE rule474 #-}
-   rule474 = \ ((_hdIbindingGroups) :: BindingGroups) ->
-     _hdIbindingGroups
+   rule474 = \ ((_hdIself) :: GuardedExpression) ((_tlIself) :: GuardedExpressions) ->
+     (:) _hdIself _tlIself
    {-# INLINE rule475 #-}
-   rule475 = \ ((_hdIkappaUnique) :: Int) ->
+   rule475 = \ _self ->
+     _self
+   {-# INLINE rule476 #-}
+   rule476 = \ ((_tlIbindingGroups) :: BindingGroups) ->
+     _tlIbindingGroups
+   {-# INLINE rule477 #-}
+   rule477 = \ ((_tlIkappaUnique) :: Int) ->
+     _tlIkappaUnique
+   {-# INLINE rule478 #-}
+   rule478 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule479 #-}
+   rule479 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule480 #-}
+   rule480 = \ ((_hdIbindingGroups) :: BindingGroups) ->
+     _hdIbindingGroups
+   {-# INLINE rule481 #-}
+   rule481 = \ ((_hdIkappaUnique) :: Int) ->
      _hdIkappaUnique
 {-# NOINLINE sem_GuardedExpressions_Nil #-}
 sem_GuardedExpressions_Nil ::  T_GuardedExpressions 
@@ -4048,27 +4090,27 @@ sem_GuardedExpressions_Nil  = T_GuardedExpressions (return st65) where
    st65 = let
       v64 :: T_GuardedExpressions_v64 
       v64 = \ (T_GuardedExpressions_vIn64 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
-         _self = rule476  ()
+         _self = rule482  ()
          _lhsOself :: GuardedExpressions
-         _lhsOself = rule477 _self
+         _lhsOself = rule483 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule478 _lhsIbindingGroups
+         _lhsObindingGroups = rule484 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule479 _lhsIkappaUnique
+         _lhsOkappaUnique = rule485 _lhsIkappaUnique
          __result_ = T_GuardedExpressions_vOut64 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_GuardedExpressions_s65 v64
-   {-# INLINE rule476 #-}
-   rule476 = \  (_ :: ()) ->
+   {-# INLINE rule482 #-}
+   rule482 = \  (_ :: ()) ->
      []
-   {-# INLINE rule477 #-}
-   rule477 = \ _self ->
+   {-# INLINE rule483 #-}
+   rule483 = \ _self ->
      _self
-   {-# INLINE rule478 #-}
-   rule478 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule484 #-}
+   rule484 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule479 #-}
-   rule479 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule485 #-}
+   rule485 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 
 -- Import ------------------------------------------------------
@@ -4114,17 +4156,17 @@ sem_Import_Variable arg_range_ arg_name_ = T_Import (return st68) where
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
-         _self = rule480 _nameIself _rangeIself
+         _self = rule486 _nameIself _rangeIself
          _lhsOself :: Import
-         _lhsOself = rule481 _self
+         _lhsOself = rule487 _self
          __result_ = T_Import_vOut67 _lhsOself
          in __result_ )
      in C_Import_s68 v67
-   {-# INLINE rule480 #-}
-   rule480 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule486 #-}
+   rule486 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Import_Variable _rangeIself _nameIself
-   {-# INLINE rule481 #-}
-   rule481 = \ _self ->
+   {-# INLINE rule487 #-}
+   rule487 = \ _self ->
      _self
 {-# NOINLINE sem_Import_TypeOrClass #-}
 sem_Import_TypeOrClass :: T_Range  -> T_Name  -> T_MaybeNames  -> T_Import 
@@ -4139,17 +4181,17 @@ sem_Import_TypeOrClass arg_range_ arg_name_ arg_names_ = T_Import (return st68) 
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_MaybeNames_vOut106 _namesIself) = inv_MaybeNames_s107 _namesX107 (T_MaybeNames_vIn106 )
-         _self = rule482 _nameIself _namesIself _rangeIself
+         _self = rule488 _nameIself _namesIself _rangeIself
          _lhsOself :: Import
-         _lhsOself = rule483 _self
+         _lhsOself = rule489 _self
          __result_ = T_Import_vOut67 _lhsOself
          in __result_ )
      in C_Import_s68 v67
-   {-# INLINE rule482 #-}
-   rule482 = \ ((_nameIself) :: Name) ((_namesIself) :: MaybeNames) ((_rangeIself) :: Range) ->
+   {-# INLINE rule488 #-}
+   rule488 = \ ((_nameIself) :: Name) ((_namesIself) :: MaybeNames) ((_rangeIself) :: Range) ->
      Import_TypeOrClass _rangeIself _nameIself _namesIself
-   {-# INLINE rule483 #-}
-   rule483 = \ _self ->
+   {-# INLINE rule489 #-}
+   rule489 = \ _self ->
      _self
 {-# NOINLINE sem_Import_TypeOrClassComplete #-}
 sem_Import_TypeOrClassComplete :: T_Range  -> T_Name  -> T_Import 
@@ -4162,17 +4204,17 @@ sem_Import_TypeOrClassComplete arg_range_ arg_name_ = T_Import (return st68) whe
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
-         _self = rule484 _nameIself _rangeIself
+         _self = rule490 _nameIself _rangeIself
          _lhsOself :: Import
-         _lhsOself = rule485 _self
+         _lhsOself = rule491 _self
          __result_ = T_Import_vOut67 _lhsOself
          in __result_ )
      in C_Import_s68 v67
-   {-# INLINE rule484 #-}
-   rule484 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule490 #-}
+   rule490 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Import_TypeOrClassComplete _rangeIself _nameIself
-   {-# INLINE rule485 #-}
-   rule485 = \ _self ->
+   {-# INLINE rule491 #-}
+   rule491 = \ _self ->
      _self
 
 -- ImportDeclaration -------------------------------------------
@@ -4221,17 +4263,17 @@ sem_ImportDeclaration_Import arg_range_ arg_qualified_ arg_name_ arg_asname_ arg
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_MaybeName_vOut103 _asnameIself) = inv_MaybeName_s104 _asnameX104 (T_MaybeName_vIn103 )
          (T_MaybeImportSpecification_vOut97 _importspecificationIself) = inv_MaybeImportSpecification_s98 _importspecificationX98 (T_MaybeImportSpecification_vIn97 )
-         _self = rule486 _asnameIself _importspecificationIself _nameIself _rangeIself arg_qualified_
+         _self = rule492 _asnameIself _importspecificationIself _nameIself _rangeIself arg_qualified_
          _lhsOself :: ImportDeclaration
-         _lhsOself = rule487 _self
+         _lhsOself = rule493 _self
          __result_ = T_ImportDeclaration_vOut70 _lhsOself
          in __result_ )
      in C_ImportDeclaration_s71 v70
-   {-# INLINE rule486 #-}
-   rule486 = \ ((_asnameIself) :: MaybeName) ((_importspecificationIself) :: MaybeImportSpecification) ((_nameIself) :: Name) ((_rangeIself) :: Range) qualified_ ->
+   {-# INLINE rule492 #-}
+   rule492 = \ ((_asnameIself) :: MaybeName) ((_importspecificationIself) :: MaybeImportSpecification) ((_nameIself) :: Name) ((_rangeIself) :: Range) qualified_ ->
      ImportDeclaration_Import _rangeIself qualified_ _nameIself _asnameIself _importspecificationIself
-   {-# INLINE rule487 #-}
-   rule487 = \ _self ->
+   {-# INLINE rule493 #-}
+   rule493 = \ _self ->
      _self
 {-# NOINLINE sem_ImportDeclaration_Empty #-}
 sem_ImportDeclaration_Empty :: T_Range  -> T_ImportDeclaration 
@@ -4242,17 +4284,17 @@ sem_ImportDeclaration_Empty arg_range_ = T_ImportDeclaration (return st71) where
       v70 = \ (T_ImportDeclaration_vIn70 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule488 _rangeIself
+         _self = rule494 _rangeIself
          _lhsOself :: ImportDeclaration
-         _lhsOself = rule489 _self
+         _lhsOself = rule495 _self
          __result_ = T_ImportDeclaration_vOut70 _lhsOself
          in __result_ )
      in C_ImportDeclaration_s71 v70
-   {-# INLINE rule488 #-}
-   rule488 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule494 #-}
+   rule494 = \ ((_rangeIself) :: Range) ->
      ImportDeclaration_Empty _rangeIself
-   {-# INLINE rule489 #-}
-   rule489 = \ _self ->
+   {-# INLINE rule495 #-}
+   rule495 = \ _self ->
      _self
 
 -- ImportDeclarations ------------------------------------------
@@ -4296,17 +4338,17 @@ sem_ImportDeclarations_Cons arg_hd_ arg_tl_ = T_ImportDeclarations (return st74)
          _tlX74 = Control.Monad.Identity.runIdentity (attach_T_ImportDeclarations (arg_tl_))
          (T_ImportDeclaration_vOut70 _hdIself) = inv_ImportDeclaration_s71 _hdX71 (T_ImportDeclaration_vIn70 )
          (T_ImportDeclarations_vOut73 _tlIself) = inv_ImportDeclarations_s74 _tlX74 (T_ImportDeclarations_vIn73 )
-         _self = rule490 _hdIself _tlIself
+         _self = rule496 _hdIself _tlIself
          _lhsOself :: ImportDeclarations
-         _lhsOself = rule491 _self
+         _lhsOself = rule497 _self
          __result_ = T_ImportDeclarations_vOut73 _lhsOself
          in __result_ )
      in C_ImportDeclarations_s74 v73
-   {-# INLINE rule490 #-}
-   rule490 = \ ((_hdIself) :: ImportDeclaration) ((_tlIself) :: ImportDeclarations) ->
+   {-# INLINE rule496 #-}
+   rule496 = \ ((_hdIself) :: ImportDeclaration) ((_tlIself) :: ImportDeclarations) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule491 #-}
-   rule491 = \ _self ->
+   {-# INLINE rule497 #-}
+   rule497 = \ _self ->
      _self
 {-# NOINLINE sem_ImportDeclarations_Nil #-}
 sem_ImportDeclarations_Nil ::  T_ImportDeclarations 
@@ -4315,17 +4357,17 @@ sem_ImportDeclarations_Nil  = T_ImportDeclarations (return st74) where
    st74 = let
       v73 :: T_ImportDeclarations_v73 
       v73 = \ (T_ImportDeclarations_vIn73 ) -> ( let
-         _self = rule492  ()
+         _self = rule498  ()
          _lhsOself :: ImportDeclarations
-         _lhsOself = rule493 _self
+         _lhsOself = rule499 _self
          __result_ = T_ImportDeclarations_vOut73 _lhsOself
          in __result_ )
      in C_ImportDeclarations_s74 v73
-   {-# INLINE rule492 #-}
-   rule492 = \  (_ :: ()) ->
+   {-# INLINE rule498 #-}
+   rule498 = \  (_ :: ()) ->
      []
-   {-# INLINE rule493 #-}
-   rule493 = \ _self ->
+   {-# INLINE rule499 #-}
+   rule499 = \ _self ->
      _self
 
 -- ImportSpecification -----------------------------------------
@@ -4369,17 +4411,17 @@ sem_ImportSpecification_Import arg_range_ arg_hiding_ arg_imports_ = T_ImportSpe
          _importsX80 = Control.Monad.Identity.runIdentity (attach_T_Imports (arg_imports_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Imports_vOut79 _importsIself) = inv_Imports_s80 _importsX80 (T_Imports_vIn79 )
-         _self = rule494 _importsIself _rangeIself arg_hiding_
+         _self = rule500 _importsIself _rangeIself arg_hiding_
          _lhsOself :: ImportSpecification
-         _lhsOself = rule495 _self
+         _lhsOself = rule501 _self
          __result_ = T_ImportSpecification_vOut76 _lhsOself
          in __result_ )
      in C_ImportSpecification_s77 v76
-   {-# INLINE rule494 #-}
-   rule494 = \ ((_importsIself) :: Imports) ((_rangeIself) :: Range) hiding_ ->
+   {-# INLINE rule500 #-}
+   rule500 = \ ((_importsIself) :: Imports) ((_rangeIself) :: Range) hiding_ ->
      ImportSpecification_Import _rangeIself hiding_ _importsIself
-   {-# INLINE rule495 #-}
-   rule495 = \ _self ->
+   {-# INLINE rule501 #-}
+   rule501 = \ _self ->
      _self
 
 -- Imports -----------------------------------------------------
@@ -4423,17 +4465,17 @@ sem_Imports_Cons arg_hd_ arg_tl_ = T_Imports (return st80) where
          _tlX80 = Control.Monad.Identity.runIdentity (attach_T_Imports (arg_tl_))
          (T_Import_vOut67 _hdIself) = inv_Import_s68 _hdX68 (T_Import_vIn67 )
          (T_Imports_vOut79 _tlIself) = inv_Imports_s80 _tlX80 (T_Imports_vIn79 )
-         _self = rule496 _hdIself _tlIself
+         _self = rule502 _hdIself _tlIself
          _lhsOself :: Imports
-         _lhsOself = rule497 _self
+         _lhsOself = rule503 _self
          __result_ = T_Imports_vOut79 _lhsOself
          in __result_ )
      in C_Imports_s80 v79
-   {-# INLINE rule496 #-}
-   rule496 = \ ((_hdIself) :: Import) ((_tlIself) :: Imports) ->
+   {-# INLINE rule502 #-}
+   rule502 = \ ((_hdIself) :: Import) ((_tlIself) :: Imports) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule497 #-}
-   rule497 = \ _self ->
+   {-# INLINE rule503 #-}
+   rule503 = \ _self ->
      _self
 {-# NOINLINE sem_Imports_Nil #-}
 sem_Imports_Nil ::  T_Imports 
@@ -4442,17 +4484,17 @@ sem_Imports_Nil  = T_Imports (return st80) where
    st80 = let
       v79 :: T_Imports_v79 
       v79 = \ (T_Imports_vIn79 ) -> ( let
-         _self = rule498  ()
+         _self = rule504  ()
          _lhsOself :: Imports
-         _lhsOself = rule499 _self
+         _lhsOself = rule505 _self
          __result_ = T_Imports_vOut79 _lhsOself
          in __result_ )
      in C_Imports_s80 v79
-   {-# INLINE rule498 #-}
-   rule498 = \  (_ :: ()) ->
+   {-# INLINE rule504 #-}
+   rule504 = \  (_ :: ()) ->
      []
-   {-# INLINE rule499 #-}
-   rule499 = \ _self ->
+   {-# INLINE rule505 #-}
+   rule505 = \ _self ->
      _self
 
 -- LeftHandSide ------------------------------------------------
@@ -4500,17 +4542,17 @@ sem_LeftHandSide_Function arg_range_ arg_name_ arg_patterns_ = T_LeftHandSide (r
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Patterns_vOut121 _patternsIself) = inv_Patterns_s122 _patternsX122 (T_Patterns_vIn121 )
-         _self = rule500 _nameIself _patternsIself _rangeIself
+         _self = rule506 _nameIself _patternsIself _rangeIself
          _lhsOself :: LeftHandSide
-         _lhsOself = rule501 _self
+         _lhsOself = rule507 _self
          __result_ = T_LeftHandSide_vOut82 _lhsOself
          in __result_ )
      in C_LeftHandSide_s83 v82
-   {-# INLINE rule500 #-}
-   rule500 = \ ((_nameIself) :: Name) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
+   {-# INLINE rule506 #-}
+   rule506 = \ ((_nameIself) :: Name) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
      LeftHandSide_Function _rangeIself _nameIself _patternsIself
-   {-# INLINE rule501 #-}
-   rule501 = \ _self ->
+   {-# INLINE rule507 #-}
+   rule507 = \ _self ->
      _self
 {-# NOINLINE sem_LeftHandSide_Infix #-}
 sem_LeftHandSide_Infix :: T_Range  -> T_Pattern  -> T_Name  -> T_Pattern  -> T_LeftHandSide 
@@ -4527,17 +4569,17 @@ sem_LeftHandSide_Infix arg_range_ arg_leftPattern_ arg_operator_ arg_rightPatter
          (T_Pattern_vOut118 _leftPatternIself) = inv_Pattern_s119 _leftPatternX119 (T_Pattern_vIn118 )
          (T_Name_vOut112 _operatorIself) = inv_Name_s113 _operatorX113 (T_Name_vIn112 )
          (T_Pattern_vOut118 _rightPatternIself) = inv_Pattern_s119 _rightPatternX119 (T_Pattern_vIn118 )
-         _self = rule502 _leftPatternIself _operatorIself _rangeIself _rightPatternIself
+         _self = rule508 _leftPatternIself _operatorIself _rangeIself _rightPatternIself
          _lhsOself :: LeftHandSide
-         _lhsOself = rule503 _self
+         _lhsOself = rule509 _self
          __result_ = T_LeftHandSide_vOut82 _lhsOself
          in __result_ )
      in C_LeftHandSide_s83 v82
-   {-# INLINE rule502 #-}
-   rule502 = \ ((_leftPatternIself) :: Pattern) ((_operatorIself) :: Name) ((_rangeIself) :: Range) ((_rightPatternIself) :: Pattern) ->
+   {-# INLINE rule508 #-}
+   rule508 = \ ((_leftPatternIself) :: Pattern) ((_operatorIself) :: Name) ((_rangeIself) :: Range) ((_rightPatternIself) :: Pattern) ->
      LeftHandSide_Infix _rangeIself _leftPatternIself _operatorIself _rightPatternIself
-   {-# INLINE rule503 #-}
-   rule503 = \ _self ->
+   {-# INLINE rule509 #-}
+   rule509 = \ _self ->
      _self
 {-# NOINLINE sem_LeftHandSide_Parenthesized #-}
 sem_LeftHandSide_Parenthesized :: T_Range  -> T_LeftHandSide  -> T_Patterns  -> T_LeftHandSide 
@@ -4552,17 +4594,17 @@ sem_LeftHandSide_Parenthesized arg_range_ arg_lefthandside_ arg_patterns_ = T_Le
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_LeftHandSide_vOut82 _lefthandsideIself) = inv_LeftHandSide_s83 _lefthandsideX83 (T_LeftHandSide_vIn82 )
          (T_Patterns_vOut121 _patternsIself) = inv_Patterns_s122 _patternsX122 (T_Patterns_vIn121 )
-         _self = rule504 _lefthandsideIself _patternsIself _rangeIself
+         _self = rule510 _lefthandsideIself _patternsIself _rangeIself
          _lhsOself :: LeftHandSide
-         _lhsOself = rule505 _self
+         _lhsOself = rule511 _self
          __result_ = T_LeftHandSide_vOut82 _lhsOself
          in __result_ )
      in C_LeftHandSide_s83 v82
-   {-# INLINE rule504 #-}
-   rule504 = \ ((_lefthandsideIself) :: LeftHandSide) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
+   {-# INLINE rule510 #-}
+   rule510 = \ ((_lefthandsideIself) :: LeftHandSide) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
      LeftHandSide_Parenthesized _rangeIself _lefthandsideIself _patternsIself
-   {-# INLINE rule505 #-}
-   rule505 = \ _self ->
+   {-# INLINE rule511 #-}
+   rule511 = \ _self ->
      _self
 
 -- Literal -----------------------------------------------------
@@ -4607,17 +4649,17 @@ sem_Literal_Int arg_range_ arg_value_ = T_Literal (return st86) where
       v85 = \ (T_Literal_vIn85 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule506 _rangeIself arg_value_
+         _self = rule512 _rangeIself arg_value_
          _lhsOself :: Literal
-         _lhsOself = rule507 _self
+         _lhsOself = rule513 _self
          __result_ = T_Literal_vOut85 _lhsOself
          in __result_ )
      in C_Literal_s86 v85
-   {-# INLINE rule506 #-}
-   rule506 = \ ((_rangeIself) :: Range) value_ ->
+   {-# INLINE rule512 #-}
+   rule512 = \ ((_rangeIself) :: Range) value_ ->
      Literal_Int _rangeIself value_
-   {-# INLINE rule507 #-}
-   rule507 = \ _self ->
+   {-# INLINE rule513 #-}
+   rule513 = \ _self ->
      _self
 {-# NOINLINE sem_Literal_Char #-}
 sem_Literal_Char :: T_Range  -> (String) -> T_Literal 
@@ -4628,17 +4670,17 @@ sem_Literal_Char arg_range_ arg_value_ = T_Literal (return st86) where
       v85 = \ (T_Literal_vIn85 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule508 _rangeIself arg_value_
+         _self = rule514 _rangeIself arg_value_
          _lhsOself :: Literal
-         _lhsOself = rule509 _self
+         _lhsOself = rule515 _self
          __result_ = T_Literal_vOut85 _lhsOself
          in __result_ )
      in C_Literal_s86 v85
-   {-# INLINE rule508 #-}
-   rule508 = \ ((_rangeIself) :: Range) value_ ->
+   {-# INLINE rule514 #-}
+   rule514 = \ ((_rangeIself) :: Range) value_ ->
      Literal_Char _rangeIself value_
-   {-# INLINE rule509 #-}
-   rule509 = \ _self ->
+   {-# INLINE rule515 #-}
+   rule515 = \ _self ->
      _self
 {-# NOINLINE sem_Literal_Float #-}
 sem_Literal_Float :: T_Range  -> (String) -> T_Literal 
@@ -4649,17 +4691,17 @@ sem_Literal_Float arg_range_ arg_value_ = T_Literal (return st86) where
       v85 = \ (T_Literal_vIn85 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule510 _rangeIself arg_value_
+         _self = rule516 _rangeIself arg_value_
          _lhsOself :: Literal
-         _lhsOself = rule511 _self
+         _lhsOself = rule517 _self
          __result_ = T_Literal_vOut85 _lhsOself
          in __result_ )
      in C_Literal_s86 v85
-   {-# INLINE rule510 #-}
-   rule510 = \ ((_rangeIself) :: Range) value_ ->
+   {-# INLINE rule516 #-}
+   rule516 = \ ((_rangeIself) :: Range) value_ ->
      Literal_Float _rangeIself value_
-   {-# INLINE rule511 #-}
-   rule511 = \ _self ->
+   {-# INLINE rule517 #-}
+   rule517 = \ _self ->
      _self
 {-# NOINLINE sem_Literal_String #-}
 sem_Literal_String :: T_Range  -> (String) -> T_Literal 
@@ -4670,17 +4712,17 @@ sem_Literal_String arg_range_ arg_value_ = T_Literal (return st86) where
       v85 = \ (T_Literal_vIn85 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule512 _rangeIself arg_value_
+         _self = rule518 _rangeIself arg_value_
          _lhsOself :: Literal
-         _lhsOself = rule513 _self
+         _lhsOself = rule519 _self
          __result_ = T_Literal_vOut85 _lhsOself
          in __result_ )
      in C_Literal_s86 v85
-   {-# INLINE rule512 #-}
-   rule512 = \ ((_rangeIself) :: Range) value_ ->
+   {-# INLINE rule518 #-}
+   rule518 = \ ((_rangeIself) :: Range) value_ ->
      Literal_String _rangeIself value_
-   {-# INLINE rule513 #-}
-   rule513 = \ _self ->
+   {-# INLINE rule519 #-}
+   rule519 = \ _self ->
      _self
 
 -- MaybeDeclarations -------------------------------------------
@@ -4721,27 +4763,27 @@ sem_MaybeDeclarations_Nothing  = T_MaybeDeclarations (return st89) where
    st89 = let
       v88 :: T_MaybeDeclarations_v88 
       v88 = \ (T_MaybeDeclarations_vIn88 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
-         _self = rule514  ()
+         _self = rule520  ()
          _lhsOself :: MaybeDeclarations
-         _lhsOself = rule515 _self
+         _lhsOself = rule521 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule516 _lhsIbindingGroups
+         _lhsObindingGroups = rule522 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule517 _lhsIkappaUnique
+         _lhsOkappaUnique = rule523 _lhsIkappaUnique
          __result_ = T_MaybeDeclarations_vOut88 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_MaybeDeclarations_s89 v88
-   {-# INLINE rule514 #-}
-   rule514 = \  (_ :: ()) ->
+   {-# INLINE rule520 #-}
+   rule520 = \  (_ :: ()) ->
      MaybeDeclarations_Nothing
-   {-# INLINE rule515 #-}
-   rule515 = \ _self ->
+   {-# INLINE rule521 #-}
+   rule521 = \ _self ->
      _self
-   {-# INLINE rule516 #-}
-   rule516 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule522 #-}
+   rule522 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule517 #-}
-   rule517 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule523 #-}
+   rule523 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 {-# NOINLINE sem_MaybeDeclarations_Just #-}
 sem_MaybeDeclarations_Just :: T_Declarations  -> T_MaybeDeclarations 
@@ -4752,35 +4794,35 @@ sem_MaybeDeclarations_Just arg_declarations_ = T_MaybeDeclarations (return st89)
       v88 = \ (T_MaybeDeclarations_vIn88 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          (T_Declarations_vOut31 _declarationsIbindingGroups _declarationsIkappaUnique _declarationsIself) = inv_Declarations_s32 _declarationsX32 (T_Declarations_vIn31 _declarationsObindingGroups _declarationsOkappaUnique)
-         _self = rule518 _declarationsIself
+         _self = rule524 _declarationsIself
          _lhsOself :: MaybeDeclarations
-         _lhsOself = rule519 _self
+         _lhsOself = rule525 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule520 _declarationsIbindingGroups
+         _lhsObindingGroups = rule526 _declarationsIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule521 _declarationsIkappaUnique
-         _declarationsObindingGroups = rule522 _lhsIbindingGroups
-         _declarationsOkappaUnique = rule523 _lhsIkappaUnique
+         _lhsOkappaUnique = rule527 _declarationsIkappaUnique
+         _declarationsObindingGroups = rule528 _lhsIbindingGroups
+         _declarationsOkappaUnique = rule529 _lhsIkappaUnique
          __result_ = T_MaybeDeclarations_vOut88 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_MaybeDeclarations_s89 v88
-   {-# INLINE rule518 #-}
-   rule518 = \ ((_declarationsIself) :: Declarations) ->
+   {-# INLINE rule524 #-}
+   rule524 = \ ((_declarationsIself) :: Declarations) ->
      MaybeDeclarations_Just _declarationsIself
-   {-# INLINE rule519 #-}
-   rule519 = \ _self ->
+   {-# INLINE rule525 #-}
+   rule525 = \ _self ->
      _self
-   {-# INLINE rule520 #-}
-   rule520 = \ ((_declarationsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule526 #-}
+   rule526 = \ ((_declarationsIbindingGroups) :: BindingGroups) ->
      _declarationsIbindingGroups
-   {-# INLINE rule521 #-}
-   rule521 = \ ((_declarationsIkappaUnique) :: Int) ->
+   {-# INLINE rule527 #-}
+   rule527 = \ ((_declarationsIkappaUnique) :: Int) ->
      _declarationsIkappaUnique
-   {-# INLINE rule522 #-}
-   rule522 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule528 #-}
+   rule528 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule523 #-}
-   rule523 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule529 #-}
+   rule529 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 
 -- MaybeExports ------------------------------------------------
@@ -4821,17 +4863,17 @@ sem_MaybeExports_Nothing  = T_MaybeExports (return st92) where
    st92 = let
       v91 :: T_MaybeExports_v91 
       v91 = \ (T_MaybeExports_vIn91 ) -> ( let
-         _self = rule524  ()
+         _self = rule530  ()
          _lhsOself :: MaybeExports
-         _lhsOself = rule525 _self
+         _lhsOself = rule531 _self
          __result_ = T_MaybeExports_vOut91 _lhsOself
          in __result_ )
      in C_MaybeExports_s92 v91
-   {-# INLINE rule524 #-}
-   rule524 = \  (_ :: ()) ->
+   {-# INLINE rule530 #-}
+   rule530 = \  (_ :: ()) ->
      MaybeExports_Nothing
-   {-# INLINE rule525 #-}
-   rule525 = \ _self ->
+   {-# INLINE rule531 #-}
+   rule531 = \ _self ->
      _self
 {-# NOINLINE sem_MaybeExports_Just #-}
 sem_MaybeExports_Just :: T_Exports  -> T_MaybeExports 
@@ -4842,17 +4884,17 @@ sem_MaybeExports_Just arg_exports_ = T_MaybeExports (return st92) where
       v91 = \ (T_MaybeExports_vIn91 ) -> ( let
          _exportsX38 = Control.Monad.Identity.runIdentity (attach_T_Exports (arg_exports_))
          (T_Exports_vOut37 _exportsIself) = inv_Exports_s38 _exportsX38 (T_Exports_vIn37 )
-         _self = rule526 _exportsIself
+         _self = rule532 _exportsIself
          _lhsOself :: MaybeExports
-         _lhsOself = rule527 _self
+         _lhsOself = rule533 _self
          __result_ = T_MaybeExports_vOut91 _lhsOself
          in __result_ )
      in C_MaybeExports_s92 v91
-   {-# INLINE rule526 #-}
-   rule526 = \ ((_exportsIself) :: Exports) ->
+   {-# INLINE rule532 #-}
+   rule532 = \ ((_exportsIself) :: Exports) ->
      MaybeExports_Just _exportsIself
-   {-# INLINE rule527 #-}
-   rule527 = \ _self ->
+   {-# INLINE rule533 #-}
+   rule533 = \ _self ->
      _self
 
 -- MaybeExpression ---------------------------------------------
@@ -4893,27 +4935,27 @@ sem_MaybeExpression_Nothing  = T_MaybeExpression (return st95) where
    st95 = let
       v94 :: T_MaybeExpression_v94 
       v94 = \ (T_MaybeExpression_vIn94 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
-         _self = rule528  ()
+         _self = rule534  ()
          _lhsOself :: MaybeExpression
-         _lhsOself = rule529 _self
+         _lhsOself = rule535 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule530 _lhsIbindingGroups
+         _lhsObindingGroups = rule536 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule531 _lhsIkappaUnique
+         _lhsOkappaUnique = rule537 _lhsIkappaUnique
          __result_ = T_MaybeExpression_vOut94 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_MaybeExpression_s95 v94
-   {-# INLINE rule528 #-}
-   rule528 = \  (_ :: ()) ->
+   {-# INLINE rule534 #-}
+   rule534 = \  (_ :: ()) ->
      MaybeExpression_Nothing
-   {-# INLINE rule529 #-}
-   rule529 = \ _self ->
+   {-# INLINE rule535 #-}
+   rule535 = \ _self ->
      _self
-   {-# INLINE rule530 #-}
-   rule530 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule536 #-}
+   rule536 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule531 #-}
-   rule531 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule537 #-}
+   rule537 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 {-# NOINLINE sem_MaybeExpression_Just #-}
 sem_MaybeExpression_Just :: T_Expression  -> T_MaybeExpression 
@@ -4924,35 +4966,35 @@ sem_MaybeExpression_Just arg_expression_ = T_MaybeExpression (return st95) where
       v94 = \ (T_MaybeExpression_vIn94 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Expression_vOut40 _expressionIbindingGroups _expressionIkappaUnique _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionObindingGroups _expressionOkappaUnique)
-         _self = rule532 _expressionIself
+         _self = rule538 _expressionIself
          _lhsOself :: MaybeExpression
-         _lhsOself = rule533 _self
+         _lhsOself = rule539 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule534 _expressionIbindingGroups
+         _lhsObindingGroups = rule540 _expressionIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule535 _expressionIkappaUnique
-         _expressionObindingGroups = rule536 _lhsIbindingGroups
-         _expressionOkappaUnique = rule537 _lhsIkappaUnique
+         _lhsOkappaUnique = rule541 _expressionIkappaUnique
+         _expressionObindingGroups = rule542 _lhsIbindingGroups
+         _expressionOkappaUnique = rule543 _lhsIkappaUnique
          __result_ = T_MaybeExpression_vOut94 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_MaybeExpression_s95 v94
-   {-# INLINE rule532 #-}
-   rule532 = \ ((_expressionIself) :: Expression) ->
+   {-# INLINE rule538 #-}
+   rule538 = \ ((_expressionIself) :: Expression) ->
      MaybeExpression_Just _expressionIself
-   {-# INLINE rule533 #-}
-   rule533 = \ _self ->
+   {-# INLINE rule539 #-}
+   rule539 = \ _self ->
      _self
-   {-# INLINE rule534 #-}
-   rule534 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule540 #-}
+   rule540 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
      _expressionIbindingGroups
-   {-# INLINE rule535 #-}
-   rule535 = \ ((_expressionIkappaUnique) :: Int) ->
+   {-# INLINE rule541 #-}
+   rule541 = \ ((_expressionIkappaUnique) :: Int) ->
      _expressionIkappaUnique
-   {-# INLINE rule536 #-}
-   rule536 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule542 #-}
+   rule542 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule537 #-}
-   rule537 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule543 #-}
+   rule543 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 
 -- MaybeImportSpecification ------------------------------------
@@ -4993,17 +5035,17 @@ sem_MaybeImportSpecification_Nothing  = T_MaybeImportSpecification (return st98)
    st98 = let
       v97 :: T_MaybeImportSpecification_v97 
       v97 = \ (T_MaybeImportSpecification_vIn97 ) -> ( let
-         _self = rule538  ()
+         _self = rule544  ()
          _lhsOself :: MaybeImportSpecification
-         _lhsOself = rule539 _self
+         _lhsOself = rule545 _self
          __result_ = T_MaybeImportSpecification_vOut97 _lhsOself
          in __result_ )
      in C_MaybeImportSpecification_s98 v97
-   {-# INLINE rule538 #-}
-   rule538 = \  (_ :: ()) ->
+   {-# INLINE rule544 #-}
+   rule544 = \  (_ :: ()) ->
      MaybeImportSpecification_Nothing
-   {-# INLINE rule539 #-}
-   rule539 = \ _self ->
+   {-# INLINE rule545 #-}
+   rule545 = \ _self ->
      _self
 {-# NOINLINE sem_MaybeImportSpecification_Just #-}
 sem_MaybeImportSpecification_Just :: T_ImportSpecification  -> T_MaybeImportSpecification 
@@ -5014,17 +5056,17 @@ sem_MaybeImportSpecification_Just arg_importspecification_ = T_MaybeImportSpecif
       v97 = \ (T_MaybeImportSpecification_vIn97 ) -> ( let
          _importspecificationX77 = Control.Monad.Identity.runIdentity (attach_T_ImportSpecification (arg_importspecification_))
          (T_ImportSpecification_vOut76 _importspecificationIself) = inv_ImportSpecification_s77 _importspecificationX77 (T_ImportSpecification_vIn76 )
-         _self = rule540 _importspecificationIself
+         _self = rule546 _importspecificationIself
          _lhsOself :: MaybeImportSpecification
-         _lhsOself = rule541 _self
+         _lhsOself = rule547 _self
          __result_ = T_MaybeImportSpecification_vOut97 _lhsOself
          in __result_ )
      in C_MaybeImportSpecification_s98 v97
-   {-# INLINE rule540 #-}
-   rule540 = \ ((_importspecificationIself) :: ImportSpecification) ->
+   {-# INLINE rule546 #-}
+   rule546 = \ ((_importspecificationIself) :: ImportSpecification) ->
      MaybeImportSpecification_Just _importspecificationIself
-   {-# INLINE rule541 #-}
-   rule541 = \ _self ->
+   {-# INLINE rule547 #-}
+   rule547 = \ _self ->
      _self
 
 -- MaybeInt ----------------------------------------------------
@@ -5065,17 +5107,17 @@ sem_MaybeInt_Nothing  = T_MaybeInt (return st101) where
    st101 = let
       v100 :: T_MaybeInt_v100 
       v100 = \ (T_MaybeInt_vIn100 ) -> ( let
-         _self = rule542  ()
+         _self = rule548  ()
          _lhsOself :: MaybeInt
-         _lhsOself = rule543 _self
+         _lhsOself = rule549 _self
          __result_ = T_MaybeInt_vOut100 _lhsOself
          in __result_ )
      in C_MaybeInt_s101 v100
-   {-# INLINE rule542 #-}
-   rule542 = \  (_ :: ()) ->
+   {-# INLINE rule548 #-}
+   rule548 = \  (_ :: ()) ->
      MaybeInt_Nothing
-   {-# INLINE rule543 #-}
-   rule543 = \ _self ->
+   {-# INLINE rule549 #-}
+   rule549 = \ _self ->
      _self
 {-# NOINLINE sem_MaybeInt_Just #-}
 sem_MaybeInt_Just :: (Int) -> T_MaybeInt 
@@ -5084,17 +5126,17 @@ sem_MaybeInt_Just arg_int_ = T_MaybeInt (return st101) where
    st101 = let
       v100 :: T_MaybeInt_v100 
       v100 = \ (T_MaybeInt_vIn100 ) -> ( let
-         _self = rule544 arg_int_
+         _self = rule550 arg_int_
          _lhsOself :: MaybeInt
-         _lhsOself = rule545 _self
+         _lhsOself = rule551 _self
          __result_ = T_MaybeInt_vOut100 _lhsOself
          in __result_ )
      in C_MaybeInt_s101 v100
-   {-# INLINE rule544 #-}
-   rule544 = \ int_ ->
+   {-# INLINE rule550 #-}
+   rule550 = \ int_ ->
      MaybeInt_Just int_
-   {-# INLINE rule545 #-}
-   rule545 = \ _self ->
+   {-# INLINE rule551 #-}
+   rule551 = \ _self ->
      _self
 
 -- MaybeName ---------------------------------------------------
@@ -5135,17 +5177,17 @@ sem_MaybeName_Nothing  = T_MaybeName (return st104) where
    st104 = let
       v103 :: T_MaybeName_v103 
       v103 = \ (T_MaybeName_vIn103 ) -> ( let
-         _self = rule546  ()
+         _self = rule552  ()
          _lhsOself :: MaybeName
-         _lhsOself = rule547 _self
+         _lhsOself = rule553 _self
          __result_ = T_MaybeName_vOut103 _lhsOself
          in __result_ )
      in C_MaybeName_s104 v103
-   {-# INLINE rule546 #-}
-   rule546 = \  (_ :: ()) ->
+   {-# INLINE rule552 #-}
+   rule552 = \  (_ :: ()) ->
      MaybeName_Nothing
-   {-# INLINE rule547 #-}
-   rule547 = \ _self ->
+   {-# INLINE rule553 #-}
+   rule553 = \ _self ->
      _self
 {-# NOINLINE sem_MaybeName_Just #-}
 sem_MaybeName_Just :: T_Name  -> T_MaybeName 
@@ -5156,17 +5198,17 @@ sem_MaybeName_Just arg_name_ = T_MaybeName (return st104) where
       v103 = \ (T_MaybeName_vIn103 ) -> ( let
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
-         _self = rule548 _nameIself
+         _self = rule554 _nameIself
          _lhsOself :: MaybeName
-         _lhsOself = rule549 _self
+         _lhsOself = rule555 _self
          __result_ = T_MaybeName_vOut103 _lhsOself
          in __result_ )
      in C_MaybeName_s104 v103
-   {-# INLINE rule548 #-}
-   rule548 = \ ((_nameIself) :: Name) ->
+   {-# INLINE rule554 #-}
+   rule554 = \ ((_nameIself) :: Name) ->
      MaybeName_Just _nameIself
-   {-# INLINE rule549 #-}
-   rule549 = \ _self ->
+   {-# INLINE rule555 #-}
+   rule555 = \ _self ->
      _self
 
 -- MaybeNames --------------------------------------------------
@@ -5207,17 +5249,17 @@ sem_MaybeNames_Nothing  = T_MaybeNames (return st107) where
    st107 = let
       v106 :: T_MaybeNames_v106 
       v106 = \ (T_MaybeNames_vIn106 ) -> ( let
-         _self = rule550  ()
+         _self = rule556  ()
          _lhsOself :: MaybeNames
-         _lhsOself = rule551 _self
+         _lhsOself = rule557 _self
          __result_ = T_MaybeNames_vOut106 _lhsOself
          in __result_ )
      in C_MaybeNames_s107 v106
-   {-# INLINE rule550 #-}
-   rule550 = \  (_ :: ()) ->
+   {-# INLINE rule556 #-}
+   rule556 = \  (_ :: ()) ->
      MaybeNames_Nothing
-   {-# INLINE rule551 #-}
-   rule551 = \ _self ->
+   {-# INLINE rule557 #-}
+   rule557 = \ _self ->
      _self
 {-# NOINLINE sem_MaybeNames_Just #-}
 sem_MaybeNames_Just :: T_Names  -> T_MaybeNames 
@@ -5228,17 +5270,17 @@ sem_MaybeNames_Just arg_names_ = T_MaybeNames (return st107) where
       v106 = \ (T_MaybeNames_vIn106 ) -> ( let
          _namesX116 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_names_))
          (T_Names_vOut115 _namesIself) = inv_Names_s116 _namesX116 (T_Names_vIn115 )
-         _self = rule552 _namesIself
+         _self = rule558 _namesIself
          _lhsOself :: MaybeNames
-         _lhsOself = rule553 _self
+         _lhsOself = rule559 _self
          __result_ = T_MaybeNames_vOut106 _lhsOself
          in __result_ )
      in C_MaybeNames_s107 v106
-   {-# INLINE rule552 #-}
-   rule552 = \ ((_namesIself) :: Names) ->
+   {-# INLINE rule558 #-}
+   rule558 = \ ((_namesIself) :: Names) ->
      MaybeNames_Just _namesIself
-   {-# INLINE rule553 #-}
-   rule553 = \ _self ->
+   {-# INLINE rule559 #-}
+   rule559 = \ _self ->
      _self
 
 -- Module ------------------------------------------------------
@@ -5287,48 +5329,48 @@ sem_Module_Module arg_range_ arg_name_ arg_exports_ arg_body_ = T_Module (return
          (T_MaybeExports_vOut91 _exportsIself) = inv_MaybeExports_s92 _exportsX92 (T_MaybeExports_vIn91 )
          (T_Body_vOut13 _bodyIconstraints _bodyIenvironment _bodyIkappaUnique _bodyIself) = inv_Body_s14 _bodyX14 (T_Body_vIn13 _bodyOimportEnvironment _bodyOkappaUnique)
          _lhsOkindErrors :: KindErrors
-         _lhsOkindErrors = rule554 _kindErrors _substitution
+         _lhsOkindErrors = rule560 _kindErrors _substitution
          _lhsOdebugIO :: IO ()
-         _lhsOdebugIO = rule555 _logEntries
-         _bodyOkappaUnique = rule556  ()
-         ((SolveResult _kappaUniqueAtTheEnd _substitution _ _ _kindErrors),_logEntries) = rule557 _bodyIconstraints _bodyIkappaUnique
-         _kindEnvironment = rule558 _bodyIenvironment _substitution
-         _self = rule559 _bodyIself _exportsIself _nameIself _rangeIself
+         _lhsOdebugIO = rule561 _logEntries
+         _bodyOkappaUnique = rule562  ()
+         ((SolveResult _kappaUniqueAtTheEnd _substitution _ _ _kindErrors),_logEntries) = rule563 _bodyIconstraints _bodyIkappaUnique
+         _kindEnvironment = rule564 _bodyIenvironment _substitution
+         _self = rule565 _bodyIself _exportsIself _nameIself _rangeIself
          _lhsOself :: Module
-         _lhsOself = rule560 _self
+         _lhsOself = rule566 _self
          _lhsOkindEnvironment :: KindEnvironment
-         _lhsOkindEnvironment = rule561 _kindEnvironment
-         _bodyOimportEnvironment = rule562 _lhsIimportEnvironment
+         _lhsOkindEnvironment = rule567 _kindEnvironment
+         _bodyOimportEnvironment = rule568 _lhsIimportEnvironment
          __result_ = T_Module_vOut109 _lhsOdebugIO _lhsOkindEnvironment _lhsOkindErrors _lhsOself
          in __result_ )
      in C_Module_s110 v109
-   {-# INLINE rule554 #-}
-   rule554 = \ _kindErrors _substitution ->
+   {-# INLINE rule560 #-}
+   rule560 = \ _kindErrors _substitution ->
                                         _substitution |-> (map fst _kindErrors)
-   {-# INLINE rule555 #-}
-   rule555 = \ _logEntries ->
+   {-# INLINE rule561 #-}
+   rule561 = \ _logEntries ->
                                         putStrLn (show _logEntries)
-   {-# INLINE rule556 #-}
-   rule556 = \  (_ :: ()) ->
+   {-# INLINE rule562 #-}
+   rule562 = \  (_ :: ()) ->
                                         0
-   {-# INLINE rule557 #-}
-   rule557 = \ ((_bodyIconstraints) :: KindConstraints) ((_bodyIkappaUnique) :: Int) ->
+   {-# INLINE rule563 #-}
+   rule563 = \ ((_bodyIconstraints) :: KindConstraints) ((_bodyIkappaUnique) :: Int) ->
                          solve (solveOptions { uniqueCounter = _bodyIkappaUnique }) _bodyIconstraints greedyConstraintSolver
-   {-# INLINE rule558 #-}
-   rule558 = \ ((_bodyIenvironment) :: PatternAssumptions) _substitution ->
+   {-# INLINE rule564 #-}
+   rule564 = \ ((_bodyIenvironment) :: PatternAssumptions) _substitution ->
                                         let f kind = generalizeAll ([] .=>. defaultToStar (_substitution |-> kind))
                                         in M.map f _bodyIenvironment
-   {-# INLINE rule559 #-}
-   rule559 = \ ((_bodyIself) :: Body) ((_exportsIself) :: MaybeExports) ((_nameIself) :: MaybeName) ((_rangeIself) :: Range) ->
+   {-# INLINE rule565 #-}
+   rule565 = \ ((_bodyIself) :: Body) ((_exportsIself) :: MaybeExports) ((_nameIself) :: MaybeName) ((_rangeIself) :: Range) ->
      Module_Module _rangeIself _nameIself _exportsIself _bodyIself
-   {-# INLINE rule560 #-}
-   rule560 = \ _self ->
+   {-# INLINE rule566 #-}
+   rule566 = \ _self ->
      _self
-   {-# INLINE rule561 #-}
-   rule561 = \ _kindEnvironment ->
+   {-# INLINE rule567 #-}
+   rule567 = \ _kindEnvironment ->
      _kindEnvironment
-   {-# INLINE rule562 #-}
-   rule562 = \ ((_lhsIimportEnvironment) :: ImportEnvironment) ->
+   {-# INLINE rule568 #-}
+   rule568 = \ ((_lhsIimportEnvironment) :: ImportEnvironment) ->
      _lhsIimportEnvironment
 
 -- Name --------------------------------------------------------
@@ -5374,17 +5416,17 @@ sem_Name_Identifier arg_range_ arg_module_ arg_name_ = T_Name (return st113) whe
          _moduleX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_module_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Strings_vOut160 _moduleIself) = inv_Strings_s161 _moduleX161 (T_Strings_vIn160 )
-         _self = rule563 _moduleIself _rangeIself arg_name_
+         _self = rule569 _moduleIself _rangeIself arg_name_
          _lhsOself :: Name
-         _lhsOself = rule564 _self
+         _lhsOself = rule570 _self
          __result_ = T_Name_vOut112 _lhsOself
          in __result_ )
      in C_Name_s113 v112
-   {-# INLINE rule563 #-}
-   rule563 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ ->
+   {-# INLINE rule569 #-}
+   rule569 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ ->
      Name_Identifier _rangeIself _moduleIself name_
-   {-# INLINE rule564 #-}
-   rule564 = \ _self ->
+   {-# INLINE rule570 #-}
+   rule570 = \ _self ->
      _self
 {-# NOINLINE sem_Name_Operator #-}
 sem_Name_Operator :: T_Range  -> T_Strings  -> (String) -> T_Name 
@@ -5397,17 +5439,17 @@ sem_Name_Operator arg_range_ arg_module_ arg_name_ = T_Name (return st113) where
          _moduleX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_module_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Strings_vOut160 _moduleIself) = inv_Strings_s161 _moduleX161 (T_Strings_vIn160 )
-         _self = rule565 _moduleIself _rangeIself arg_name_
+         _self = rule571 _moduleIself _rangeIself arg_name_
          _lhsOself :: Name
-         _lhsOself = rule566 _self
+         _lhsOself = rule572 _self
          __result_ = T_Name_vOut112 _lhsOself
          in __result_ )
      in C_Name_s113 v112
-   {-# INLINE rule565 #-}
-   rule565 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ ->
+   {-# INLINE rule571 #-}
+   rule571 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ ->
      Name_Operator _rangeIself _moduleIself name_
-   {-# INLINE rule566 #-}
-   rule566 = \ _self ->
+   {-# INLINE rule572 #-}
+   rule572 = \ _self ->
      _self
 {-# NOINLINE sem_Name_Special #-}
 sem_Name_Special :: T_Range  -> T_Strings  -> (String) -> T_Name 
@@ -5420,17 +5462,17 @@ sem_Name_Special arg_range_ arg_module_ arg_name_ = T_Name (return st113) where
          _moduleX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_module_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Strings_vOut160 _moduleIself) = inv_Strings_s161 _moduleX161 (T_Strings_vIn160 )
-         _self = rule567 _moduleIself _rangeIself arg_name_
+         _self = rule573 _moduleIself _rangeIself arg_name_
          _lhsOself :: Name
-         _lhsOself = rule568 _self
+         _lhsOself = rule574 _self
          __result_ = T_Name_vOut112 _lhsOself
          in __result_ )
      in C_Name_s113 v112
-   {-# INLINE rule567 #-}
-   rule567 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ ->
+   {-# INLINE rule573 #-}
+   rule573 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ ->
      Name_Special _rangeIself _moduleIself name_
-   {-# INLINE rule568 #-}
-   rule568 = \ _self ->
+   {-# INLINE rule574 #-}
+   rule574 = \ _self ->
      _self
 
 -- Names -------------------------------------------------------
@@ -5474,17 +5516,17 @@ sem_Names_Cons arg_hd_ arg_tl_ = T_Names (return st116) where
          _tlX116 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_tl_))
          (T_Name_vOut112 _hdIself) = inv_Name_s113 _hdX113 (T_Name_vIn112 )
          (T_Names_vOut115 _tlIself) = inv_Names_s116 _tlX116 (T_Names_vIn115 )
-         _self = rule569 _hdIself _tlIself
+         _self = rule575 _hdIself _tlIself
          _lhsOself :: Names
-         _lhsOself = rule570 _self
+         _lhsOself = rule576 _self
          __result_ = T_Names_vOut115 _lhsOself
          in __result_ )
      in C_Names_s116 v115
-   {-# INLINE rule569 #-}
-   rule569 = \ ((_hdIself) :: Name) ((_tlIself) :: Names) ->
+   {-# INLINE rule575 #-}
+   rule575 = \ ((_hdIself) :: Name) ((_tlIself) :: Names) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule570 #-}
-   rule570 = \ _self ->
+   {-# INLINE rule576 #-}
+   rule576 = \ _self ->
      _self
 {-# NOINLINE sem_Names_Nil #-}
 sem_Names_Nil ::  T_Names 
@@ -5493,17 +5535,17 @@ sem_Names_Nil  = T_Names (return st116) where
    st116 = let
       v115 :: T_Names_v115 
       v115 = \ (T_Names_vIn115 ) -> ( let
-         _self = rule571  ()
+         _self = rule577  ()
          _lhsOself :: Names
-         _lhsOself = rule572 _self
+         _lhsOself = rule578 _self
          __result_ = T_Names_vOut115 _lhsOself
          in __result_ )
      in C_Names_s116 v115
-   {-# INLINE rule571 #-}
-   rule571 = \  (_ :: ()) ->
+   {-# INLINE rule577 #-}
+   rule577 = \  (_ :: ()) ->
      []
-   {-# INLINE rule572 #-}
-   rule572 = \ _self ->
+   {-# INLINE rule578 #-}
+   rule578 = \ _self ->
      _self
 
 -- Pattern -----------------------------------------------------
@@ -5551,7 +5593,7 @@ type T_Pattern_v118  = (T_Pattern_vIn118 ) -> (T_Pattern_vOut118 )
 data T_Pattern_vIn118  = T_Pattern_vIn118 
 data T_Pattern_vOut118  = T_Pattern_vOut118 (Pattern)
 {-# NOINLINE sem_Pattern_Hole #-}
-sem_Pattern_Hole :: T_Range  -> (Integer) -> T_Pattern 
+sem_Pattern_Hole :: T_Range  -> (String) -> T_Pattern 
 sem_Pattern_Hole arg_range_ arg_id_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
    st119 = let
@@ -5559,17 +5601,17 @@ sem_Pattern_Hole arg_range_ arg_id_ = T_Pattern (return st119) where
       v118 = \ (T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule573 _rangeIself arg_id_
+         _self = rule579 _rangeIself arg_id_
          _lhsOself :: Pattern
-         _lhsOself = rule574 _self
+         _lhsOself = rule580 _self
          __result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule573 #-}
-   rule573 = \ ((_rangeIself) :: Range) id_ ->
+   {-# INLINE rule579 #-}
+   rule579 = \ ((_rangeIself) :: Range) id_ ->
      Pattern_Hole _rangeIself id_
-   {-# INLINE rule574 #-}
-   rule574 = \ _self ->
+   {-# INLINE rule580 #-}
+   rule580 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Literal #-}
 sem_Pattern_Literal :: T_Range  -> T_Literal  -> T_Pattern 
@@ -5582,17 +5624,17 @@ sem_Pattern_Literal arg_range_ arg_literal_ = T_Pattern (return st119) where
          _literalX86 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Literal_vOut85 _literalIself) = inv_Literal_s86 _literalX86 (T_Literal_vIn85 )
-         _self = rule575 _literalIself _rangeIself
+         _self = rule581 _literalIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule576 _self
+         _lhsOself = rule582 _self
          __result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule575 #-}
-   rule575 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
+   {-# INLINE rule581 #-}
+   rule581 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
      Pattern_Literal _rangeIself _literalIself
-   {-# INLINE rule576 #-}
-   rule576 = \ _self ->
+   {-# INLINE rule582 #-}
+   rule582 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Variable #-}
 sem_Pattern_Variable :: T_Range  -> T_Name  -> T_Pattern 
@@ -5605,17 +5647,17 @@ sem_Pattern_Variable arg_range_ arg_name_ = T_Pattern (return st119) where
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
-         _self = rule577 _nameIself _rangeIself
+         _self = rule583 _nameIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule578 _self
+         _lhsOself = rule584 _self
          __result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule577 #-}
-   rule577 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule583 #-}
+   rule583 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Pattern_Variable _rangeIself _nameIself
-   {-# INLINE rule578 #-}
-   rule578 = \ _self ->
+   {-# INLINE rule584 #-}
+   rule584 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Constructor #-}
 sem_Pattern_Constructor :: T_Range  -> T_Name  -> T_Patterns  -> T_Pattern 
@@ -5630,17 +5672,17 @@ sem_Pattern_Constructor arg_range_ arg_name_ arg_patterns_ = T_Pattern (return s
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Patterns_vOut121 _patternsIself) = inv_Patterns_s122 _patternsX122 (T_Patterns_vIn121 )
-         _self = rule579 _nameIself _patternsIself _rangeIself
+         _self = rule585 _nameIself _patternsIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule580 _self
+         _lhsOself = rule586 _self
          __result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule579 #-}
-   rule579 = \ ((_nameIself) :: Name) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
+   {-# INLINE rule585 #-}
+   rule585 = \ ((_nameIself) :: Name) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
      Pattern_Constructor _rangeIself _nameIself _patternsIself
-   {-# INLINE rule580 #-}
-   rule580 = \ _self ->
+   {-# INLINE rule586 #-}
+   rule586 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Parenthesized #-}
 sem_Pattern_Parenthesized :: T_Range  -> T_Pattern  -> T_Pattern 
@@ -5653,17 +5695,17 @@ sem_Pattern_Parenthesized arg_range_ arg_pattern_ = T_Pattern (return st119) whe
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Pattern_vOut118 _patternIself) = inv_Pattern_s119 _patternX119 (T_Pattern_vIn118 )
-         _self = rule581 _patternIself _rangeIself
+         _self = rule587 _patternIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule582 _self
+         _lhsOself = rule588 _self
          __result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule581 #-}
-   rule581 = \ ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
+   {-# INLINE rule587 #-}
+   rule587 = \ ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
      Pattern_Parenthesized _rangeIself _patternIself
-   {-# INLINE rule582 #-}
-   rule582 = \ _self ->
+   {-# INLINE rule588 #-}
+   rule588 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_InfixConstructor #-}
 sem_Pattern_InfixConstructor :: T_Range  -> T_Pattern  -> T_Name  -> T_Pattern  -> T_Pattern 
@@ -5680,17 +5722,17 @@ sem_Pattern_InfixConstructor arg_range_ arg_leftPattern_ arg_constructorOperator
          (T_Pattern_vOut118 _leftPatternIself) = inv_Pattern_s119 _leftPatternX119 (T_Pattern_vIn118 )
          (T_Name_vOut112 _constructorOperatorIself) = inv_Name_s113 _constructorOperatorX113 (T_Name_vIn112 )
          (T_Pattern_vOut118 _rightPatternIself) = inv_Pattern_s119 _rightPatternX119 (T_Pattern_vIn118 )
-         _self = rule583 _constructorOperatorIself _leftPatternIself _rangeIself _rightPatternIself
+         _self = rule589 _constructorOperatorIself _leftPatternIself _rangeIself _rightPatternIself
          _lhsOself :: Pattern
-         _lhsOself = rule584 _self
+         _lhsOself = rule590 _self
          __result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule583 #-}
-   rule583 = \ ((_constructorOperatorIself) :: Name) ((_leftPatternIself) :: Pattern) ((_rangeIself) :: Range) ((_rightPatternIself) :: Pattern) ->
+   {-# INLINE rule589 #-}
+   rule589 = \ ((_constructorOperatorIself) :: Name) ((_leftPatternIself) :: Pattern) ((_rangeIself) :: Range) ((_rightPatternIself) :: Pattern) ->
      Pattern_InfixConstructor _rangeIself _leftPatternIself _constructorOperatorIself _rightPatternIself
-   {-# INLINE rule584 #-}
-   rule584 = \ _self ->
+   {-# INLINE rule590 #-}
+   rule590 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_List #-}
 sem_Pattern_List :: T_Range  -> T_Patterns  -> T_Pattern 
@@ -5703,17 +5745,17 @@ sem_Pattern_List arg_range_ arg_patterns_ = T_Pattern (return st119) where
          _patternsX122 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Patterns_vOut121 _patternsIself) = inv_Patterns_s122 _patternsX122 (T_Patterns_vIn121 )
-         _self = rule585 _patternsIself _rangeIself
+         _self = rule591 _patternsIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule586 _self
+         _lhsOself = rule592 _self
          __result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule585 #-}
-   rule585 = \ ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
+   {-# INLINE rule591 #-}
+   rule591 = \ ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
      Pattern_List _rangeIself _patternsIself
-   {-# INLINE rule586 #-}
-   rule586 = \ _self ->
+   {-# INLINE rule592 #-}
+   rule592 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Tuple #-}
 sem_Pattern_Tuple :: T_Range  -> T_Patterns  -> T_Pattern 
@@ -5726,17 +5768,17 @@ sem_Pattern_Tuple arg_range_ arg_patterns_ = T_Pattern (return st119) where
          _patternsX122 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Patterns_vOut121 _patternsIself) = inv_Patterns_s122 _patternsX122 (T_Patterns_vIn121 )
-         _self = rule587 _patternsIself _rangeIself
+         _self = rule593 _patternsIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule588 _self
+         _lhsOself = rule594 _self
          __result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule587 #-}
-   rule587 = \ ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
+   {-# INLINE rule593 #-}
+   rule593 = \ ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
      Pattern_Tuple _rangeIself _patternsIself
-   {-# INLINE rule588 #-}
-   rule588 = \ _self ->
+   {-# INLINE rule594 #-}
+   rule594 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Record #-}
 sem_Pattern_Record :: T_Range  -> T_Name  -> T_RecordPatternBindings  -> T_Pattern 
@@ -5751,17 +5793,17 @@ sem_Pattern_Record arg_range_ arg_name_ arg_recordPatternBindings_ = T_Pattern (
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_RecordPatternBindings_vOut145 _recordPatternBindingsIself) = inv_RecordPatternBindings_s146 _recordPatternBindingsX146 (T_RecordPatternBindings_vIn145 )
-         _self = rule589 _nameIself _rangeIself _recordPatternBindingsIself
+         _self = rule595 _nameIself _rangeIself _recordPatternBindingsIself
          _lhsOself :: Pattern
-         _lhsOself = rule590 _self
+         _lhsOself = rule596 _self
          __result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule589 #-}
-   rule589 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_recordPatternBindingsIself) :: RecordPatternBindings) ->
+   {-# INLINE rule595 #-}
+   rule595 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_recordPatternBindingsIself) :: RecordPatternBindings) ->
      Pattern_Record _rangeIself _nameIself _recordPatternBindingsIself
-   {-# INLINE rule590 #-}
-   rule590 = \ _self ->
+   {-# INLINE rule596 #-}
+   rule596 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Negate #-}
 sem_Pattern_Negate :: T_Range  -> T_Literal  -> T_Pattern 
@@ -5774,17 +5816,17 @@ sem_Pattern_Negate arg_range_ arg_literal_ = T_Pattern (return st119) where
          _literalX86 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Literal_vOut85 _literalIself) = inv_Literal_s86 _literalX86 (T_Literal_vIn85 )
-         _self = rule591 _literalIself _rangeIself
+         _self = rule597 _literalIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule592 _self
+         _lhsOself = rule598 _self
          __result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule591 #-}
-   rule591 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
+   {-# INLINE rule597 #-}
+   rule597 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
      Pattern_Negate _rangeIself _literalIself
-   {-# INLINE rule592 #-}
-   rule592 = \ _self ->
+   {-# INLINE rule598 #-}
+   rule598 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_As #-}
 sem_Pattern_As :: T_Range  -> T_Name  -> T_Pattern  -> T_Pattern 
@@ -5799,17 +5841,17 @@ sem_Pattern_As arg_range_ arg_name_ arg_pattern_ = T_Pattern (return st119) wher
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Pattern_vOut118 _patternIself) = inv_Pattern_s119 _patternX119 (T_Pattern_vIn118 )
-         _self = rule593 _nameIself _patternIself _rangeIself
+         _self = rule599 _nameIself _patternIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule594 _self
+         _lhsOself = rule600 _self
          __result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule593 #-}
-   rule593 = \ ((_nameIself) :: Name) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
+   {-# INLINE rule599 #-}
+   rule599 = \ ((_nameIself) :: Name) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
      Pattern_As _rangeIself _nameIself _patternIself
-   {-# INLINE rule594 #-}
-   rule594 = \ _self ->
+   {-# INLINE rule600 #-}
+   rule600 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Wildcard #-}
 sem_Pattern_Wildcard :: T_Range  -> T_Pattern 
@@ -5820,17 +5862,17 @@ sem_Pattern_Wildcard arg_range_ = T_Pattern (return st119) where
       v118 = \ (T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule595 _rangeIself
+         _self = rule601 _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule596 _self
+         _lhsOself = rule602 _self
          __result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule595 #-}
-   rule595 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule601 #-}
+   rule601 = \ ((_rangeIself) :: Range) ->
      Pattern_Wildcard _rangeIself
-   {-# INLINE rule596 #-}
-   rule596 = \ _self ->
+   {-# INLINE rule602 #-}
+   rule602 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Irrefutable #-}
 sem_Pattern_Irrefutable :: T_Range  -> T_Pattern  -> T_Pattern 
@@ -5843,17 +5885,17 @@ sem_Pattern_Irrefutable arg_range_ arg_pattern_ = T_Pattern (return st119) where
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Pattern_vOut118 _patternIself) = inv_Pattern_s119 _patternX119 (T_Pattern_vIn118 )
-         _self = rule597 _patternIself _rangeIself
+         _self = rule603 _patternIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule598 _self
+         _lhsOself = rule604 _self
          __result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule597 #-}
-   rule597 = \ ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
+   {-# INLINE rule603 #-}
+   rule603 = \ ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
      Pattern_Irrefutable _rangeIself _patternIself
-   {-# INLINE rule598 #-}
-   rule598 = \ _self ->
+   {-# INLINE rule604 #-}
+   rule604 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Successor #-}
 sem_Pattern_Successor :: T_Range  -> T_Name  -> T_Literal  -> T_Pattern 
@@ -5868,17 +5910,17 @@ sem_Pattern_Successor arg_range_ arg_name_ arg_literal_ = T_Pattern (return st11
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Literal_vOut85 _literalIself) = inv_Literal_s86 _literalX86 (T_Literal_vIn85 )
-         _self = rule599 _literalIself _nameIself _rangeIself
+         _self = rule605 _literalIself _nameIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule600 _self
+         _lhsOself = rule606 _self
          __result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule599 #-}
-   rule599 = \ ((_literalIself) :: Literal) ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule605 #-}
+   rule605 = \ ((_literalIself) :: Literal) ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Pattern_Successor _rangeIself _nameIself _literalIself
-   {-# INLINE rule600 #-}
-   rule600 = \ _self ->
+   {-# INLINE rule606 #-}
+   rule606 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_NegateFloat #-}
 sem_Pattern_NegateFloat :: T_Range  -> T_Literal  -> T_Pattern 
@@ -5891,17 +5933,17 @@ sem_Pattern_NegateFloat arg_range_ arg_literal_ = T_Pattern (return st119) where
          _literalX86 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Literal_vOut85 _literalIself) = inv_Literal_s86 _literalX86 (T_Literal_vIn85 )
-         _self = rule601 _literalIself _rangeIself
+         _self = rule607 _literalIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule602 _self
+         _lhsOself = rule608 _self
          __result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule601 #-}
-   rule601 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
+   {-# INLINE rule607 #-}
+   rule607 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
      Pattern_NegateFloat _rangeIself _literalIself
-   {-# INLINE rule602 #-}
-   rule602 = \ _self ->
+   {-# INLINE rule608 #-}
+   rule608 = \ _self ->
      _self
 
 -- Patterns ----------------------------------------------------
@@ -5945,17 +5987,17 @@ sem_Patterns_Cons arg_hd_ arg_tl_ = T_Patterns (return st122) where
          _tlX122 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_tl_))
          (T_Pattern_vOut118 _hdIself) = inv_Pattern_s119 _hdX119 (T_Pattern_vIn118 )
          (T_Patterns_vOut121 _tlIself) = inv_Patterns_s122 _tlX122 (T_Patterns_vIn121 )
-         _self = rule603 _hdIself _tlIself
+         _self = rule609 _hdIself _tlIself
          _lhsOself :: Patterns
-         _lhsOself = rule604 _self
+         _lhsOself = rule610 _self
          __result_ = T_Patterns_vOut121 _lhsOself
          in __result_ )
      in C_Patterns_s122 v121
-   {-# INLINE rule603 #-}
-   rule603 = \ ((_hdIself) :: Pattern) ((_tlIself) :: Patterns) ->
+   {-# INLINE rule609 #-}
+   rule609 = \ ((_hdIself) :: Pattern) ((_tlIself) :: Patterns) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule604 #-}
-   rule604 = \ _self ->
+   {-# INLINE rule610 #-}
+   rule610 = \ _self ->
      _self
 {-# NOINLINE sem_Patterns_Nil #-}
 sem_Patterns_Nil ::  T_Patterns 
@@ -5964,17 +6006,17 @@ sem_Patterns_Nil  = T_Patterns (return st122) where
    st122 = let
       v121 :: T_Patterns_v121 
       v121 = \ (T_Patterns_vIn121 ) -> ( let
-         _self = rule605  ()
+         _self = rule611  ()
          _lhsOself :: Patterns
-         _lhsOself = rule606 _self
+         _lhsOself = rule612 _self
          __result_ = T_Patterns_vOut121 _lhsOself
          in __result_ )
      in C_Patterns_s122 v121
-   {-# INLINE rule605 #-}
-   rule605 = \  (_ :: ()) ->
+   {-# INLINE rule611 #-}
+   rule611 = \  (_ :: ()) ->
      []
-   {-# INLINE rule606 #-}
-   rule606 = \ _self ->
+   {-# INLINE rule612 #-}
+   rule612 = \ _self ->
      _self
 
 -- Position ----------------------------------------------------
@@ -6015,17 +6057,17 @@ sem_Position_Position arg_filename_ arg_line_ arg_column_ = T_Position (return s
    st125 = let
       v124 :: T_Position_v124 
       v124 = \ (T_Position_vIn124 ) -> ( let
-         _self = rule607 arg_column_ arg_filename_ arg_line_
+         _self = rule613 arg_column_ arg_filename_ arg_line_
          _lhsOself :: Position
-         _lhsOself = rule608 _self
+         _lhsOself = rule614 _self
          __result_ = T_Position_vOut124 _lhsOself
          in __result_ )
      in C_Position_s125 v124
-   {-# INLINE rule607 #-}
-   rule607 = \ column_ filename_ line_ ->
+   {-# INLINE rule613 #-}
+   rule613 = \ column_ filename_ line_ ->
      Position_Position filename_ line_ column_
-   {-# INLINE rule608 #-}
-   rule608 = \ _self ->
+   {-# INLINE rule614 #-}
+   rule614 = \ _self ->
      _self
 {-# NOINLINE sem_Position_Unknown #-}
 sem_Position_Unknown ::  T_Position 
@@ -6034,17 +6076,17 @@ sem_Position_Unknown  = T_Position (return st125) where
    st125 = let
       v124 :: T_Position_v124 
       v124 = \ (T_Position_vIn124 ) -> ( let
-         _self = rule609  ()
+         _self = rule615  ()
          _lhsOself :: Position
-         _lhsOself = rule610 _self
+         _lhsOself = rule616 _self
          __result_ = T_Position_vOut124 _lhsOself
          in __result_ )
      in C_Position_s125 v124
-   {-# INLINE rule609 #-}
-   rule609 = \  (_ :: ()) ->
+   {-# INLINE rule615 #-}
+   rule615 = \  (_ :: ()) ->
      Position_Unknown
-   {-# INLINE rule610 #-}
-   rule610 = \ _self ->
+   {-# INLINE rule616 #-}
+   rule616 = \ _self ->
      _self
 
 -- Qualifier ---------------------------------------------------
@@ -6091,35 +6133,35 @@ sem_Qualifier_Guard arg_range_ arg_guard_ = T_Qualifier (return st128) where
          _guardX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_guard_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _guardIbindingGroups _guardIkappaUnique _guardIself) = inv_Expression_s41 _guardX41 (T_Expression_vIn40 _guardObindingGroups _guardOkappaUnique)
-         _self = rule611 _guardIself _rangeIself
+         _self = rule617 _guardIself _rangeIself
          _lhsOself :: Qualifier
-         _lhsOself = rule612 _self
+         _lhsOself = rule618 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule613 _guardIbindingGroups
+         _lhsObindingGroups = rule619 _guardIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule614 _guardIkappaUnique
-         _guardObindingGroups = rule615 _lhsIbindingGroups
-         _guardOkappaUnique = rule616 _lhsIkappaUnique
+         _lhsOkappaUnique = rule620 _guardIkappaUnique
+         _guardObindingGroups = rule621 _lhsIbindingGroups
+         _guardOkappaUnique = rule622 _lhsIkappaUnique
          __result_ = T_Qualifier_vOut127 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Qualifier_s128 v127
-   {-# INLINE rule611 #-}
-   rule611 = \ ((_guardIself) :: Expression) ((_rangeIself) :: Range) ->
+   {-# INLINE rule617 #-}
+   rule617 = \ ((_guardIself) :: Expression) ((_rangeIself) :: Range) ->
      Qualifier_Guard _rangeIself _guardIself
-   {-# INLINE rule612 #-}
-   rule612 = \ _self ->
+   {-# INLINE rule618 #-}
+   rule618 = \ _self ->
      _self
-   {-# INLINE rule613 #-}
-   rule613 = \ ((_guardIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule619 #-}
+   rule619 = \ ((_guardIbindingGroups) :: BindingGroups) ->
      _guardIbindingGroups
-   {-# INLINE rule614 #-}
-   rule614 = \ ((_guardIkappaUnique) :: Int) ->
+   {-# INLINE rule620 #-}
+   rule620 = \ ((_guardIkappaUnique) :: Int) ->
      _guardIkappaUnique
-   {-# INLINE rule615 #-}
-   rule615 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule621 #-}
+   rule621 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule616 #-}
-   rule616 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule622 #-}
+   rule622 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 {-# NOINLINE sem_Qualifier_Let #-}
 sem_Qualifier_Let :: T_Range  -> T_Declarations  -> T_Qualifier 
@@ -6132,35 +6174,35 @@ sem_Qualifier_Let arg_range_ arg_declarations_ = T_Qualifier (return st128) wher
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Declarations_vOut31 _declarationsIbindingGroups _declarationsIkappaUnique _declarationsIself) = inv_Declarations_s32 _declarationsX32 (T_Declarations_vIn31 _declarationsObindingGroups _declarationsOkappaUnique)
-         _self = rule617 _declarationsIself _rangeIself
+         _self = rule623 _declarationsIself _rangeIself
          _lhsOself :: Qualifier
-         _lhsOself = rule618 _self
+         _lhsOself = rule624 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule619 _declarationsIbindingGroups
+         _lhsObindingGroups = rule625 _declarationsIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule620 _declarationsIkappaUnique
-         _declarationsObindingGroups = rule621 _lhsIbindingGroups
-         _declarationsOkappaUnique = rule622 _lhsIkappaUnique
+         _lhsOkappaUnique = rule626 _declarationsIkappaUnique
+         _declarationsObindingGroups = rule627 _lhsIbindingGroups
+         _declarationsOkappaUnique = rule628 _lhsIkappaUnique
          __result_ = T_Qualifier_vOut127 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Qualifier_s128 v127
-   {-# INLINE rule617 #-}
-   rule617 = \ ((_declarationsIself) :: Declarations) ((_rangeIself) :: Range) ->
+   {-# INLINE rule623 #-}
+   rule623 = \ ((_declarationsIself) :: Declarations) ((_rangeIself) :: Range) ->
      Qualifier_Let _rangeIself _declarationsIself
-   {-# INLINE rule618 #-}
-   rule618 = \ _self ->
+   {-# INLINE rule624 #-}
+   rule624 = \ _self ->
      _self
-   {-# INLINE rule619 #-}
-   rule619 = \ ((_declarationsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule625 #-}
+   rule625 = \ ((_declarationsIbindingGroups) :: BindingGroups) ->
      _declarationsIbindingGroups
-   {-# INLINE rule620 #-}
-   rule620 = \ ((_declarationsIkappaUnique) :: Int) ->
+   {-# INLINE rule626 #-}
+   rule626 = \ ((_declarationsIkappaUnique) :: Int) ->
      _declarationsIkappaUnique
-   {-# INLINE rule621 #-}
-   rule621 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule627 #-}
+   rule627 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule622 #-}
-   rule622 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule628 #-}
+   rule628 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 {-# NOINLINE sem_Qualifier_Generator #-}
 sem_Qualifier_Generator :: T_Range  -> T_Pattern  -> T_Expression  -> T_Qualifier 
@@ -6175,35 +6217,35 @@ sem_Qualifier_Generator arg_range_ arg_pattern_ arg_expression_ = T_Qualifier (r
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Pattern_vOut118 _patternIself) = inv_Pattern_s119 _patternX119 (T_Pattern_vIn118 )
          (T_Expression_vOut40 _expressionIbindingGroups _expressionIkappaUnique _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionObindingGroups _expressionOkappaUnique)
-         _self = rule623 _expressionIself _patternIself _rangeIself
+         _self = rule629 _expressionIself _patternIself _rangeIself
          _lhsOself :: Qualifier
-         _lhsOself = rule624 _self
+         _lhsOself = rule630 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule625 _expressionIbindingGroups
+         _lhsObindingGroups = rule631 _expressionIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule626 _expressionIkappaUnique
-         _expressionObindingGroups = rule627 _lhsIbindingGroups
-         _expressionOkappaUnique = rule628 _lhsIkappaUnique
+         _lhsOkappaUnique = rule632 _expressionIkappaUnique
+         _expressionObindingGroups = rule633 _lhsIbindingGroups
+         _expressionOkappaUnique = rule634 _lhsIkappaUnique
          __result_ = T_Qualifier_vOut127 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Qualifier_s128 v127
-   {-# INLINE rule623 #-}
-   rule623 = \ ((_expressionIself) :: Expression) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
+   {-# INLINE rule629 #-}
+   rule629 = \ ((_expressionIself) :: Expression) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
      Qualifier_Generator _rangeIself _patternIself _expressionIself
-   {-# INLINE rule624 #-}
-   rule624 = \ _self ->
+   {-# INLINE rule630 #-}
+   rule630 = \ _self ->
      _self
-   {-# INLINE rule625 #-}
-   rule625 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule631 #-}
+   rule631 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
      _expressionIbindingGroups
-   {-# INLINE rule626 #-}
-   rule626 = \ ((_expressionIkappaUnique) :: Int) ->
+   {-# INLINE rule632 #-}
+   rule632 = \ ((_expressionIkappaUnique) :: Int) ->
      _expressionIkappaUnique
-   {-# INLINE rule627 #-}
-   rule627 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule633 #-}
+   rule633 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule628 #-}
-   rule628 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule634 #-}
+   rule634 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 {-# NOINLINE sem_Qualifier_Empty #-}
 sem_Qualifier_Empty :: T_Range  -> T_Qualifier 
@@ -6214,27 +6256,27 @@ sem_Qualifier_Empty arg_range_ = T_Qualifier (return st128) where
       v127 = \ (T_Qualifier_vIn127 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule629 _rangeIself
+         _self = rule635 _rangeIself
          _lhsOself :: Qualifier
-         _lhsOself = rule630 _self
+         _lhsOself = rule636 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule631 _lhsIbindingGroups
+         _lhsObindingGroups = rule637 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule632 _lhsIkappaUnique
+         _lhsOkappaUnique = rule638 _lhsIkappaUnique
          __result_ = T_Qualifier_vOut127 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Qualifier_s128 v127
-   {-# INLINE rule629 #-}
-   rule629 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule635 #-}
+   rule635 = \ ((_rangeIself) :: Range) ->
      Qualifier_Empty _rangeIself
-   {-# INLINE rule630 #-}
-   rule630 = \ _self ->
+   {-# INLINE rule636 #-}
+   rule636 = \ _self ->
      _self
-   {-# INLINE rule631 #-}
-   rule631 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule637 #-}
+   rule637 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule632 #-}
-   rule632 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule638 #-}
+   rule638 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 
 -- Qualifiers --------------------------------------------------
@@ -6278,43 +6320,43 @@ sem_Qualifiers_Cons arg_hd_ arg_tl_ = T_Qualifiers (return st131) where
          _tlX131 = Control.Monad.Identity.runIdentity (attach_T_Qualifiers (arg_tl_))
          (T_Qualifier_vOut127 _hdIbindingGroups _hdIkappaUnique _hdIself) = inv_Qualifier_s128 _hdX128 (T_Qualifier_vIn127 _hdObindingGroups _hdOkappaUnique)
          (T_Qualifiers_vOut130 _tlIbindingGroups _tlIkappaUnique _tlIself) = inv_Qualifiers_s131 _tlX131 (T_Qualifiers_vIn130 _tlObindingGroups _tlOkappaUnique)
-         _self = rule633 _hdIself _tlIself
+         _self = rule639 _hdIself _tlIself
          _lhsOself :: Qualifiers
-         _lhsOself = rule634 _self
+         _lhsOself = rule640 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule635 _tlIbindingGroups
+         _lhsObindingGroups = rule641 _tlIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule636 _tlIkappaUnique
-         _hdObindingGroups = rule637 _lhsIbindingGroups
-         _hdOkappaUnique = rule638 _lhsIkappaUnique
-         _tlObindingGroups = rule639 _hdIbindingGroups
-         _tlOkappaUnique = rule640 _hdIkappaUnique
+         _lhsOkappaUnique = rule642 _tlIkappaUnique
+         _hdObindingGroups = rule643 _lhsIbindingGroups
+         _hdOkappaUnique = rule644 _lhsIkappaUnique
+         _tlObindingGroups = rule645 _hdIbindingGroups
+         _tlOkappaUnique = rule646 _hdIkappaUnique
          __result_ = T_Qualifiers_vOut130 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Qualifiers_s131 v130
-   {-# INLINE rule633 #-}
-   rule633 = \ ((_hdIself) :: Qualifier) ((_tlIself) :: Qualifiers) ->
-     (:) _hdIself _tlIself
-   {-# INLINE rule634 #-}
-   rule634 = \ _self ->
-     _self
-   {-# INLINE rule635 #-}
-   rule635 = \ ((_tlIbindingGroups) :: BindingGroups) ->
-     _tlIbindingGroups
-   {-# INLINE rule636 #-}
-   rule636 = \ ((_tlIkappaUnique) :: Int) ->
-     _tlIkappaUnique
-   {-# INLINE rule637 #-}
-   rule637 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
-   {-# INLINE rule638 #-}
-   rule638 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
    {-# INLINE rule639 #-}
-   rule639 = \ ((_hdIbindingGroups) :: BindingGroups) ->
-     _hdIbindingGroups
+   rule639 = \ ((_hdIself) :: Qualifier) ((_tlIself) :: Qualifiers) ->
+     (:) _hdIself _tlIself
    {-# INLINE rule640 #-}
-   rule640 = \ ((_hdIkappaUnique) :: Int) ->
+   rule640 = \ _self ->
+     _self
+   {-# INLINE rule641 #-}
+   rule641 = \ ((_tlIbindingGroups) :: BindingGroups) ->
+     _tlIbindingGroups
+   {-# INLINE rule642 #-}
+   rule642 = \ ((_tlIkappaUnique) :: Int) ->
+     _tlIkappaUnique
+   {-# INLINE rule643 #-}
+   rule643 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule644 #-}
+   rule644 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule645 #-}
+   rule645 = \ ((_hdIbindingGroups) :: BindingGroups) ->
+     _hdIbindingGroups
+   {-# INLINE rule646 #-}
+   rule646 = \ ((_hdIkappaUnique) :: Int) ->
      _hdIkappaUnique
 {-# NOINLINE sem_Qualifiers_Nil #-}
 sem_Qualifiers_Nil ::  T_Qualifiers 
@@ -6323,27 +6365,27 @@ sem_Qualifiers_Nil  = T_Qualifiers (return st131) where
    st131 = let
       v130 :: T_Qualifiers_v130 
       v130 = \ (T_Qualifiers_vIn130 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
-         _self = rule641  ()
+         _self = rule647  ()
          _lhsOself :: Qualifiers
-         _lhsOself = rule642 _self
+         _lhsOself = rule648 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule643 _lhsIbindingGroups
+         _lhsObindingGroups = rule649 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule644 _lhsIkappaUnique
+         _lhsOkappaUnique = rule650 _lhsIkappaUnique
          __result_ = T_Qualifiers_vOut130 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Qualifiers_s131 v130
-   {-# INLINE rule641 #-}
-   rule641 = \  (_ :: ()) ->
+   {-# INLINE rule647 #-}
+   rule647 = \  (_ :: ()) ->
      []
-   {-# INLINE rule642 #-}
-   rule642 = \ _self ->
+   {-# INLINE rule648 #-}
+   rule648 = \ _self ->
      _self
-   {-# INLINE rule643 #-}
-   rule643 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule649 #-}
+   rule649 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule644 #-}
-   rule644 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule650 #-}
+   rule650 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 
 -- Range -------------------------------------------------------
@@ -6387,17 +6429,17 @@ sem_Range_Range arg_start_ arg_stop_ = T_Range (return st134) where
          _stopX125 = Control.Monad.Identity.runIdentity (attach_T_Position (arg_stop_))
          (T_Position_vOut124 _startIself) = inv_Position_s125 _startX125 (T_Position_vIn124 )
          (T_Position_vOut124 _stopIself) = inv_Position_s125 _stopX125 (T_Position_vIn124 )
-         _self = rule645 _startIself _stopIself
+         _self = rule651 _startIself _stopIself
          _lhsOself :: Range
-         _lhsOself = rule646 _self
+         _lhsOself = rule652 _self
          __result_ = T_Range_vOut133 _lhsOself
          in __result_ )
      in C_Range_s134 v133
-   {-# INLINE rule645 #-}
-   rule645 = \ ((_startIself) :: Position) ((_stopIself) :: Position) ->
+   {-# INLINE rule651 #-}
+   rule651 = \ ((_startIself) :: Position) ((_stopIself) :: Position) ->
      Range_Range _startIself _stopIself
-   {-# INLINE rule646 #-}
-   rule646 = \ _self ->
+   {-# INLINE rule652 #-}
+   rule652 = \ _self ->
      _self
 
 -- RecordExpressionBinding -------------------------------------
@@ -6443,35 +6485,35 @@ sem_RecordExpressionBinding_RecordExpressionBinding arg_range_ arg_name_ arg_exp
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Expression_vOut40 _expressionIbindingGroups _expressionIkappaUnique _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionObindingGroups _expressionOkappaUnique)
-         _self = rule647 _expressionIself _nameIself _rangeIself
+         _self = rule653 _expressionIself _nameIself _rangeIself
          _lhsOself :: RecordExpressionBinding
-         _lhsOself = rule648 _self
+         _lhsOself = rule654 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule649 _expressionIbindingGroups
+         _lhsObindingGroups = rule655 _expressionIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule650 _expressionIkappaUnique
-         _expressionObindingGroups = rule651 _lhsIbindingGroups
-         _expressionOkappaUnique = rule652 _lhsIkappaUnique
+         _lhsOkappaUnique = rule656 _expressionIkappaUnique
+         _expressionObindingGroups = rule657 _lhsIbindingGroups
+         _expressionOkappaUnique = rule658 _lhsIkappaUnique
          __result_ = T_RecordExpressionBinding_vOut136 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_RecordExpressionBinding_s137 v136
-   {-# INLINE rule647 #-}
-   rule647 = \ ((_expressionIself) :: Expression) ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule653 #-}
+   rule653 = \ ((_expressionIself) :: Expression) ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      RecordExpressionBinding_RecordExpressionBinding _rangeIself _nameIself _expressionIself
-   {-# INLINE rule648 #-}
-   rule648 = \ _self ->
+   {-# INLINE rule654 #-}
+   rule654 = \ _self ->
      _self
-   {-# INLINE rule649 #-}
-   rule649 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule655 #-}
+   rule655 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
      _expressionIbindingGroups
-   {-# INLINE rule650 #-}
-   rule650 = \ ((_expressionIkappaUnique) :: Int) ->
+   {-# INLINE rule656 #-}
+   rule656 = \ ((_expressionIkappaUnique) :: Int) ->
      _expressionIkappaUnique
-   {-# INLINE rule651 #-}
-   rule651 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule657 #-}
+   rule657 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule652 #-}
-   rule652 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule658 #-}
+   rule658 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 
 -- RecordExpressionBindings ------------------------------------
@@ -6515,43 +6557,43 @@ sem_RecordExpressionBindings_Cons arg_hd_ arg_tl_ = T_RecordExpressionBindings (
          _tlX140 = Control.Monad.Identity.runIdentity (attach_T_RecordExpressionBindings (arg_tl_))
          (T_RecordExpressionBinding_vOut136 _hdIbindingGroups _hdIkappaUnique _hdIself) = inv_RecordExpressionBinding_s137 _hdX137 (T_RecordExpressionBinding_vIn136 _hdObindingGroups _hdOkappaUnique)
          (T_RecordExpressionBindings_vOut139 _tlIbindingGroups _tlIkappaUnique _tlIself) = inv_RecordExpressionBindings_s140 _tlX140 (T_RecordExpressionBindings_vIn139 _tlObindingGroups _tlOkappaUnique)
-         _self = rule653 _hdIself _tlIself
+         _self = rule659 _hdIself _tlIself
          _lhsOself :: RecordExpressionBindings
-         _lhsOself = rule654 _self
+         _lhsOself = rule660 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule655 _tlIbindingGroups
+         _lhsObindingGroups = rule661 _tlIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule656 _tlIkappaUnique
-         _hdObindingGroups = rule657 _lhsIbindingGroups
-         _hdOkappaUnique = rule658 _lhsIkappaUnique
-         _tlObindingGroups = rule659 _hdIbindingGroups
-         _tlOkappaUnique = rule660 _hdIkappaUnique
+         _lhsOkappaUnique = rule662 _tlIkappaUnique
+         _hdObindingGroups = rule663 _lhsIbindingGroups
+         _hdOkappaUnique = rule664 _lhsIkappaUnique
+         _tlObindingGroups = rule665 _hdIbindingGroups
+         _tlOkappaUnique = rule666 _hdIkappaUnique
          __result_ = T_RecordExpressionBindings_vOut139 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_RecordExpressionBindings_s140 v139
-   {-# INLINE rule653 #-}
-   rule653 = \ ((_hdIself) :: RecordExpressionBinding) ((_tlIself) :: RecordExpressionBindings) ->
-     (:) _hdIself _tlIself
-   {-# INLINE rule654 #-}
-   rule654 = \ _self ->
-     _self
-   {-# INLINE rule655 #-}
-   rule655 = \ ((_tlIbindingGroups) :: BindingGroups) ->
-     _tlIbindingGroups
-   {-# INLINE rule656 #-}
-   rule656 = \ ((_tlIkappaUnique) :: Int) ->
-     _tlIkappaUnique
-   {-# INLINE rule657 #-}
-   rule657 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
-   {-# INLINE rule658 #-}
-   rule658 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
    {-# INLINE rule659 #-}
-   rule659 = \ ((_hdIbindingGroups) :: BindingGroups) ->
-     _hdIbindingGroups
+   rule659 = \ ((_hdIself) :: RecordExpressionBinding) ((_tlIself) :: RecordExpressionBindings) ->
+     (:) _hdIself _tlIself
    {-# INLINE rule660 #-}
-   rule660 = \ ((_hdIkappaUnique) :: Int) ->
+   rule660 = \ _self ->
+     _self
+   {-# INLINE rule661 #-}
+   rule661 = \ ((_tlIbindingGroups) :: BindingGroups) ->
+     _tlIbindingGroups
+   {-# INLINE rule662 #-}
+   rule662 = \ ((_tlIkappaUnique) :: Int) ->
+     _tlIkappaUnique
+   {-# INLINE rule663 #-}
+   rule663 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule664 #-}
+   rule664 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule665 #-}
+   rule665 = \ ((_hdIbindingGroups) :: BindingGroups) ->
+     _hdIbindingGroups
+   {-# INLINE rule666 #-}
+   rule666 = \ ((_hdIkappaUnique) :: Int) ->
      _hdIkappaUnique
 {-# NOINLINE sem_RecordExpressionBindings_Nil #-}
 sem_RecordExpressionBindings_Nil ::  T_RecordExpressionBindings 
@@ -6560,27 +6602,27 @@ sem_RecordExpressionBindings_Nil  = T_RecordExpressionBindings (return st140) wh
    st140 = let
       v139 :: T_RecordExpressionBindings_v139 
       v139 = \ (T_RecordExpressionBindings_vIn139 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
-         _self = rule661  ()
+         _self = rule667  ()
          _lhsOself :: RecordExpressionBindings
-         _lhsOself = rule662 _self
+         _lhsOself = rule668 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule663 _lhsIbindingGroups
+         _lhsObindingGroups = rule669 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule664 _lhsIkappaUnique
+         _lhsOkappaUnique = rule670 _lhsIkappaUnique
          __result_ = T_RecordExpressionBindings_vOut139 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_RecordExpressionBindings_s140 v139
-   {-# INLINE rule661 #-}
-   rule661 = \  (_ :: ()) ->
+   {-# INLINE rule667 #-}
+   rule667 = \  (_ :: ()) ->
      []
-   {-# INLINE rule662 #-}
-   rule662 = \ _self ->
+   {-# INLINE rule668 #-}
+   rule668 = \ _self ->
      _self
-   {-# INLINE rule663 #-}
-   rule663 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule669 #-}
+   rule669 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule664 #-}
-   rule664 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule670 #-}
+   rule670 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 
 -- RecordPatternBinding ----------------------------------------
@@ -6626,17 +6668,17 @@ sem_RecordPatternBinding_RecordPatternBinding arg_range_ arg_name_ arg_pattern_ 
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Pattern_vOut118 _patternIself) = inv_Pattern_s119 _patternX119 (T_Pattern_vIn118 )
-         _self = rule665 _nameIself _patternIself _rangeIself
+         _self = rule671 _nameIself _patternIself _rangeIself
          _lhsOself :: RecordPatternBinding
-         _lhsOself = rule666 _self
+         _lhsOself = rule672 _self
          __result_ = T_RecordPatternBinding_vOut142 _lhsOself
          in __result_ )
      in C_RecordPatternBinding_s143 v142
-   {-# INLINE rule665 #-}
-   rule665 = \ ((_nameIself) :: Name) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
+   {-# INLINE rule671 #-}
+   rule671 = \ ((_nameIself) :: Name) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
      RecordPatternBinding_RecordPatternBinding _rangeIself _nameIself _patternIself
-   {-# INLINE rule666 #-}
-   rule666 = \ _self ->
+   {-# INLINE rule672 #-}
+   rule672 = \ _self ->
      _self
 
 -- RecordPatternBindings ---------------------------------------
@@ -6680,17 +6722,17 @@ sem_RecordPatternBindings_Cons arg_hd_ arg_tl_ = T_RecordPatternBindings (return
          _tlX146 = Control.Monad.Identity.runIdentity (attach_T_RecordPatternBindings (arg_tl_))
          (T_RecordPatternBinding_vOut142 _hdIself) = inv_RecordPatternBinding_s143 _hdX143 (T_RecordPatternBinding_vIn142 )
          (T_RecordPatternBindings_vOut145 _tlIself) = inv_RecordPatternBindings_s146 _tlX146 (T_RecordPatternBindings_vIn145 )
-         _self = rule667 _hdIself _tlIself
+         _self = rule673 _hdIself _tlIself
          _lhsOself :: RecordPatternBindings
-         _lhsOself = rule668 _self
+         _lhsOself = rule674 _self
          __result_ = T_RecordPatternBindings_vOut145 _lhsOself
          in __result_ )
      in C_RecordPatternBindings_s146 v145
-   {-# INLINE rule667 #-}
-   rule667 = \ ((_hdIself) :: RecordPatternBinding) ((_tlIself) :: RecordPatternBindings) ->
+   {-# INLINE rule673 #-}
+   rule673 = \ ((_hdIself) :: RecordPatternBinding) ((_tlIself) :: RecordPatternBindings) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule668 #-}
-   rule668 = \ _self ->
+   {-# INLINE rule674 #-}
+   rule674 = \ _self ->
      _self
 {-# NOINLINE sem_RecordPatternBindings_Nil #-}
 sem_RecordPatternBindings_Nil ::  T_RecordPatternBindings 
@@ -6699,17 +6741,17 @@ sem_RecordPatternBindings_Nil  = T_RecordPatternBindings (return st146) where
    st146 = let
       v145 :: T_RecordPatternBindings_v145 
       v145 = \ (T_RecordPatternBindings_vIn145 ) -> ( let
-         _self = rule669  ()
+         _self = rule675  ()
          _lhsOself :: RecordPatternBindings
-         _lhsOself = rule670 _self
+         _lhsOself = rule676 _self
          __result_ = T_RecordPatternBindings_vOut145 _lhsOself
          in __result_ )
      in C_RecordPatternBindings_s146 v145
-   {-# INLINE rule669 #-}
-   rule669 = \  (_ :: ()) ->
+   {-# INLINE rule675 #-}
+   rule675 = \  (_ :: ()) ->
      []
-   {-# INLINE rule670 #-}
-   rule670 = \ _self ->
+   {-# INLINE rule676 #-}
+   rule676 = \ _self ->
      _self
 
 -- RightHandSide -----------------------------------------------
@@ -6756,43 +6798,43 @@ sem_RightHandSide_Expression arg_range_ arg_expression_ arg_where_ = T_RightHand
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionIbindingGroups _expressionIkappaUnique _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionObindingGroups _expressionOkappaUnique)
          (T_MaybeDeclarations_vOut88 _whereIbindingGroups _whereIkappaUnique _whereIself) = inv_MaybeDeclarations_s89 _whereX89 (T_MaybeDeclarations_vIn88 _whereObindingGroups _whereOkappaUnique)
-         _self = rule671 _expressionIself _rangeIself _whereIself
+         _self = rule677 _expressionIself _rangeIself _whereIself
          _lhsOself :: RightHandSide
-         _lhsOself = rule672 _self
+         _lhsOself = rule678 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule673 _whereIbindingGroups
+         _lhsObindingGroups = rule679 _whereIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule674 _whereIkappaUnique
-         _expressionObindingGroups = rule675 _lhsIbindingGroups
-         _expressionOkappaUnique = rule676 _lhsIkappaUnique
-         _whereObindingGroups = rule677 _expressionIbindingGroups
-         _whereOkappaUnique = rule678 _expressionIkappaUnique
+         _lhsOkappaUnique = rule680 _whereIkappaUnique
+         _expressionObindingGroups = rule681 _lhsIbindingGroups
+         _expressionOkappaUnique = rule682 _lhsIkappaUnique
+         _whereObindingGroups = rule683 _expressionIbindingGroups
+         _whereOkappaUnique = rule684 _expressionIkappaUnique
          __result_ = T_RightHandSide_vOut148 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_RightHandSide_s149 v148
-   {-# INLINE rule671 #-}
-   rule671 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ((_whereIself) :: MaybeDeclarations) ->
-     RightHandSide_Expression _rangeIself _expressionIself _whereIself
-   {-# INLINE rule672 #-}
-   rule672 = \ _self ->
-     _self
-   {-# INLINE rule673 #-}
-   rule673 = \ ((_whereIbindingGroups) :: BindingGroups) ->
-     _whereIbindingGroups
-   {-# INLINE rule674 #-}
-   rule674 = \ ((_whereIkappaUnique) :: Int) ->
-     _whereIkappaUnique
-   {-# INLINE rule675 #-}
-   rule675 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
-   {-# INLINE rule676 #-}
-   rule676 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
    {-# INLINE rule677 #-}
-   rule677 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
-     _expressionIbindingGroups
+   rule677 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ((_whereIself) :: MaybeDeclarations) ->
+     RightHandSide_Expression _rangeIself _expressionIself _whereIself
    {-# INLINE rule678 #-}
-   rule678 = \ ((_expressionIkappaUnique) :: Int) ->
+   rule678 = \ _self ->
+     _self
+   {-# INLINE rule679 #-}
+   rule679 = \ ((_whereIbindingGroups) :: BindingGroups) ->
+     _whereIbindingGroups
+   {-# INLINE rule680 #-}
+   rule680 = \ ((_whereIkappaUnique) :: Int) ->
+     _whereIkappaUnique
+   {-# INLINE rule681 #-}
+   rule681 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule682 #-}
+   rule682 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule683 #-}
+   rule683 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
+     _expressionIbindingGroups
+   {-# INLINE rule684 #-}
+   rule684 = \ ((_expressionIkappaUnique) :: Int) ->
      _expressionIkappaUnique
 {-# NOINLINE sem_RightHandSide_Guarded #-}
 sem_RightHandSide_Guarded :: T_Range  -> T_GuardedExpressions  -> T_MaybeDeclarations  -> T_RightHandSide 
@@ -6807,43 +6849,43 @@ sem_RightHandSide_Guarded arg_range_ arg_guardedexpressions_ arg_where_ = T_Righ
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_GuardedExpressions_vOut64 _guardedexpressionsIbindingGroups _guardedexpressionsIkappaUnique _guardedexpressionsIself) = inv_GuardedExpressions_s65 _guardedexpressionsX65 (T_GuardedExpressions_vIn64 _guardedexpressionsObindingGroups _guardedexpressionsOkappaUnique)
          (T_MaybeDeclarations_vOut88 _whereIbindingGroups _whereIkappaUnique _whereIself) = inv_MaybeDeclarations_s89 _whereX89 (T_MaybeDeclarations_vIn88 _whereObindingGroups _whereOkappaUnique)
-         _self = rule679 _guardedexpressionsIself _rangeIself _whereIself
+         _self = rule685 _guardedexpressionsIself _rangeIself _whereIself
          _lhsOself :: RightHandSide
-         _lhsOself = rule680 _self
+         _lhsOself = rule686 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule681 _whereIbindingGroups
+         _lhsObindingGroups = rule687 _whereIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule682 _whereIkappaUnique
-         _guardedexpressionsObindingGroups = rule683 _lhsIbindingGroups
-         _guardedexpressionsOkappaUnique = rule684 _lhsIkappaUnique
-         _whereObindingGroups = rule685 _guardedexpressionsIbindingGroups
-         _whereOkappaUnique = rule686 _guardedexpressionsIkappaUnique
+         _lhsOkappaUnique = rule688 _whereIkappaUnique
+         _guardedexpressionsObindingGroups = rule689 _lhsIbindingGroups
+         _guardedexpressionsOkappaUnique = rule690 _lhsIkappaUnique
+         _whereObindingGroups = rule691 _guardedexpressionsIbindingGroups
+         _whereOkappaUnique = rule692 _guardedexpressionsIkappaUnique
          __result_ = T_RightHandSide_vOut148 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_RightHandSide_s149 v148
-   {-# INLINE rule679 #-}
-   rule679 = \ ((_guardedexpressionsIself) :: GuardedExpressions) ((_rangeIself) :: Range) ((_whereIself) :: MaybeDeclarations) ->
-     RightHandSide_Guarded _rangeIself _guardedexpressionsIself _whereIself
-   {-# INLINE rule680 #-}
-   rule680 = \ _self ->
-     _self
-   {-# INLINE rule681 #-}
-   rule681 = \ ((_whereIbindingGroups) :: BindingGroups) ->
-     _whereIbindingGroups
-   {-# INLINE rule682 #-}
-   rule682 = \ ((_whereIkappaUnique) :: Int) ->
-     _whereIkappaUnique
-   {-# INLINE rule683 #-}
-   rule683 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
-   {-# INLINE rule684 #-}
-   rule684 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
    {-# INLINE rule685 #-}
-   rule685 = \ ((_guardedexpressionsIbindingGroups) :: BindingGroups) ->
-     _guardedexpressionsIbindingGroups
+   rule685 = \ ((_guardedexpressionsIself) :: GuardedExpressions) ((_rangeIself) :: Range) ((_whereIself) :: MaybeDeclarations) ->
+     RightHandSide_Guarded _rangeIself _guardedexpressionsIself _whereIself
    {-# INLINE rule686 #-}
-   rule686 = \ ((_guardedexpressionsIkappaUnique) :: Int) ->
+   rule686 = \ _self ->
+     _self
+   {-# INLINE rule687 #-}
+   rule687 = \ ((_whereIbindingGroups) :: BindingGroups) ->
+     _whereIbindingGroups
+   {-# INLINE rule688 #-}
+   rule688 = \ ((_whereIkappaUnique) :: Int) ->
+     _whereIkappaUnique
+   {-# INLINE rule689 #-}
+   rule689 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule690 #-}
+   rule690 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule691 #-}
+   rule691 = \ ((_guardedexpressionsIbindingGroups) :: BindingGroups) ->
+     _guardedexpressionsIbindingGroups
+   {-# INLINE rule692 #-}
+   rule692 = \ ((_guardedexpressionsIkappaUnique) :: Int) ->
      _guardedexpressionsIkappaUnique
 
 -- SimpleType --------------------------------------------------
@@ -6890,48 +6932,48 @@ sem_SimpleType_SimpleType arg_range_ arg_name_ arg_typevariables_ = T_SimpleType
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Names_vOut115 _typevariablesIself) = inv_Names_s116 _typevariablesX116 (T_Names_vIn115 )
          _lhsOenvironment :: PatternAssumptions
-         _lhsOenvironment = rule687 _kappasVars _typevariablesIself
+         _lhsOenvironment = rule693 _kappasVars _typevariablesIself
          _lhsOdeclared :: PatternAssumptions
-         _lhsOdeclared = rule688 _kappaCon _nameIself
+         _lhsOdeclared = rule694 _kappaCon _nameIself
          _lhsOconstraints :: KindConstraints
-         _lhsOconstraints = rule689 _lhsIconstraints _newConstraint
+         _lhsOconstraints = rule695 _lhsIconstraints _newConstraint
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule690 _lhsIkappaUnique _typevariablesIself
-         _kappaCon = rule691 _lhsIkappaUnique
-         _kappasVars = rule692 _lhsIkappaUnique _typevariablesIself
-         _newConstraint = rule693 _kappaCon _kappasVars _lhsIkappaOfRHS
-         _self = rule694 _nameIself _rangeIself _typevariablesIself
+         _lhsOkappaUnique = rule696 _lhsIkappaUnique _typevariablesIself
+         _kappaCon = rule697 _lhsIkappaUnique
+         _kappasVars = rule698 _lhsIkappaUnique _typevariablesIself
+         _newConstraint = rule699 _kappaCon _kappasVars _lhsIkappaOfRHS
+         _self = rule700 _nameIself _rangeIself _typevariablesIself
          _lhsOself :: SimpleType
-         _lhsOself = rule695 _self
+         _lhsOself = rule701 _self
          __result_ = T_SimpleType_vOut151 _lhsOconstraints _lhsOdeclared _lhsOenvironment _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_SimpleType_s152 v151
-   {-# INLINE rule687 #-}
-   rule687 = \ _kappasVars ((_typevariablesIself) :: Names) ->
-                               M.fromList (zip _typevariablesIself _kappasVars)
-   {-# INLINE rule688 #-}
-   rule688 = \ _kappaCon ((_nameIself) :: Name) ->
-                               M.singleton _nameIself _kappaCon
-   {-# INLINE rule689 #-}
-   rule689 = \ ((_lhsIconstraints) :: KindConstraints) _newConstraint ->
-                               _newConstraint : _lhsIconstraints
-   {-# INLINE rule690 #-}
-   rule690 = \ ((_lhsIkappaUnique) :: Int) ((_typevariablesIself) :: Names) ->
-                               1 + length _typevariablesIself + _lhsIkappaUnique
-   {-# INLINE rule691 #-}
-   rule691 = \ ((_lhsIkappaUnique) :: Int) ->
-                               TVar _lhsIkappaUnique
-   {-# INLINE rule692 #-}
-   rule692 = \ ((_lhsIkappaUnique) :: Int) ((_typevariablesIself) :: Names) ->
-                               take (length _typevariablesIself) [ TVar i | i <- [ _lhsIkappaUnique+1 .. ]]
    {-# INLINE rule693 #-}
-   rule693 = \ _kappaCon _kappasVars ((_lhsIkappaOfRHS) :: Kind) ->
-                               (_kappaCon .==. foldr (.->.) _lhsIkappaOfRHS _kappasVars) (unexpected "SimpleType.SimpleType")
+   rule693 = \ _kappasVars ((_typevariablesIself) :: Names) ->
+                               M.fromList (zip _typevariablesIself _kappasVars)
    {-# INLINE rule694 #-}
-   rule694 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_typevariablesIself) :: Names) ->
-     SimpleType_SimpleType _rangeIself _nameIself _typevariablesIself
+   rule694 = \ _kappaCon ((_nameIself) :: Name) ->
+                               M.singleton _nameIself _kappaCon
    {-# INLINE rule695 #-}
-   rule695 = \ _self ->
+   rule695 = \ ((_lhsIconstraints) :: KindConstraints) _newConstraint ->
+                               _newConstraint : _lhsIconstraints
+   {-# INLINE rule696 #-}
+   rule696 = \ ((_lhsIkappaUnique) :: Int) ((_typevariablesIself) :: Names) ->
+                               1 + length _typevariablesIself + _lhsIkappaUnique
+   {-# INLINE rule697 #-}
+   rule697 = \ ((_lhsIkappaUnique) :: Int) ->
+                               TVar _lhsIkappaUnique
+   {-# INLINE rule698 #-}
+   rule698 = \ ((_lhsIkappaUnique) :: Int) ((_typevariablesIself) :: Names) ->
+                               take (length _typevariablesIself) [ TVar i | i <- [ _lhsIkappaUnique+1 .. ]]
+   {-# INLINE rule699 #-}
+   rule699 = \ _kappaCon _kappasVars ((_lhsIkappaOfRHS) :: Kind) ->
+                               (_kappaCon .==. foldr (.->.) _lhsIkappaOfRHS _kappasVars) (unexpected "SimpleType.SimpleType")
+   {-# INLINE rule700 #-}
+   rule700 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_typevariablesIself) :: Names) ->
+     SimpleType_SimpleType _rangeIself _nameIself _typevariablesIself
+   {-# INLINE rule701 #-}
+   rule701 = \ _self ->
      _self
 
 -- Statement ---------------------------------------------------
@@ -6978,35 +7020,35 @@ sem_Statement_Expression arg_range_ arg_expression_ = T_Statement (return st155)
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionIbindingGroups _expressionIkappaUnique _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionObindingGroups _expressionOkappaUnique)
-         _self = rule696 _expressionIself _rangeIself
+         _self = rule702 _expressionIself _rangeIself
          _lhsOself :: Statement
-         _lhsOself = rule697 _self
+         _lhsOself = rule703 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule698 _expressionIbindingGroups
+         _lhsObindingGroups = rule704 _expressionIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule699 _expressionIkappaUnique
-         _expressionObindingGroups = rule700 _lhsIbindingGroups
-         _expressionOkappaUnique = rule701 _lhsIkappaUnique
+         _lhsOkappaUnique = rule705 _expressionIkappaUnique
+         _expressionObindingGroups = rule706 _lhsIbindingGroups
+         _expressionOkappaUnique = rule707 _lhsIkappaUnique
          __result_ = T_Statement_vOut154 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Statement_s155 v154
-   {-# INLINE rule696 #-}
-   rule696 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
+   {-# INLINE rule702 #-}
+   rule702 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
      Statement_Expression _rangeIself _expressionIself
-   {-# INLINE rule697 #-}
-   rule697 = \ _self ->
+   {-# INLINE rule703 #-}
+   rule703 = \ _self ->
      _self
-   {-# INLINE rule698 #-}
-   rule698 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule704 #-}
+   rule704 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
      _expressionIbindingGroups
-   {-# INLINE rule699 #-}
-   rule699 = \ ((_expressionIkappaUnique) :: Int) ->
+   {-# INLINE rule705 #-}
+   rule705 = \ ((_expressionIkappaUnique) :: Int) ->
      _expressionIkappaUnique
-   {-# INLINE rule700 #-}
-   rule700 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule706 #-}
+   rule706 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule701 #-}
-   rule701 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule707 #-}
+   rule707 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 {-# NOINLINE sem_Statement_Let #-}
 sem_Statement_Let :: T_Range  -> T_Declarations  -> T_Statement 
@@ -7019,35 +7061,35 @@ sem_Statement_Let arg_range_ arg_declarations_ = T_Statement (return st155) wher
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Declarations_vOut31 _declarationsIbindingGroups _declarationsIkappaUnique _declarationsIself) = inv_Declarations_s32 _declarationsX32 (T_Declarations_vIn31 _declarationsObindingGroups _declarationsOkappaUnique)
-         _self = rule702 _declarationsIself _rangeIself
+         _self = rule708 _declarationsIself _rangeIself
          _lhsOself :: Statement
-         _lhsOself = rule703 _self
+         _lhsOself = rule709 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule704 _declarationsIbindingGroups
+         _lhsObindingGroups = rule710 _declarationsIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule705 _declarationsIkappaUnique
-         _declarationsObindingGroups = rule706 _lhsIbindingGroups
-         _declarationsOkappaUnique = rule707 _lhsIkappaUnique
+         _lhsOkappaUnique = rule711 _declarationsIkappaUnique
+         _declarationsObindingGroups = rule712 _lhsIbindingGroups
+         _declarationsOkappaUnique = rule713 _lhsIkappaUnique
          __result_ = T_Statement_vOut154 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Statement_s155 v154
-   {-# INLINE rule702 #-}
-   rule702 = \ ((_declarationsIself) :: Declarations) ((_rangeIself) :: Range) ->
+   {-# INLINE rule708 #-}
+   rule708 = \ ((_declarationsIself) :: Declarations) ((_rangeIself) :: Range) ->
      Statement_Let _rangeIself _declarationsIself
-   {-# INLINE rule703 #-}
-   rule703 = \ _self ->
+   {-# INLINE rule709 #-}
+   rule709 = \ _self ->
      _self
-   {-# INLINE rule704 #-}
-   rule704 = \ ((_declarationsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule710 #-}
+   rule710 = \ ((_declarationsIbindingGroups) :: BindingGroups) ->
      _declarationsIbindingGroups
-   {-# INLINE rule705 #-}
-   rule705 = \ ((_declarationsIkappaUnique) :: Int) ->
+   {-# INLINE rule711 #-}
+   rule711 = \ ((_declarationsIkappaUnique) :: Int) ->
      _declarationsIkappaUnique
-   {-# INLINE rule706 #-}
-   rule706 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule712 #-}
+   rule712 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule707 #-}
-   rule707 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule713 #-}
+   rule713 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 {-# NOINLINE sem_Statement_Generator #-}
 sem_Statement_Generator :: T_Range  -> T_Pattern  -> T_Expression  -> T_Statement 
@@ -7062,35 +7104,35 @@ sem_Statement_Generator arg_range_ arg_pattern_ arg_expression_ = T_Statement (r
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Pattern_vOut118 _patternIself) = inv_Pattern_s119 _patternX119 (T_Pattern_vIn118 )
          (T_Expression_vOut40 _expressionIbindingGroups _expressionIkappaUnique _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionObindingGroups _expressionOkappaUnique)
-         _self = rule708 _expressionIself _patternIself _rangeIself
+         _self = rule714 _expressionIself _patternIself _rangeIself
          _lhsOself :: Statement
-         _lhsOself = rule709 _self
+         _lhsOself = rule715 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule710 _expressionIbindingGroups
+         _lhsObindingGroups = rule716 _expressionIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule711 _expressionIkappaUnique
-         _expressionObindingGroups = rule712 _lhsIbindingGroups
-         _expressionOkappaUnique = rule713 _lhsIkappaUnique
+         _lhsOkappaUnique = rule717 _expressionIkappaUnique
+         _expressionObindingGroups = rule718 _lhsIbindingGroups
+         _expressionOkappaUnique = rule719 _lhsIkappaUnique
          __result_ = T_Statement_vOut154 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Statement_s155 v154
-   {-# INLINE rule708 #-}
-   rule708 = \ ((_expressionIself) :: Expression) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
+   {-# INLINE rule714 #-}
+   rule714 = \ ((_expressionIself) :: Expression) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
      Statement_Generator _rangeIself _patternIself _expressionIself
-   {-# INLINE rule709 #-}
-   rule709 = \ _self ->
+   {-# INLINE rule715 #-}
+   rule715 = \ _self ->
      _self
-   {-# INLINE rule710 #-}
-   rule710 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule716 #-}
+   rule716 = \ ((_expressionIbindingGroups) :: BindingGroups) ->
      _expressionIbindingGroups
-   {-# INLINE rule711 #-}
-   rule711 = \ ((_expressionIkappaUnique) :: Int) ->
+   {-# INLINE rule717 #-}
+   rule717 = \ ((_expressionIkappaUnique) :: Int) ->
      _expressionIkappaUnique
-   {-# INLINE rule712 #-}
-   rule712 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule718 #-}
+   rule718 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule713 #-}
-   rule713 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule719 #-}
+   rule719 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 {-# NOINLINE sem_Statement_Empty #-}
 sem_Statement_Empty :: T_Range  -> T_Statement 
@@ -7101,27 +7143,27 @@ sem_Statement_Empty arg_range_ = T_Statement (return st155) where
       v154 = \ (T_Statement_vIn154 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule714 _rangeIself
+         _self = rule720 _rangeIself
          _lhsOself :: Statement
-         _lhsOself = rule715 _self
+         _lhsOself = rule721 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule716 _lhsIbindingGroups
+         _lhsObindingGroups = rule722 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule717 _lhsIkappaUnique
+         _lhsOkappaUnique = rule723 _lhsIkappaUnique
          __result_ = T_Statement_vOut154 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Statement_s155 v154
-   {-# INLINE rule714 #-}
-   rule714 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule720 #-}
+   rule720 = \ ((_rangeIself) :: Range) ->
      Statement_Empty _rangeIself
-   {-# INLINE rule715 #-}
-   rule715 = \ _self ->
+   {-# INLINE rule721 #-}
+   rule721 = \ _self ->
      _self
-   {-# INLINE rule716 #-}
-   rule716 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule722 #-}
+   rule722 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule717 #-}
-   rule717 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule723 #-}
+   rule723 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 
 -- Statements --------------------------------------------------
@@ -7165,43 +7207,43 @@ sem_Statements_Cons arg_hd_ arg_tl_ = T_Statements (return st158) where
          _tlX158 = Control.Monad.Identity.runIdentity (attach_T_Statements (arg_tl_))
          (T_Statement_vOut154 _hdIbindingGroups _hdIkappaUnique _hdIself) = inv_Statement_s155 _hdX155 (T_Statement_vIn154 _hdObindingGroups _hdOkappaUnique)
          (T_Statements_vOut157 _tlIbindingGroups _tlIkappaUnique _tlIself) = inv_Statements_s158 _tlX158 (T_Statements_vIn157 _tlObindingGroups _tlOkappaUnique)
-         _self = rule718 _hdIself _tlIself
+         _self = rule724 _hdIself _tlIself
          _lhsOself :: Statements
-         _lhsOself = rule719 _self
+         _lhsOself = rule725 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule720 _tlIbindingGroups
+         _lhsObindingGroups = rule726 _tlIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule721 _tlIkappaUnique
-         _hdObindingGroups = rule722 _lhsIbindingGroups
-         _hdOkappaUnique = rule723 _lhsIkappaUnique
-         _tlObindingGroups = rule724 _hdIbindingGroups
-         _tlOkappaUnique = rule725 _hdIkappaUnique
+         _lhsOkappaUnique = rule727 _tlIkappaUnique
+         _hdObindingGroups = rule728 _lhsIbindingGroups
+         _hdOkappaUnique = rule729 _lhsIkappaUnique
+         _tlObindingGroups = rule730 _hdIbindingGroups
+         _tlOkappaUnique = rule731 _hdIkappaUnique
          __result_ = T_Statements_vOut157 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Statements_s158 v157
-   {-# INLINE rule718 #-}
-   rule718 = \ ((_hdIself) :: Statement) ((_tlIself) :: Statements) ->
-     (:) _hdIself _tlIself
-   {-# INLINE rule719 #-}
-   rule719 = \ _self ->
-     _self
-   {-# INLINE rule720 #-}
-   rule720 = \ ((_tlIbindingGroups) :: BindingGroups) ->
-     _tlIbindingGroups
-   {-# INLINE rule721 #-}
-   rule721 = \ ((_tlIkappaUnique) :: Int) ->
-     _tlIkappaUnique
-   {-# INLINE rule722 #-}
-   rule722 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
-     _lhsIbindingGroups
-   {-# INLINE rule723 #-}
-   rule723 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
    {-# INLINE rule724 #-}
-   rule724 = \ ((_hdIbindingGroups) :: BindingGroups) ->
-     _hdIbindingGroups
+   rule724 = \ ((_hdIself) :: Statement) ((_tlIself) :: Statements) ->
+     (:) _hdIself _tlIself
    {-# INLINE rule725 #-}
-   rule725 = \ ((_hdIkappaUnique) :: Int) ->
+   rule725 = \ _self ->
+     _self
+   {-# INLINE rule726 #-}
+   rule726 = \ ((_tlIbindingGroups) :: BindingGroups) ->
+     _tlIbindingGroups
+   {-# INLINE rule727 #-}
+   rule727 = \ ((_tlIkappaUnique) :: Int) ->
+     _tlIkappaUnique
+   {-# INLINE rule728 #-}
+   rule728 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+     _lhsIbindingGroups
+   {-# INLINE rule729 #-}
+   rule729 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule730 #-}
+   rule730 = \ ((_hdIbindingGroups) :: BindingGroups) ->
+     _hdIbindingGroups
+   {-# INLINE rule731 #-}
+   rule731 = \ ((_hdIkappaUnique) :: Int) ->
      _hdIkappaUnique
 {-# NOINLINE sem_Statements_Nil #-}
 sem_Statements_Nil ::  T_Statements 
@@ -7210,27 +7252,27 @@ sem_Statements_Nil  = T_Statements (return st158) where
    st158 = let
       v157 :: T_Statements_v157 
       v157 = \ (T_Statements_vIn157 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
-         _self = rule726  ()
+         _self = rule732  ()
          _lhsOself :: Statements
-         _lhsOself = rule727 _self
+         _lhsOself = rule733 _self
          _lhsObindingGroups :: BindingGroups
-         _lhsObindingGroups = rule728 _lhsIbindingGroups
+         _lhsObindingGroups = rule734 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule729 _lhsIkappaUnique
+         _lhsOkappaUnique = rule735 _lhsIkappaUnique
          __result_ = T_Statements_vOut157 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Statements_s158 v157
-   {-# INLINE rule726 #-}
-   rule726 = \  (_ :: ()) ->
+   {-# INLINE rule732 #-}
+   rule732 = \  (_ :: ()) ->
      []
-   {-# INLINE rule727 #-}
-   rule727 = \ _self ->
+   {-# INLINE rule733 #-}
+   rule733 = \ _self ->
      _self
-   {-# INLINE rule728 #-}
-   rule728 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
+   {-# INLINE rule734 #-}
+   rule734 = \ ((_lhsIbindingGroups) :: BindingGroups) ->
      _lhsIbindingGroups
-   {-# INLINE rule729 #-}
-   rule729 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule735 #-}
+   rule735 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 
 -- Strings -----------------------------------------------------
@@ -7272,17 +7314,17 @@ sem_Strings_Cons arg_hd_ arg_tl_ = T_Strings (return st161) where
       v160 = \ (T_Strings_vIn160 ) -> ( let
          _tlX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_tl_))
          (T_Strings_vOut160 _tlIself) = inv_Strings_s161 _tlX161 (T_Strings_vIn160 )
-         _self = rule730 _tlIself arg_hd_
+         _self = rule736 _tlIself arg_hd_
          _lhsOself :: Strings
-         _lhsOself = rule731 _self
+         _lhsOself = rule737 _self
          __result_ = T_Strings_vOut160 _lhsOself
          in __result_ )
      in C_Strings_s161 v160
-   {-# INLINE rule730 #-}
-   rule730 = \ ((_tlIself) :: Strings) hd_ ->
+   {-# INLINE rule736 #-}
+   rule736 = \ ((_tlIself) :: Strings) hd_ ->
      (:) hd_ _tlIself
-   {-# INLINE rule731 #-}
-   rule731 = \ _self ->
+   {-# INLINE rule737 #-}
+   rule737 = \ _self ->
      _self
 {-# NOINLINE sem_Strings_Nil #-}
 sem_Strings_Nil ::  T_Strings 
@@ -7291,17 +7333,17 @@ sem_Strings_Nil  = T_Strings (return st161) where
    st161 = let
       v160 :: T_Strings_v160 
       v160 = \ (T_Strings_vIn160 ) -> ( let
-         _self = rule732  ()
+         _self = rule738  ()
          _lhsOself :: Strings
-         _lhsOself = rule733 _self
+         _lhsOself = rule739 _self
          __result_ = T_Strings_vOut160 _lhsOself
          in __result_ )
      in C_Strings_s161 v160
-   {-# INLINE rule732 #-}
-   rule732 = \  (_ :: ()) ->
+   {-# INLINE rule738 #-}
+   rule738 = \  (_ :: ()) ->
      []
-   {-# INLINE rule733 #-}
-   rule733 = \ _self ->
+   {-# INLINE rule739 #-}
+   rule739 = \ _self ->
      _self
 
 -- Type --------------------------------------------------------
@@ -7354,60 +7396,60 @@ sem_Type_Application arg_range_ arg_prefix_ arg_function_ arg_arguments_ = T_Typ
          (T_Type_vOut163 _functionIassumptions _functionIconstraints _functionIkappa _functionIkappaUnique _functionIself) = inv_Type_s164 _functionX164 (T_Type_vIn163 _functionOconstraints _functionOkappaUnique)
          (T_Types_vOut166 _argumentsIassumptions _argumentsIconstraints _argumentsIkappaUnique _argumentsIkappas _argumentsIself) = inv_Types_s167 _argumentsX167 (T_Types_vIn166 _argumentsOconstraints _argumentsOkappaUnique)
          _lhsOassumptions :: Assumptions
-         _lhsOassumptions = rule734 _argumentsIassumptions _functionIassumptions
+         _lhsOassumptions = rule740 _argumentsIassumptions _functionIassumptions
          _lhsOconstraints :: KindConstraints
-         _lhsOconstraints = rule735 _argumentsIconstraints _newConstraint
+         _lhsOconstraints = rule741 _argumentsIconstraints _newConstraint
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule736 _argumentsIkappaUnique
-         _kappa = rule737 _argumentsIkappaUnique
-         _newConstraint = rule738 _argumentsIkappas _functionIkappa _functionIself _kappa _rangeIself _self
-         _self = rule739 _argumentsIself _functionIself _rangeIself arg_prefix_
+         _lhsOkappaUnique = rule742 _argumentsIkappaUnique
+         _kappa = rule743 _argumentsIkappaUnique
+         _newConstraint = rule744 _argumentsIkappas _functionIkappa _functionIself _kappa _rangeIself _self
+         _self = rule745 _argumentsIself _functionIself _rangeIself arg_prefix_
          _lhsOself :: Type
-         _lhsOself = rule740 _self
+         _lhsOself = rule746 _self
          _lhsOkappa :: Kind
-         _lhsOkappa = rule741 _kappa
-         _functionOconstraints = rule742 _lhsIconstraints
-         _functionOkappaUnique = rule743 _lhsIkappaUnique
-         _argumentsOconstraints = rule744 _functionIconstraints
-         _argumentsOkappaUnique = rule745 _functionIkappaUnique
+         _lhsOkappa = rule747 _kappa
+         _functionOconstraints = rule748 _lhsIconstraints
+         _functionOkappaUnique = rule749 _lhsIkappaUnique
+         _argumentsOconstraints = rule750 _functionIconstraints
+         _argumentsOkappaUnique = rule751 _functionIkappaUnique
          __result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule734 #-}
-   rule734 = \ ((_argumentsIassumptions) :: Assumptions) ((_functionIassumptions) :: Assumptions) ->
-                               _functionIassumptions `combine` _argumentsIassumptions
-   {-# INLINE rule735 #-}
-   rule735 = \ ((_argumentsIconstraints) :: KindConstraints) _newConstraint ->
-                               _argumentsIconstraints ++ [_newConstraint]
-   {-# INLINE rule736 #-}
-   rule736 = \ ((_argumentsIkappaUnique) :: Int) ->
-                               _argumentsIkappaUnique + 1
-   {-# INLINE rule737 #-}
-   rule737 = \ ((_argumentsIkappaUnique) :: Int) ->
-                               TVar _argumentsIkappaUnique
-   {-# INLINE rule738 #-}
-   rule738 = \ ((_argumentsIkappas) :: Kinds) ((_functionIkappa) :: Kind) ((_functionIself) :: Type) _kappa ((_rangeIself) :: Range) _self ->
-                               (_functionIkappa <==> foldr (.->.) _kappa _argumentsIkappas) (kindApplication _rangeIself _self _functionIself)
-   {-# INLINE rule739 #-}
-   rule739 = \ ((_argumentsIself) :: Types) ((_functionIself) :: Type) ((_rangeIself) :: Range) prefix_ ->
-     Type_Application _rangeIself prefix_ _functionIself _argumentsIself
    {-# INLINE rule740 #-}
-   rule740 = \ _self ->
-     _self
+   rule740 = \ ((_argumentsIassumptions) :: Assumptions) ((_functionIassumptions) :: Assumptions) ->
+                               _functionIassumptions `combine` _argumentsIassumptions
    {-# INLINE rule741 #-}
-   rule741 = \ _kappa ->
-     _kappa
+   rule741 = \ ((_argumentsIconstraints) :: KindConstraints) _newConstraint ->
+                               _argumentsIconstraints ++ [_newConstraint]
    {-# INLINE rule742 #-}
-   rule742 = \ ((_lhsIconstraints) :: KindConstraints) ->
-     _lhsIconstraints
+   rule742 = \ ((_argumentsIkappaUnique) :: Int) ->
+                               _argumentsIkappaUnique + 1
    {-# INLINE rule743 #-}
-   rule743 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
+   rule743 = \ ((_argumentsIkappaUnique) :: Int) ->
+                               TVar _argumentsIkappaUnique
    {-# INLINE rule744 #-}
-   rule744 = \ ((_functionIconstraints) :: KindConstraints) ->
-     _functionIconstraints
+   rule744 = \ ((_argumentsIkappas) :: Kinds) ((_functionIkappa) :: Kind) ((_functionIself) :: Type) _kappa ((_rangeIself) :: Range) _self ->
+                               (_functionIkappa <==> foldr (.->.) _kappa _argumentsIkappas) (kindApplication _rangeIself _self _functionIself)
    {-# INLINE rule745 #-}
-   rule745 = \ ((_functionIkappaUnique) :: Int) ->
+   rule745 = \ ((_argumentsIself) :: Types) ((_functionIself) :: Type) ((_rangeIself) :: Range) prefix_ ->
+     Type_Application _rangeIself prefix_ _functionIself _argumentsIself
+   {-# INLINE rule746 #-}
+   rule746 = \ _self ->
+     _self
+   {-# INLINE rule747 #-}
+   rule747 = \ _kappa ->
+     _kappa
+   {-# INLINE rule748 #-}
+   rule748 = \ ((_lhsIconstraints) :: KindConstraints) ->
+     _lhsIconstraints
+   {-# INLINE rule749 #-}
+   rule749 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule750 #-}
+   rule750 = \ ((_functionIconstraints) :: KindConstraints) ->
+     _functionIconstraints
+   {-# INLINE rule751 #-}
+   rule751 = \ ((_functionIkappaUnique) :: Int) ->
      _functionIkappaUnique
 {-# NOINLINE sem_Type_Variable #-}
 sem_Type_Variable :: T_Range  -> T_Name  -> T_Type 
@@ -7421,40 +7463,40 @@ sem_Type_Variable arg_range_ arg_name_ = T_Type (return st164) where
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          _lhsOassumptions :: Assumptions
-         _lhsOassumptions = rule746 _kappa _nameIself
+         _lhsOassumptions = rule752 _kappa _nameIself
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule747 _lhsIkappaUnique
-         _kappa = rule748 _lhsIkappaUnique
-         _self = rule749 _nameIself _rangeIself
+         _lhsOkappaUnique = rule753 _lhsIkappaUnique
+         _kappa = rule754 _lhsIkappaUnique
+         _self = rule755 _nameIself _rangeIself
          _lhsOself :: Type
-         _lhsOself = rule750 _self
+         _lhsOself = rule756 _self
          _lhsOconstraints :: KindConstraints
-         _lhsOconstraints = rule751 _lhsIconstraints
+         _lhsOconstraints = rule757 _lhsIconstraints
          _lhsOkappa :: Kind
-         _lhsOkappa = rule752 _kappa
+         _lhsOkappa = rule758 _kappa
          __result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule746 #-}
-   rule746 = \ _kappa ((_nameIself) :: Name) ->
-                             single _nameIself _kappa
-   {-# INLINE rule747 #-}
-   rule747 = \ ((_lhsIkappaUnique) :: Int) ->
-                             _lhsIkappaUnique + 1
-   {-# INLINE rule748 #-}
-   rule748 = \ ((_lhsIkappaUnique) :: Int) ->
-                             TVar _lhsIkappaUnique
-   {-# INLINE rule749 #-}
-   rule749 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
-     Type_Variable _rangeIself _nameIself
-   {-# INLINE rule750 #-}
-   rule750 = \ _self ->
-     _self
-   {-# INLINE rule751 #-}
-   rule751 = \ ((_lhsIconstraints) :: KindConstraints) ->
-     _lhsIconstraints
    {-# INLINE rule752 #-}
-   rule752 = \ _kappa ->
+   rule752 = \ _kappa ((_nameIself) :: Name) ->
+                             single _nameIself _kappa
+   {-# INLINE rule753 #-}
+   rule753 = \ ((_lhsIkappaUnique) :: Int) ->
+                             _lhsIkappaUnique + 1
+   {-# INLINE rule754 #-}
+   rule754 = \ ((_lhsIkappaUnique) :: Int) ->
+                             TVar _lhsIkappaUnique
+   {-# INLINE rule755 #-}
+   rule755 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+     Type_Variable _rangeIself _nameIself
+   {-# INLINE rule756 #-}
+   rule756 = \ _self ->
+     _self
+   {-# INLINE rule757 #-}
+   rule757 = \ ((_lhsIconstraints) :: KindConstraints) ->
+     _lhsIconstraints
+   {-# INLINE rule758 #-}
+   rule758 = \ _kappa ->
      _kappa
 {-# NOINLINE sem_Type_Constructor #-}
 sem_Type_Constructor :: T_Range  -> T_Name  -> T_Type 
@@ -7468,40 +7510,40 @@ sem_Type_Constructor arg_range_ arg_name_ = T_Type (return st164) where
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          _lhsOassumptions :: Assumptions
-         _lhsOassumptions = rule753 _kappa _nameIself
+         _lhsOassumptions = rule759 _kappa _nameIself
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule754 _lhsIkappaUnique
-         _kappa = rule755 _lhsIkappaUnique
-         _self = rule756 _nameIself _rangeIself
+         _lhsOkappaUnique = rule760 _lhsIkappaUnique
+         _kappa = rule761 _lhsIkappaUnique
+         _self = rule762 _nameIself _rangeIself
          _lhsOself :: Type
-         _lhsOself = rule757 _self
+         _lhsOself = rule763 _self
          _lhsOconstraints :: KindConstraints
-         _lhsOconstraints = rule758 _lhsIconstraints
+         _lhsOconstraints = rule764 _lhsIconstraints
          _lhsOkappa :: Kind
-         _lhsOkappa = rule759 _kappa
+         _lhsOkappa = rule765 _kappa
          __result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule753 #-}
-   rule753 = \ _kappa ((_nameIself) :: Name) ->
-                             single _nameIself _kappa
-   {-# INLINE rule754 #-}
-   rule754 = \ ((_lhsIkappaUnique) :: Int) ->
-                             _lhsIkappaUnique + 1
-   {-# INLINE rule755 #-}
-   rule755 = \ ((_lhsIkappaUnique) :: Int) ->
-                             TVar _lhsIkappaUnique
-   {-# INLINE rule756 #-}
-   rule756 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
-     Type_Constructor _rangeIself _nameIself
-   {-# INLINE rule757 #-}
-   rule757 = \ _self ->
-     _self
-   {-# INLINE rule758 #-}
-   rule758 = \ ((_lhsIconstraints) :: KindConstraints) ->
-     _lhsIconstraints
    {-# INLINE rule759 #-}
-   rule759 = \ _kappa ->
+   rule759 = \ _kappa ((_nameIself) :: Name) ->
+                             single _nameIself _kappa
+   {-# INLINE rule760 #-}
+   rule760 = \ ((_lhsIkappaUnique) :: Int) ->
+                             _lhsIkappaUnique + 1
+   {-# INLINE rule761 #-}
+   rule761 = \ ((_lhsIkappaUnique) :: Int) ->
+                             TVar _lhsIkappaUnique
+   {-# INLINE rule762 #-}
+   rule762 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+     Type_Constructor _rangeIself _nameIself
+   {-# INLINE rule763 #-}
+   rule763 = \ _self ->
+     _self
+   {-# INLINE rule764 #-}
+   rule764 = \ ((_lhsIconstraints) :: KindConstraints) ->
+     _lhsIconstraints
+   {-# INLINE rule765 #-}
+   rule765 = \ _kappa ->
      _kappa
 {-# NOINLINE sem_Type_Qualified #-}
 sem_Type_Qualified :: T_Range  -> T_ContextItems  -> T_Type  -> T_Type 
@@ -7516,53 +7558,53 @@ sem_Type_Qualified arg_range_ arg_context_ arg_type_ = T_Type (return st164) whe
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_ContextItems_vOut25 _contextIkappaUnique _contextIself) = inv_ContextItems_s26 _contextX26 (T_ContextItems_vIn25 _contextOkappaUnique)
          (T_Type_vOut163 _typeIassumptions _typeIconstraints _typeIkappa _typeIkappaUnique _typeIself) = inv_Type_s164 _typeX164 (T_Type_vIn163 _typeOconstraints _typeOkappaUnique)
-         (_assumptions,_kappa) = rule760  ()
-         _self = rule761 _contextIself _rangeIself _typeIself
+         (_assumptions,_kappa) = rule766  ()
+         _self = rule767 _contextIself _rangeIself _typeIself
          _lhsOself :: Type
-         _lhsOself = rule762 _self
+         _lhsOself = rule768 _self
          _lhsOassumptions :: Assumptions
-         _lhsOassumptions = rule763 _assumptions
+         _lhsOassumptions = rule769 _assumptions
          _lhsOconstraints :: KindConstraints
-         _lhsOconstraints = rule764 _typeIconstraints
+         _lhsOconstraints = rule770 _typeIconstraints
          _lhsOkappa :: Kind
-         _lhsOkappa = rule765 _kappa
+         _lhsOkappa = rule771 _kappa
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule766 _typeIkappaUnique
-         _contextOkappaUnique = rule767 _lhsIkappaUnique
-         _typeOconstraints = rule768 _lhsIconstraints
-         _typeOkappaUnique = rule769 _contextIkappaUnique
+         _lhsOkappaUnique = rule772 _typeIkappaUnique
+         _contextOkappaUnique = rule773 _lhsIkappaUnique
+         _typeOconstraints = rule774 _lhsIconstraints
+         _typeOkappaUnique = rule775 _contextIkappaUnique
          __result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule760 #-}
-   rule760 = \  (_ :: ()) ->
-                                               internalError "KindInferencing.ag" "n/a" "Qualified types are not supported"
-   {-# INLINE rule761 #-}
-   rule761 = \ ((_contextIself) :: ContextItems) ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
-     Type_Qualified _rangeIself _contextIself _typeIself
-   {-# INLINE rule762 #-}
-   rule762 = \ _self ->
-     _self
-   {-# INLINE rule763 #-}
-   rule763 = \ _assumptions ->
-     _assumptions
-   {-# INLINE rule764 #-}
-   rule764 = \ ((_typeIconstraints) :: KindConstraints) ->
-     _typeIconstraints
-   {-# INLINE rule765 #-}
-   rule765 = \ _kappa ->
-     _kappa
    {-# INLINE rule766 #-}
-   rule766 = \ ((_typeIkappaUnique) :: Int) ->
-     _typeIkappaUnique
+   rule766 = \  (_ :: ()) ->
+                                               internalError "KindInferencing.ag" "n/a" "Qualified types are not supported"
    {-# INLINE rule767 #-}
-   rule767 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
+   rule767 = \ ((_contextIself) :: ContextItems) ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
+     Type_Qualified _rangeIself _contextIself _typeIself
    {-# INLINE rule768 #-}
-   rule768 = \ ((_lhsIconstraints) :: KindConstraints) ->
-     _lhsIconstraints
+   rule768 = \ _self ->
+     _self
    {-# INLINE rule769 #-}
-   rule769 = \ ((_contextIkappaUnique) :: Int) ->
+   rule769 = \ _assumptions ->
+     _assumptions
+   {-# INLINE rule770 #-}
+   rule770 = \ ((_typeIconstraints) :: KindConstraints) ->
+     _typeIconstraints
+   {-# INLINE rule771 #-}
+   rule771 = \ _kappa ->
+     _kappa
+   {-# INLINE rule772 #-}
+   rule772 = \ ((_typeIkappaUnique) :: Int) ->
+     _typeIkappaUnique
+   {-# INLINE rule773 #-}
+   rule773 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule774 #-}
+   rule774 = \ ((_lhsIconstraints) :: KindConstraints) ->
+     _lhsIconstraints
+   {-# INLINE rule775 #-}
+   rule775 = \ ((_contextIkappaUnique) :: Int) ->
      _contextIkappaUnique
 {-# NOINLINE sem_Type_Forall #-}
 sem_Type_Forall :: T_Range  -> T_Names  -> T_Type  -> T_Type 
@@ -7577,49 +7619,49 @@ sem_Type_Forall arg_range_ arg_typevariables_ arg_type_ = T_Type (return st164) 
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Names_vOut115 _typevariablesIself) = inv_Names_s116 _typevariablesX116 (T_Names_vIn115 )
          (T_Type_vOut163 _typeIassumptions _typeIconstraints _typeIkappa _typeIkappaUnique _typeIself) = inv_Type_s164 _typeX164 (T_Type_vIn163 _typeOconstraints _typeOkappaUnique)
-         (_assumptions,_kappa) = rule770  ()
-         _self = rule771 _rangeIself _typeIself _typevariablesIself
+         (_assumptions,_kappa) = rule776  ()
+         _self = rule777 _rangeIself _typeIself _typevariablesIself
          _lhsOself :: Type
-         _lhsOself = rule772 _self
+         _lhsOself = rule778 _self
          _lhsOassumptions :: Assumptions
-         _lhsOassumptions = rule773 _assumptions
+         _lhsOassumptions = rule779 _assumptions
          _lhsOconstraints :: KindConstraints
-         _lhsOconstraints = rule774 _typeIconstraints
+         _lhsOconstraints = rule780 _typeIconstraints
          _lhsOkappa :: Kind
-         _lhsOkappa = rule775 _kappa
+         _lhsOkappa = rule781 _kappa
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule776 _typeIkappaUnique
-         _typeOconstraints = rule777 _lhsIconstraints
-         _typeOkappaUnique = rule778 _lhsIkappaUnique
+         _lhsOkappaUnique = rule782 _typeIkappaUnique
+         _typeOconstraints = rule783 _lhsIconstraints
+         _typeOkappaUnique = rule784 _lhsIkappaUnique
          __result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule770 #-}
-   rule770 = \  (_ :: ()) ->
-                                               internalError "KindInferencing.ag" "n/a" "Universal types are not supported"
-   {-# INLINE rule771 #-}
-   rule771 = \ ((_rangeIself) :: Range) ((_typeIself) :: Type) ((_typevariablesIself) :: Names) ->
-     Type_Forall _rangeIself _typevariablesIself _typeIself
-   {-# INLINE rule772 #-}
-   rule772 = \ _self ->
-     _self
-   {-# INLINE rule773 #-}
-   rule773 = \ _assumptions ->
-     _assumptions
-   {-# INLINE rule774 #-}
-   rule774 = \ ((_typeIconstraints) :: KindConstraints) ->
-     _typeIconstraints
-   {-# INLINE rule775 #-}
-   rule775 = \ _kappa ->
-     _kappa
    {-# INLINE rule776 #-}
-   rule776 = \ ((_typeIkappaUnique) :: Int) ->
-     _typeIkappaUnique
+   rule776 = \  (_ :: ()) ->
+                                               internalError "KindInferencing.ag" "n/a" "Universal types are not supported"
    {-# INLINE rule777 #-}
-   rule777 = \ ((_lhsIconstraints) :: KindConstraints) ->
-     _lhsIconstraints
+   rule777 = \ ((_rangeIself) :: Range) ((_typeIself) :: Type) ((_typevariablesIself) :: Names) ->
+     Type_Forall _rangeIself _typevariablesIself _typeIself
    {-# INLINE rule778 #-}
-   rule778 = \ ((_lhsIkappaUnique) :: Int) ->
+   rule778 = \ _self ->
+     _self
+   {-# INLINE rule779 #-}
+   rule779 = \ _assumptions ->
+     _assumptions
+   {-# INLINE rule780 #-}
+   rule780 = \ ((_typeIconstraints) :: KindConstraints) ->
+     _typeIconstraints
+   {-# INLINE rule781 #-}
+   rule781 = \ _kappa ->
+     _kappa
+   {-# INLINE rule782 #-}
+   rule782 = \ ((_typeIkappaUnique) :: Int) ->
+     _typeIkappaUnique
+   {-# INLINE rule783 #-}
+   rule783 = \ ((_lhsIconstraints) :: KindConstraints) ->
+     _lhsIconstraints
+   {-# INLINE rule784 #-}
+   rule784 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 {-# NOINLINE sem_Type_Exists #-}
 sem_Type_Exists :: T_Range  -> T_Names  -> T_Type  -> T_Type 
@@ -7634,49 +7676,49 @@ sem_Type_Exists arg_range_ arg_typevariables_ arg_type_ = T_Type (return st164) 
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Names_vOut115 _typevariablesIself) = inv_Names_s116 _typevariablesX116 (T_Names_vIn115 )
          (T_Type_vOut163 _typeIassumptions _typeIconstraints _typeIkappa _typeIkappaUnique _typeIself) = inv_Type_s164 _typeX164 (T_Type_vIn163 _typeOconstraints _typeOkappaUnique)
-         (_assumptions,_kappa) = rule779  ()
-         _self = rule780 _rangeIself _typeIself _typevariablesIself
+         (_assumptions,_kappa) = rule785  ()
+         _self = rule786 _rangeIself _typeIself _typevariablesIself
          _lhsOself :: Type
-         _lhsOself = rule781 _self
+         _lhsOself = rule787 _self
          _lhsOassumptions :: Assumptions
-         _lhsOassumptions = rule782 _assumptions
+         _lhsOassumptions = rule788 _assumptions
          _lhsOconstraints :: KindConstraints
-         _lhsOconstraints = rule783 _typeIconstraints
+         _lhsOconstraints = rule789 _typeIconstraints
          _lhsOkappa :: Kind
-         _lhsOkappa = rule784 _kappa
+         _lhsOkappa = rule790 _kappa
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule785 _typeIkappaUnique
-         _typeOconstraints = rule786 _lhsIconstraints
-         _typeOkappaUnique = rule787 _lhsIkappaUnique
+         _lhsOkappaUnique = rule791 _typeIkappaUnique
+         _typeOconstraints = rule792 _lhsIconstraints
+         _typeOkappaUnique = rule793 _lhsIkappaUnique
          __result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule779 #-}
-   rule779 = \  (_ :: ()) ->
-                                               internalError "KindInferencing.ag" "n/a" "Existential types are not supported"
-   {-# INLINE rule780 #-}
-   rule780 = \ ((_rangeIself) :: Range) ((_typeIself) :: Type) ((_typevariablesIself) :: Names) ->
-     Type_Exists _rangeIself _typevariablesIself _typeIself
-   {-# INLINE rule781 #-}
-   rule781 = \ _self ->
-     _self
-   {-# INLINE rule782 #-}
-   rule782 = \ _assumptions ->
-     _assumptions
-   {-# INLINE rule783 #-}
-   rule783 = \ ((_typeIconstraints) :: KindConstraints) ->
-     _typeIconstraints
-   {-# INLINE rule784 #-}
-   rule784 = \ _kappa ->
-     _kappa
    {-# INLINE rule785 #-}
-   rule785 = \ ((_typeIkappaUnique) :: Int) ->
-     _typeIkappaUnique
+   rule785 = \  (_ :: ()) ->
+                                               internalError "KindInferencing.ag" "n/a" "Existential types are not supported"
    {-# INLINE rule786 #-}
-   rule786 = \ ((_lhsIconstraints) :: KindConstraints) ->
-     _lhsIconstraints
+   rule786 = \ ((_rangeIself) :: Range) ((_typeIself) :: Type) ((_typevariablesIself) :: Names) ->
+     Type_Exists _rangeIself _typevariablesIself _typeIself
    {-# INLINE rule787 #-}
-   rule787 = \ ((_lhsIkappaUnique) :: Int) ->
+   rule787 = \ _self ->
+     _self
+   {-# INLINE rule788 #-}
+   rule788 = \ _assumptions ->
+     _assumptions
+   {-# INLINE rule789 #-}
+   rule789 = \ ((_typeIconstraints) :: KindConstraints) ->
+     _typeIconstraints
+   {-# INLINE rule790 #-}
+   rule790 = \ _kappa ->
+     _kappa
+   {-# INLINE rule791 #-}
+   rule791 = \ ((_typeIkappaUnique) :: Int) ->
+     _typeIkappaUnique
+   {-# INLINE rule792 #-}
+   rule792 = \ ((_lhsIconstraints) :: KindConstraints) ->
+     _lhsIconstraints
+   {-# INLINE rule793 #-}
+   rule793 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 {-# NOINLINE sem_Type_Parenthesized #-}
 sem_Type_Parenthesized :: T_Range  -> T_Type  -> T_Type 
@@ -7689,45 +7731,45 @@ sem_Type_Parenthesized arg_range_ arg_type_ = T_Type (return st164) where
          _typeX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Type_vOut163 _typeIassumptions _typeIconstraints _typeIkappa _typeIkappaUnique _typeIself) = inv_Type_s164 _typeX164 (T_Type_vIn163 _typeOconstraints _typeOkappaUnique)
-         _self = rule788 _rangeIself _typeIself
+         _self = rule794 _rangeIself _typeIself
          _lhsOself :: Type
-         _lhsOself = rule789 _self
+         _lhsOself = rule795 _self
          _lhsOassumptions :: Assumptions
-         _lhsOassumptions = rule790 _typeIassumptions
+         _lhsOassumptions = rule796 _typeIassumptions
          _lhsOconstraints :: KindConstraints
-         _lhsOconstraints = rule791 _typeIconstraints
+         _lhsOconstraints = rule797 _typeIconstraints
          _lhsOkappa :: Kind
-         _lhsOkappa = rule792 _typeIkappa
+         _lhsOkappa = rule798 _typeIkappa
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule793 _typeIkappaUnique
-         _typeOconstraints = rule794 _lhsIconstraints
-         _typeOkappaUnique = rule795 _lhsIkappaUnique
+         _lhsOkappaUnique = rule799 _typeIkappaUnique
+         _typeOconstraints = rule800 _lhsIconstraints
+         _typeOkappaUnique = rule801 _lhsIkappaUnique
          __result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule788 #-}
-   rule788 = \ ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
-     Type_Parenthesized _rangeIself _typeIself
-   {-# INLINE rule789 #-}
-   rule789 = \ _self ->
-     _self
-   {-# INLINE rule790 #-}
-   rule790 = \ ((_typeIassumptions) :: Assumptions) ->
-     _typeIassumptions
-   {-# INLINE rule791 #-}
-   rule791 = \ ((_typeIconstraints) :: KindConstraints) ->
-     _typeIconstraints
-   {-# INLINE rule792 #-}
-   rule792 = \ ((_typeIkappa) :: Kind) ->
-     _typeIkappa
-   {-# INLINE rule793 #-}
-   rule793 = \ ((_typeIkappaUnique) :: Int) ->
-     _typeIkappaUnique
    {-# INLINE rule794 #-}
-   rule794 = \ ((_lhsIconstraints) :: KindConstraints) ->
-     _lhsIconstraints
+   rule794 = \ ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
+     Type_Parenthesized _rangeIself _typeIself
    {-# INLINE rule795 #-}
-   rule795 = \ ((_lhsIkappaUnique) :: Int) ->
+   rule795 = \ _self ->
+     _self
+   {-# INLINE rule796 #-}
+   rule796 = \ ((_typeIassumptions) :: Assumptions) ->
+     _typeIassumptions
+   {-# INLINE rule797 #-}
+   rule797 = \ ((_typeIconstraints) :: KindConstraints) ->
+     _typeIconstraints
+   {-# INLINE rule798 #-}
+   rule798 = \ ((_typeIkappa) :: Kind) ->
+     _typeIkappa
+   {-# INLINE rule799 #-}
+   rule799 = \ ((_typeIkappaUnique) :: Int) ->
+     _typeIkappaUnique
+   {-# INLINE rule800 #-}
+   rule800 = \ ((_lhsIconstraints) :: KindConstraints) ->
+     _lhsIconstraints
+   {-# INLINE rule801 #-}
+   rule801 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique
 
 -- Types -------------------------------------------------------
@@ -7772,52 +7814,52 @@ sem_Types_Cons arg_hd_ arg_tl_ = T_Types (return st167) where
          (T_Type_vOut163 _hdIassumptions _hdIconstraints _hdIkappa _hdIkappaUnique _hdIself) = inv_Type_s164 _hdX164 (T_Type_vIn163 _hdOconstraints _hdOkappaUnique)
          (T_Types_vOut166 _tlIassumptions _tlIconstraints _tlIkappaUnique _tlIkappas _tlIself) = inv_Types_s167 _tlX167 (T_Types_vIn166 _tlOconstraints _tlOkappaUnique)
          _lhsOassumptions :: Assumptions
-         _lhsOassumptions = rule796 _hdIassumptions _tlIassumptions
+         _lhsOassumptions = rule802 _hdIassumptions _tlIassumptions
          _lhsOkappas :: Kinds
-         _lhsOkappas = rule797 _hdIkappa _tlIkappas
-         _self = rule798 _hdIself _tlIself
+         _lhsOkappas = rule803 _hdIkappa _tlIkappas
+         _self = rule804 _hdIself _tlIself
          _lhsOself :: Types
-         _lhsOself = rule799 _self
+         _lhsOself = rule805 _self
          _lhsOconstraints :: KindConstraints
-         _lhsOconstraints = rule800 _tlIconstraints
+         _lhsOconstraints = rule806 _tlIconstraints
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule801 _tlIkappaUnique
-         _hdOconstraints = rule802 _lhsIconstraints
-         _hdOkappaUnique = rule803 _lhsIkappaUnique
-         _tlOconstraints = rule804 _hdIconstraints
-         _tlOkappaUnique = rule805 _hdIkappaUnique
+         _lhsOkappaUnique = rule807 _tlIkappaUnique
+         _hdOconstraints = rule808 _lhsIconstraints
+         _hdOkappaUnique = rule809 _lhsIkappaUnique
+         _tlOconstraints = rule810 _hdIconstraints
+         _tlOkappaUnique = rule811 _hdIkappaUnique
          __result_ = T_Types_vOut166 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOkappas _lhsOself
          in __result_ )
      in C_Types_s167 v166
-   {-# INLINE rule796 #-}
-   rule796 = \ ((_hdIassumptions) :: Assumptions) ((_tlIassumptions) :: Assumptions) ->
-                                 _hdIassumptions `combine` _tlIassumptions
-   {-# INLINE rule797 #-}
-   rule797 = \ ((_hdIkappa) :: Kind) ((_tlIkappas) :: Kinds) ->
-                                 _hdIkappa : _tlIkappas
-   {-# INLINE rule798 #-}
-   rule798 = \ ((_hdIself) :: Type) ((_tlIself) :: Types) ->
-     (:) _hdIself _tlIself
-   {-# INLINE rule799 #-}
-   rule799 = \ _self ->
-     _self
-   {-# INLINE rule800 #-}
-   rule800 = \ ((_tlIconstraints) :: KindConstraints) ->
-     _tlIconstraints
-   {-# INLINE rule801 #-}
-   rule801 = \ ((_tlIkappaUnique) :: Int) ->
-     _tlIkappaUnique
    {-# INLINE rule802 #-}
-   rule802 = \ ((_lhsIconstraints) :: KindConstraints) ->
-     _lhsIconstraints
+   rule802 = \ ((_hdIassumptions) :: Assumptions) ((_tlIassumptions) :: Assumptions) ->
+                                 _hdIassumptions `combine` _tlIassumptions
    {-# INLINE rule803 #-}
-   rule803 = \ ((_lhsIkappaUnique) :: Int) ->
-     _lhsIkappaUnique
+   rule803 = \ ((_hdIkappa) :: Kind) ((_tlIkappas) :: Kinds) ->
+                                 _hdIkappa : _tlIkappas
    {-# INLINE rule804 #-}
-   rule804 = \ ((_hdIconstraints) :: KindConstraints) ->
-     _hdIconstraints
+   rule804 = \ ((_hdIself) :: Type) ((_tlIself) :: Types) ->
+     (:) _hdIself _tlIself
    {-# INLINE rule805 #-}
-   rule805 = \ ((_hdIkappaUnique) :: Int) ->
+   rule805 = \ _self ->
+     _self
+   {-# INLINE rule806 #-}
+   rule806 = \ ((_tlIconstraints) :: KindConstraints) ->
+     _tlIconstraints
+   {-# INLINE rule807 #-}
+   rule807 = \ ((_tlIkappaUnique) :: Int) ->
+     _tlIkappaUnique
+   {-# INLINE rule808 #-}
+   rule808 = \ ((_lhsIconstraints) :: KindConstraints) ->
+     _lhsIconstraints
+   {-# INLINE rule809 #-}
+   rule809 = \ ((_lhsIkappaUnique) :: Int) ->
+     _lhsIkappaUnique
+   {-# INLINE rule810 #-}
+   rule810 = \ ((_hdIconstraints) :: KindConstraints) ->
+     _hdIconstraints
+   {-# INLINE rule811 #-}
+   rule811 = \ ((_hdIkappaUnique) :: Int) ->
      _hdIkappaUnique
 {-# NOINLINE sem_Types_Nil #-}
 sem_Types_Nil ::  T_Types 
@@ -7827,34 +7869,34 @@ sem_Types_Nil  = T_Types (return st167) where
       v166 :: T_Types_v166 
       v166 = \ (T_Types_vIn166 _lhsIconstraints _lhsIkappaUnique) -> ( let
          _lhsOassumptions :: Assumptions
-         _lhsOassumptions = rule806  ()
+         _lhsOassumptions = rule812  ()
          _lhsOkappas :: Kinds
-         _lhsOkappas = rule807  ()
-         _self = rule808  ()
+         _lhsOkappas = rule813  ()
+         _self = rule814  ()
          _lhsOself :: Types
-         _lhsOself = rule809 _self
+         _lhsOself = rule815 _self
          _lhsOconstraints :: KindConstraints
-         _lhsOconstraints = rule810 _lhsIconstraints
+         _lhsOconstraints = rule816 _lhsIconstraints
          _lhsOkappaUnique :: Int
-         _lhsOkappaUnique = rule811 _lhsIkappaUnique
+         _lhsOkappaUnique = rule817 _lhsIkappaUnique
          __result_ = T_Types_vOut166 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOkappas _lhsOself
          in __result_ )
      in C_Types_s167 v166
-   {-# INLINE rule806 #-}
-   rule806 = \  (_ :: ()) ->
+   {-# INLINE rule812 #-}
+   rule812 = \  (_ :: ()) ->
                                  noAssumptions
-   {-# INLINE rule807 #-}
-   rule807 = \  (_ :: ()) ->
+   {-# INLINE rule813 #-}
+   rule813 = \  (_ :: ()) ->
                                  []
-   {-# INLINE rule808 #-}
-   rule808 = \  (_ :: ()) ->
+   {-# INLINE rule814 #-}
+   rule814 = \  (_ :: ()) ->
      []
-   {-# INLINE rule809 #-}
-   rule809 = \ _self ->
+   {-# INLINE rule815 #-}
+   rule815 = \ _self ->
      _self
-   {-# INLINE rule810 #-}
-   rule810 = \ ((_lhsIconstraints) :: KindConstraints) ->
+   {-# INLINE rule816 #-}
+   rule816 = \ ((_lhsIconstraints) :: KindConstraints) ->
      _lhsIconstraints
-   {-# INLINE rule811 #-}
-   rule811 = \ ((_lhsIkappaUnique) :: Int) ->
+   {-# INLINE rule817 #-}
+   rule817 = \ ((_lhsIkappaUnique) :: Int) ->
      _lhsIkappaUnique

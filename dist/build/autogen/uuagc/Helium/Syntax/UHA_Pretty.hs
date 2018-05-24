@@ -94,7 +94,7 @@ type T_Alternative_v1  = (T_Alternative_vIn1 ) -> (T_Alternative_vOut1 )
 data T_Alternative_vIn1  = T_Alternative_vIn1 
 data T_Alternative_vOut1  = T_Alternative_vOut1 (Doc)
 {-# NOINLINE sem_Alternative_Hole #-}
-sem_Alternative_Hole :: T_Range  -> (Integer) -> T_Alternative 
+sem_Alternative_Hole :: T_Range  -> (String) -> T_Alternative 
 sem_Alternative_Hole arg_range_ _ = T_Alternative (return st2) where
    {-# NOINLINE st2 #-}
    st2 = let
@@ -396,7 +396,7 @@ type T_Body_v13  = (T_Body_vIn13 ) -> (T_Body_vOut13 )
 data T_Body_vIn13  = T_Body_vIn13 
 data T_Body_vOut13  = T_Body_vOut13 (Doc)
 {-# NOINLINE sem_Body_Hole #-}
-sem_Body_Hole :: T_Range  -> (Integer) -> T_Body 
+sem_Body_Hole :: T_Range  -> (String) -> T_Body 
 sem_Body_Hole arg_range_ _ = T_Body (return st14) where
    {-# NOINLINE st14 #-}
    st14 = let
@@ -783,7 +783,7 @@ type T_Declaration_v28  = (T_Declaration_vIn28 ) -> (T_Declaration_vOut28 )
 data T_Declaration_vIn28  = T_Declaration_vIn28 
 data T_Declaration_vOut28  = T_Declaration_vOut28 (Doc)
 {-# NOINLINE sem_Declaration_Hole #-}
-sem_Declaration_Hole :: T_Range  -> (Integer) -> T_Declaration 
+sem_Declaration_Hole :: T_Range  -> (String) -> T_Declaration 
 sem_Declaration_Hole arg_range_ _ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
    st29 = let
@@ -1447,6 +1447,7 @@ sem_Expression :: Expression  -> T_Expression
 sem_Expression ( Expression_Hole range_ id_ ) = sem_Expression_Hole ( sem_Range range_ ) id_
 sem_Expression ( Expression_Feedback range_ feedback_ expression_ ) = sem_Expression_Feedback ( sem_Range range_ ) feedback_ ( sem_Expression expression_ )
 sem_Expression ( Expression_MustUse range_ expression_ ) = sem_Expression_MustUse ( sem_Range range_ ) ( sem_Expression expression_ )
+sem_Expression ( Expression_Eta range_ expansion_ expression_ ) = sem_Expression_Eta ( sem_Range range_ ) expansion_ ( sem_Expression expression_ )
 sem_Expression ( Expression_Literal range_ literal_ ) = sem_Expression_Literal ( sem_Range range_ ) ( sem_Literal literal_ )
 sem_Expression ( Expression_Variable range_ name_ ) = sem_Expression_Variable ( sem_Range range_ ) ( sem_Name name_ )
 sem_Expression ( Expression_Constructor range_ name_ ) = sem_Expression_Constructor ( sem_Range range_ ) ( sem_Name name_ )
@@ -1480,7 +1481,7 @@ type T_Expression_v40  = (T_Expression_vIn40 ) -> (T_Expression_vOut40 )
 data T_Expression_vIn40  = T_Expression_vIn40 
 data T_Expression_vOut40  = T_Expression_vOut40 (Doc)
 {-# NOINLINE sem_Expression_Hole #-}
-sem_Expression_Hole :: T_Range  -> (Integer) -> T_Expression 
+sem_Expression_Hole :: T_Range  -> (String) -> T_Expression 
 sem_Expression_Hole arg_range_ _ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
    st41 = let
@@ -1538,6 +1539,25 @@ sem_Expression_MustUse arg_range_ arg_expression_ = T_Expression (return st41) w
    {-# INLINE rule74 #-}
    rule74 = \ ((_expressionItext) :: Doc) ->
      _expressionItext
+{-# NOINLINE sem_Expression_Eta #-}
+sem_Expression_Eta :: T_Range  -> (Int) -> T_Expression  -> T_Expression 
+sem_Expression_Eta arg_range_ _ arg_expression_ = T_Expression (return st41) where
+   {-# NOINLINE st41 #-}
+   st41 = let
+      v40 :: T_Expression_v40 
+      v40 = \ (T_Expression_vIn40 ) -> ( let
+         _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
+         _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
+         (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
+         (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
+         _lhsOtext :: Doc
+         _lhsOtext = rule75 _expressionItext
+         __result_ = T_Expression_vOut40 _lhsOtext
+         in __result_ )
+     in C_Expression_s41 v40
+   {-# INLINE rule75 #-}
+   rule75 = \ ((_expressionItext) :: Doc) ->
+     _expressionItext
 {-# NOINLINE sem_Expression_Literal #-}
 sem_Expression_Literal :: T_Range  -> T_Literal  -> T_Expression 
 sem_Expression_Literal arg_range_ arg_literal_ = T_Expression (return st41) where
@@ -1549,17 +1569,17 @@ sem_Expression_Literal arg_range_ arg_literal_ = T_Expression (return st41) wher
          _literalX86 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Literal_vOut85 _literalItext) = inv_Literal_s86 _literalX86 (T_Literal_vIn85 )
-         _text = rule75 _literalItext
+         _text = rule76 _literalItext
          _lhsOtext :: Doc
-         _lhsOtext = rule76 _text
+         _lhsOtext = rule77 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule75 #-}
-   rule75 = \ ((_literalItext) :: Doc) ->
-                                      _literalItext
    {-# INLINE rule76 #-}
-   rule76 = \ _text ->
+   rule76 = \ ((_literalItext) :: Doc) ->
+                                      _literalItext
+   {-# INLINE rule77 #-}
+   rule77 = \ _text ->
      _text
 {-# NOINLINE sem_Expression_Variable #-}
 sem_Expression_Variable :: T_Range  -> T_Name  -> T_Expression 
@@ -1572,17 +1592,17 @@ sem_Expression_Variable arg_range_ arg_name_ = T_Expression (return st41) where
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
-         _text = rule77 _nameItext
+         _text = rule78 _nameItext
          _lhsOtext :: Doc
-         _lhsOtext = rule78 _text
+         _lhsOtext = rule79 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule77 #-}
-   rule77 = \ ((_nameItext) :: Doc) ->
-                                      _nameItext
    {-# INLINE rule78 #-}
-   rule78 = \ _text ->
+   rule78 = \ ((_nameItext) :: Doc) ->
+                                      _nameItext
+   {-# INLINE rule79 #-}
+   rule79 = \ _text ->
      _text
 {-# NOINLINE sem_Expression_Constructor #-}
 sem_Expression_Constructor :: T_Range  -> T_Name  -> T_Expression 
@@ -1595,17 +1615,17 @@ sem_Expression_Constructor arg_range_ arg_name_ = T_Expression (return st41) whe
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
-         _text = rule79 _nameItext
+         _text = rule80 _nameItext
          _lhsOtext :: Doc
-         _lhsOtext = rule80 _text
+         _lhsOtext = rule81 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule79 #-}
-   rule79 = \ ((_nameItext) :: Doc) ->
-                                      _nameItext
    {-# INLINE rule80 #-}
-   rule80 = \ _text ->
+   rule80 = \ ((_nameItext) :: Doc) ->
+                                      _nameItext
+   {-# INLINE rule81 #-}
+   rule81 = \ _text ->
      _text
 {-# NOINLINE sem_Expression_Parenthesized #-}
 sem_Expression_Parenthesized :: T_Range  -> T_Expression  -> T_Expression 
@@ -1618,17 +1638,17 @@ sem_Expression_Parenthesized arg_range_ arg_expression_ = T_Expression (return s
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         _text = rule81 _expressionItext
+         _text = rule82 _expressionItext
          _lhsOtext :: Doc
-         _lhsOtext = rule82 _text
+         _lhsOtext = rule83 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule81 #-}
-   rule81 = \ ((_expressionItext) :: Doc) ->
-                                      parens _expressionItext
    {-# INLINE rule82 #-}
-   rule82 = \ _text ->
+   rule82 = \ ((_expressionItext) :: Doc) ->
+                                      parens _expressionItext
+   {-# INLINE rule83 #-}
+   rule83 = \ _text ->
      _text
 {-# NOINLINE sem_Expression_NormalApplication #-}
 sem_Expression_NormalApplication :: T_Range  -> T_Expression  -> T_Expressions  -> T_Expression 
@@ -1643,17 +1663,17 @@ sem_Expression_NormalApplication arg_range_ arg_function_ arg_arguments_ = T_Exp
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _functionItext) = inv_Expression_s41 _functionX41 (T_Expression_vIn40 )
          (T_Expressions_vOut43 _argumentsItext) = inv_Expressions_s44 _argumentsX44 (T_Expressions_vIn43 )
-         _text = rule83 _argumentsItext _functionItext
+         _text = rule84 _argumentsItext _functionItext
          _lhsOtext :: Doc
-         _lhsOtext = rule84 _text
+         _lhsOtext = rule85 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule83 #-}
-   rule83 = \ ((_argumentsItext) ::  [       Doc ] ) ((_functionItext) :: Doc) ->
-                                      foldl (<+>) _functionItext _argumentsItext
    {-# INLINE rule84 #-}
-   rule84 = \ _text ->
+   rule84 = \ ((_argumentsItext) ::  [       Doc ] ) ((_functionItext) :: Doc) ->
+                                      foldl (<+>) _functionItext _argumentsItext
+   {-# INLINE rule85 #-}
+   rule85 = \ _text ->
      _text
 {-# NOINLINE sem_Expression_InfixApplication #-}
 sem_Expression_InfixApplication :: T_Range  -> T_MaybeExpression  -> T_Expression  -> T_MaybeExpression  -> T_Expression 
@@ -1670,14 +1690,14 @@ sem_Expression_InfixApplication arg_range_ arg_leftExpression_ arg_operator_ arg
          (T_MaybeExpression_vOut94 _leftExpressionItext) = inv_MaybeExpression_s95 _leftExpressionX95 (T_MaybeExpression_vIn94 )
          (T_Expression_vOut40 _operatorItext) = inv_Expression_s41 _operatorX41 (T_Expression_vIn40 )
          (T_MaybeExpression_vOut94 _rightExpressionItext) = inv_MaybeExpression_s95 _rightExpressionX95 (T_MaybeExpression_vIn94 )
-         _text = rule85 _leftExpressionItext _operatorItext _rightExpressionItext
+         _text = rule86 _leftExpressionItext _operatorItext _rightExpressionItext
          _lhsOtext :: Doc
-         _lhsOtext = rule86 _text
+         _lhsOtext = rule87 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule85 #-}
-   rule85 = \ ((_leftExpressionItext) ::         Maybe Doc  ) ((_operatorItext) :: Doc) ((_rightExpressionItext) ::         Maybe Doc  ) ->
+   {-# INLINE rule86 #-}
+   rule86 = \ ((_leftExpressionItext) ::         Maybe Doc  ) ((_operatorItext) :: Doc) ((_rightExpressionItext) ::         Maybe Doc  ) ->
                                        let f []     m = m
                                            f (c:cs) m = if isAlpha c && all (\ch -> ch == '_' || ch == '\'' || isAlphaNum ch) cs then char '`' <> m <> char '`' else m
                                        in
@@ -1694,8 +1714,8 @@ sem_Expression_InfixApplication arg_range_ arg_leftExpression_ arg_operator_ arg
                                                   f (show _operatorItext) _operatorItext
                                                   <+>
                                                   r
-   {-# INLINE rule86 #-}
-   rule86 = \ _text ->
+   {-# INLINE rule87 #-}
+   rule87 = \ _text ->
      _text
 {-# NOINLINE sem_Expression_If #-}
 sem_Expression_If :: T_Range  -> T_Expression  -> T_Expression  -> T_Expression  -> T_Expression 
@@ -1712,19 +1732,19 @@ sem_Expression_If arg_range_ arg_guardExpression_ arg_thenExpression_ arg_elseEx
          (T_Expression_vOut40 _guardExpressionItext) = inv_Expression_s41 _guardExpressionX41 (T_Expression_vIn40 )
          (T_Expression_vOut40 _thenExpressionItext) = inv_Expression_s41 _thenExpressionX41 (T_Expression_vIn40 )
          (T_Expression_vOut40 _elseExpressionItext) = inv_Expression_s41 _elseExpressionX41 (T_Expression_vIn40 )
-         _text = rule87 _elseExpressionItext _guardExpressionItext _thenExpressionItext
+         _text = rule88 _elseExpressionItext _guardExpressionItext _thenExpressionItext
          _lhsOtext :: Doc
-         _lhsOtext = rule88 _text
+         _lhsOtext = rule89 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule87 #-}
-   rule87 = \ ((_elseExpressionItext) :: Doc) ((_guardExpressionItext) :: Doc) ((_thenExpressionItext) :: Doc) ->
+   {-# INLINE rule88 #-}
+   rule88 = \ ((_elseExpressionItext) :: Doc) ((_guardExpressionItext) :: Doc) ((_thenExpressionItext) :: Doc) ->
                                        text "if" <+> _guardExpressionItext <$>
                                           indent 4 (text "then" <+> _thenExpressionItext <$>
                                                     text "else" <+> _elseExpressionItext)
-   {-# INLINE rule88 #-}
-   rule88 = \ _text ->
+   {-# INLINE rule89 #-}
+   rule89 = \ _text ->
      _text
 {-# NOINLINE sem_Expression_Lambda #-}
 sem_Expression_Lambda :: T_Range  -> T_Patterns  -> T_Expression  -> T_Expression 
@@ -1739,17 +1759,17 @@ sem_Expression_Lambda arg_range_ arg_patterns_ arg_expression_ = T_Expression (r
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Patterns_vOut121 _patternsItext) = inv_Patterns_s122 _patternsX122 (T_Patterns_vIn121 )
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         _text = rule89 _expressionItext _patternsItext
+         _text = rule90 _expressionItext _patternsItext
          _lhsOtext :: Doc
-         _lhsOtext = rule90 _text
+         _lhsOtext = rule91 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule89 #-}
-   rule89 = \ ((_expressionItext) :: Doc) ((_patternsItext) ::  [       Doc ] ) ->
-                                      text "\\" <+> foldl1 (<+>) _patternsItext <+> text "->" <+> _expressionItext
    {-# INLINE rule90 #-}
-   rule90 = \ _text ->
+   rule90 = \ ((_expressionItext) :: Doc) ((_patternsItext) ::  [       Doc ] ) ->
+                                      text "\\" <+> foldl1 (<+>) _patternsItext <+> text "->" <+> _expressionItext
+   {-# INLINE rule91 #-}
+   rule91 = \ _text ->
      _text
 {-# NOINLINE sem_Expression_Case #-}
 sem_Expression_Case :: T_Range  -> T_Expression  -> T_Alternatives  -> T_Expression 
@@ -1764,19 +1784,19 @@ sem_Expression_Case arg_range_ arg_expression_ arg_alternatives_ = T_Expression 
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          (T_Alternatives_vOut4 _alternativesItext) = inv_Alternatives_s5 _alternativesX5 (T_Alternatives_vIn4 )
-         _text = rule91 _alternativesItext _expressionItext
+         _text = rule92 _alternativesItext _expressionItext
          _lhsOtext :: Doc
-         _lhsOtext = rule92 _text
+         _lhsOtext = rule93 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule91 #-}
-   rule91 = \ ((_alternativesItext) ::  [       Doc ] ) ((_expressionItext) :: Doc) ->
+   {-# INLINE rule92 #-}
+   rule92 = \ ((_alternativesItext) ::  [       Doc ] ) ((_expressionItext) :: Doc) ->
                                        (text "case" <+> _expressionItext <+> text "of" <$>
                                                       (indent 4 $ vcat _alternativesItext) <$> empty
                                                   )
-   {-# INLINE rule92 #-}
-   rule92 = \ _text ->
+   {-# INLINE rule93 #-}
+   rule93 = \ _text ->
      _text
 {-# NOINLINE sem_Expression_Let #-}
 sem_Expression_Let :: T_Range  -> T_Declarations  -> T_Expression  -> T_Expression 
@@ -1791,21 +1811,21 @@ sem_Expression_Let arg_range_ arg_declarations_ arg_expression_ = T_Expression (
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Declarations_vOut31 _declarationsItext) = inv_Declarations_s32 _declarationsX32 (T_Declarations_vIn31 )
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         _text = rule93 _declarationsItext _expressionItext
+         _text = rule94 _declarationsItext _expressionItext
          _lhsOtext :: Doc
-         _lhsOtext = rule94 _text
+         _lhsOtext = rule95 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule93 #-}
-   rule93 = \ ((_declarationsItext) ::  [       Doc ] ) ((_expressionItext) :: Doc) ->
+   {-# INLINE rule94 #-}
+   rule94 = \ ((_declarationsItext) ::  [       Doc ] ) ((_expressionItext) :: Doc) ->
                                        (text "let"<$>
                                                       (indent 4 $ vcat _declarationsItext) <+>
                                                    text "in" <$>
                                                       (indent 4 $ _expressionItext)
                                                   ) <$> empty
-   {-# INLINE rule94 #-}
-   rule94 = \ _text ->
+   {-# INLINE rule95 #-}
+   rule95 = \ _text ->
      _text
 {-# NOINLINE sem_Expression_Do #-}
 sem_Expression_Do :: T_Range  -> T_Statements  -> T_Expression 
@@ -1818,17 +1838,17 @@ sem_Expression_Do arg_range_ arg_statements_ = T_Expression (return st41) where
          _statementsX158 = Control.Monad.Identity.runIdentity (attach_T_Statements (arg_statements_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Statements_vOut157 _statementsItext) = inv_Statements_s158 _statementsX158 (T_Statements_vIn157 )
-         _text = rule95 _statementsItext
+         _text = rule96 _statementsItext
          _lhsOtext :: Doc
-         _lhsOtext = rule96 _text
+         _lhsOtext = rule97 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule95 #-}
-   rule95 = \ ((_statementsItext) ::  [       Doc ] ) ->
-                                      text "do" <$> (indent 4 $ vcat _statementsItext) <$> empty
    {-# INLINE rule96 #-}
-   rule96 = \ _text ->
+   rule96 = \ ((_statementsItext) ::  [       Doc ] ) ->
+                                      text "do" <$> (indent 4 $ vcat _statementsItext) <$> empty
+   {-# INLINE rule97 #-}
+   rule97 = \ _text ->
      _text
 {-# NOINLINE sem_Expression_List #-}
 sem_Expression_List :: T_Range  -> T_Expressions  -> T_Expression 
@@ -1841,17 +1861,17 @@ sem_Expression_List arg_range_ arg_expressions_ = T_Expression (return st41) whe
          _expressionsX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_expressions_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expressions_vOut43 _expressionsItext) = inv_Expressions_s44 _expressionsX44 (T_Expressions_vIn43 )
-         _text = rule97 _expressionsItext
+         _text = rule98 _expressionsItext
          _lhsOtext :: Doc
-         _lhsOtext = rule98 _text
+         _lhsOtext = rule99 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule97 #-}
-   rule97 = \ ((_expressionsItext) ::  [       Doc ] ) ->
-                                      PPrint.list _expressionsItext
    {-# INLINE rule98 #-}
-   rule98 = \ _text ->
+   rule98 = \ ((_expressionsItext) ::  [       Doc ] ) ->
+                                      PPrint.list _expressionsItext
+   {-# INLINE rule99 #-}
+   rule99 = \ _text ->
      _text
 {-# NOINLINE sem_Expression_Tuple #-}
 sem_Expression_Tuple :: T_Range  -> T_Expressions  -> T_Expression 
@@ -1864,17 +1884,17 @@ sem_Expression_Tuple arg_range_ arg_expressions_ = T_Expression (return st41) wh
          _expressionsX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_expressions_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expressions_vOut43 _expressionsItext) = inv_Expressions_s44 _expressionsX44 (T_Expressions_vIn43 )
-         _text = rule99 _expressionsItext
+         _text = rule100 _expressionsItext
          _lhsOtext :: Doc
-         _lhsOtext = rule100 _text
+         _lhsOtext = rule101 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule99 #-}
-   rule99 = \ ((_expressionsItext) ::  [       Doc ] ) ->
-                                      tupled _expressionsItext
    {-# INLINE rule100 #-}
-   rule100 = \ _text ->
+   rule100 = \ ((_expressionsItext) ::  [       Doc ] ) ->
+                                      tupled _expressionsItext
+   {-# INLINE rule101 #-}
+   rule101 = \ _text ->
      _text
 {-# NOINLINE sem_Expression_Comprehension #-}
 sem_Expression_Comprehension :: T_Range  -> T_Expression  -> T_Qualifiers  -> T_Expression 
@@ -1889,18 +1909,18 @@ sem_Expression_Comprehension arg_range_ arg_expression_ arg_qualifiers_ = T_Expr
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          (T_Qualifiers_vOut130 _qualifiersItext) = inv_Qualifiers_s131 _qualifiersX131 (T_Qualifiers_vIn130 )
-         _text = rule101 _expressionItext _qualifiersItext
+         _text = rule102 _expressionItext _qualifiersItext
          _lhsOtext :: Doc
-         _lhsOtext = rule102 _text
+         _lhsOtext = rule103 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule101 #-}
-   rule101 = \ ((_expressionItext) :: Doc) ((_qualifiersItext) ::  [       Doc ] ) ->
+   {-# INLINE rule102 #-}
+   rule102 = \ ((_expressionItext) :: Doc) ((_qualifiersItext) ::  [       Doc ] ) ->
                                       text "[" <+> _expressionItext <+>
                                       text "|" <+> commas _qualifiersItext <+> text "]"
-   {-# INLINE rule102 #-}
-   rule102 = \ _text ->
+   {-# INLINE rule103 #-}
+   rule103 = \ _text ->
      _text
 {-# NOINLINE sem_Expression_Typed #-}
 sem_Expression_Typed :: T_Range  -> T_Expression  -> T_Type  -> T_Expression 
@@ -1915,17 +1935,17 @@ sem_Expression_Typed arg_range_ arg_expression_ arg_type_ = T_Expression (return
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          (T_Type_vOut163 _typeItext) = inv_Type_s164 _typeX164 (T_Type_vIn163 )
-         _text = rule103 _expressionItext _typeItext
+         _text = rule104 _expressionItext _typeItext
          _lhsOtext :: Doc
-         _lhsOtext = rule104 _text
+         _lhsOtext = rule105 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule103 #-}
-   rule103 = \ ((_expressionItext) :: Doc) ((_typeItext) :: Doc) ->
-                                      _expressionItext <+> text "::" <+> _typeItext
    {-# INLINE rule104 #-}
-   rule104 = \ _text ->
+   rule104 = \ ((_expressionItext) :: Doc) ((_typeItext) :: Doc) ->
+                                      _expressionItext <+> text "::" <+> _typeItext
+   {-# INLINE rule105 #-}
+   rule105 = \ _text ->
      _text
 {-# NOINLINE sem_Expression_RecordConstruction #-}
 sem_Expression_RecordConstruction :: T_Range  -> T_Name  -> T_RecordExpressionBindings  -> T_Expression 
@@ -1940,17 +1960,17 @@ sem_Expression_RecordConstruction arg_range_ arg_name_ arg_recordExpressionBindi
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_RecordExpressionBindings_vOut139 _recordExpressionBindingsItext) = inv_RecordExpressionBindings_s140 _recordExpressionBindingsX140 (T_RecordExpressionBindings_vIn139 )
-         _text = rule105  ()
+         _text = rule106  ()
          _lhsOtext :: Doc
-         _lhsOtext = rule106 _text
+         _lhsOtext = rule107 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule105 #-}
-   rule105 = \  (_ :: ()) ->
-                                      intErr "Expression" "record construction"
    {-# INLINE rule106 #-}
-   rule106 = \ _text ->
+   rule106 = \  (_ :: ()) ->
+                                      intErr "Expression" "record construction"
+   {-# INLINE rule107 #-}
+   rule107 = \ _text ->
      _text
 {-# NOINLINE sem_Expression_RecordUpdate #-}
 sem_Expression_RecordUpdate :: T_Range  -> T_Expression  -> T_RecordExpressionBindings  -> T_Expression 
@@ -1965,17 +1985,17 @@ sem_Expression_RecordUpdate arg_range_ arg_expression_ arg_recordExpressionBindi
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          (T_RecordExpressionBindings_vOut139 _recordExpressionBindingsItext) = inv_RecordExpressionBindings_s140 _recordExpressionBindingsX140 (T_RecordExpressionBindings_vIn139 )
-         _text = rule107  ()
+         _text = rule108  ()
          _lhsOtext :: Doc
-         _lhsOtext = rule108 _text
+         _lhsOtext = rule109 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule107 #-}
-   rule107 = \  (_ :: ()) ->
-                                      intErr "Expression" "record update"
    {-# INLINE rule108 #-}
-   rule108 = \ _text ->
+   rule108 = \  (_ :: ()) ->
+                                      intErr "Expression" "record update"
+   {-# INLINE rule109 #-}
+   rule109 = \ _text ->
      _text
 {-# NOINLINE sem_Expression_Enum #-}
 sem_Expression_Enum :: T_Range  -> T_Expression  -> T_MaybeExpression  -> T_MaybeExpression  -> T_Expression 
@@ -1992,22 +2012,22 @@ sem_Expression_Enum arg_range_ arg_from_ arg_then_ arg_to_ = T_Expression (retur
          (T_Expression_vOut40 _fromItext) = inv_Expression_s41 _fromX41 (T_Expression_vIn40 )
          (T_MaybeExpression_vOut94 _thenItext) = inv_MaybeExpression_s95 _thenX95 (T_MaybeExpression_vIn94 )
          (T_MaybeExpression_vOut94 _toItext) = inv_MaybeExpression_s95 _toX95 (T_MaybeExpression_vIn94 )
-         _text = rule109 _fromItext _thenItext _toItext
+         _text = rule110 _fromItext _thenItext _toItext
          _lhsOtext :: Doc
-         _lhsOtext = rule110 _text
+         _lhsOtext = rule111 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule109 #-}
-   rule109 = \ ((_fromItext) :: Doc) ((_thenItext) ::         Maybe Doc  ) ((_toItext) ::         Maybe Doc  ) ->
+   {-# INLINE rule110 #-}
+   rule110 = \ ((_fromItext) :: Doc) ((_thenItext) ::         Maybe Doc  ) ((_toItext) ::         Maybe Doc  ) ->
                   text "[" <>
                   _fromItext <>
                   maybe empty (text "," <+>)  _thenItext <+>
                   text ".." <+>
                   opt _toItext <>
                   text "]"
-   {-# INLINE rule110 #-}
-   rule110 = \ _text ->
+   {-# INLINE rule111 #-}
+   rule111 = \ _text ->
      _text
 {-# NOINLINE sem_Expression_Negate #-}
 sem_Expression_Negate :: T_Range  -> T_Expression  -> T_Expression 
@@ -2020,17 +2040,17 @@ sem_Expression_Negate arg_range_ arg_expression_ = T_Expression (return st41) wh
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         _text = rule111 _expressionItext
+         _text = rule112 _expressionItext
          _lhsOtext :: Doc
-         _lhsOtext = rule112 _text
+         _lhsOtext = rule113 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule111 #-}
-   rule111 = \ ((_expressionItext) :: Doc) ->
-                                      text "-"  <> _expressionItext
    {-# INLINE rule112 #-}
-   rule112 = \ _text ->
+   rule112 = \ ((_expressionItext) :: Doc) ->
+                                      text "-"  <> _expressionItext
+   {-# INLINE rule113 #-}
+   rule113 = \ _text ->
      _text
 {-# NOINLINE sem_Expression_NegateFloat #-}
 sem_Expression_NegateFloat :: T_Range  -> T_Expression  -> T_Expression 
@@ -2043,17 +2063,17 @@ sem_Expression_NegateFloat arg_range_ arg_expression_ = T_Expression (return st4
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         _text = rule113 _expressionItext
+         _text = rule114 _expressionItext
          _lhsOtext :: Doc
-         _lhsOtext = rule114 _text
+         _lhsOtext = rule115 _text
          __result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule113 #-}
-   rule113 = \ ((_expressionItext) :: Doc) ->
-                                      text "-." <> _expressionItext
    {-# INLINE rule114 #-}
-   rule114 = \ _text ->
+   rule114 = \ ((_expressionItext) :: Doc) ->
+                                      text "-." <> _expressionItext
+   {-# INLINE rule115 #-}
+   rule115 = \ _text ->
      _text
 
 -- Expressions -------------------------------------------------
@@ -2098,12 +2118,12 @@ sem_Expressions_Cons arg_hd_ arg_tl_ = T_Expressions (return st44) where
          (T_Expression_vOut40 _hdItext) = inv_Expression_s41 _hdX41 (T_Expression_vIn40 )
          (T_Expressions_vOut43 _tlItext) = inv_Expressions_s44 _tlX44 (T_Expressions_vIn43 )
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule115 _hdItext _tlItext
+         _lhsOtext = rule116 _hdItext _tlItext
          __result_ = T_Expressions_vOut43 _lhsOtext
          in __result_ )
      in C_Expressions_s44 v43
-   {-# INLINE rule115 #-}
-   rule115 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
+   {-# INLINE rule116 #-}
+   rule116 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
      _hdItext  :  _tlItext
 {-# NOINLINE sem_Expressions_Nil #-}
 sem_Expressions_Nil ::  T_Expressions 
@@ -2113,12 +2133,12 @@ sem_Expressions_Nil  = T_Expressions (return st44) where
       v43 :: T_Expressions_v43 
       v43 = \ (T_Expressions_vIn43 ) -> ( let
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule116  ()
+         _lhsOtext = rule117  ()
          __result_ = T_Expressions_vOut43 _lhsOtext
          in __result_ )
      in C_Expressions_s44 v43
-   {-# INLINE rule116 #-}
-   rule116 = \  (_ :: ()) ->
+   {-# INLINE rule117 #-}
+   rule117 = \  (_ :: ()) ->
      []
 
 -- FieldDeclaration --------------------------------------------
@@ -2164,17 +2184,17 @@ sem_FieldDeclaration_FieldDeclaration arg_range_ arg_names_ arg_type_ = T_FieldD
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Names_vOut115 _namesIisIdentifier _namesIisOperator _namesIisSpecial _namesItext) = inv_Names_s116 _namesX116 (T_Names_vIn115 )
          (T_AnnotatedType_vOut7 _typeItext) = inv_AnnotatedType_s8 _typeX8 (T_AnnotatedType_vIn7 )
-         _text = rule117  ()
+         _text = rule118  ()
          _lhsOtext :: Doc
-         _lhsOtext = rule118 _text
+         _lhsOtext = rule119 _text
          __result_ = T_FieldDeclaration_vOut46 _lhsOtext
          in __result_ )
      in C_FieldDeclaration_s47 v46
-   {-# INLINE rule117 #-}
-   rule117 = \  (_ :: ()) ->
-                                    text "{- !!! field declaration -}"
    {-# INLINE rule118 #-}
-   rule118 = \ _text ->
+   rule118 = \  (_ :: ()) ->
+                                    text "{- !!! field declaration -}"
+   {-# INLINE rule119 #-}
+   rule119 = \ _text ->
      _text
 
 -- FieldDeclarations -------------------------------------------
@@ -2219,12 +2239,12 @@ sem_FieldDeclarations_Cons arg_hd_ arg_tl_ = T_FieldDeclarations (return st50) w
          (T_FieldDeclaration_vOut46 _hdItext) = inv_FieldDeclaration_s47 _hdX47 (T_FieldDeclaration_vIn46 )
          (T_FieldDeclarations_vOut49 _tlItext) = inv_FieldDeclarations_s50 _tlX50 (T_FieldDeclarations_vIn49 )
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule119 _hdItext _tlItext
+         _lhsOtext = rule120 _hdItext _tlItext
          __result_ = T_FieldDeclarations_vOut49 _lhsOtext
          in __result_ )
      in C_FieldDeclarations_s50 v49
-   {-# INLINE rule119 #-}
-   rule119 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
+   {-# INLINE rule120 #-}
+   rule120 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
      _hdItext  :  _tlItext
 {-# NOINLINE sem_FieldDeclarations_Nil #-}
 sem_FieldDeclarations_Nil ::  T_FieldDeclarations 
@@ -2234,12 +2254,12 @@ sem_FieldDeclarations_Nil  = T_FieldDeclarations (return st50) where
       v49 :: T_FieldDeclarations_v49 
       v49 = \ (T_FieldDeclarations_vIn49 ) -> ( let
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule120  ()
+         _lhsOtext = rule121  ()
          __result_ = T_FieldDeclarations_vOut49 _lhsOtext
          in __result_ )
      in C_FieldDeclarations_s50 v49
-   {-# INLINE rule120 #-}
-   rule120 = \  (_ :: ()) ->
+   {-# INLINE rule121 #-}
+   rule121 = \  (_ :: ()) ->
      []
 
 -- Fixity ------------------------------------------------------
@@ -2283,17 +2303,17 @@ sem_Fixity_Infixl arg_range_ = T_Fixity (return st53) where
       v52 = \ (T_Fixity_vIn52 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _text = rule121  ()
+         _text = rule122  ()
          _lhsOtext :: Doc
-         _lhsOtext = rule122 _text
+         _lhsOtext = rule123 _text
          __result_ = T_Fixity_vOut52 _lhsOtext
          in __result_ )
      in C_Fixity_s53 v52
-   {-# INLINE rule121 #-}
-   rule121 = \  (_ :: ()) ->
-                                          text "infixl"
    {-# INLINE rule122 #-}
-   rule122 = \ _text ->
+   rule122 = \  (_ :: ()) ->
+                                          text "infixl"
+   {-# INLINE rule123 #-}
+   rule123 = \ _text ->
      _text
 {-# NOINLINE sem_Fixity_Infixr #-}
 sem_Fixity_Infixr :: T_Range  -> T_Fixity 
@@ -2304,17 +2324,17 @@ sem_Fixity_Infixr arg_range_ = T_Fixity (return st53) where
       v52 = \ (T_Fixity_vIn52 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _text = rule123  ()
+         _text = rule124  ()
          _lhsOtext :: Doc
-         _lhsOtext = rule124 _text
+         _lhsOtext = rule125 _text
          __result_ = T_Fixity_vOut52 _lhsOtext
          in __result_ )
      in C_Fixity_s53 v52
-   {-# INLINE rule123 #-}
-   rule123 = \  (_ :: ()) ->
-                                          text "infixr"
    {-# INLINE rule124 #-}
-   rule124 = \ _text ->
+   rule124 = \  (_ :: ()) ->
+                                          text "infixr"
+   {-# INLINE rule125 #-}
+   rule125 = \ _text ->
      _text
 {-# NOINLINE sem_Fixity_Infix #-}
 sem_Fixity_Infix :: T_Range  -> T_Fixity 
@@ -2325,17 +2345,17 @@ sem_Fixity_Infix arg_range_ = T_Fixity (return st53) where
       v52 = \ (T_Fixity_vIn52 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _text = rule125  ()
+         _text = rule126  ()
          _lhsOtext :: Doc
-         _lhsOtext = rule126 _text
+         _lhsOtext = rule127 _text
          __result_ = T_Fixity_vOut52 _lhsOtext
          in __result_ )
      in C_Fixity_s53 v52
-   {-# INLINE rule125 #-}
-   rule125 = \  (_ :: ()) ->
-                                          text "infix "
    {-# INLINE rule126 #-}
-   rule126 = \ _text ->
+   rule126 = \  (_ :: ()) ->
+                                          text "infix "
+   {-# INLINE rule127 #-}
+   rule127 = \ _text ->
      _text
 
 -- FunctionBinding ---------------------------------------------
@@ -2371,7 +2391,7 @@ type T_FunctionBinding_v55  = (T_FunctionBinding_vIn55 ) -> (T_FunctionBinding_v
 data T_FunctionBinding_vIn55  = T_FunctionBinding_vIn55 
 data T_FunctionBinding_vOut55  = T_FunctionBinding_vOut55 (Doc)
 {-# NOINLINE sem_FunctionBinding_Hole #-}
-sem_FunctionBinding_Hole :: T_Range  -> (Integer) -> T_FunctionBinding 
+sem_FunctionBinding_Hole :: T_Range  -> (String) -> T_FunctionBinding 
 sem_FunctionBinding_Hole arg_range_ _ = T_FunctionBinding (return st56) where
    {-# NOINLINE st56 #-}
    st56 = let
@@ -2379,17 +2399,17 @@ sem_FunctionBinding_Hole arg_range_ _ = T_FunctionBinding (return st56) where
       v55 = \ (T_FunctionBinding_vIn55 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _text = rule127  ()
+         _text = rule128  ()
          _lhsOtext :: Doc
-         _lhsOtext = rule128 _text
+         _lhsOtext = rule129 _text
          __result_ = T_FunctionBinding_vOut55 _lhsOtext
          in __result_ )
      in C_FunctionBinding_s56 v55
-   {-# INLINE rule127 #-}
-   rule127 = \  (_ :: ()) ->
-                                   empty
    {-# INLINE rule128 #-}
-   rule128 = \ _text ->
+   rule128 = \  (_ :: ()) ->
+                                   empty
+   {-# INLINE rule129 #-}
+   rule129 = \ _text ->
      _text
 {-# NOINLINE sem_FunctionBinding_Feedback #-}
 sem_FunctionBinding_Feedback :: T_Range  -> (String) -> T_FunctionBinding  -> T_FunctionBinding 
@@ -2403,12 +2423,12 @@ sem_FunctionBinding_Feedback arg_range_ _ arg_functionBinding_ = T_FunctionBindi
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_FunctionBinding_vOut55 _functionBindingItext) = inv_FunctionBinding_s56 _functionBindingX56 (T_FunctionBinding_vIn55 )
          _lhsOtext :: Doc
-         _lhsOtext = rule129 _functionBindingItext
+         _lhsOtext = rule130 _functionBindingItext
          __result_ = T_FunctionBinding_vOut55 _lhsOtext
          in __result_ )
      in C_FunctionBinding_s56 v55
-   {-# INLINE rule129 #-}
-   rule129 = \ ((_functionBindingItext) :: Doc) ->
+   {-# INLINE rule130 #-}
+   rule130 = \ ((_functionBindingItext) :: Doc) ->
      _functionBindingItext
 {-# NOINLINE sem_FunctionBinding_FunctionBinding #-}
 sem_FunctionBinding_FunctionBinding :: T_Range  -> T_LeftHandSide  -> T_RightHandSide  -> T_FunctionBinding 
@@ -2423,17 +2443,17 @@ sem_FunctionBinding_FunctionBinding arg_range_ arg_lefthandside_ arg_righthandsi
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_LeftHandSide_vOut82 _lefthandsideItext) = inv_LeftHandSide_s83 _lefthandsideX83 (T_LeftHandSide_vIn82 )
          (T_RightHandSide_vOut148 _righthandsideItext) = inv_RightHandSide_s149 _righthandsideX149 (T_RightHandSide_vIn148 )
-         _text = rule130 _lefthandsideItext _righthandsideItext
+         _text = rule131 _lefthandsideItext _righthandsideItext
          _lhsOtext :: Doc
-         _lhsOtext = rule131 _text
+         _lhsOtext = rule132 _text
          __result_ = T_FunctionBinding_vOut55 _lhsOtext
          in __result_ )
      in C_FunctionBinding_s56 v55
-   {-# INLINE rule130 #-}
-   rule130 = \ ((_lefthandsideItext) :: Doc) ((_righthandsideItext) ::  Doc        -> Doc  ) ->
-                                   _lefthandsideItext <+> _righthandsideItext (text "=")
    {-# INLINE rule131 #-}
-   rule131 = \ _text ->
+   rule131 = \ ((_lefthandsideItext) :: Doc) ((_righthandsideItext) ::  Doc        -> Doc  ) ->
+                                   _lefthandsideItext <+> _righthandsideItext (text "=")
+   {-# INLINE rule132 #-}
+   rule132 = \ _text ->
      _text
 
 -- FunctionBindings --------------------------------------------
@@ -2478,12 +2498,12 @@ sem_FunctionBindings_Cons arg_hd_ arg_tl_ = T_FunctionBindings (return st59) whe
          (T_FunctionBinding_vOut55 _hdItext) = inv_FunctionBinding_s56 _hdX56 (T_FunctionBinding_vIn55 )
          (T_FunctionBindings_vOut58 _tlItext) = inv_FunctionBindings_s59 _tlX59 (T_FunctionBindings_vIn58 )
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule132 _hdItext _tlItext
+         _lhsOtext = rule133 _hdItext _tlItext
          __result_ = T_FunctionBindings_vOut58 _lhsOtext
          in __result_ )
      in C_FunctionBindings_s59 v58
-   {-# INLINE rule132 #-}
-   rule132 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
+   {-# INLINE rule133 #-}
+   rule133 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
      _hdItext  :  _tlItext
 {-# NOINLINE sem_FunctionBindings_Nil #-}
 sem_FunctionBindings_Nil ::  T_FunctionBindings 
@@ -2493,12 +2513,12 @@ sem_FunctionBindings_Nil  = T_FunctionBindings (return st59) where
       v58 :: T_FunctionBindings_v58 
       v58 = \ (T_FunctionBindings_vIn58 ) -> ( let
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule133  ()
+         _lhsOtext = rule134  ()
          __result_ = T_FunctionBindings_vOut58 _lhsOtext
          in __result_ )
      in C_FunctionBindings_s59 v58
-   {-# INLINE rule133 #-}
-   rule133 = \  (_ :: ()) ->
+   {-# INLINE rule134 #-}
+   rule134 = \  (_ :: ()) ->
      []
 
 -- GuardedExpression -------------------------------------------
@@ -2544,17 +2564,17 @@ sem_GuardedExpression_GuardedExpression arg_range_ arg_guard_ arg_expression_ = 
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _guardItext) = inv_Expression_s41 _guardX41 (T_Expression_vIn40 )
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         _text = rule134 _expressionItext _guardItext
+         _text = rule135 _expressionItext _guardItext
          _lhsOtext ::  Doc        -> Doc  
-         _lhsOtext = rule135 _text
+         _lhsOtext = rule136 _text
          __result_ = T_GuardedExpression_vOut61 _lhsOtext
          in __result_ )
      in C_GuardedExpression_s62 v61
-   {-# INLINE rule134 #-}
-   rule134 = \ ((_expressionItext) :: Doc) ((_guardItext) :: Doc) ->
-                                     \assign -> text "|" <+> _guardItext <+> assign <+> _expressionItext
    {-# INLINE rule135 #-}
-   rule135 = \ _text ->
+   rule135 = \ ((_expressionItext) :: Doc) ((_guardItext) :: Doc) ->
+                                     \assign -> text "|" <+> _guardItext <+> assign <+> _expressionItext
+   {-# INLINE rule136 #-}
+   rule136 = \ _text ->
      _text
 
 -- GuardedExpressions ------------------------------------------
@@ -2599,12 +2619,12 @@ sem_GuardedExpressions_Cons arg_hd_ arg_tl_ = T_GuardedExpressions (return st65)
          (T_GuardedExpression_vOut61 _hdItext) = inv_GuardedExpression_s62 _hdX62 (T_GuardedExpression_vIn61 )
          (T_GuardedExpressions_vOut64 _tlItext) = inv_GuardedExpressions_s65 _tlX65 (T_GuardedExpressions_vIn64 )
          _lhsOtext ::  [        Doc -> Doc  ] 
-         _lhsOtext = rule136 _hdItext _tlItext
+         _lhsOtext = rule137 _hdItext _tlItext
          __result_ = T_GuardedExpressions_vOut64 _lhsOtext
          in __result_ )
      in C_GuardedExpressions_s65 v64
-   {-# INLINE rule136 #-}
-   rule136 = \ ((_hdItext) ::  Doc        -> Doc  ) ((_tlItext) ::  [        Doc -> Doc  ] ) ->
+   {-# INLINE rule137 #-}
+   rule137 = \ ((_hdItext) ::  Doc        -> Doc  ) ((_tlItext) ::  [        Doc -> Doc  ] ) ->
      _hdItext  :  _tlItext
 {-# NOINLINE sem_GuardedExpressions_Nil #-}
 sem_GuardedExpressions_Nil ::  T_GuardedExpressions 
@@ -2614,12 +2634,12 @@ sem_GuardedExpressions_Nil  = T_GuardedExpressions (return st65) where
       v64 :: T_GuardedExpressions_v64 
       v64 = \ (T_GuardedExpressions_vIn64 ) -> ( let
          _lhsOtext ::  [        Doc -> Doc  ] 
-         _lhsOtext = rule137  ()
+         _lhsOtext = rule138  ()
          __result_ = T_GuardedExpressions_vOut64 _lhsOtext
          in __result_ )
      in C_GuardedExpressions_s65 v64
-   {-# INLINE rule137 #-}
-   rule137 = \  (_ :: ()) ->
+   {-# INLINE rule138 #-}
+   rule138 = \  (_ :: ()) ->
      []
 
 -- Import ------------------------------------------------------
@@ -2665,17 +2685,17 @@ sem_Import_Variable arg_range_ arg_name_ = T_Import (return st68) where
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
-         _text = rule138 _nameItext
+         _text = rule139 _nameItext
          _lhsOtext :: Doc
-         _lhsOtext = rule139 _text
+         _lhsOtext = rule140 _text
          __result_ = T_Import_vOut67 _lhsOtext
          in __result_ )
      in C_Import_s68 v67
-   {-# INLINE rule138 #-}
-   rule138 = \ ((_nameItext) :: Doc) ->
-                                           _nameItext
    {-# INLINE rule139 #-}
-   rule139 = \ _text ->
+   rule139 = \ ((_nameItext) :: Doc) ->
+                                           _nameItext
+   {-# INLINE rule140 #-}
+   rule140 = \ _text ->
      _text
 {-# NOINLINE sem_Import_TypeOrClass #-}
 sem_Import_TypeOrClass :: T_Range  -> T_Name  -> T_MaybeNames  -> T_Import 
@@ -2690,17 +2710,17 @@ sem_Import_TypeOrClass arg_range_ arg_name_ arg_names_ = T_Import (return st68) 
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_MaybeNames_vOut106 _namesItext) = inv_MaybeNames_s107 _namesX107 (T_MaybeNames_vIn106 )
-         _text = rule140 _nameItext _namesItext
+         _text = rule141 _nameItext _namesItext
          _lhsOtext :: Doc
-         _lhsOtext = rule141 _text
+         _lhsOtext = rule142 _text
          __result_ = T_Import_vOut67 _lhsOtext
          in __result_ )
      in C_Import_s68 v67
-   {-# INLINE rule140 #-}
-   rule140 = \ ((_nameItext) :: Doc) ((_namesItext) ::  Maybe [       Doc ] ) ->
-                                           _nameItext <> maybe empty tupled1 _namesItext
    {-# INLINE rule141 #-}
-   rule141 = \ _text ->
+   rule141 = \ ((_nameItext) :: Doc) ((_namesItext) ::  Maybe [       Doc ] ) ->
+                                           _nameItext <> maybe empty tupled1 _namesItext
+   {-# INLINE rule142 #-}
+   rule142 = \ _text ->
      _text
 {-# NOINLINE sem_Import_TypeOrClassComplete #-}
 sem_Import_TypeOrClassComplete :: T_Range  -> T_Name  -> T_Import 
@@ -2713,17 +2733,17 @@ sem_Import_TypeOrClassComplete arg_range_ arg_name_ = T_Import (return st68) whe
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
-         _text = rule142 _nameItext
+         _text = rule143 _nameItext
          _lhsOtext :: Doc
-         _lhsOtext = rule143 _text
+         _lhsOtext = rule144 _text
          __result_ = T_Import_vOut67 _lhsOtext
          in __result_ )
      in C_Import_s68 v67
-   {-# INLINE rule142 #-}
-   rule142 = \ ((_nameItext) :: Doc) ->
-                                           _nameItext
    {-# INLINE rule143 #-}
-   rule143 = \ _text ->
+   rule143 = \ ((_nameItext) :: Doc) ->
+                                           _nameItext
+   {-# INLINE rule144 #-}
+   rule144 = \ _text ->
      _text
 
 -- ImportDeclaration -------------------------------------------
@@ -2772,17 +2792,17 @@ sem_ImportDeclaration_Import arg_range_ arg_qualified_ arg_name_ arg_asname_ arg
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_MaybeName_vOut103 _asnameItext) = inv_MaybeName_s104 _asnameX104 (T_MaybeName_vIn103 )
          (T_MaybeImportSpecification_vOut97 _importspecificationItext) = inv_MaybeImportSpecification_s98 _importspecificationX98 (T_MaybeImportSpecification_vIn97 )
-         _text = rule144 _importspecificationItext _nameItext arg_qualified_
+         _text = rule145 _importspecificationItext _nameItext arg_qualified_
          _lhsOtext :: Doc
-         _lhsOtext = rule145 _text
+         _lhsOtext = rule146 _text
          __result_ = T_ImportDeclaration_vOut70 _lhsOtext
          in __result_ )
      in C_ImportDeclaration_s71 v70
-   {-# INLINE rule144 #-}
-   rule144 = \ ((_importspecificationItext) ::         Maybe Doc  ) ((_nameItext) :: Doc) qualified_ ->
-                               text "import" <+> (if qualified_ then (text "qualified" <+>) else id) _nameItext <+> maybe empty id _importspecificationItext
    {-# INLINE rule145 #-}
-   rule145 = \ _text ->
+   rule145 = \ ((_importspecificationItext) ::         Maybe Doc  ) ((_nameItext) :: Doc) qualified_ ->
+                               text "import" <+> (if qualified_ then (text "qualified" <+>) else id) _nameItext <+> maybe empty id _importspecificationItext
+   {-# INLINE rule146 #-}
+   rule146 = \ _text ->
      _text
 {-# NOINLINE sem_ImportDeclaration_Empty #-}
 sem_ImportDeclaration_Empty :: T_Range  -> T_ImportDeclaration 
@@ -2793,17 +2813,17 @@ sem_ImportDeclaration_Empty arg_range_ = T_ImportDeclaration (return st71) where
       v70 = \ (T_ImportDeclaration_vIn70 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _text = rule146  ()
+         _text = rule147  ()
          _lhsOtext :: Doc
-         _lhsOtext = rule147 _text
+         _lhsOtext = rule148 _text
          __result_ = T_ImportDeclaration_vOut70 _lhsOtext
          in __result_ )
      in C_ImportDeclaration_s71 v70
-   {-# INLINE rule146 #-}
-   rule146 = \  (_ :: ()) ->
-                               empty
    {-# INLINE rule147 #-}
-   rule147 = \ _text ->
+   rule147 = \  (_ :: ()) ->
+                               empty
+   {-# INLINE rule148 #-}
+   rule148 = \ _text ->
      _text
 
 -- ImportDeclarations ------------------------------------------
@@ -2848,12 +2868,12 @@ sem_ImportDeclarations_Cons arg_hd_ arg_tl_ = T_ImportDeclarations (return st74)
          (T_ImportDeclaration_vOut70 _hdItext) = inv_ImportDeclaration_s71 _hdX71 (T_ImportDeclaration_vIn70 )
          (T_ImportDeclarations_vOut73 _tlItext) = inv_ImportDeclarations_s74 _tlX74 (T_ImportDeclarations_vIn73 )
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule148 _hdItext _tlItext
+         _lhsOtext = rule149 _hdItext _tlItext
          __result_ = T_ImportDeclarations_vOut73 _lhsOtext
          in __result_ )
      in C_ImportDeclarations_s74 v73
-   {-# INLINE rule148 #-}
-   rule148 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
+   {-# INLINE rule149 #-}
+   rule149 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
      _hdItext  :  _tlItext
 {-# NOINLINE sem_ImportDeclarations_Nil #-}
 sem_ImportDeclarations_Nil ::  T_ImportDeclarations 
@@ -2863,12 +2883,12 @@ sem_ImportDeclarations_Nil  = T_ImportDeclarations (return st74) where
       v73 :: T_ImportDeclarations_v73 
       v73 = \ (T_ImportDeclarations_vIn73 ) -> ( let
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule149  ()
+         _lhsOtext = rule150  ()
          __result_ = T_ImportDeclarations_vOut73 _lhsOtext
          in __result_ )
      in C_ImportDeclarations_s74 v73
-   {-# INLINE rule149 #-}
-   rule149 = \  (_ :: ()) ->
+   {-# INLINE rule150 #-}
+   rule150 = \  (_ :: ()) ->
      []
 
 -- ImportSpecification -----------------------------------------
@@ -2912,18 +2932,18 @@ sem_ImportSpecification_Import arg_range_ arg_hiding_ arg_imports_ = T_ImportSpe
          _importsX80 = Control.Monad.Identity.runIdentity (attach_T_Imports (arg_imports_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Imports_vOut79 _importsItext) = inv_Imports_s80 _importsX80 (T_Imports_vIn79 )
-         _text = rule150 _importsItext arg_hiding_
+         _text = rule151 _importsItext arg_hiding_
          _lhsOtext :: Doc
-         _lhsOtext = rule151 _text
+         _lhsOtext = rule152 _text
          __result_ = T_ImportSpecification_vOut76 _lhsOtext
          in __result_ )
      in C_ImportSpecification_s77 v76
-   {-# INLINE rule150 #-}
-   rule150 = \ ((_importsItext) ::  [       Doc ] ) hiding_ ->
+   {-# INLINE rule151 #-}
+   rule151 = \ ((_importsItext) ::  [       Doc ] ) hiding_ ->
                              (if hiding_ then (text "hiding" <+>) else id)
                                                       (tupled _importsItext)
-   {-# INLINE rule151 #-}
-   rule151 = \ _text ->
+   {-# INLINE rule152 #-}
+   rule152 = \ _text ->
      _text
 
 -- Imports -----------------------------------------------------
@@ -2968,12 +2988,12 @@ sem_Imports_Cons arg_hd_ arg_tl_ = T_Imports (return st80) where
          (T_Import_vOut67 _hdItext) = inv_Import_s68 _hdX68 (T_Import_vIn67 )
          (T_Imports_vOut79 _tlItext) = inv_Imports_s80 _tlX80 (T_Imports_vIn79 )
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule152 _hdItext _tlItext
+         _lhsOtext = rule153 _hdItext _tlItext
          __result_ = T_Imports_vOut79 _lhsOtext
          in __result_ )
      in C_Imports_s80 v79
-   {-# INLINE rule152 #-}
-   rule152 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
+   {-# INLINE rule153 #-}
+   rule153 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
      _hdItext  :  _tlItext
 {-# NOINLINE sem_Imports_Nil #-}
 sem_Imports_Nil ::  T_Imports 
@@ -2983,12 +3003,12 @@ sem_Imports_Nil  = T_Imports (return st80) where
       v79 :: T_Imports_v79 
       v79 = \ (T_Imports_vIn79 ) -> ( let
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule153  ()
+         _lhsOtext = rule154  ()
          __result_ = T_Imports_vOut79 _lhsOtext
          in __result_ )
      in C_Imports_s80 v79
-   {-# INLINE rule153 #-}
-   rule153 = \  (_ :: ()) ->
+   {-# INLINE rule154 #-}
+   rule154 = \  (_ :: ()) ->
      []
 
 -- LeftHandSide ------------------------------------------------
@@ -3036,17 +3056,17 @@ sem_LeftHandSide_Function arg_range_ arg_name_ arg_patterns_ = T_LeftHandSide (r
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Patterns_vOut121 _patternsItext) = inv_Patterns_s122 _patternsX122 (T_Patterns_vIn121 )
-         _text = rule154 _nameIisOperator _nameItext _patternsItext
+         _text = rule155 _nameIisOperator _nameItext _patternsItext
          _lhsOtext :: Doc
-         _lhsOtext = rule155 _text
+         _lhsOtext = rule156 _text
          __result_ = T_LeftHandSide_vOut82 _lhsOtext
          in __result_ )
      in C_LeftHandSide_s83 v82
-   {-# INLINE rule154 #-}
-   rule154 = \ ((_nameIisOperator) :: Bool) ((_nameItext) :: Doc) ((_patternsItext) ::  [       Doc ] ) ->
-                                    foldl (<+>) (parensIf _nameIisOperator _nameItext) _patternsItext
    {-# INLINE rule155 #-}
-   rule155 = \ _text ->
+   rule155 = \ ((_nameIisOperator) :: Bool) ((_nameItext) :: Doc) ((_patternsItext) ::  [       Doc ] ) ->
+                                    foldl (<+>) (parensIf _nameIisOperator _nameItext) _patternsItext
+   {-# INLINE rule156 #-}
+   rule156 = \ _text ->
      _text
 {-# NOINLINE sem_LeftHandSide_Infix #-}
 sem_LeftHandSide_Infix :: T_Range  -> T_Pattern  -> T_Name  -> T_Pattern  -> T_LeftHandSide 
@@ -3063,17 +3083,17 @@ sem_LeftHandSide_Infix arg_range_ arg_leftPattern_ arg_operator_ arg_rightPatter
          (T_Pattern_vOut118 _leftPatternItext) = inv_Pattern_s119 _leftPatternX119 (T_Pattern_vIn118 )
          (T_Name_vOut112 _operatorIisIdentifier _operatorIisOperator _operatorIisSpecial _operatorItext) = inv_Name_s113 _operatorX113 (T_Name_vIn112 )
          (T_Pattern_vOut118 _rightPatternItext) = inv_Pattern_s119 _rightPatternX119 (T_Pattern_vIn118 )
-         _text = rule156 _leftPatternItext _operatorIisOperator _operatorItext _rightPatternItext
+         _text = rule157 _leftPatternItext _operatorIisOperator _operatorItext _rightPatternItext
          _lhsOtext :: Doc
-         _lhsOtext = rule157 _text
+         _lhsOtext = rule158 _text
          __result_ = T_LeftHandSide_vOut82 _lhsOtext
          in __result_ )
      in C_LeftHandSide_s83 v82
-   {-# INLINE rule156 #-}
-   rule156 = \ ((_leftPatternItext) :: Doc) ((_operatorIisOperator) :: Bool) ((_operatorItext) :: Doc) ((_rightPatternItext) :: Doc) ->
-                                    _leftPatternItext <+> backQuotesIf (not _operatorIisOperator) _operatorItext <+> _rightPatternItext
    {-# INLINE rule157 #-}
-   rule157 = \ _text ->
+   rule157 = \ ((_leftPatternItext) :: Doc) ((_operatorIisOperator) :: Bool) ((_operatorItext) :: Doc) ((_rightPatternItext) :: Doc) ->
+                                    _leftPatternItext <+> backQuotesIf (not _operatorIisOperator) _operatorItext <+> _rightPatternItext
+   {-# INLINE rule158 #-}
+   rule158 = \ _text ->
      _text
 {-# NOINLINE sem_LeftHandSide_Parenthesized #-}
 sem_LeftHandSide_Parenthesized :: T_Range  -> T_LeftHandSide  -> T_Patterns  -> T_LeftHandSide 
@@ -3088,17 +3108,17 @@ sem_LeftHandSide_Parenthesized arg_range_ arg_lefthandside_ arg_patterns_ = T_Le
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_LeftHandSide_vOut82 _lefthandsideItext) = inv_LeftHandSide_s83 _lefthandsideX83 (T_LeftHandSide_vIn82 )
          (T_Patterns_vOut121 _patternsItext) = inv_Patterns_s122 _patternsX122 (T_Patterns_vIn121 )
-         _text = rule158 _lefthandsideItext _patternsItext
+         _text = rule159 _lefthandsideItext _patternsItext
          _lhsOtext :: Doc
-         _lhsOtext = rule159 _text
+         _lhsOtext = rule160 _text
          __result_ = T_LeftHandSide_vOut82 _lhsOtext
          in __result_ )
      in C_LeftHandSide_s83 v82
-   {-# INLINE rule158 #-}
-   rule158 = \ ((_lefthandsideItext) :: Doc) ((_patternsItext) ::  [       Doc ] ) ->
-                                    foldl (<+>) (parens _lefthandsideItext) _patternsItext
    {-# INLINE rule159 #-}
-   rule159 = \ _text ->
+   rule159 = \ ((_lefthandsideItext) :: Doc) ((_patternsItext) ::  [       Doc ] ) ->
+                                    foldl (<+>) (parens _lefthandsideItext) _patternsItext
+   {-# INLINE rule160 #-}
+   rule160 = \ _text ->
      _text
 
 -- Literal -----------------------------------------------------
@@ -3143,17 +3163,17 @@ sem_Literal_Int arg_range_ arg_value_ = T_Literal (return st86) where
       v85 = \ (T_Literal_vIn85 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _text = rule160 arg_value_
+         _text = rule161 arg_value_
          _lhsOtext :: Doc
-         _lhsOtext = rule161 _text
+         _lhsOtext = rule162 _text
          __result_ = T_Literal_vOut85 _lhsOtext
          in __result_ )
      in C_Literal_s86 v85
-   {-# INLINE rule160 #-}
-   rule160 = \ value_ ->
-                                         text value_
    {-# INLINE rule161 #-}
-   rule161 = \ _text ->
+   rule161 = \ value_ ->
+                                         text value_
+   {-# INLINE rule162 #-}
+   rule162 = \ _text ->
      _text
 {-# NOINLINE sem_Literal_Char #-}
 sem_Literal_Char :: T_Range  -> (String) -> T_Literal 
@@ -3164,17 +3184,17 @@ sem_Literal_Char arg_range_ arg_value_ = T_Literal (return st86) where
       v85 = \ (T_Literal_vIn85 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _text = rule162 arg_value_
+         _text = rule163 arg_value_
          _lhsOtext :: Doc
-         _lhsOtext = rule163 _text
+         _lhsOtext = rule164 _text
          __result_ = T_Literal_vOut85 _lhsOtext
          in __result_ )
      in C_Literal_s86 v85
-   {-# INLINE rule162 #-}
-   rule162 = \ value_ ->
-                                         text ("'" ++ value_ ++ "'")
    {-# INLINE rule163 #-}
-   rule163 = \ _text ->
+   rule163 = \ value_ ->
+                                         text ("'" ++ value_ ++ "'")
+   {-# INLINE rule164 #-}
+   rule164 = \ _text ->
      _text
 {-# NOINLINE sem_Literal_Float #-}
 sem_Literal_Float :: T_Range  -> (String) -> T_Literal 
@@ -3185,17 +3205,17 @@ sem_Literal_Float arg_range_ arg_value_ = T_Literal (return st86) where
       v85 = \ (T_Literal_vIn85 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _text = rule164 arg_value_
+         _text = rule165 arg_value_
          _lhsOtext :: Doc
-         _lhsOtext = rule165 _text
+         _lhsOtext = rule166 _text
          __result_ = T_Literal_vOut85 _lhsOtext
          in __result_ )
      in C_Literal_s86 v85
-   {-# INLINE rule164 #-}
-   rule164 = \ value_ ->
-                                         text value_
    {-# INLINE rule165 #-}
-   rule165 = \ _text ->
+   rule165 = \ value_ ->
+                                         text value_
+   {-# INLINE rule166 #-}
+   rule166 = \ _text ->
      _text
 {-# NOINLINE sem_Literal_String #-}
 sem_Literal_String :: T_Range  -> (String) -> T_Literal 
@@ -3206,17 +3226,17 @@ sem_Literal_String arg_range_ arg_value_ = T_Literal (return st86) where
       v85 = \ (T_Literal_vIn85 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _text = rule166 arg_value_
+         _text = rule167 arg_value_
          _lhsOtext :: Doc
-         _lhsOtext = rule167 _text
+         _lhsOtext = rule168 _text
          __result_ = T_Literal_vOut85 _lhsOtext
          in __result_ )
      in C_Literal_s86 v85
-   {-# INLINE rule166 #-}
-   rule166 = \ value_ ->
-                                         text ("\"" ++ value_ ++ "\"")
    {-# INLINE rule167 #-}
-   rule167 = \ _text ->
+   rule167 = \ value_ ->
+                                         text ("\"" ++ value_ ++ "\"")
+   {-# INLINE rule168 #-}
+   rule168 = \ _text ->
      _text
 
 -- MaybeDeclarations -------------------------------------------
@@ -3257,17 +3277,17 @@ sem_MaybeDeclarations_Nothing  = T_MaybeDeclarations (return st89) where
    st89 = let
       v88 :: T_MaybeDeclarations_v88 
       v88 = \ (T_MaybeDeclarations_vIn88 ) -> ( let
-         _text = rule168  ()
+         _text = rule169  ()
          _lhsOtext ::  Maybe [       Doc ] 
-         _lhsOtext = rule169 _text
+         _lhsOtext = rule170 _text
          __result_ = T_MaybeDeclarations_vOut88 _lhsOtext
          in __result_ )
      in C_MaybeDeclarations_s89 v88
-   {-# INLINE rule168 #-}
-   rule168 = \  (_ :: ()) ->
-                               Nothing
    {-# INLINE rule169 #-}
-   rule169 = \ _text ->
+   rule169 = \  (_ :: ()) ->
+                               Nothing
+   {-# INLINE rule170 #-}
+   rule170 = \ _text ->
      _text
 {-# NOINLINE sem_MaybeDeclarations_Just #-}
 sem_MaybeDeclarations_Just :: T_Declarations  -> T_MaybeDeclarations 
@@ -3278,19 +3298,19 @@ sem_MaybeDeclarations_Just arg_declarations_ = T_MaybeDeclarations (return st89)
       v88 = \ (T_MaybeDeclarations_vIn88 ) -> ( let
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          (T_Declarations_vOut31 _declarationsItext) = inv_Declarations_s32 _declarationsX32 (T_Declarations_vIn31 )
-         _text = rule170 _declarationsItext
+         _text = rule171 _declarationsItext
          _lhsOtext ::  Maybe [       Doc ] 
-         _lhsOtext = rule171 _text
+         _lhsOtext = rule172 _text
          __result_ = T_MaybeDeclarations_vOut88 _lhsOtext
          in __result_ )
      in C_MaybeDeclarations_s89 v88
-   {-# INLINE rule170 #-}
-   rule170 = \ ((_declarationsItext) ::  [       Doc ] ) ->
+   {-# INLINE rule171 #-}
+   rule171 = \ ((_declarationsItext) ::  [       Doc ] ) ->
                         case filter ((/= "") . show) _declarationsItext of
                           [] -> Nothing
                           xs -> Just xs
-   {-# INLINE rule171 #-}
-   rule171 = \ _text ->
+   {-# INLINE rule172 #-}
+   rule172 = \ _text ->
      _text
 
 -- MaybeExports ------------------------------------------------
@@ -3331,17 +3351,17 @@ sem_MaybeExports_Nothing  = T_MaybeExports (return st92) where
    st92 = let
       v91 :: T_MaybeExports_v91 
       v91 = \ (T_MaybeExports_vIn91 ) -> ( let
-         _text = rule172  ()
+         _text = rule173  ()
          _lhsOtext ::  Maybe [       Doc ] 
-         _lhsOtext = rule173 _text
+         _lhsOtext = rule174 _text
          __result_ = T_MaybeExports_vOut91 _lhsOtext
          in __result_ )
      in C_MaybeExports_s92 v91
-   {-# INLINE rule172 #-}
-   rule172 = \  (_ :: ()) ->
-                                    Nothing
    {-# INLINE rule173 #-}
-   rule173 = \ _text ->
+   rule173 = \  (_ :: ()) ->
+                                    Nothing
+   {-# INLINE rule174 #-}
+   rule174 = \ _text ->
      _text
 {-# NOINLINE sem_MaybeExports_Just #-}
 sem_MaybeExports_Just :: T_Exports  -> T_MaybeExports 
@@ -3352,17 +3372,17 @@ sem_MaybeExports_Just arg_exports_ = T_MaybeExports (return st92) where
       v91 = \ (T_MaybeExports_vIn91 ) -> ( let
          _exportsX38 = Control.Monad.Identity.runIdentity (attach_T_Exports (arg_exports_))
          (T_Exports_vOut37 _exportsItext) = inv_Exports_s38 _exportsX38 (T_Exports_vIn37 )
-         _text = rule174 _exportsItext
+         _text = rule175 _exportsItext
          _lhsOtext ::  Maybe [       Doc ] 
-         _lhsOtext = rule175 _text
+         _lhsOtext = rule176 _text
          __result_ = T_MaybeExports_vOut91 _lhsOtext
          in __result_ )
      in C_MaybeExports_s92 v91
-   {-# INLINE rule174 #-}
-   rule174 = \ ((_exportsItext) ::  [       Doc ] ) ->
-                                    Just _exportsItext
    {-# INLINE rule175 #-}
-   rule175 = \ _text ->
+   rule175 = \ ((_exportsItext) ::  [       Doc ] ) ->
+                                    Just _exportsItext
+   {-# INLINE rule176 #-}
+   rule176 = \ _text ->
      _text
 
 -- MaybeExpression ---------------------------------------------
@@ -3403,17 +3423,17 @@ sem_MaybeExpression_Nothing  = T_MaybeExpression (return st95) where
    st95 = let
       v94 :: T_MaybeExpression_v94 
       v94 = \ (T_MaybeExpression_vIn94 ) -> ( let
-         _text = rule176  ()
+         _text = rule177  ()
          _lhsOtext ::         Maybe Doc  
-         _lhsOtext = rule177 _text
+         _lhsOtext = rule178 _text
          __result_ = T_MaybeExpression_vOut94 _lhsOtext
          in __result_ )
      in C_MaybeExpression_s95 v94
-   {-# INLINE rule176 #-}
-   rule176 = \  (_ :: ()) ->
-                                 Nothing
    {-# INLINE rule177 #-}
-   rule177 = \ _text ->
+   rule177 = \  (_ :: ()) ->
+                                 Nothing
+   {-# INLINE rule178 #-}
+   rule178 = \ _text ->
      _text
 {-# NOINLINE sem_MaybeExpression_Just #-}
 sem_MaybeExpression_Just :: T_Expression  -> T_MaybeExpression 
@@ -3424,17 +3444,17 @@ sem_MaybeExpression_Just arg_expression_ = T_MaybeExpression (return st95) where
       v94 = \ (T_MaybeExpression_vIn94 ) -> ( let
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         _text = rule178 _expressionItext
+         _text = rule179 _expressionItext
          _lhsOtext ::         Maybe Doc  
-         _lhsOtext = rule179 _text
+         _lhsOtext = rule180 _text
          __result_ = T_MaybeExpression_vOut94 _lhsOtext
          in __result_ )
      in C_MaybeExpression_s95 v94
-   {-# INLINE rule178 #-}
-   rule178 = \ ((_expressionItext) :: Doc) ->
-                                 Just _expressionItext
    {-# INLINE rule179 #-}
-   rule179 = \ _text ->
+   rule179 = \ ((_expressionItext) :: Doc) ->
+                                 Just _expressionItext
+   {-# INLINE rule180 #-}
+   rule180 = \ _text ->
      _text
 
 -- MaybeImportSpecification ------------------------------------
@@ -3475,17 +3495,17 @@ sem_MaybeImportSpecification_Nothing  = T_MaybeImportSpecification (return st98)
    st98 = let
       v97 :: T_MaybeImportSpecification_v97 
       v97 = \ (T_MaybeImportSpecification_vIn97 ) -> ( let
-         _text = rule180  ()
+         _text = rule181  ()
          _lhsOtext ::         Maybe Doc  
-         _lhsOtext = rule181 _text
+         _lhsOtext = rule182 _text
          __result_ = T_MaybeImportSpecification_vOut97 _lhsOtext
          in __result_ )
      in C_MaybeImportSpecification_s98 v97
-   {-# INLINE rule180 #-}
-   rule180 = \  (_ :: ()) ->
-                               Nothing
    {-# INLINE rule181 #-}
-   rule181 = \ _text ->
+   rule181 = \  (_ :: ()) ->
+                               Nothing
+   {-# INLINE rule182 #-}
+   rule182 = \ _text ->
      _text
 {-# NOINLINE sem_MaybeImportSpecification_Just #-}
 sem_MaybeImportSpecification_Just :: T_ImportSpecification  -> T_MaybeImportSpecification 
@@ -3496,17 +3516,17 @@ sem_MaybeImportSpecification_Just arg_importspecification_ = T_MaybeImportSpecif
       v97 = \ (T_MaybeImportSpecification_vIn97 ) -> ( let
          _importspecificationX77 = Control.Monad.Identity.runIdentity (attach_T_ImportSpecification (arg_importspecification_))
          (T_ImportSpecification_vOut76 _importspecificationItext) = inv_ImportSpecification_s77 _importspecificationX77 (T_ImportSpecification_vIn76 )
-         _text = rule182 _importspecificationItext
+         _text = rule183 _importspecificationItext
          _lhsOtext ::         Maybe Doc  
-         _lhsOtext = rule183 _text
+         _lhsOtext = rule184 _text
          __result_ = T_MaybeImportSpecification_vOut97 _lhsOtext
          in __result_ )
      in C_MaybeImportSpecification_s98 v97
-   {-# INLINE rule182 #-}
-   rule182 = \ ((_importspecificationItext) :: Doc) ->
-                               Just _importspecificationItext
    {-# INLINE rule183 #-}
-   rule183 = \ _text ->
+   rule183 = \ ((_importspecificationItext) :: Doc) ->
+                               Just _importspecificationItext
+   {-# INLINE rule184 #-}
+   rule184 = \ _text ->
      _text
 
 -- MaybeInt ----------------------------------------------------
@@ -3547,17 +3567,17 @@ sem_MaybeInt_Nothing  = T_MaybeInt (return st101) where
    st101 = let
       v100 :: T_MaybeInt_v100 
       v100 = \ (T_MaybeInt_vIn100 ) -> ( let
-         _text = rule184  ()
+         _text = rule185  ()
          _lhsOtext ::         Maybe Doc  
-         _lhsOtext = rule185 _text
+         _lhsOtext = rule186 _text
          __result_ = T_MaybeInt_vOut100 _lhsOtext
          in __result_ )
      in C_MaybeInt_s101 v100
-   {-# INLINE rule184 #-}
-   rule184 = \  (_ :: ()) ->
-                                        Nothing
    {-# INLINE rule185 #-}
-   rule185 = \ _text ->
+   rule185 = \  (_ :: ()) ->
+                                        Nothing
+   {-# INLINE rule186 #-}
+   rule186 = \ _text ->
      _text
 {-# NOINLINE sem_MaybeInt_Just #-}
 sem_MaybeInt_Just :: (Int) -> T_MaybeInt 
@@ -3566,17 +3586,17 @@ sem_MaybeInt_Just arg_int_ = T_MaybeInt (return st101) where
    st101 = let
       v100 :: T_MaybeInt_v100 
       v100 = \ (T_MaybeInt_vIn100 ) -> ( let
-         _text = rule186 arg_int_
+         _text = rule187 arg_int_
          _lhsOtext ::         Maybe Doc  
-         _lhsOtext = rule187 _text
+         _lhsOtext = rule188 _text
          __result_ = T_MaybeInt_vOut100 _lhsOtext
          in __result_ )
      in C_MaybeInt_s101 v100
-   {-# INLINE rule186 #-}
-   rule186 = \ int_ ->
-                                        Just (int int_)
    {-# INLINE rule187 #-}
-   rule187 = \ _text ->
+   rule187 = \ int_ ->
+                                        Just (int int_)
+   {-# INLINE rule188 #-}
+   rule188 = \ _text ->
      _text
 
 -- MaybeName ---------------------------------------------------
@@ -3617,17 +3637,17 @@ sem_MaybeName_Nothing  = T_MaybeName (return st104) where
    st104 = let
       v103 :: T_MaybeName_v103 
       v103 = \ (T_MaybeName_vIn103 ) -> ( let
-         _text = rule188  ()
+         _text = rule189  ()
          _lhsOtext ::         Maybe Doc  
-         _lhsOtext = rule189 _text
+         _lhsOtext = rule190 _text
          __result_ = T_MaybeName_vOut103 _lhsOtext
          in __result_ )
      in C_MaybeName_s104 v103
-   {-# INLINE rule188 #-}
-   rule188 = \  (_ :: ()) ->
-                                       Nothing
    {-# INLINE rule189 #-}
-   rule189 = \ _text ->
+   rule189 = \  (_ :: ()) ->
+                                       Nothing
+   {-# INLINE rule190 #-}
+   rule190 = \ _text ->
      _text
 {-# NOINLINE sem_MaybeName_Just #-}
 sem_MaybeName_Just :: T_Name  -> T_MaybeName 
@@ -3638,17 +3658,17 @@ sem_MaybeName_Just arg_name_ = T_MaybeName (return st104) where
       v103 = \ (T_MaybeName_vIn103 ) -> ( let
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
-         _text = rule190 _nameItext
+         _text = rule191 _nameItext
          _lhsOtext ::         Maybe Doc  
-         _lhsOtext = rule191 _text
+         _lhsOtext = rule192 _text
          __result_ = T_MaybeName_vOut103 _lhsOtext
          in __result_ )
      in C_MaybeName_s104 v103
-   {-# INLINE rule190 #-}
-   rule190 = \ ((_nameItext) :: Doc) ->
-                                       Just _nameItext
    {-# INLINE rule191 #-}
-   rule191 = \ _text ->
+   rule191 = \ ((_nameItext) :: Doc) ->
+                                       Just _nameItext
+   {-# INLINE rule192 #-}
+   rule192 = \ _text ->
      _text
 
 -- MaybeNames --------------------------------------------------
@@ -3689,17 +3709,17 @@ sem_MaybeNames_Nothing  = T_MaybeNames (return st107) where
    st107 = let
       v106 :: T_MaybeNames_v106 
       v106 = \ (T_MaybeNames_vIn106 ) -> ( let
-         _text = rule192  ()
+         _text = rule193  ()
          _lhsOtext ::  Maybe [       Doc ] 
-         _lhsOtext = rule193 _text
+         _lhsOtext = rule194 _text
          __result_ = T_MaybeNames_vOut106 _lhsOtext
          in __result_ )
      in C_MaybeNames_s107 v106
-   {-# INLINE rule192 #-}
-   rule192 = \  (_ :: ()) ->
-                                    Nothing
    {-# INLINE rule193 #-}
-   rule193 = \ _text ->
+   rule193 = \  (_ :: ()) ->
+                                    Nothing
+   {-# INLINE rule194 #-}
+   rule194 = \ _text ->
      _text
 {-# NOINLINE sem_MaybeNames_Just #-}
 sem_MaybeNames_Just :: T_Names  -> T_MaybeNames 
@@ -3710,17 +3730,17 @@ sem_MaybeNames_Just arg_names_ = T_MaybeNames (return st107) where
       v106 = \ (T_MaybeNames_vIn106 ) -> ( let
          _namesX116 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_names_))
          (T_Names_vOut115 _namesIisIdentifier _namesIisOperator _namesIisSpecial _namesItext) = inv_Names_s116 _namesX116 (T_Names_vIn115 )
-         _text = rule194 _namesItext
+         _text = rule195 _namesItext
          _lhsOtext ::  Maybe [       Doc ] 
-         _lhsOtext = rule195 _text
+         _lhsOtext = rule196 _text
          __result_ = T_MaybeNames_vOut106 _lhsOtext
          in __result_ )
      in C_MaybeNames_s107 v106
-   {-# INLINE rule194 #-}
-   rule194 = \ ((_namesItext) ::  [       Doc ] ) ->
-                                    Just _namesItext
    {-# INLINE rule195 #-}
-   rule195 = \ _text ->
+   rule195 = \ ((_namesItext) ::  [       Doc ] ) ->
+                                    Just _namesItext
+   {-# INLINE rule196 #-}
+   rule196 = \ _text ->
      _text
 
 -- Module ------------------------------------------------------
@@ -3768,14 +3788,14 @@ sem_Module_Module arg_range_ arg_name_ arg_exports_ arg_body_ = T_Module (return
          (T_MaybeName_vOut103 _nameItext) = inv_MaybeName_s104 _nameX104 (T_MaybeName_vIn103 )
          (T_MaybeExports_vOut91 _exportsItext) = inv_MaybeExports_s92 _exportsX92 (T_MaybeExports_vIn91 )
          (T_Body_vOut13 _bodyItext) = inv_Body_s14 _bodyX14 (T_Body_vIn13 )
-         _text = rule196 _bodyItext _exportsItext _nameItext
+         _text = rule197 _bodyItext _exportsItext _nameItext
          _lhsOtext :: Doc
-         _lhsOtext = rule197 _text
+         _lhsOtext = rule198 _text
          __result_ = T_Module_vOut109 _lhsOtext
          in __result_ )
      in C_Module_s110 v109
-   {-# INLINE rule196 #-}
-   rule196 = \ ((_bodyItext) :: Doc) ((_exportsItext) ::  Maybe [       Doc ] ) ((_nameItext) ::         Maybe Doc  ) ->
+   {-# INLINE rule197 #-}
+   rule197 = \ ((_bodyItext) :: Doc) ((_exportsItext) ::  Maybe [       Doc ] ) ((_nameItext) ::         Maybe Doc  ) ->
           maybe
               id
               ( \name body ->
@@ -3790,8 +3810,8 @@ sem_Module_Module arg_range_ arg_name_ arg_exports_ arg_body_ = T_Module (return
               )
               _nameItext
               _bodyItext
-   {-# INLINE rule197 #-}
-   rule197 = \ _text ->
+   {-# INLINE rule198 #-}
+   rule198 = \ _text ->
      _text
 
 -- Name --------------------------------------------------------
@@ -3837,32 +3857,32 @@ sem_Name_Identifier arg_range_ arg_module_ arg_name_ = T_Name (return st113) whe
          _moduleX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_module_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Strings_vOut160 _moduleItext) = inv_Strings_s161 _moduleX161 (T_Strings_vIn160 )
-         _text = rule198 arg_name_
+         _text = rule199 arg_name_
          _lhsOisIdentifier :: Bool
-         _lhsOisIdentifier = rule199  ()
+         _lhsOisIdentifier = rule200  ()
          _lhsOisOperator :: Bool
-         _lhsOisOperator = rule200  ()
+         _lhsOisOperator = rule201  ()
          _lhsOisSpecial :: Bool
-         _lhsOisSpecial = rule201  ()
+         _lhsOisSpecial = rule202  ()
          _lhsOtext :: Doc
-         _lhsOtext = rule202 _text
+         _lhsOtext = rule203 _text
          __result_ = T_Name_vOut112 _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext
          in __result_ )
      in C_Name_s113 v112
-   {-# INLINE rule198 #-}
-   rule198 = \ name_ ->
-                                            text name_
    {-# INLINE rule199 #-}
-   rule199 = \  (_ :: ()) ->
-                                                    True
+   rule199 = \ name_ ->
+                                            text name_
    {-# INLINE rule200 #-}
    rule200 = \  (_ :: ()) ->
-     False
+                                                    True
    {-# INLINE rule201 #-}
    rule201 = \  (_ :: ()) ->
      False
    {-# INLINE rule202 #-}
-   rule202 = \ _text ->
+   rule202 = \  (_ :: ()) ->
+     False
+   {-# INLINE rule203 #-}
+   rule203 = \ _text ->
      _text
 {-# NOINLINE sem_Name_Operator #-}
 sem_Name_Operator :: T_Range  -> T_Strings  -> (String) -> T_Name 
@@ -3875,32 +3895,32 @@ sem_Name_Operator arg_range_ arg_module_ arg_name_ = T_Name (return st113) where
          _moduleX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_module_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Strings_vOut160 _moduleItext) = inv_Strings_s161 _moduleX161 (T_Strings_vIn160 )
-         _text = rule203 arg_name_
+         _text = rule204 arg_name_
          _lhsOisOperator :: Bool
-         _lhsOisOperator = rule204  ()
+         _lhsOisOperator = rule205  ()
          _lhsOisIdentifier :: Bool
-         _lhsOisIdentifier = rule205  ()
+         _lhsOisIdentifier = rule206  ()
          _lhsOisSpecial :: Bool
-         _lhsOisSpecial = rule206  ()
+         _lhsOisSpecial = rule207  ()
          _lhsOtext :: Doc
-         _lhsOtext = rule207 _text
+         _lhsOtext = rule208 _text
          __result_ = T_Name_vOut112 _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext
          in __result_ )
      in C_Name_s113 v112
-   {-# INLINE rule203 #-}
-   rule203 = \ name_ ->
-                                            text name_
    {-# INLINE rule204 #-}
-   rule204 = \  (_ :: ()) ->
-                                                  True
+   rule204 = \ name_ ->
+                                            text name_
    {-# INLINE rule205 #-}
    rule205 = \  (_ :: ()) ->
-     False
+                                                  True
    {-# INLINE rule206 #-}
    rule206 = \  (_ :: ()) ->
      False
    {-# INLINE rule207 #-}
-   rule207 = \ _text ->
+   rule207 = \  (_ :: ()) ->
+     False
+   {-# INLINE rule208 #-}
+   rule208 = \ _text ->
      _text
 {-# NOINLINE sem_Name_Special #-}
 sem_Name_Special :: T_Range  -> T_Strings  -> (String) -> T_Name 
@@ -3913,32 +3933,32 @@ sem_Name_Special arg_range_ arg_module_ arg_name_ = T_Name (return st113) where
          _moduleX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_module_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Strings_vOut160 _moduleItext) = inv_Strings_s161 _moduleX161 (T_Strings_vIn160 )
-         _text = rule208 arg_name_
+         _text = rule209 arg_name_
          _lhsOisSpecial :: Bool
-         _lhsOisSpecial = rule209  ()
+         _lhsOisSpecial = rule210  ()
          _lhsOisIdentifier :: Bool
-         _lhsOisIdentifier = rule210  ()
+         _lhsOisIdentifier = rule211  ()
          _lhsOisOperator :: Bool
-         _lhsOisOperator = rule211  ()
+         _lhsOisOperator = rule212  ()
          _lhsOtext :: Doc
-         _lhsOtext = rule212 _text
+         _lhsOtext = rule213 _text
          __result_ = T_Name_vOut112 _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext
          in __result_ )
      in C_Name_s113 v112
-   {-# INLINE rule208 #-}
-   rule208 = \ name_ ->
-                                            text name_
    {-# INLINE rule209 #-}
-   rule209 = \  (_ :: ()) ->
-                                                 True
+   rule209 = \ name_ ->
+                                            text name_
    {-# INLINE rule210 #-}
    rule210 = \  (_ :: ()) ->
-     False
+                                                 True
    {-# INLINE rule211 #-}
    rule211 = \  (_ :: ()) ->
      False
    {-# INLINE rule212 #-}
-   rule212 = \ _text ->
+   rule212 = \  (_ :: ()) ->
+     False
+   {-# INLINE rule213 #-}
+   rule213 = \ _text ->
      _text
 
 -- Names -------------------------------------------------------
@@ -3983,27 +4003,27 @@ sem_Names_Cons arg_hd_ arg_tl_ = T_Names (return st116) where
          (T_Name_vOut112 _hdIisIdentifier _hdIisOperator _hdIisSpecial _hdItext) = inv_Name_s113 _hdX113 (T_Name_vIn112 )
          (T_Names_vOut115 _tlIisIdentifier _tlIisOperator _tlIisSpecial _tlItext) = inv_Names_s116 _tlX116 (T_Names_vIn115 )
          _lhsOisIdentifier ::  [Bool] 
-         _lhsOisIdentifier = rule213 _hdIisIdentifier _tlIisIdentifier
+         _lhsOisIdentifier = rule214 _hdIisIdentifier _tlIisIdentifier
          _lhsOisOperator ::  [Bool] 
-         _lhsOisOperator = rule214 _hdIisOperator _tlIisOperator
+         _lhsOisOperator = rule215 _hdIisOperator _tlIisOperator
          _lhsOisSpecial ::  [Bool] 
-         _lhsOisSpecial = rule215 _hdIisSpecial _tlIisSpecial
+         _lhsOisSpecial = rule216 _hdIisSpecial _tlIisSpecial
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule216 _hdItext _tlItext
+         _lhsOtext = rule217 _hdItext _tlItext
          __result_ = T_Names_vOut115 _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext
          in __result_ )
      in C_Names_s116 v115
-   {-# INLINE rule213 #-}
-   rule213 = \ ((_hdIisIdentifier) :: Bool) ((_tlIisIdentifier) ::  [Bool] ) ->
-     _hdIisIdentifier  :  _tlIisIdentifier
    {-# INLINE rule214 #-}
-   rule214 = \ ((_hdIisOperator) :: Bool) ((_tlIisOperator) ::  [Bool] ) ->
-     _hdIisOperator  :  _tlIisOperator
+   rule214 = \ ((_hdIisIdentifier) :: Bool) ((_tlIisIdentifier) ::  [Bool] ) ->
+     _hdIisIdentifier  :  _tlIisIdentifier
    {-# INLINE rule215 #-}
-   rule215 = \ ((_hdIisSpecial) :: Bool) ((_tlIisSpecial) ::  [Bool] ) ->
-     _hdIisSpecial  :  _tlIisSpecial
+   rule215 = \ ((_hdIisOperator) :: Bool) ((_tlIisOperator) ::  [Bool] ) ->
+     _hdIisOperator  :  _tlIisOperator
    {-# INLINE rule216 #-}
-   rule216 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
+   rule216 = \ ((_hdIisSpecial) :: Bool) ((_tlIisSpecial) ::  [Bool] ) ->
+     _hdIisSpecial  :  _tlIisSpecial
+   {-# INLINE rule217 #-}
+   rule217 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
      _hdItext  :  _tlItext
 {-# NOINLINE sem_Names_Nil #-}
 sem_Names_Nil ::  T_Names 
@@ -4013,19 +4033,16 @@ sem_Names_Nil  = T_Names (return st116) where
       v115 :: T_Names_v115 
       v115 = \ (T_Names_vIn115 ) -> ( let
          _lhsOisIdentifier ::  [Bool] 
-         _lhsOisIdentifier = rule217  ()
+         _lhsOisIdentifier = rule218  ()
          _lhsOisOperator ::  [Bool] 
-         _lhsOisOperator = rule218  ()
+         _lhsOisOperator = rule219  ()
          _lhsOisSpecial ::  [Bool] 
-         _lhsOisSpecial = rule219  ()
+         _lhsOisSpecial = rule220  ()
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule220  ()
+         _lhsOtext = rule221  ()
          __result_ = T_Names_vOut115 _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext
          in __result_ )
      in C_Names_s116 v115
-   {-# INLINE rule217 #-}
-   rule217 = \  (_ :: ()) ->
-     []
    {-# INLINE rule218 #-}
    rule218 = \  (_ :: ()) ->
      []
@@ -4034,6 +4051,9 @@ sem_Names_Nil  = T_Names (return st116) where
      []
    {-# INLINE rule220 #-}
    rule220 = \  (_ :: ()) ->
+     []
+   {-# INLINE rule221 #-}
+   rule221 = \  (_ :: ()) ->
      []
 
 -- Pattern -----------------------------------------------------
@@ -4081,7 +4101,7 @@ type T_Pattern_v118  = (T_Pattern_vIn118 ) -> (T_Pattern_vOut118 )
 data T_Pattern_vIn118  = T_Pattern_vIn118 
 data T_Pattern_vOut118  = T_Pattern_vOut118 (Doc)
 {-# NOINLINE sem_Pattern_Hole #-}
-sem_Pattern_Hole :: T_Range  -> (Integer) -> T_Pattern 
+sem_Pattern_Hole :: T_Range  -> (String) -> T_Pattern 
 sem_Pattern_Hole arg_range_ _ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
    st119 = let
@@ -4089,17 +4109,17 @@ sem_Pattern_Hole arg_range_ _ = T_Pattern (return st119) where
       v118 = \ (T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _text = rule221  ()
+         _text = rule222  ()
          _lhsOtext :: Doc
-         _lhsOtext = rule222 _text
+         _lhsOtext = rule223 _text
          __result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule221 #-}
-   rule221 = \  (_ :: ()) ->
-                                         text hole
    {-# INLINE rule222 #-}
-   rule222 = \ _text ->
+   rule222 = \  (_ :: ()) ->
+                                         text hole
+   {-# INLINE rule223 #-}
+   rule223 = \ _text ->
      _text
 {-# NOINLINE sem_Pattern_Literal #-}
 sem_Pattern_Literal :: T_Range  -> T_Literal  -> T_Pattern 
@@ -4112,17 +4132,17 @@ sem_Pattern_Literal arg_range_ arg_literal_ = T_Pattern (return st119) where
          _literalX86 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Literal_vOut85 _literalItext) = inv_Literal_s86 _literalX86 (T_Literal_vIn85 )
-         _text = rule223 _literalItext
+         _text = rule224 _literalItext
          _lhsOtext :: Doc
-         _lhsOtext = rule224 _text
+         _lhsOtext = rule225 _text
          __result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule223 #-}
-   rule223 = \ ((_literalItext) :: Doc) ->
-                                         _literalItext
    {-# INLINE rule224 #-}
-   rule224 = \ _text ->
+   rule224 = \ ((_literalItext) :: Doc) ->
+                                         _literalItext
+   {-# INLINE rule225 #-}
+   rule225 = \ _text ->
      _text
 {-# NOINLINE sem_Pattern_Variable #-}
 sem_Pattern_Variable :: T_Range  -> T_Name  -> T_Pattern 
@@ -4135,17 +4155,17 @@ sem_Pattern_Variable arg_range_ arg_name_ = T_Pattern (return st119) where
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
-         _text = rule225 _nameIisOperator _nameItext
+         _text = rule226 _nameIisOperator _nameItext
          _lhsOtext :: Doc
-         _lhsOtext = rule226 _text
+         _lhsOtext = rule227 _text
          __result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule225 #-}
-   rule225 = \ ((_nameIisOperator) :: Bool) ((_nameItext) :: Doc) ->
-                                         parensIf _nameIisOperator _nameItext
    {-# INLINE rule226 #-}
-   rule226 = \ _text ->
+   rule226 = \ ((_nameIisOperator) :: Bool) ((_nameItext) :: Doc) ->
+                                         parensIf _nameIisOperator _nameItext
+   {-# INLINE rule227 #-}
+   rule227 = \ _text ->
      _text
 {-# NOINLINE sem_Pattern_Constructor #-}
 sem_Pattern_Constructor :: T_Range  -> T_Name  -> T_Patterns  -> T_Pattern 
@@ -4160,17 +4180,17 @@ sem_Pattern_Constructor arg_range_ arg_name_ arg_patterns_ = T_Pattern (return s
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Patterns_vOut121 _patternsItext) = inv_Patterns_s122 _patternsX122 (T_Patterns_vIn121 )
-         _text = rule227 _nameIisOperator _nameItext _patternsItext
+         _text = rule228 _nameIisOperator _nameItext _patternsItext
          _lhsOtext :: Doc
-         _lhsOtext = rule228 _text
+         _lhsOtext = rule229 _text
          __result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule227 #-}
-   rule227 = \ ((_nameIisOperator) :: Bool) ((_nameItext) :: Doc) ((_patternsItext) ::  [       Doc ] ) ->
-                                         foldl (<+>) (parensIf _nameIisOperator _nameItext) _patternsItext
    {-# INLINE rule228 #-}
-   rule228 = \ _text ->
+   rule228 = \ ((_nameIisOperator) :: Bool) ((_nameItext) :: Doc) ((_patternsItext) ::  [       Doc ] ) ->
+                                         foldl (<+>) (parensIf _nameIisOperator _nameItext) _patternsItext
+   {-# INLINE rule229 #-}
+   rule229 = \ _text ->
      _text
 {-# NOINLINE sem_Pattern_Parenthesized #-}
 sem_Pattern_Parenthesized :: T_Range  -> T_Pattern  -> T_Pattern 
@@ -4183,17 +4203,17 @@ sem_Pattern_Parenthesized arg_range_ arg_pattern_ = T_Pattern (return st119) whe
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Pattern_vOut118 _patternItext) = inv_Pattern_s119 _patternX119 (T_Pattern_vIn118 )
-         _text = rule229 _patternItext
+         _text = rule230 _patternItext
          _lhsOtext :: Doc
-         _lhsOtext = rule230 _text
+         _lhsOtext = rule231 _text
          __result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule229 #-}
-   rule229 = \ ((_patternItext) :: Doc) ->
-                                         parens _patternItext
    {-# INLINE rule230 #-}
-   rule230 = \ _text ->
+   rule230 = \ ((_patternItext) :: Doc) ->
+                                         parens _patternItext
+   {-# INLINE rule231 #-}
+   rule231 = \ _text ->
      _text
 {-# NOINLINE sem_Pattern_InfixConstructor #-}
 sem_Pattern_InfixConstructor :: T_Range  -> T_Pattern  -> T_Name  -> T_Pattern  -> T_Pattern 
@@ -4210,17 +4230,17 @@ sem_Pattern_InfixConstructor arg_range_ arg_leftPattern_ arg_constructorOperator
          (T_Pattern_vOut118 _leftPatternItext) = inv_Pattern_s119 _leftPatternX119 (T_Pattern_vIn118 )
          (T_Name_vOut112 _constructorOperatorIisIdentifier _constructorOperatorIisOperator _constructorOperatorIisSpecial _constructorOperatorItext) = inv_Name_s113 _constructorOperatorX113 (T_Name_vIn112 )
          (T_Pattern_vOut118 _rightPatternItext) = inv_Pattern_s119 _rightPatternX119 (T_Pattern_vIn118 )
-         _text = rule231 _constructorOperatorItext _leftPatternItext _rightPatternItext
+         _text = rule232 _constructorOperatorItext _leftPatternItext _rightPatternItext
          _lhsOtext :: Doc
-         _lhsOtext = rule232 _text
+         _lhsOtext = rule233 _text
          __result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule231 #-}
-   rule231 = \ ((_constructorOperatorItext) :: Doc) ((_leftPatternItext) :: Doc) ((_rightPatternItext) :: Doc) ->
-                                         _leftPatternItext <+> _constructorOperatorItext <+> _rightPatternItext
    {-# INLINE rule232 #-}
-   rule232 = \ _text ->
+   rule232 = \ ((_constructorOperatorItext) :: Doc) ((_leftPatternItext) :: Doc) ((_rightPatternItext) :: Doc) ->
+                                         _leftPatternItext <+> _constructorOperatorItext <+> _rightPatternItext
+   {-# INLINE rule233 #-}
+   rule233 = \ _text ->
      _text
 {-# NOINLINE sem_Pattern_List #-}
 sem_Pattern_List :: T_Range  -> T_Patterns  -> T_Pattern 
@@ -4233,17 +4253,17 @@ sem_Pattern_List arg_range_ arg_patterns_ = T_Pattern (return st119) where
          _patternsX122 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Patterns_vOut121 _patternsItext) = inv_Patterns_s122 _patternsX122 (T_Patterns_vIn121 )
-         _text = rule233 _patternsItext
+         _text = rule234 _patternsItext
          _lhsOtext :: Doc
-         _lhsOtext = rule234 _text
+         _lhsOtext = rule235 _text
          __result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule233 #-}
-   rule233 = \ ((_patternsItext) ::  [       Doc ] ) ->
-                                         PPrint.list _patternsItext
    {-# INLINE rule234 #-}
-   rule234 = \ _text ->
+   rule234 = \ ((_patternsItext) ::  [       Doc ] ) ->
+                                         PPrint.list _patternsItext
+   {-# INLINE rule235 #-}
+   rule235 = \ _text ->
      _text
 {-# NOINLINE sem_Pattern_Tuple #-}
 sem_Pattern_Tuple :: T_Range  -> T_Patterns  -> T_Pattern 
@@ -4256,17 +4276,17 @@ sem_Pattern_Tuple arg_range_ arg_patterns_ = T_Pattern (return st119) where
          _patternsX122 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Patterns_vOut121 _patternsItext) = inv_Patterns_s122 _patternsX122 (T_Patterns_vIn121 )
-         _text = rule235 _patternsItext
+         _text = rule236 _patternsItext
          _lhsOtext :: Doc
-         _lhsOtext = rule236 _text
+         _lhsOtext = rule237 _text
          __result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule235 #-}
-   rule235 = \ ((_patternsItext) ::  [       Doc ] ) ->
-                                         tupled _patternsItext
    {-# INLINE rule236 #-}
-   rule236 = \ _text ->
+   rule236 = \ ((_patternsItext) ::  [       Doc ] ) ->
+                                         tupled _patternsItext
+   {-# INLINE rule237 #-}
+   rule237 = \ _text ->
      _text
 {-# NOINLINE sem_Pattern_Record #-}
 sem_Pattern_Record :: T_Range  -> T_Name  -> T_RecordPatternBindings  -> T_Pattern 
@@ -4281,17 +4301,17 @@ sem_Pattern_Record arg_range_ arg_name_ arg_recordPatternBindings_ = T_Pattern (
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_RecordPatternBindings_vOut145 _recordPatternBindingsItext) = inv_RecordPatternBindings_s146 _recordPatternBindingsX146 (T_RecordPatternBindings_vIn145 )
-         _text = rule237  ()
+         _text = rule238  ()
          _lhsOtext :: Doc
-         _lhsOtext = rule238 _text
+         _lhsOtext = rule239 _text
          __result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule237 #-}
-   rule237 = \  (_ :: ()) ->
-                                         text "{- !!! record pattern -}"
    {-# INLINE rule238 #-}
-   rule238 = \ _text ->
+   rule238 = \  (_ :: ()) ->
+                                         text "{- !!! record pattern -}"
+   {-# INLINE rule239 #-}
+   rule239 = \ _text ->
      _text
 {-# NOINLINE sem_Pattern_Negate #-}
 sem_Pattern_Negate :: T_Range  -> T_Literal  -> T_Pattern 
@@ -4304,17 +4324,17 @@ sem_Pattern_Negate arg_range_ arg_literal_ = T_Pattern (return st119) where
          _literalX86 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Literal_vOut85 _literalItext) = inv_Literal_s86 _literalX86 (T_Literal_vIn85 )
-         _text = rule239 _literalItext
+         _text = rule240 _literalItext
          _lhsOtext :: Doc
-         _lhsOtext = rule240 _text
+         _lhsOtext = rule241 _text
          __result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule239 #-}
-   rule239 = \ ((_literalItext) :: Doc) ->
-                                         text "-" <> _literalItext
    {-# INLINE rule240 #-}
-   rule240 = \ _text ->
+   rule240 = \ ((_literalItext) :: Doc) ->
+                                         text "-" <> _literalItext
+   {-# INLINE rule241 #-}
+   rule241 = \ _text ->
      _text
 {-# NOINLINE sem_Pattern_As #-}
 sem_Pattern_As :: T_Range  -> T_Name  -> T_Pattern  -> T_Pattern 
@@ -4329,17 +4349,17 @@ sem_Pattern_As arg_range_ arg_name_ arg_pattern_ = T_Pattern (return st119) wher
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Pattern_vOut118 _patternItext) = inv_Pattern_s119 _patternX119 (T_Pattern_vIn118 )
-         _text = rule241 _nameItext _patternItext
+         _text = rule242 _nameItext _patternItext
          _lhsOtext :: Doc
-         _lhsOtext = rule242 _text
+         _lhsOtext = rule243 _text
          __result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule241 #-}
-   rule241 = \ ((_nameItext) :: Doc) ((_patternItext) :: Doc) ->
-                                         _nameItext <> text "@" <> _patternItext
    {-# INLINE rule242 #-}
-   rule242 = \ _text ->
+   rule242 = \ ((_nameItext) :: Doc) ((_patternItext) :: Doc) ->
+                                         _nameItext <> text "@" <> _patternItext
+   {-# INLINE rule243 #-}
+   rule243 = \ _text ->
      _text
 {-# NOINLINE sem_Pattern_Wildcard #-}
 sem_Pattern_Wildcard :: T_Range  -> T_Pattern 
@@ -4350,17 +4370,17 @@ sem_Pattern_Wildcard arg_range_ = T_Pattern (return st119) where
       v118 = \ (T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _text = rule243  ()
+         _text = rule244  ()
          _lhsOtext :: Doc
-         _lhsOtext = rule244 _text
+         _lhsOtext = rule245 _text
          __result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule243 #-}
-   rule243 = \  (_ :: ()) ->
-                                         text "_"
    {-# INLINE rule244 #-}
-   rule244 = \ _text ->
+   rule244 = \  (_ :: ()) ->
+                                         text "_"
+   {-# INLINE rule245 #-}
+   rule245 = \ _text ->
      _text
 {-# NOINLINE sem_Pattern_Irrefutable #-}
 sem_Pattern_Irrefutable :: T_Range  -> T_Pattern  -> T_Pattern 
@@ -4373,17 +4393,17 @@ sem_Pattern_Irrefutable arg_range_ arg_pattern_ = T_Pattern (return st119) where
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Pattern_vOut118 _patternItext) = inv_Pattern_s119 _patternX119 (T_Pattern_vIn118 )
-         _text = rule245 _patternItext
+         _text = rule246 _patternItext
          _lhsOtext :: Doc
-         _lhsOtext = rule246 _text
+         _lhsOtext = rule247 _text
          __result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule245 #-}
-   rule245 = \ ((_patternItext) :: Doc) ->
-                                         text "~" <> _patternItext
    {-# INLINE rule246 #-}
-   rule246 = \ _text ->
+   rule246 = \ ((_patternItext) :: Doc) ->
+                                         text "~" <> _patternItext
+   {-# INLINE rule247 #-}
+   rule247 = \ _text ->
      _text
 {-# NOINLINE sem_Pattern_Successor #-}
 sem_Pattern_Successor :: T_Range  -> T_Name  -> T_Literal  -> T_Pattern 
@@ -4398,17 +4418,17 @@ sem_Pattern_Successor arg_range_ arg_name_ arg_literal_ = T_Pattern (return st11
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Literal_vOut85 _literalItext) = inv_Literal_s86 _literalX86 (T_Literal_vIn85 )
-         _text = rule247 _literalItext _nameItext
+         _text = rule248 _literalItext _nameItext
          _lhsOtext :: Doc
-         _lhsOtext = rule248 _text
+         _lhsOtext = rule249 _text
          __result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule247 #-}
-   rule247 = \ ((_literalItext) :: Doc) ((_nameItext) :: Doc) ->
-                                         _nameItext <+> text "+" <+> _literalItext
    {-# INLINE rule248 #-}
-   rule248 = \ _text ->
+   rule248 = \ ((_literalItext) :: Doc) ((_nameItext) :: Doc) ->
+                                         _nameItext <+> text "+" <+> _literalItext
+   {-# INLINE rule249 #-}
+   rule249 = \ _text ->
      _text
 {-# NOINLINE sem_Pattern_NegateFloat #-}
 sem_Pattern_NegateFloat :: T_Range  -> T_Literal  -> T_Pattern 
@@ -4421,17 +4441,17 @@ sem_Pattern_NegateFloat arg_range_ arg_literal_ = T_Pattern (return st119) where
          _literalX86 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Literal_vOut85 _literalItext) = inv_Literal_s86 _literalX86 (T_Literal_vIn85 )
-         _text = rule249 _literalItext
+         _text = rule250 _literalItext
          _lhsOtext :: Doc
-         _lhsOtext = rule250 _text
+         _lhsOtext = rule251 _text
          __result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule249 #-}
-   rule249 = \ ((_literalItext) :: Doc) ->
-                                         text "-." <> _literalItext
    {-# INLINE rule250 #-}
-   rule250 = \ _text ->
+   rule250 = \ ((_literalItext) :: Doc) ->
+                                         text "-." <> _literalItext
+   {-# INLINE rule251 #-}
+   rule251 = \ _text ->
      _text
 
 -- Patterns ----------------------------------------------------
@@ -4476,12 +4496,12 @@ sem_Patterns_Cons arg_hd_ arg_tl_ = T_Patterns (return st122) where
          (T_Pattern_vOut118 _hdItext) = inv_Pattern_s119 _hdX119 (T_Pattern_vIn118 )
          (T_Patterns_vOut121 _tlItext) = inv_Patterns_s122 _tlX122 (T_Patterns_vIn121 )
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule251 _hdItext _tlItext
+         _lhsOtext = rule252 _hdItext _tlItext
          __result_ = T_Patterns_vOut121 _lhsOtext
          in __result_ )
      in C_Patterns_s122 v121
-   {-# INLINE rule251 #-}
-   rule251 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
+   {-# INLINE rule252 #-}
+   rule252 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
      _hdItext  :  _tlItext
 {-# NOINLINE sem_Patterns_Nil #-}
 sem_Patterns_Nil ::  T_Patterns 
@@ -4491,12 +4511,12 @@ sem_Patterns_Nil  = T_Patterns (return st122) where
       v121 :: T_Patterns_v121 
       v121 = \ (T_Patterns_vIn121 ) -> ( let
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule252  ()
+         _lhsOtext = rule253  ()
          __result_ = T_Patterns_vOut121 _lhsOtext
          in __result_ )
      in C_Patterns_s122 v121
-   {-# INLINE rule252 #-}
-   rule252 = \  (_ :: ()) ->
+   {-# INLINE rule253 #-}
+   rule253 = \  (_ :: ()) ->
      []
 
 -- Position ----------------------------------------------------
@@ -4537,17 +4557,17 @@ sem_Position_Position arg_filename_ arg_line_ arg_column_ = T_Position (return s
    st125 = let
       v124 :: T_Position_v124 
       v124 = \ (T_Position_vIn124 ) -> ( let
-         _text = rule253 arg_column_ arg_filename_ arg_line_
+         _text = rule254 arg_column_ arg_filename_ arg_line_
          _lhsOtext :: Doc
-         _lhsOtext = rule254 _text
+         _lhsOtext = rule255 _text
          __result_ = T_Position_vOut124 _lhsOtext
          in __result_ )
      in C_Position_s125 v124
-   {-# INLINE rule253 #-}
-   rule253 = \ column_ filename_ line_ ->
-                                        text filename_ <> tupled [int line_, int column_]
    {-# INLINE rule254 #-}
-   rule254 = \ _text ->
+   rule254 = \ column_ filename_ line_ ->
+                                        text filename_ <> tupled [int line_, int column_]
+   {-# INLINE rule255 #-}
+   rule255 = \ _text ->
      _text
 {-# NOINLINE sem_Position_Unknown #-}
 sem_Position_Unknown ::  T_Position 
@@ -4556,17 +4576,17 @@ sem_Position_Unknown  = T_Position (return st125) where
    st125 = let
       v124 :: T_Position_v124 
       v124 = \ (T_Position_vIn124 ) -> ( let
-         _text = rule255  ()
+         _text = rule256  ()
          _lhsOtext :: Doc
-         _lhsOtext = rule256 _text
+         _lhsOtext = rule257 _text
          __result_ = T_Position_vOut124 _lhsOtext
          in __result_ )
      in C_Position_s125 v124
-   {-# INLINE rule255 #-}
-   rule255 = \  (_ :: ()) ->
-                                        text "Unknown"
    {-# INLINE rule256 #-}
-   rule256 = \ _text ->
+   rule256 = \  (_ :: ()) ->
+                                        text "Unknown"
+   {-# INLINE rule257 #-}
+   rule257 = \ _text ->
      _text
 
 -- Qualifier ---------------------------------------------------
@@ -4613,17 +4633,17 @@ sem_Qualifier_Guard arg_range_ arg_guard_ = T_Qualifier (return st128) where
          _guardX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_guard_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _guardItext) = inv_Expression_s41 _guardX41 (T_Expression_vIn40 )
-         _text = rule257 _guardItext
+         _text = rule258 _guardItext
          _lhsOtext :: Doc
-         _lhsOtext = rule258 _text
+         _lhsOtext = rule259 _text
          __result_ = T_Qualifier_vOut127 _lhsOtext
          in __result_ )
      in C_Qualifier_s128 v127
-   {-# INLINE rule257 #-}
-   rule257 = \ ((_guardItext) :: Doc) ->
-                                       _guardItext
    {-# INLINE rule258 #-}
-   rule258 = \ _text ->
+   rule258 = \ ((_guardItext) :: Doc) ->
+                                       _guardItext
+   {-# INLINE rule259 #-}
+   rule259 = \ _text ->
      _text
 {-# NOINLINE sem_Qualifier_Let #-}
 sem_Qualifier_Let :: T_Range  -> T_Declarations  -> T_Qualifier 
@@ -4636,17 +4656,17 @@ sem_Qualifier_Let arg_range_ arg_declarations_ = T_Qualifier (return st128) wher
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Declarations_vOut31 _declarationsItext) = inv_Declarations_s32 _declarationsX32 (T_Declarations_vIn31 )
-         _text = rule259 _declarationsItext
+         _text = rule260 _declarationsItext
          _lhsOtext :: Doc
-         _lhsOtext = rule260 _text
+         _lhsOtext = rule261 _text
          __result_ = T_Qualifier_vOut127 _lhsOtext
          in __result_ )
      in C_Qualifier_s128 v127
-   {-# INLINE rule259 #-}
-   rule259 = \ ((_declarationsItext) ::  [       Doc ] ) ->
-                                       text "let" <$> (indent 4 $ vcat _declarationsItext)
    {-# INLINE rule260 #-}
-   rule260 = \ _text ->
+   rule260 = \ ((_declarationsItext) ::  [       Doc ] ) ->
+                                       text "let" <$> (indent 4 $ vcat _declarationsItext)
+   {-# INLINE rule261 #-}
+   rule261 = \ _text ->
      _text
 {-# NOINLINE sem_Qualifier_Generator #-}
 sem_Qualifier_Generator :: T_Range  -> T_Pattern  -> T_Expression  -> T_Qualifier 
@@ -4661,17 +4681,17 @@ sem_Qualifier_Generator arg_range_ arg_pattern_ arg_expression_ = T_Qualifier (r
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Pattern_vOut118 _patternItext) = inv_Pattern_s119 _patternX119 (T_Pattern_vIn118 )
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         _text = rule261 _expressionItext _patternItext
+         _text = rule262 _expressionItext _patternItext
          _lhsOtext :: Doc
-         _lhsOtext = rule262 _text
+         _lhsOtext = rule263 _text
          __result_ = T_Qualifier_vOut127 _lhsOtext
          in __result_ )
      in C_Qualifier_s128 v127
-   {-# INLINE rule261 #-}
-   rule261 = \ ((_expressionItext) :: Doc) ((_patternItext) :: Doc) ->
-                                       _patternItext <+> text "<-" <+> _expressionItext
    {-# INLINE rule262 #-}
-   rule262 = \ _text ->
+   rule262 = \ ((_expressionItext) :: Doc) ((_patternItext) :: Doc) ->
+                                       _patternItext <+> text "<-" <+> _expressionItext
+   {-# INLINE rule263 #-}
+   rule263 = \ _text ->
      _text
 {-# NOINLINE sem_Qualifier_Empty #-}
 sem_Qualifier_Empty :: T_Range  -> T_Qualifier 
@@ -4682,17 +4702,17 @@ sem_Qualifier_Empty arg_range_ = T_Qualifier (return st128) where
       v127 = \ (T_Qualifier_vIn127 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _text = rule263  ()
+         _text = rule264  ()
          _lhsOtext :: Doc
-         _lhsOtext = rule264 _text
+         _lhsOtext = rule265 _text
          __result_ = T_Qualifier_vOut127 _lhsOtext
          in __result_ )
      in C_Qualifier_s128 v127
-   {-# INLINE rule263 #-}
-   rule263 = \  (_ :: ()) ->
-                                       empty
    {-# INLINE rule264 #-}
-   rule264 = \ _text ->
+   rule264 = \  (_ :: ()) ->
+                                       empty
+   {-# INLINE rule265 #-}
+   rule265 = \ _text ->
      _text
 
 -- Qualifiers --------------------------------------------------
@@ -4737,12 +4757,12 @@ sem_Qualifiers_Cons arg_hd_ arg_tl_ = T_Qualifiers (return st131) where
          (T_Qualifier_vOut127 _hdItext) = inv_Qualifier_s128 _hdX128 (T_Qualifier_vIn127 )
          (T_Qualifiers_vOut130 _tlItext) = inv_Qualifiers_s131 _tlX131 (T_Qualifiers_vIn130 )
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule265 _hdItext _tlItext
+         _lhsOtext = rule266 _hdItext _tlItext
          __result_ = T_Qualifiers_vOut130 _lhsOtext
          in __result_ )
      in C_Qualifiers_s131 v130
-   {-# INLINE rule265 #-}
-   rule265 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
+   {-# INLINE rule266 #-}
+   rule266 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
      _hdItext  :  _tlItext
 {-# NOINLINE sem_Qualifiers_Nil #-}
 sem_Qualifiers_Nil ::  T_Qualifiers 
@@ -4752,12 +4772,12 @@ sem_Qualifiers_Nil  = T_Qualifiers (return st131) where
       v130 :: T_Qualifiers_v130 
       v130 = \ (T_Qualifiers_vIn130 ) -> ( let
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule266  ()
+         _lhsOtext = rule267  ()
          __result_ = T_Qualifiers_vOut130 _lhsOtext
          in __result_ )
      in C_Qualifiers_s131 v130
-   {-# INLINE rule266 #-}
-   rule266 = \  (_ :: ()) ->
+   {-# INLINE rule267 #-}
+   rule267 = \  (_ :: ()) ->
      []
 
 -- Range -------------------------------------------------------
@@ -4801,17 +4821,17 @@ sem_Range_Range arg_start_ arg_stop_ = T_Range (return st134) where
          _stopX125 = Control.Monad.Identity.runIdentity (attach_T_Position (arg_stop_))
          (T_Position_vOut124 _startItext) = inv_Position_s125 _startX125 (T_Position_vIn124 )
          (T_Position_vOut124 _stopItext) = inv_Position_s125 _stopX125 (T_Position_vIn124 )
-         _text = rule267 _startItext _stopItext
+         _text = rule268 _startItext _stopItext
          _lhsOtext :: Doc
-         _lhsOtext = rule268 _text
+         _lhsOtext = rule269 _text
          __result_ = T_Range_vOut133 _lhsOtext
          in __result_ )
      in C_Range_s134 v133
-   {-# INLINE rule267 #-}
-   rule267 = \ ((_startItext) :: Doc) ((_stopItext) :: Doc) ->
-                                           text "{-" <+> _startItext <+> text ", " <+> _stopItext <+> text "-}"
    {-# INLINE rule268 #-}
-   rule268 = \ _text ->
+   rule268 = \ ((_startItext) :: Doc) ((_stopItext) :: Doc) ->
+                                           text "{-" <+> _startItext <+> text ", " <+> _stopItext <+> text "-}"
+   {-# INLINE rule269 #-}
+   rule269 = \ _text ->
      _text
 
 -- RecordExpressionBinding -------------------------------------
@@ -4857,17 +4877,17 @@ sem_RecordExpressionBinding_RecordExpressionBinding arg_range_ arg_name_ arg_exp
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         _text = rule269  ()
+         _text = rule270  ()
          _lhsOtext :: Doc
-         _lhsOtext = rule270 _text
+         _lhsOtext = rule271 _text
          __result_ = T_RecordExpressionBinding_vOut136 _lhsOtext
          in __result_ )
      in C_RecordExpressionBinding_s137 v136
-   {-# INLINE rule269 #-}
-   rule269 = \  (_ :: ()) ->
-                                           text "{- !!! record expression binding -}"
    {-# INLINE rule270 #-}
-   rule270 = \ _text ->
+   rule270 = \  (_ :: ()) ->
+                                           text "{- !!! record expression binding -}"
+   {-# INLINE rule271 #-}
+   rule271 = \ _text ->
      _text
 
 -- RecordExpressionBindings ------------------------------------
@@ -4912,12 +4932,12 @@ sem_RecordExpressionBindings_Cons arg_hd_ arg_tl_ = T_RecordExpressionBindings (
          (T_RecordExpressionBinding_vOut136 _hdItext) = inv_RecordExpressionBinding_s137 _hdX137 (T_RecordExpressionBinding_vIn136 )
          (T_RecordExpressionBindings_vOut139 _tlItext) = inv_RecordExpressionBindings_s140 _tlX140 (T_RecordExpressionBindings_vIn139 )
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule271 _hdItext _tlItext
+         _lhsOtext = rule272 _hdItext _tlItext
          __result_ = T_RecordExpressionBindings_vOut139 _lhsOtext
          in __result_ )
      in C_RecordExpressionBindings_s140 v139
-   {-# INLINE rule271 #-}
-   rule271 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
+   {-# INLINE rule272 #-}
+   rule272 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
      _hdItext  :  _tlItext
 {-# NOINLINE sem_RecordExpressionBindings_Nil #-}
 sem_RecordExpressionBindings_Nil ::  T_RecordExpressionBindings 
@@ -4927,12 +4947,12 @@ sem_RecordExpressionBindings_Nil  = T_RecordExpressionBindings (return st140) wh
       v139 :: T_RecordExpressionBindings_v139 
       v139 = \ (T_RecordExpressionBindings_vIn139 ) -> ( let
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule272  ()
+         _lhsOtext = rule273  ()
          __result_ = T_RecordExpressionBindings_vOut139 _lhsOtext
          in __result_ )
      in C_RecordExpressionBindings_s140 v139
-   {-# INLINE rule272 #-}
-   rule272 = \  (_ :: ()) ->
+   {-# INLINE rule273 #-}
+   rule273 = \  (_ :: ()) ->
      []
 
 -- RecordPatternBinding ----------------------------------------
@@ -4978,17 +4998,17 @@ sem_RecordPatternBinding_RecordPatternBinding arg_range_ arg_name_ arg_pattern_ 
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Pattern_vOut118 _patternItext) = inv_Pattern_s119 _patternX119 (T_Pattern_vIn118 )
-         _text = rule273  ()
+         _text = rule274  ()
          _lhsOtext :: Doc
-         _lhsOtext = rule274 _text
+         _lhsOtext = rule275 _text
          __result_ = T_RecordPatternBinding_vOut142 _lhsOtext
          in __result_ )
      in C_RecordPatternBinding_s143 v142
-   {-# INLINE rule273 #-}
-   rule273 = \  (_ :: ()) ->
-                                        text "{- !!! record pattern binding -}"
    {-# INLINE rule274 #-}
-   rule274 = \ _text ->
+   rule274 = \  (_ :: ()) ->
+                                        text "{- !!! record pattern binding -}"
+   {-# INLINE rule275 #-}
+   rule275 = \ _text ->
      _text
 
 -- RecordPatternBindings ---------------------------------------
@@ -5033,12 +5053,12 @@ sem_RecordPatternBindings_Cons arg_hd_ arg_tl_ = T_RecordPatternBindings (return
          (T_RecordPatternBinding_vOut142 _hdItext) = inv_RecordPatternBinding_s143 _hdX143 (T_RecordPatternBinding_vIn142 )
          (T_RecordPatternBindings_vOut145 _tlItext) = inv_RecordPatternBindings_s146 _tlX146 (T_RecordPatternBindings_vIn145 )
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule275 _hdItext _tlItext
+         _lhsOtext = rule276 _hdItext _tlItext
          __result_ = T_RecordPatternBindings_vOut145 _lhsOtext
          in __result_ )
      in C_RecordPatternBindings_s146 v145
-   {-# INLINE rule275 #-}
-   rule275 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
+   {-# INLINE rule276 #-}
+   rule276 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
      _hdItext  :  _tlItext
 {-# NOINLINE sem_RecordPatternBindings_Nil #-}
 sem_RecordPatternBindings_Nil ::  T_RecordPatternBindings 
@@ -5048,12 +5068,12 @@ sem_RecordPatternBindings_Nil  = T_RecordPatternBindings (return st146) where
       v145 :: T_RecordPatternBindings_v145 
       v145 = \ (T_RecordPatternBindings_vIn145 ) -> ( let
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule276  ()
+         _lhsOtext = rule277  ()
          __result_ = T_RecordPatternBindings_vOut145 _lhsOtext
          in __result_ )
      in C_RecordPatternBindings_s146 v145
-   {-# INLINE rule276 #-}
-   rule276 = \  (_ :: ()) ->
+   {-# INLINE rule277 #-}
+   rule277 = \  (_ :: ()) ->
      []
 
 -- RightHandSide -----------------------------------------------
@@ -5100,18 +5120,18 @@ sem_RightHandSide_Expression arg_range_ arg_expression_ arg_where_ = T_RightHand
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          (T_MaybeDeclarations_vOut88 _whereItext) = inv_MaybeDeclarations_s89 _whereX89 (T_MaybeDeclarations_vIn88 )
-         _text = rule277 _justText
-         _justText = rule278 _expressionItext _whereItext
+         _text = rule278 _justText
+         _justText = rule279 _expressionItext _whereItext
          _lhsOtext ::  Doc        -> Doc  
-         _lhsOtext = rule279 _text
+         _lhsOtext = rule280 _text
          __result_ = T_RightHandSide_vOut148 _lhsOtext
          in __result_ )
      in C_RightHandSide_s149 v148
-   {-# INLINE rule277 #-}
-   rule277 = \ _justText ->
-                                    \assign       -> assign <$> _justText
    {-# INLINE rule278 #-}
-   rule278 = \ ((_expressionItext) :: Doc) ((_whereItext) ::  Maybe [       Doc ] ) ->
+   rule278 = \ _justText ->
+                                    \assign       -> assign <$> _justText
+   {-# INLINE rule279 #-}
+   rule279 = \ ((_expressionItext) :: Doc) ((_whereItext) ::  Maybe [       Doc ] ) ->
                       indent 4
                           (  _expressionItext
                           <> maybe
@@ -5119,8 +5139,8 @@ sem_RightHandSide_Expression arg_range_ arg_expression_ arg_where_ = T_RightHand
                                  (\ds -> PPrint.empty <$> text "where" <$> indent 4 (vcat ds))
                                  _whereItext
                           )
-   {-# INLINE rule279 #-}
-   rule279 = \ _text ->
+   {-# INLINE rule280 #-}
+   rule280 = \ _text ->
      _text
 {-# NOINLINE sem_RightHandSide_Guarded #-}
 sem_RightHandSide_Guarded :: T_Range  -> T_GuardedExpressions  -> T_MaybeDeclarations  -> T_RightHandSide 
@@ -5135,14 +5155,14 @@ sem_RightHandSide_Guarded arg_range_ arg_guardedexpressions_ arg_where_ = T_Righ
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_GuardedExpressions_vOut64 _guardedexpressionsItext) = inv_GuardedExpressions_s65 _guardedexpressionsX65 (T_GuardedExpressions_vIn64 )
          (T_MaybeDeclarations_vOut88 _whereItext) = inv_MaybeDeclarations_s89 _whereX89 (T_MaybeDeclarations_vIn88 )
-         _text = rule280 _guardedexpressionsItext _whereItext
+         _text = rule281 _guardedexpressionsItext _whereItext
          _lhsOtext ::  Doc        -> Doc  
-         _lhsOtext = rule281 _text
+         _lhsOtext = rule282 _text
          __result_ = T_RightHandSide_vOut148 _lhsOtext
          in __result_ )
      in C_RightHandSide_s149 v148
-   {-# INLINE rule280 #-}
-   rule280 = \ ((_guardedexpressionsItext) ::  [        Doc -> Doc  ] ) ((_whereItext) ::  Maybe [       Doc ] ) ->
+   {-# INLINE rule281 #-}
+   rule281 = \ ((_guardedexpressionsItext) ::  [        Doc -> Doc  ] ) ((_whereItext) ::  Maybe [       Doc ] ) ->
                   \assign ->
                       (   PPrint.empty
                       <$> vsep
@@ -5152,8 +5172,8 @@ sem_RightHandSide_Guarded arg_range_ arg_guardedexpressions_ arg_where_ = T_Righ
                              (\ds -> PPrint.empty <$> indent 4 (text "where" <$> indent 4 (vcat ds)))
                              _whereItext
                       )
-   {-# INLINE rule281 #-}
-   rule281 = \ _text ->
+   {-# INLINE rule282 #-}
+   rule282 = \ _text ->
      _text
 
 -- SimpleType --------------------------------------------------
@@ -5199,17 +5219,17 @@ sem_SimpleType_SimpleType arg_range_ arg_name_ arg_typevariables_ = T_SimpleType
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Names_vOut115 _typevariablesIisIdentifier _typevariablesIisOperator _typevariablesIisSpecial _typevariablesItext) = inv_Names_s116 _typevariablesX116 (T_Names_vIn115 )
-         _text = rule282 _nameItext _typevariablesItext
+         _text = rule283 _nameItext _typevariablesItext
          _lhsOtext :: Doc
-         _lhsOtext = rule283 _text
+         _lhsOtext = rule284 _text
          __result_ = T_SimpleType_vOut151 _lhsOtext
          in __result_ )
      in C_SimpleType_s152 v151
-   {-# INLINE rule282 #-}
-   rule282 = \ ((_nameItext) :: Doc) ((_typevariablesItext) ::  [       Doc ] ) ->
-                                      foldl (<+>) _nameItext _typevariablesItext
    {-# INLINE rule283 #-}
-   rule283 = \ _text ->
+   rule283 = \ ((_nameItext) :: Doc) ((_typevariablesItext) ::  [       Doc ] ) ->
+                                      foldl (<+>) _nameItext _typevariablesItext
+   {-# INLINE rule284 #-}
+   rule284 = \ _text ->
      _text
 
 -- Statement ---------------------------------------------------
@@ -5256,17 +5276,17 @@ sem_Statement_Expression arg_range_ arg_expression_ = T_Statement (return st155)
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         _text = rule284 _expressionItext
+         _text = rule285 _expressionItext
          _lhsOtext :: Doc
-         _lhsOtext = rule285 _text
+         _lhsOtext = rule286 _text
          __result_ = T_Statement_vOut154 _lhsOtext
          in __result_ )
      in C_Statement_s155 v154
-   {-# INLINE rule284 #-}
-   rule284 = \ ((_expressionItext) :: Doc) ->
-                                       _expressionItext
    {-# INLINE rule285 #-}
-   rule285 = \ _text ->
+   rule285 = \ ((_expressionItext) :: Doc) ->
+                                       _expressionItext
+   {-# INLINE rule286 #-}
+   rule286 = \ _text ->
      _text
 {-# NOINLINE sem_Statement_Let #-}
 sem_Statement_Let :: T_Range  -> T_Declarations  -> T_Statement 
@@ -5279,17 +5299,17 @@ sem_Statement_Let arg_range_ arg_declarations_ = T_Statement (return st155) wher
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Declarations_vOut31 _declarationsItext) = inv_Declarations_s32 _declarationsX32 (T_Declarations_vIn31 )
-         _text = rule286 _declarationsItext
+         _text = rule287 _declarationsItext
          _lhsOtext :: Doc
-         _lhsOtext = rule287 _text
+         _lhsOtext = rule288 _text
          __result_ = T_Statement_vOut154 _lhsOtext
          in __result_ )
      in C_Statement_s155 v154
-   {-# INLINE rule286 #-}
-   rule286 = \ ((_declarationsItext) ::  [       Doc ] ) ->
-                                       text "let" <$> (indent 4 $ vcat _declarationsItext)
    {-# INLINE rule287 #-}
-   rule287 = \ _text ->
+   rule287 = \ ((_declarationsItext) ::  [       Doc ] ) ->
+                                       text "let" <$> (indent 4 $ vcat _declarationsItext)
+   {-# INLINE rule288 #-}
+   rule288 = \ _text ->
      _text
 {-# NOINLINE sem_Statement_Generator #-}
 sem_Statement_Generator :: T_Range  -> T_Pattern  -> T_Expression  -> T_Statement 
@@ -5304,17 +5324,17 @@ sem_Statement_Generator arg_range_ arg_pattern_ arg_expression_ = T_Statement (r
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Pattern_vOut118 _patternItext) = inv_Pattern_s119 _patternX119 (T_Pattern_vIn118 )
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         _text = rule288 _expressionItext _patternItext
+         _text = rule289 _expressionItext _patternItext
          _lhsOtext :: Doc
-         _lhsOtext = rule289 _text
+         _lhsOtext = rule290 _text
          __result_ = T_Statement_vOut154 _lhsOtext
          in __result_ )
      in C_Statement_s155 v154
-   {-# INLINE rule288 #-}
-   rule288 = \ ((_expressionItext) :: Doc) ((_patternItext) :: Doc) ->
-                                       _patternItext <+> text "<-" <+> _expressionItext
    {-# INLINE rule289 #-}
-   rule289 = \ _text ->
+   rule289 = \ ((_expressionItext) :: Doc) ((_patternItext) :: Doc) ->
+                                       _patternItext <+> text "<-" <+> _expressionItext
+   {-# INLINE rule290 #-}
+   rule290 = \ _text ->
      _text
 {-# NOINLINE sem_Statement_Empty #-}
 sem_Statement_Empty :: T_Range  -> T_Statement 
@@ -5325,17 +5345,17 @@ sem_Statement_Empty arg_range_ = T_Statement (return st155) where
       v154 = \ (T_Statement_vIn154 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _text = rule290  ()
+         _text = rule291  ()
          _lhsOtext :: Doc
-         _lhsOtext = rule291 _text
+         _lhsOtext = rule292 _text
          __result_ = T_Statement_vOut154 _lhsOtext
          in __result_ )
      in C_Statement_s155 v154
-   {-# INLINE rule290 #-}
-   rule290 = \  (_ :: ()) ->
-                                       empty
    {-# INLINE rule291 #-}
-   rule291 = \ _text ->
+   rule291 = \  (_ :: ()) ->
+                                       empty
+   {-# INLINE rule292 #-}
+   rule292 = \ _text ->
      _text
 
 -- Statements --------------------------------------------------
@@ -5380,12 +5400,12 @@ sem_Statements_Cons arg_hd_ arg_tl_ = T_Statements (return st158) where
          (T_Statement_vOut154 _hdItext) = inv_Statement_s155 _hdX155 (T_Statement_vIn154 )
          (T_Statements_vOut157 _tlItext) = inv_Statements_s158 _tlX158 (T_Statements_vIn157 )
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule292 _hdItext _tlItext
+         _lhsOtext = rule293 _hdItext _tlItext
          __result_ = T_Statements_vOut157 _lhsOtext
          in __result_ )
      in C_Statements_s158 v157
-   {-# INLINE rule292 #-}
-   rule292 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
+   {-# INLINE rule293 #-}
+   rule293 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
      _hdItext  :  _tlItext
 {-# NOINLINE sem_Statements_Nil #-}
 sem_Statements_Nil ::  T_Statements 
@@ -5395,12 +5415,12 @@ sem_Statements_Nil  = T_Statements (return st158) where
       v157 :: T_Statements_v157 
       v157 = \ (T_Statements_vIn157 ) -> ( let
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule293  ()
+         _lhsOtext = rule294  ()
          __result_ = T_Statements_vOut157 _lhsOtext
          in __result_ )
      in C_Statements_s158 v157
-   {-# INLINE rule293 #-}
-   rule293 = \  (_ :: ()) ->
+   {-# INLINE rule294 #-}
+   rule294 = \  (_ :: ()) ->
      []
 
 -- Strings -----------------------------------------------------
@@ -5443,12 +5463,12 @@ sem_Strings_Cons _ arg_tl_ = T_Strings (return st161) where
          _tlX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_tl_))
          (T_Strings_vOut160 _tlItext) = inv_Strings_s161 _tlX161 (T_Strings_vIn160 )
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule294 _tlItext
+         _lhsOtext = rule295 _tlItext
          __result_ = T_Strings_vOut160 _lhsOtext
          in __result_ )
      in C_Strings_s161 v160
-   {-# INLINE rule294 #-}
-   rule294 = \ ((_tlItext) ::  [       Doc ] ) ->
+   {-# INLINE rule295 #-}
+   rule295 = \ ((_tlItext) ::  [       Doc ] ) ->
      _tlItext
 {-# NOINLINE sem_Strings_Nil #-}
 sem_Strings_Nil ::  T_Strings 
@@ -5458,12 +5478,12 @@ sem_Strings_Nil  = T_Strings (return st161) where
       v160 :: T_Strings_v160 
       v160 = \ (T_Strings_vIn160 ) -> ( let
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule295  ()
+         _lhsOtext = rule296  ()
          __result_ = T_Strings_vOut160 _lhsOtext
          in __result_ )
      in C_Strings_s161 v160
-   {-# INLINE rule295 #-}
-   rule295 = \  (_ :: ()) ->
+   {-# INLINE rule296 #-}
+   rule296 = \  (_ :: ()) ->
      []
 
 -- Type --------------------------------------------------------
@@ -5515,14 +5535,14 @@ sem_Type_Application arg_range_ arg_prefix_ arg_function_ arg_arguments_ = T_Typ
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Type_vOut163 _functionItext) = inv_Type_s164 _functionX164 (T_Type_vIn163 )
          (T_Types_vOut166 _argumentsItext) = inv_Types_s167 _argumentsX167 (T_Types_vIn166 )
-         _text = rule296 _argumentsItext _functionItext arg_prefix_
+         _text = rule297 _argumentsItext _functionItext arg_prefix_
          _lhsOtext :: Doc
-         _lhsOtext = rule297 _text
+         _lhsOtext = rule298 _text
          __result_ = T_Type_vOut163 _lhsOtext
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule296 #-}
-   rule296 = \ ((_argumentsItext) ::  [       Doc ] ) ((_functionItext) :: Doc) prefix_ ->
+   {-# INLINE rule297 #-}
+   rule297 = \ ((_argumentsItext) ::  [       Doc ] ) ((_functionItext) :: Doc) prefix_ ->
                                               if prefix_ then
                                                   foldl (<+>) _functionItext _argumentsItext
                                               else if show _functionItext == "[]" then
@@ -5533,8 +5553,8 @@ sem_Type_Application arg_range_ arg_prefix_ arg_function_ arg_arguments_ = T_Typ
                                                   case _argumentsItext of
                                                       [a, b] -> a <+> _functionItext <+> b
                                                       _      -> text "{- error: Unknown special application notation -}"
-   {-# INLINE rule297 #-}
-   rule297 = \ _text ->
+   {-# INLINE rule298 #-}
+   rule298 = \ _text ->
      _text
 {-# NOINLINE sem_Type_Variable #-}
 sem_Type_Variable :: T_Range  -> T_Name  -> T_Type 
@@ -5547,17 +5567,17 @@ sem_Type_Variable arg_range_ arg_name_ = T_Type (return st164) where
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
-         _text = rule298 _nameItext
+         _text = rule299 _nameItext
          _lhsOtext :: Doc
-         _lhsOtext = rule299 _text
+         _lhsOtext = rule300 _text
          __result_ = T_Type_vOut163 _lhsOtext
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule298 #-}
-   rule298 = \ ((_nameItext) :: Doc) ->
-                                            _nameItext
    {-# INLINE rule299 #-}
-   rule299 = \ _text ->
+   rule299 = \ ((_nameItext) :: Doc) ->
+                                            _nameItext
+   {-# INLINE rule300 #-}
+   rule300 = \ _text ->
      _text
 {-# NOINLINE sem_Type_Constructor #-}
 sem_Type_Constructor :: T_Range  -> T_Name  -> T_Type 
@@ -5570,17 +5590,17 @@ sem_Type_Constructor arg_range_ arg_name_ = T_Type (return st164) where
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
-         _text = rule300 _nameItext
+         _text = rule301 _nameItext
          _lhsOtext :: Doc
-         _lhsOtext = rule301 _text
+         _lhsOtext = rule302 _text
          __result_ = T_Type_vOut163 _lhsOtext
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule300 #-}
-   rule300 = \ ((_nameItext) :: Doc) ->
-                                            _nameItext
    {-# INLINE rule301 #-}
-   rule301 = \ _text ->
+   rule301 = \ ((_nameItext) :: Doc) ->
+                                            _nameItext
+   {-# INLINE rule302 #-}
+   rule302 = \ _text ->
      _text
 {-# NOINLINE sem_Type_Qualified #-}
 sem_Type_Qualified :: T_Range  -> T_ContextItems  -> T_Type  -> T_Type 
@@ -5595,17 +5615,17 @@ sem_Type_Qualified arg_range_ arg_context_ arg_type_ = T_Type (return st164) whe
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_ContextItems_vOut25 _contextItext) = inv_ContextItems_s26 _contextX26 (T_ContextItems_vIn25 )
          (T_Type_vOut163 _typeItext) = inv_Type_s164 _typeX164 (T_Type_vIn163 )
-         _text = rule302 _contextItext _typeItext
+         _text = rule303 _contextItext _typeItext
          _lhsOtext :: Doc
-         _lhsOtext = rule303 _text
+         _lhsOtext = rule304 _text
          __result_ = T_Type_vOut163 _lhsOtext
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule302 #-}
-   rule302 = \ ((_contextItext) ::  [       Doc ] ) ((_typeItext) :: Doc) ->
-                                            contextPP _contextItext <+> _typeItext
    {-# INLINE rule303 #-}
-   rule303 = \ _text ->
+   rule303 = \ ((_contextItext) ::  [       Doc ] ) ((_typeItext) :: Doc) ->
+                                            contextPP _contextItext <+> _typeItext
+   {-# INLINE rule304 #-}
+   rule304 = \ _text ->
      _text
 {-# NOINLINE sem_Type_Forall #-}
 sem_Type_Forall :: T_Range  -> T_Names  -> T_Type  -> T_Type 
@@ -5620,17 +5640,17 @@ sem_Type_Forall arg_range_ arg_typevariables_ arg_type_ = T_Type (return st164) 
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Names_vOut115 _typevariablesIisIdentifier _typevariablesIisOperator _typevariablesIisSpecial _typevariablesItext) = inv_Names_s116 _typevariablesX116 (T_Names_vIn115 )
          (T_Type_vOut163 _typeItext) = inv_Type_s164 _typeX164 (T_Type_vIn163 )
-         _text = rule304 _typeItext _typevariablesItext
+         _text = rule305 _typeItext _typevariablesItext
          _lhsOtext :: Doc
-         _lhsOtext = rule305 _text
+         _lhsOtext = rule306 _text
          __result_ = T_Type_vOut163 _lhsOtext
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule304 #-}
-   rule304 = \ ((_typeItext) :: Doc) ((_typevariablesItext) ::  [       Doc ] ) ->
-                                            foldl (<+>) (text "forall") _typevariablesItext <> text "." <> _typeItext
    {-# INLINE rule305 #-}
-   rule305 = \ _text ->
+   rule305 = \ ((_typeItext) :: Doc) ((_typevariablesItext) ::  [       Doc ] ) ->
+                                            foldl (<+>) (text "forall") _typevariablesItext <> text "." <> _typeItext
+   {-# INLINE rule306 #-}
+   rule306 = \ _text ->
      _text
 {-# NOINLINE sem_Type_Exists #-}
 sem_Type_Exists :: T_Range  -> T_Names  -> T_Type  -> T_Type 
@@ -5645,17 +5665,17 @@ sem_Type_Exists arg_range_ arg_typevariables_ arg_type_ = T_Type (return st164) 
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Names_vOut115 _typevariablesIisIdentifier _typevariablesIisOperator _typevariablesIisSpecial _typevariablesItext) = inv_Names_s116 _typevariablesX116 (T_Names_vIn115 )
          (T_Type_vOut163 _typeItext) = inv_Type_s164 _typeX164 (T_Type_vIn163 )
-         _text = rule306 _typeItext _typevariablesItext
+         _text = rule307 _typeItext _typevariablesItext
          _lhsOtext :: Doc
-         _lhsOtext = rule307 _text
+         _lhsOtext = rule308 _text
          __result_ = T_Type_vOut163 _lhsOtext
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule306 #-}
-   rule306 = \ ((_typeItext) :: Doc) ((_typevariablesItext) ::  [       Doc ] ) ->
-                                            foldl (<+>) (text "exists") _typevariablesItext <> text "." <> _typeItext
    {-# INLINE rule307 #-}
-   rule307 = \ _text ->
+   rule307 = \ ((_typeItext) :: Doc) ((_typevariablesItext) ::  [       Doc ] ) ->
+                                            foldl (<+>) (text "exists") _typevariablesItext <> text "." <> _typeItext
+   {-# INLINE rule308 #-}
+   rule308 = \ _text ->
      _text
 {-# NOINLINE sem_Type_Parenthesized #-}
 sem_Type_Parenthesized :: T_Range  -> T_Type  -> T_Type 
@@ -5668,17 +5688,17 @@ sem_Type_Parenthesized arg_range_ arg_type_ = T_Type (return st164) where
          _typeX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Type_vOut163 _typeItext) = inv_Type_s164 _typeX164 (T_Type_vIn163 )
-         _text = rule308 _typeItext
+         _text = rule309 _typeItext
          _lhsOtext :: Doc
-         _lhsOtext = rule309 _text
+         _lhsOtext = rule310 _text
          __result_ = T_Type_vOut163 _lhsOtext
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule308 #-}
-   rule308 = \ ((_typeItext) :: Doc) ->
-                                            parens _typeItext
    {-# INLINE rule309 #-}
-   rule309 = \ _text ->
+   rule309 = \ ((_typeItext) :: Doc) ->
+                                            parens _typeItext
+   {-# INLINE rule310 #-}
+   rule310 = \ _text ->
      _text
 
 -- Types -------------------------------------------------------
@@ -5723,12 +5743,12 @@ sem_Types_Cons arg_hd_ arg_tl_ = T_Types (return st167) where
          (T_Type_vOut163 _hdItext) = inv_Type_s164 _hdX164 (T_Type_vIn163 )
          (T_Types_vOut166 _tlItext) = inv_Types_s167 _tlX167 (T_Types_vIn166 )
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule310 _hdItext _tlItext
+         _lhsOtext = rule311 _hdItext _tlItext
          __result_ = T_Types_vOut166 _lhsOtext
          in __result_ )
      in C_Types_s167 v166
-   {-# INLINE rule310 #-}
-   rule310 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
+   {-# INLINE rule311 #-}
+   rule311 = \ ((_hdItext) :: Doc) ((_tlItext) ::  [       Doc ] ) ->
      _hdItext  :  _tlItext
 {-# NOINLINE sem_Types_Nil #-}
 sem_Types_Nil ::  T_Types 
@@ -5738,10 +5758,10 @@ sem_Types_Nil  = T_Types (return st167) where
       v166 :: T_Types_v166 
       v166 = \ (T_Types_vIn166 ) -> ( let
          _lhsOtext ::  [       Doc ] 
-         _lhsOtext = rule311  ()
+         _lhsOtext = rule312  ()
          __result_ = T_Types_vOut166 _lhsOtext
          in __result_ )
      in C_Types_s167 v166
-   {-# INLINE rule311 #-}
-   rule311 = \  (_ :: ()) ->
+   {-# INLINE rule312 #-}
+   rule312 = \  (_ :: ()) ->
      []

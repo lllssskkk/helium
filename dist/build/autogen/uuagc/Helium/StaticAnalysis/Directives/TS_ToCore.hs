@@ -64,7 +64,7 @@ wrap_Alternative sem (Inh_Alternative) =
     (let ( _lhsOself) = sem
      in  (Syn_Alternative _lhsOself))
 sem_Alternative_Hole :: T_Range ->
-                        Integer ->
+                        String ->
                         T_Alternative
 sem_Alternative_Hole range_ id_ =
     (let _lhsOself :: Alternative
@@ -258,7 +258,7 @@ wrap_Body sem (Inh_Body) =
     (let ( _lhsOself) = sem
      in  (Syn_Body _lhsOself))
 sem_Body_Hole :: T_Range ->
-                 Integer ->
+                 String ->
                  T_Body
 sem_Body_Hole range_ id_ =
     (let _lhsOself :: Body
@@ -530,7 +530,7 @@ wrap_Declaration sem (Inh_Declaration) =
     (let ( _lhsOself) = sem
      in  (Syn_Declaration _lhsOself))
 sem_Declaration_Hole :: T_Range ->
-                        Integer ->
+                        String ->
                         T_Declaration
 sem_Declaration_Hole range_ id_ =
     (let _lhsOself :: Declaration
@@ -962,6 +962,8 @@ sem_Expression (Expression_Feedback _range _feedback _expression) =
     (sem_Expression_Feedback (sem_Range _range) _feedback (sem_Expression _expression))
 sem_Expression (Expression_MustUse _range _expression) =
     (sem_Expression_MustUse (sem_Range _range) (sem_Expression _expression))
+sem_Expression (Expression_Eta _range _expansion _expression) =
+    (sem_Expression_Eta (sem_Range _range) _expansion (sem_Expression _expression))
 sem_Expression (Expression_Literal _range _literal) =
     (sem_Expression_Literal (sem_Range _range) (sem_Literal _literal))
 sem_Expression (Expression_Variable _range _name) =
@@ -1013,7 +1015,7 @@ wrap_Expression sem (Inh_Expression) =
     (let ( _lhsOself) = sem
      in  (Syn_Expression _lhsOself))
 sem_Expression_Hole :: T_Range ->
-                       Integer ->
+                       String ->
                        T_Expression
 sem_Expression_Hole range_ id_ =
     (let _lhsOself :: Expression
@@ -1051,6 +1053,23 @@ sem_Expression_MustUse range_ expression_ =
          _expressionIself :: Expression
          _self =
              Expression_MustUse _rangeIself _expressionIself
+         _lhsOself =
+             _self
+         ( _rangeIself) =
+             range_
+         ( _expressionIself) =
+             expression_
+     in  ( _lhsOself))
+sem_Expression_Eta :: T_Range ->
+                      Int ->
+                      T_Expression ->
+                      T_Expression
+sem_Expression_Eta range_ expansion_ expression_ =
+    (let _lhsOself :: Expression
+         _rangeIself :: Range
+         _expressionIself :: Expression
+         _self =
+             Expression_Eta _rangeIself expansion_ _expressionIself
          _lhsOself =
              _self
          ( _rangeIself) =
@@ -1628,7 +1647,7 @@ wrap_FunctionBinding sem (Inh_FunctionBinding) =
     (let ( _lhsOself) = sem
      in  (Syn_FunctionBinding _lhsOself))
 sem_FunctionBinding_Hole :: T_Range ->
-                            Integer ->
+                            String ->
                             T_FunctionBinding
 sem_FunctionBinding_Hole range_ id_ =
     (let _lhsOself :: FunctionBinding
@@ -2697,7 +2716,7 @@ wrap_Pattern sem (Inh_Pattern) =
     (let ( _lhsOself) = sem
      in  (Syn_Pattern _lhsOself))
 sem_Pattern_Hole :: T_Range ->
-                    Integer ->
+                    String ->
                     T_Pattern
 sem_Pattern_Hole range_ id_ =
     (let _lhsOself :: Pattern

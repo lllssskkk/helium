@@ -3,7 +3,7 @@
 -- UUAGC 0.9.52.1 (Helium/Syntax/UHA_Syntax.ag)
 module Helium.Syntax.UHA_Syntax where
 -- Alternative -------------------------------------------------
-data Alternative = Alternative_Hole (Range) (Integer)
+data Alternative = Alternative_Hole (Range) (String)
                  | Alternative_Feedback (Range) (String) (Alternative)
                  | Alternative_Alternative (Range) (Pattern) (RightHandSide)
                  | Alternative_Empty (Range)
@@ -14,7 +14,7 @@ data AnnotatedType = AnnotatedType_AnnotatedType (Range) (Bool) (Type)
 -- AnnotatedTypes ----------------------------------------------
 type AnnotatedTypes = [AnnotatedType]
 -- Body --------------------------------------------------------
-data Body = Body_Hole (Range) (Integer)
+data Body = Body_Hole (Range) (String)
           | Body_Body (Range) (ImportDeclarations) (Declarations)
 -- Constructor -------------------------------------------------
 data Constructor = Constructor_Constructor (Range) (Name) (AnnotatedTypes)
@@ -27,7 +27,7 @@ data ContextItem = ContextItem_ContextItem (Range) (Name) (Types)
 -- ContextItems ------------------------------------------------
 type ContextItems = [ContextItem]
 -- Declaration -------------------------------------------------
-data Declaration = Declaration_Hole (Range) (Integer)
+data Declaration = Declaration_Hole (Range) (String)
                  | Declaration_Type (Range) (SimpleType) (Type)
                  | Declaration_Data (Range) (ContextItems) (SimpleType) (Constructors) (Names)
                  | Declaration_Newtype (Range) (ContextItems) (SimpleType) (Constructor) (Names)
@@ -49,9 +49,10 @@ data Export = Export_Variable (Range) (Name)
 -- Exports -----------------------------------------------------
 type Exports = [Export]
 -- Expression --------------------------------------------------
-data Expression = Expression_Hole (Range) (Integer)
+data Expression = Expression_Hole (Range) (String)
                 | Expression_Feedback (Range) (String) (Expression)
                 | Expression_MustUse (Range) (Expression)
+                | Expression_Eta (Range) (Int) (Expression)
                 | Expression_Literal (Range) (Literal)
                 | Expression_Variable (Range) (Name)
                 | Expression_Constructor (Range) (Name)
@@ -83,7 +84,7 @@ data Fixity = Fixity_Infixl (Range)
             | Fixity_Infixr (Range)
             | Fixity_Infix (Range)
 -- FunctionBinding ---------------------------------------------
-data FunctionBinding = FunctionBinding_Hole (Range) (Integer)
+data FunctionBinding = FunctionBinding_Hole (Range) (String)
                      | FunctionBinding_Feedback (Range) (String) (FunctionBinding)
                      | FunctionBinding_FunctionBinding (Range) (LeftHandSide) (RightHandSide)
 -- FunctionBindings --------------------------------------------
@@ -144,7 +145,7 @@ data Name = Name_Identifier (Range) (Strings) (String)
 -- Names -------------------------------------------------------
 type Names = [Name]
 -- Pattern -----------------------------------------------------
-data Pattern = Pattern_Hole (Range) (Integer)
+data Pattern = Pattern_Hole (Range) (String)
              | Pattern_Literal (Range) (Literal)
              | Pattern_Variable (Range) (Name)
              | Pattern_Constructor (Range) (Name) (Patterns)

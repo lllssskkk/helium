@@ -565,7 +565,7 @@ type T_Alternative_v1  = (T_Alternative_vIn1 ) -> (T_Alternative_vOut1 )
 data T_Alternative_vIn1  = T_Alternative_vIn1 (Names) (Names) (ClassEnvironment) (ClassMemberEnvironment) ([(ScopeInfo, Entity)]) (Int) ([Error]) ([Error]) (Names) ([Option]) (OrderedTypeSynonyms) (M.Map Name Int) (M.Map Name TpScheme) ([Warning])
 data T_Alternative_vOut1  = T_Alternative_vOut1 ([(Name, Instance)]) ([(ScopeInfo, Entity)]) (Int) ([Error]) ([Error]) (Alternative) (Names) ([Warning])
 {-# NOINLINE sem_Alternative_Hole #-}
-sem_Alternative_Hole :: T_Range  -> (Integer) -> T_Alternative 
+sem_Alternative_Hole :: T_Range  -> (String) -> T_Alternative 
 sem_Alternative_Hole arg_range_ arg_id_ = T_Alternative (return st2) where
    {-# NOINLINE st2 #-}
    st2 = let
@@ -1574,7 +1574,7 @@ type T_Body_v13  = (T_Body_vIn13 ) -> (T_Body_vOut13 )
 data T_Body_vIn13  = T_Body_vIn13 (Names) (Names) (ClassEnvironment) (ClassMemberEnvironment) ([(ScopeInfo, Entity)]) ([(Name,Int)]) ([(Name,(Int,Tps -> Tp))]) ([(Name,TpScheme)]) (Int) (ClassEnvironment) ([Error]) ([Error]) (Names) ([(Name,(Int,Assoc))]) ([Option]) (OrderedTypeSynonyms) (M.Map Name Int) (M.Map Name TpScheme) ([Warning])
 data T_Body_vOut13  = T_Body_vOut13 (ClassEnvironment) (ClassMemberEnvironment) ([(Name, Instance)]) ([(ScopeInfo, Entity)]) ([(Name,Int)]) ([(Name,(Int,Tps -> Tp))]) ([(Name,TpScheme)]) (Int) (Names) (Names) ([(Range, Instance)]) ([Error]) ([Error]) ([(Name,(Int,Assoc))]) (Body) ([(Name,TpScheme)]) (Names) ([Warning])
 {-# NOINLINE sem_Body_Hole #-}
-sem_Body_Hole :: T_Range  -> (Integer) -> T_Body 
+sem_Body_Hole :: T_Range  -> (String) -> T_Body 
 sem_Body_Hole arg_range_ arg_id_ = T_Body (return st14) where
    {-# NOINLINE st14 #-}
    st14 = let
@@ -2834,7 +2834,7 @@ type T_Declaration_v28  = (T_Declaration_vIn28 ) -> (T_Declaration_vOut28 )
 data T_Declaration_vIn28  = T_Declaration_vIn28 (Names) (Names) (ClassEnvironment) (ClassMemberEnvironment) ([(ScopeInfo, Entity)]) ([(Name,Int)]) ([(Name,(Int,Tps -> Tp))]) ([(Name,TpScheme)]) (Int) ([Error]) ([Error]) (Names) ([(Name,(Int,Assoc))]) ([Option]) (OrderedTypeSynonyms) (Maybe Name) ([(Name,Name)]) (M.Map Name Int) ([(Name,TpScheme)]) (M.Map Name TpScheme) ([Warning])
 data T_Declaration_vOut28  = T_Declaration_vOut28 (ClassEnvironment) (ClassMemberEnvironment) ([(Name, Instance)]) ([(ScopeInfo, Entity)]) ( [(Name, [(Name, TpScheme)])] ) ([(Name,Int)]) ([(Name,(Int,Tps -> Tp))]) ([(Name,TpScheme)]) (Int) (Names) ([(Range, Instance)]) ([Error]) ([Error]) ([(Name,(Int,Assoc))]) (Maybe Name) (Names) (Declaration) ([(Name,Name)]) ([(Name,TpScheme)]) (Names) ([Warning])
 {-# NOINLINE sem_Declaration_Hole #-}
-sem_Declaration_Hole :: T_Range  -> (Integer) -> T_Declaration 
+sem_Declaration_Hole :: T_Range  -> (String) -> T_Declaration 
 sem_Declaration_Hole arg_range_ arg_id_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
    st29 = let
@@ -5746,6 +5746,7 @@ sem_Expression :: Expression  -> T_Expression
 sem_Expression ( Expression_Hole range_ id_ ) = sem_Expression_Hole ( sem_Range range_ ) id_
 sem_Expression ( Expression_Feedback range_ feedback_ expression_ ) = sem_Expression_Feedback ( sem_Range range_ ) feedback_ ( sem_Expression expression_ )
 sem_Expression ( Expression_MustUse range_ expression_ ) = sem_Expression_MustUse ( sem_Range range_ ) ( sem_Expression expression_ )
+sem_Expression ( Expression_Eta range_ expansion_ expression_ ) = sem_Expression_Eta ( sem_Range range_ ) expansion_ ( sem_Expression expression_ )
 sem_Expression ( Expression_Literal range_ literal_ ) = sem_Expression_Literal ( sem_Range range_ ) ( sem_Literal literal_ )
 sem_Expression ( Expression_Variable range_ name_ ) = sem_Expression_Variable ( sem_Range range_ ) ( sem_Name name_ )
 sem_Expression ( Expression_Constructor range_ name_ ) = sem_Expression_Constructor ( sem_Range range_ ) ( sem_Name name_ )
@@ -5779,7 +5780,7 @@ type T_Expression_v40  = (T_Expression_vIn40 ) -> (T_Expression_vOut40 )
 data T_Expression_vIn40  = T_Expression_vIn40 (Names) (Names) (ClassEnvironment) (ClassMemberEnvironment) ([(ScopeInfo, Entity)]) (Int) ([Error]) ([Error]) (Names) ([Option]) (OrderedTypeSynonyms) (M.Map Name Int) (M.Map Name TpScheme) ([Warning])
 data T_Expression_vOut40  = T_Expression_vOut40 ([(Name, Instance)]) ([(ScopeInfo, Entity)]) (Int) ([Error]) ([Error]) (Expression) (Names) ([Warning])
 {-# NOINLINE sem_Expression_Hole #-}
-sem_Expression_Hole :: T_Range  -> (Integer) -> T_Expression 
+sem_Expression_Hole :: T_Range  -> (String) -> T_Expression 
 sem_Expression_Hole arg_range_ arg_id_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
    st41 = let
@@ -6062,6 +6063,120 @@ sem_Expression_MustUse arg_range_ arg_expression_ = T_Expression (return st41) w
    {-# INLINE rule976 #-}
    rule976 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
+{-# NOINLINE sem_Expression_Eta #-}
+sem_Expression_Eta :: T_Range  -> (Int) -> T_Expression  -> T_Expression 
+sem_Expression_Eta arg_range_ arg_expansion_ arg_expression_ = T_Expression (return st41) where
+   {-# NOINLINE st41 #-}
+   st41 = let
+      v40 :: T_Expression_v40 
+      v40 = \ (T_Expression_vIn40 _lhsIallTypeConstructors _lhsIallValueConstructors _lhsIclassEnvironment _lhsIclassMemberEnv _lhsIcollectScopeInfos _lhsIcounter _lhsIkindErrors _lhsImiscerrors _lhsInamesInScope _lhsIoptions _lhsIorderedTypeSynonyms _lhsItypeConstructors _lhsIvalueConstructors _lhsIwarnings) -> ( let
+         _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
+         _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
+         (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
+         (T_Expression_vOut40 _expressionIcollectInstances _expressionIcollectScopeInfos _expressionIcounter _expressionIkindErrors _expressionImiscerrors _expressionIself _expressionIunboundNames _expressionIwarnings) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionOallTypeConstructors _expressionOallValueConstructors _expressionOclassEnvironment _expressionOclassMemberEnv _expressionOcollectScopeInfos _expressionOcounter _expressionOkindErrors _expressionOmiscerrors _expressionOnamesInScope _expressionOoptions _expressionOorderedTypeSynonyms _expressionOtypeConstructors _expressionOvalueConstructors _expressionOwarnings)
+         _lhsOcollectInstances :: [(Name, Instance)]
+         _lhsOcollectInstances = rule977 _expressionIcollectInstances
+         _lhsOunboundNames :: Names
+         _lhsOunboundNames = rule978 _expressionIunboundNames
+         _self = rule979 _expressionIself _rangeIself arg_expansion_
+         _lhsOself :: Expression
+         _lhsOself = rule980 _self
+         _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
+         _lhsOcollectScopeInfos = rule981 _expressionIcollectScopeInfos
+         _lhsOcounter :: Int
+         _lhsOcounter = rule982 _expressionIcounter
+         _lhsOkindErrors :: [Error]
+         _lhsOkindErrors = rule983 _expressionIkindErrors
+         _lhsOmiscerrors :: [Error]
+         _lhsOmiscerrors = rule984 _expressionImiscerrors
+         _lhsOwarnings :: [Warning]
+         _lhsOwarnings = rule985 _expressionIwarnings
+         _expressionOallTypeConstructors = rule986 _lhsIallTypeConstructors
+         _expressionOallValueConstructors = rule987 _lhsIallValueConstructors
+         _expressionOclassEnvironment = rule988 _lhsIclassEnvironment
+         _expressionOclassMemberEnv = rule989 _lhsIclassMemberEnv
+         _expressionOcollectScopeInfos = rule990 _lhsIcollectScopeInfos
+         _expressionOcounter = rule991 _lhsIcounter
+         _expressionOkindErrors = rule992 _lhsIkindErrors
+         _expressionOmiscerrors = rule993 _lhsImiscerrors
+         _expressionOnamesInScope = rule994 _lhsInamesInScope
+         _expressionOoptions = rule995 _lhsIoptions
+         _expressionOorderedTypeSynonyms = rule996 _lhsIorderedTypeSynonyms
+         _expressionOtypeConstructors = rule997 _lhsItypeConstructors
+         _expressionOvalueConstructors = rule998 _lhsIvalueConstructors
+         _expressionOwarnings = rule999 _lhsIwarnings
+         __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
+         in __result_ )
+     in C_Expression_s41 v40
+   {-# INLINE rule977 #-}
+   rule977 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
+     _expressionIcollectInstances
+   {-# INLINE rule978 #-}
+   rule978 = \ ((_expressionIunboundNames) :: Names) ->
+     _expressionIunboundNames
+   {-# INLINE rule979 #-}
+   rule979 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) expansion_ ->
+     Expression_Eta _rangeIself expansion_ _expressionIself
+   {-# INLINE rule980 #-}
+   rule980 = \ _self ->
+     _self
+   {-# INLINE rule981 #-}
+   rule981 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _expressionIcollectScopeInfos
+   {-# INLINE rule982 #-}
+   rule982 = \ ((_expressionIcounter) :: Int) ->
+     _expressionIcounter
+   {-# INLINE rule983 #-}
+   rule983 = \ ((_expressionIkindErrors) :: [Error]) ->
+     _expressionIkindErrors
+   {-# INLINE rule984 #-}
+   rule984 = \ ((_expressionImiscerrors) :: [Error]) ->
+     _expressionImiscerrors
+   {-# INLINE rule985 #-}
+   rule985 = \ ((_expressionIwarnings) :: [Warning]) ->
+     _expressionIwarnings
+   {-# INLINE rule986 #-}
+   rule986 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule987 #-}
+   rule987 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule988 #-}
+   rule988 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule989 #-}
+   rule989 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule990 #-}
+   rule990 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule991 #-}
+   rule991 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule992 #-}
+   rule992 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule993 #-}
+   rule993 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule994 #-}
+   rule994 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule995 #-}
+   rule995 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule996 #-}
+   rule996 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule997 #-}
+   rule997 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule998 #-}
+   rule998 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule999 #-}
+   rule999 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
 {-# NOINLINE sem_Expression_Literal #-}
 sem_Expression_Literal :: T_Range  -> T_Literal  -> T_Expression 
 sem_Expression_Literal arg_range_ arg_literal_ = T_Expression (return st41) where
@@ -6074,59 +6189,59 @@ sem_Expression_Literal arg_range_ arg_literal_ = T_Expression (return st41) wher
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Literal_vOut85 _literalIcollectScopeInfos _literalImiscerrors _literalIself) = inv_Literal_s86 _literalX86 (T_Literal_vIn85 _literalOcollectScopeInfos _literalOmiscerrors)
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule977  ()
+         _lhsOcollectInstances = rule1000  ()
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule978  ()
-         _self = rule979 _literalIself _rangeIself
+         _lhsOunboundNames = rule1001  ()
+         _self = rule1002 _literalIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule980 _self
+         _lhsOself = rule1003 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule981 _literalIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1004 _literalIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule982 _lhsIcounter
+         _lhsOcounter = rule1005 _lhsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule983 _lhsIkindErrors
+         _lhsOkindErrors = rule1006 _lhsIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule984 _literalImiscerrors
+         _lhsOmiscerrors = rule1007 _literalImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule985 _lhsIwarnings
-         _literalOcollectScopeInfos = rule986 _lhsIcollectScopeInfos
-         _literalOmiscerrors = rule987 _lhsImiscerrors
+         _lhsOwarnings = rule1008 _lhsIwarnings
+         _literalOcollectScopeInfos = rule1009 _lhsIcollectScopeInfos
+         _literalOmiscerrors = rule1010 _lhsImiscerrors
          __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule977 #-}
-   rule977 = \  (_ :: ()) ->
+   {-# INLINE rule1000 #-}
+   rule1000 = \  (_ :: ()) ->
      []
-   {-# INLINE rule978 #-}
-   rule978 = \  (_ :: ()) ->
+   {-# INLINE rule1001 #-}
+   rule1001 = \  (_ :: ()) ->
      []
-   {-# INLINE rule979 #-}
-   rule979 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
+   {-# INLINE rule1002 #-}
+   rule1002 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
      Expression_Literal _rangeIself _literalIself
-   {-# INLINE rule980 #-}
-   rule980 = \ _self ->
+   {-# INLINE rule1003 #-}
+   rule1003 = \ _self ->
      _self
-   {-# INLINE rule981 #-}
-   rule981 = \ ((_literalIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule1004 #-}
+   rule1004 = \ ((_literalIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _literalIcollectScopeInfos
-   {-# INLINE rule982 #-}
-   rule982 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule1005 #-}
+   rule1005 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule983 #-}
-   rule983 = \ ((_lhsIkindErrors) :: [Error]) ->
+   {-# INLINE rule1006 #-}
+   rule1006 = \ ((_lhsIkindErrors) :: [Error]) ->
      _lhsIkindErrors
-   {-# INLINE rule984 #-}
-   rule984 = \ ((_literalImiscerrors) :: [Error]) ->
+   {-# INLINE rule1007 #-}
+   rule1007 = \ ((_literalImiscerrors) :: [Error]) ->
      _literalImiscerrors
-   {-# INLINE rule985 #-}
-   rule985 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule1008 #-}
+   rule1008 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
-   {-# INLINE rule986 #-}
-   rule986 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule1009 #-}
+   rule1009 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule987 #-}
-   rule987 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule1010 #-}
+   rule1010 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
 {-# NOINLINE sem_Expression_Variable #-}
 sem_Expression_Variable :: T_Range  -> T_Name  -> T_Expression 
@@ -6140,57 +6255,57 @@ sem_Expression_Variable arg_range_ arg_name_ = T_Expression (return st41) where
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule988 _lhsImiscerrors _undefinedErrors
-         _undefinedErrors = rule989 _lhsInamesInScope _nameIself
+         _lhsOmiscerrors = rule1011 _lhsImiscerrors _undefinedErrors
+         _undefinedErrors = rule1012 _lhsInamesInScope _nameIself
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule990 _nameIself
+         _lhsOunboundNames = rule1013 _nameIself
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule991  ()
-         _self = rule992 _nameIself _rangeIself
+         _lhsOcollectInstances = rule1014  ()
+         _self = rule1015 _nameIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule993 _self
+         _lhsOself = rule1016 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule994 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1017 _lhsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule995 _lhsIcounter
+         _lhsOcounter = rule1018 _lhsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule996 _lhsIkindErrors
+         _lhsOkindErrors = rule1019 _lhsIkindErrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule997 _lhsIwarnings
+         _lhsOwarnings = rule1020 _lhsIwarnings
          __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule988 #-}
-   rule988 = \ ((_lhsImiscerrors) :: [Error]) _undefinedErrors ->
+   {-# INLINE rule1011 #-}
+   rule1011 = \ ((_lhsImiscerrors) :: [Error]) _undefinedErrors ->
                                           _undefinedErrors ++ _lhsImiscerrors
-   {-# INLINE rule989 #-}
-   rule989 = \ ((_lhsInamesInScope) :: Names) ((_nameIself) :: Name) ->
+   {-# INLINE rule1012 #-}
+   rule1012 = \ ((_lhsInamesInScope) :: Names) ((_nameIself) :: Name) ->
                                            if _nameIself `elem` _lhsInamesInScope
                                              then []
                                              else [ Undefined Variable _nameIself _lhsInamesInScope [] ]
-   {-# INLINE rule990 #-}
-   rule990 = \ ((_nameIself) :: Name) ->
+   {-# INLINE rule1013 #-}
+   rule1013 = \ ((_nameIself) :: Name) ->
                                       [ _nameIself ]
-   {-# INLINE rule991 #-}
-   rule991 = \  (_ :: ()) ->
+   {-# INLINE rule1014 #-}
+   rule1014 = \  (_ :: ()) ->
      []
-   {-# INLINE rule992 #-}
-   rule992 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule1015 #-}
+   rule1015 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Expression_Variable _rangeIself _nameIself
-   {-# INLINE rule993 #-}
-   rule993 = \ _self ->
+   {-# INLINE rule1016 #-}
+   rule1016 = \ _self ->
      _self
-   {-# INLINE rule994 #-}
-   rule994 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule1017 #-}
+   rule1017 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule995 #-}
-   rule995 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule1018 #-}
+   rule1018 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule996 #-}
-   rule996 = \ ((_lhsIkindErrors) :: [Error]) ->
+   {-# INLINE rule1019 #-}
+   rule1019 = \ ((_lhsIkindErrors) :: [Error]) ->
      _lhsIkindErrors
-   {-# INLINE rule997 #-}
-   rule997 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule1020 #-}
+   rule1020 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_Expression_Constructor #-}
 sem_Expression_Constructor :: T_Range  -> T_Name  -> T_Expression 
@@ -6204,57 +6319,57 @@ sem_Expression_Constructor arg_range_ arg_name_ = T_Expression (return st41) whe
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule998 _lhsImiscerrors _undefinedConstructorErrors
-         _undefinedConstructorErrors = rule999 _lhsIallTypeConstructors _lhsIallValueConstructors _lhsInamesInScope _lhsIvalueConstructors _nameIself
+         _lhsOmiscerrors = rule1021 _lhsImiscerrors _undefinedConstructorErrors
+         _undefinedConstructorErrors = rule1022 _lhsIallTypeConstructors _lhsIallValueConstructors _lhsInamesInScope _lhsIvalueConstructors _nameIself
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1000  ()
+         _lhsOcollectInstances = rule1023  ()
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1001  ()
-         _self = rule1002 _nameIself _rangeIself
+         _lhsOunboundNames = rule1024  ()
+         _self = rule1025 _nameIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule1003 _self
+         _lhsOself = rule1026 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1004 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1027 _lhsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1005 _lhsIcounter
+         _lhsOcounter = rule1028 _lhsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1006 _lhsIkindErrors
+         _lhsOkindErrors = rule1029 _lhsIkindErrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1007 _lhsIwarnings
+         _lhsOwarnings = rule1030 _lhsIwarnings
          __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule998 #-}
-   rule998 = \ ((_lhsImiscerrors) :: [Error]) _undefinedConstructorErrors ->
+   {-# INLINE rule1021 #-}
+   rule1021 = \ ((_lhsImiscerrors) :: [Error]) _undefinedConstructorErrors ->
                                       _undefinedConstructorErrors ++ _lhsImiscerrors
-   {-# INLINE rule999 #-}
-   rule999 = \ ((_lhsIallTypeConstructors) :: Names) ((_lhsIallValueConstructors) :: Names) ((_lhsInamesInScope) :: Names) ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ((_nameIself) :: Name) ->
+   {-# INLINE rule1022 #-}
+   rule1022 = \ ((_lhsIallTypeConstructors) :: Names) ((_lhsIallValueConstructors) :: Names) ((_lhsInamesInScope) :: Names) ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ((_nameIself) :: Name) ->
                                                       case M.lookup _nameIself _lhsIvalueConstructors of
                                                          Nothing -> [ undefinedConstructorInExpr _nameIself (_lhsInamesInScope ++ _lhsIallValueConstructors) _lhsIallTypeConstructors ]
                                                          Just _  -> []
-   {-# INLINE rule1000 #-}
-   rule1000 = \  (_ :: ()) ->
+   {-# INLINE rule1023 #-}
+   rule1023 = \  (_ :: ()) ->
      []
-   {-# INLINE rule1001 #-}
-   rule1001 = \  (_ :: ()) ->
+   {-# INLINE rule1024 #-}
+   rule1024 = \  (_ :: ()) ->
      []
-   {-# INLINE rule1002 #-}
-   rule1002 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule1025 #-}
+   rule1025 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Expression_Constructor _rangeIself _nameIself
-   {-# INLINE rule1003 #-}
-   rule1003 = \ _self ->
+   {-# INLINE rule1026 #-}
+   rule1026 = \ _self ->
      _self
-   {-# INLINE rule1004 #-}
-   rule1004 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule1027 #-}
+   rule1027 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule1005 #-}
-   rule1005 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule1028 #-}
+   rule1028 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule1006 #-}
-   rule1006 = \ ((_lhsIkindErrors) :: [Error]) ->
+   {-# INLINE rule1029 #-}
+   rule1029 = \ ((_lhsIkindErrors) :: [Error]) ->
      _lhsIkindErrors
-   {-# INLINE rule1007 #-}
-   rule1007 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule1030 #-}
+   rule1030 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_Expression_Parenthesized #-}
 sem_Expression_Parenthesized :: T_Range  -> T_Expression  -> T_Expression 
@@ -6268,196 +6383,66 @@ sem_Expression_Parenthesized arg_range_ arg_expression_ = T_Expression (return s
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionIcollectInstances _expressionIcollectScopeInfos _expressionIcounter _expressionIkindErrors _expressionImiscerrors _expressionIself _expressionIunboundNames _expressionIwarnings) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionOallTypeConstructors _expressionOallValueConstructors _expressionOclassEnvironment _expressionOclassMemberEnv _expressionOcollectScopeInfos _expressionOcounter _expressionOkindErrors _expressionOmiscerrors _expressionOnamesInScope _expressionOoptions _expressionOorderedTypeSynonyms _expressionOtypeConstructors _expressionOvalueConstructors _expressionOwarnings)
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1008 _expressionIcollectInstances
+         _lhsOcollectInstances = rule1031 _expressionIcollectInstances
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1009 _expressionIunboundNames
-         _self = rule1010 _expressionIself _rangeIself
-         _lhsOself :: Expression
-         _lhsOself = rule1011 _self
-         _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1012 _expressionIcollectScopeInfos
-         _lhsOcounter :: Int
-         _lhsOcounter = rule1013 _expressionIcounter
-         _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1014 _expressionIkindErrors
-         _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1015 _expressionImiscerrors
-         _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1016 _expressionIwarnings
-         _expressionOallTypeConstructors = rule1017 _lhsIallTypeConstructors
-         _expressionOallValueConstructors = rule1018 _lhsIallValueConstructors
-         _expressionOclassEnvironment = rule1019 _lhsIclassEnvironment
-         _expressionOclassMemberEnv = rule1020 _lhsIclassMemberEnv
-         _expressionOcollectScopeInfos = rule1021 _lhsIcollectScopeInfos
-         _expressionOcounter = rule1022 _lhsIcounter
-         _expressionOkindErrors = rule1023 _lhsIkindErrors
-         _expressionOmiscerrors = rule1024 _lhsImiscerrors
-         _expressionOnamesInScope = rule1025 _lhsInamesInScope
-         _expressionOoptions = rule1026 _lhsIoptions
-         _expressionOorderedTypeSynonyms = rule1027 _lhsIorderedTypeSynonyms
-         _expressionOtypeConstructors = rule1028 _lhsItypeConstructors
-         _expressionOvalueConstructors = rule1029 _lhsIvalueConstructors
-         _expressionOwarnings = rule1030 _lhsIwarnings
-         __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
-         in __result_ )
-     in C_Expression_s41 v40
-   {-# INLINE rule1008 #-}
-   rule1008 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
-     _expressionIcollectInstances
-   {-# INLINE rule1009 #-}
-   rule1009 = \ ((_expressionIunboundNames) :: Names) ->
-     _expressionIunboundNames
-   {-# INLINE rule1010 #-}
-   rule1010 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
-     Expression_Parenthesized _rangeIself _expressionIself
-   {-# INLINE rule1011 #-}
-   rule1011 = \ _self ->
-     _self
-   {-# INLINE rule1012 #-}
-   rule1012 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _expressionIcollectScopeInfos
-   {-# INLINE rule1013 #-}
-   rule1013 = \ ((_expressionIcounter) :: Int) ->
-     _expressionIcounter
-   {-# INLINE rule1014 #-}
-   rule1014 = \ ((_expressionIkindErrors) :: [Error]) ->
-     _expressionIkindErrors
-   {-# INLINE rule1015 #-}
-   rule1015 = \ ((_expressionImiscerrors) :: [Error]) ->
-     _expressionImiscerrors
-   {-# INLINE rule1016 #-}
-   rule1016 = \ ((_expressionIwarnings) :: [Warning]) ->
-     _expressionIwarnings
-   {-# INLINE rule1017 #-}
-   rule1017 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1018 #-}
-   rule1018 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1019 #-}
-   rule1019 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule1020 #-}
-   rule1020 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule1021 #-}
-   rule1021 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule1022 #-}
-   rule1022 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule1023 #-}
-   rule1023 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule1024 #-}
-   rule1024 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule1025 #-}
-   rule1025 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule1026 #-}
-   rule1026 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule1027 #-}
-   rule1027 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule1028 #-}
-   rule1028 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule1029 #-}
-   rule1029 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule1030 #-}
-   rule1030 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
-{-# NOINLINE sem_Expression_NormalApplication #-}
-sem_Expression_NormalApplication :: T_Range  -> T_Expression  -> T_Expressions  -> T_Expression 
-sem_Expression_NormalApplication arg_range_ arg_function_ arg_arguments_ = T_Expression (return st41) where
-   {-# NOINLINE st41 #-}
-   st41 = let
-      v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIallTypeConstructors _lhsIallValueConstructors _lhsIclassEnvironment _lhsIclassMemberEnv _lhsIcollectScopeInfos _lhsIcounter _lhsIkindErrors _lhsImiscerrors _lhsInamesInScope _lhsIoptions _lhsIorderedTypeSynonyms _lhsItypeConstructors _lhsIvalueConstructors _lhsIwarnings) -> ( let
-         _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
-         _functionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_function_))
-         _argumentsX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_arguments_))
-         (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         (T_Expression_vOut40 _functionIcollectInstances _functionIcollectScopeInfos _functionIcounter _functionIkindErrors _functionImiscerrors _functionIself _functionIunboundNames _functionIwarnings) = inv_Expression_s41 _functionX41 (T_Expression_vIn40 _functionOallTypeConstructors _functionOallValueConstructors _functionOclassEnvironment _functionOclassMemberEnv _functionOcollectScopeInfos _functionOcounter _functionOkindErrors _functionOmiscerrors _functionOnamesInScope _functionOoptions _functionOorderedTypeSynonyms _functionOtypeConstructors _functionOvalueConstructors _functionOwarnings)
-         (T_Expressions_vOut43 _argumentsIcollectInstances _argumentsIcollectScopeInfos _argumentsIcounter _argumentsIkindErrors _argumentsImiscerrors _argumentsIself _argumentsIunboundNames _argumentsIwarnings) = inv_Expressions_s44 _argumentsX44 (T_Expressions_vIn43 _argumentsOallTypeConstructors _argumentsOallValueConstructors _argumentsOclassEnvironment _argumentsOclassMemberEnv _argumentsOcollectScopeInfos _argumentsOcounter _argumentsOkindErrors _argumentsOmiscerrors _argumentsOnamesInScope _argumentsOoptions _argumentsOorderedTypeSynonyms _argumentsOtypeConstructors _argumentsOvalueConstructors _argumentsOwarnings)
-         _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1031 _argumentsIcollectInstances _functionIcollectInstances
-         _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1032 _argumentsIunboundNames _functionIunboundNames
-         _self = rule1033 _argumentsIself _functionIself _rangeIself
+         _lhsOunboundNames = rule1032 _expressionIunboundNames
+         _self = rule1033 _expressionIself _rangeIself
          _lhsOself :: Expression
          _lhsOself = rule1034 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1035 _argumentsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1035 _expressionIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1036 _argumentsIcounter
+         _lhsOcounter = rule1036 _expressionIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1037 _argumentsIkindErrors
+         _lhsOkindErrors = rule1037 _expressionIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1038 _argumentsImiscerrors
+         _lhsOmiscerrors = rule1038 _expressionImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1039 _argumentsIwarnings
-         _functionOallTypeConstructors = rule1040 _lhsIallTypeConstructors
-         _functionOallValueConstructors = rule1041 _lhsIallValueConstructors
-         _functionOclassEnvironment = rule1042 _lhsIclassEnvironment
-         _functionOclassMemberEnv = rule1043 _lhsIclassMemberEnv
-         _functionOcollectScopeInfos = rule1044 _lhsIcollectScopeInfos
-         _functionOcounter = rule1045 _lhsIcounter
-         _functionOkindErrors = rule1046 _lhsIkindErrors
-         _functionOmiscerrors = rule1047 _lhsImiscerrors
-         _functionOnamesInScope = rule1048 _lhsInamesInScope
-         _functionOoptions = rule1049 _lhsIoptions
-         _functionOorderedTypeSynonyms = rule1050 _lhsIorderedTypeSynonyms
-         _functionOtypeConstructors = rule1051 _lhsItypeConstructors
-         _functionOvalueConstructors = rule1052 _lhsIvalueConstructors
-         _functionOwarnings = rule1053 _lhsIwarnings
-         _argumentsOallTypeConstructors = rule1054 _lhsIallTypeConstructors
-         _argumentsOallValueConstructors = rule1055 _lhsIallValueConstructors
-         _argumentsOclassEnvironment = rule1056 _lhsIclassEnvironment
-         _argumentsOclassMemberEnv = rule1057 _lhsIclassMemberEnv
-         _argumentsOcollectScopeInfos = rule1058 _functionIcollectScopeInfos
-         _argumentsOcounter = rule1059 _functionIcounter
-         _argumentsOkindErrors = rule1060 _functionIkindErrors
-         _argumentsOmiscerrors = rule1061 _functionImiscerrors
-         _argumentsOnamesInScope = rule1062 _lhsInamesInScope
-         _argumentsOoptions = rule1063 _lhsIoptions
-         _argumentsOorderedTypeSynonyms = rule1064 _lhsIorderedTypeSynonyms
-         _argumentsOtypeConstructors = rule1065 _lhsItypeConstructors
-         _argumentsOvalueConstructors = rule1066 _lhsIvalueConstructors
-         _argumentsOwarnings = rule1067 _functionIwarnings
+         _lhsOwarnings = rule1039 _expressionIwarnings
+         _expressionOallTypeConstructors = rule1040 _lhsIallTypeConstructors
+         _expressionOallValueConstructors = rule1041 _lhsIallValueConstructors
+         _expressionOclassEnvironment = rule1042 _lhsIclassEnvironment
+         _expressionOclassMemberEnv = rule1043 _lhsIclassMemberEnv
+         _expressionOcollectScopeInfos = rule1044 _lhsIcollectScopeInfos
+         _expressionOcounter = rule1045 _lhsIcounter
+         _expressionOkindErrors = rule1046 _lhsIkindErrors
+         _expressionOmiscerrors = rule1047 _lhsImiscerrors
+         _expressionOnamesInScope = rule1048 _lhsInamesInScope
+         _expressionOoptions = rule1049 _lhsIoptions
+         _expressionOorderedTypeSynonyms = rule1050 _lhsIorderedTypeSynonyms
+         _expressionOtypeConstructors = rule1051 _lhsItypeConstructors
+         _expressionOvalueConstructors = rule1052 _lhsIvalueConstructors
+         _expressionOwarnings = rule1053 _lhsIwarnings
          __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule1031 #-}
-   rule1031 = \ ((_argumentsIcollectInstances) :: [(Name, Instance)]) ((_functionIcollectInstances) :: [(Name, Instance)]) ->
-     _functionIcollectInstances  ++  _argumentsIcollectInstances
+   rule1031 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
+     _expressionIcollectInstances
    {-# INLINE rule1032 #-}
-   rule1032 = \ ((_argumentsIunboundNames) :: Names) ((_functionIunboundNames) :: Names) ->
-     _functionIunboundNames ++ _argumentsIunboundNames
+   rule1032 = \ ((_expressionIunboundNames) :: Names) ->
+     _expressionIunboundNames
    {-# INLINE rule1033 #-}
-   rule1033 = \ ((_argumentsIself) :: Expressions) ((_functionIself) :: Expression) ((_rangeIself) :: Range) ->
-     Expression_NormalApplication _rangeIself _functionIself _argumentsIself
+   rule1033 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
+     Expression_Parenthesized _rangeIself _expressionIself
    {-# INLINE rule1034 #-}
    rule1034 = \ _self ->
      _self
    {-# INLINE rule1035 #-}
-   rule1035 = \ ((_argumentsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _argumentsIcollectScopeInfos
+   rule1035 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _expressionIcollectScopeInfos
    {-# INLINE rule1036 #-}
-   rule1036 = \ ((_argumentsIcounter) :: Int) ->
-     _argumentsIcounter
+   rule1036 = \ ((_expressionIcounter) :: Int) ->
+     _expressionIcounter
    {-# INLINE rule1037 #-}
-   rule1037 = \ ((_argumentsIkindErrors) :: [Error]) ->
-     _argumentsIkindErrors
+   rule1037 = \ ((_expressionIkindErrors) :: [Error]) ->
+     _expressionIkindErrors
    {-# INLINE rule1038 #-}
-   rule1038 = \ ((_argumentsImiscerrors) :: [Error]) ->
-     _argumentsImiscerrors
+   rule1038 = \ ((_expressionImiscerrors) :: [Error]) ->
+     _expressionImiscerrors
    {-# INLINE rule1039 #-}
-   rule1039 = \ ((_argumentsIwarnings) :: [Warning]) ->
-     _argumentsIwarnings
+   rule1039 = \ ((_expressionIwarnings) :: [Warning]) ->
+     _expressionIwarnings
    {-# INLINE rule1040 #-}
    rule1040 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
@@ -6500,47 +6485,177 @@ sem_Expression_NormalApplication arg_range_ arg_function_ arg_arguments_ = T_Exp
    {-# INLINE rule1053 #-}
    rule1053 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
+{-# NOINLINE sem_Expression_NormalApplication #-}
+sem_Expression_NormalApplication :: T_Range  -> T_Expression  -> T_Expressions  -> T_Expression 
+sem_Expression_NormalApplication arg_range_ arg_function_ arg_arguments_ = T_Expression (return st41) where
+   {-# NOINLINE st41 #-}
+   st41 = let
+      v40 :: T_Expression_v40 
+      v40 = \ (T_Expression_vIn40 _lhsIallTypeConstructors _lhsIallValueConstructors _lhsIclassEnvironment _lhsIclassMemberEnv _lhsIcollectScopeInfos _lhsIcounter _lhsIkindErrors _lhsImiscerrors _lhsInamesInScope _lhsIoptions _lhsIorderedTypeSynonyms _lhsItypeConstructors _lhsIvalueConstructors _lhsIwarnings) -> ( let
+         _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
+         _functionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_function_))
+         _argumentsX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_arguments_))
+         (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
+         (T_Expression_vOut40 _functionIcollectInstances _functionIcollectScopeInfos _functionIcounter _functionIkindErrors _functionImiscerrors _functionIself _functionIunboundNames _functionIwarnings) = inv_Expression_s41 _functionX41 (T_Expression_vIn40 _functionOallTypeConstructors _functionOallValueConstructors _functionOclassEnvironment _functionOclassMemberEnv _functionOcollectScopeInfos _functionOcounter _functionOkindErrors _functionOmiscerrors _functionOnamesInScope _functionOoptions _functionOorderedTypeSynonyms _functionOtypeConstructors _functionOvalueConstructors _functionOwarnings)
+         (T_Expressions_vOut43 _argumentsIcollectInstances _argumentsIcollectScopeInfos _argumentsIcounter _argumentsIkindErrors _argumentsImiscerrors _argumentsIself _argumentsIunboundNames _argumentsIwarnings) = inv_Expressions_s44 _argumentsX44 (T_Expressions_vIn43 _argumentsOallTypeConstructors _argumentsOallValueConstructors _argumentsOclassEnvironment _argumentsOclassMemberEnv _argumentsOcollectScopeInfos _argumentsOcounter _argumentsOkindErrors _argumentsOmiscerrors _argumentsOnamesInScope _argumentsOoptions _argumentsOorderedTypeSynonyms _argumentsOtypeConstructors _argumentsOvalueConstructors _argumentsOwarnings)
+         _lhsOcollectInstances :: [(Name, Instance)]
+         _lhsOcollectInstances = rule1054 _argumentsIcollectInstances _functionIcollectInstances
+         _lhsOunboundNames :: Names
+         _lhsOunboundNames = rule1055 _argumentsIunboundNames _functionIunboundNames
+         _self = rule1056 _argumentsIself _functionIself _rangeIself
+         _lhsOself :: Expression
+         _lhsOself = rule1057 _self
+         _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
+         _lhsOcollectScopeInfos = rule1058 _argumentsIcollectScopeInfos
+         _lhsOcounter :: Int
+         _lhsOcounter = rule1059 _argumentsIcounter
+         _lhsOkindErrors :: [Error]
+         _lhsOkindErrors = rule1060 _argumentsIkindErrors
+         _lhsOmiscerrors :: [Error]
+         _lhsOmiscerrors = rule1061 _argumentsImiscerrors
+         _lhsOwarnings :: [Warning]
+         _lhsOwarnings = rule1062 _argumentsIwarnings
+         _functionOallTypeConstructors = rule1063 _lhsIallTypeConstructors
+         _functionOallValueConstructors = rule1064 _lhsIallValueConstructors
+         _functionOclassEnvironment = rule1065 _lhsIclassEnvironment
+         _functionOclassMemberEnv = rule1066 _lhsIclassMemberEnv
+         _functionOcollectScopeInfos = rule1067 _lhsIcollectScopeInfos
+         _functionOcounter = rule1068 _lhsIcounter
+         _functionOkindErrors = rule1069 _lhsIkindErrors
+         _functionOmiscerrors = rule1070 _lhsImiscerrors
+         _functionOnamesInScope = rule1071 _lhsInamesInScope
+         _functionOoptions = rule1072 _lhsIoptions
+         _functionOorderedTypeSynonyms = rule1073 _lhsIorderedTypeSynonyms
+         _functionOtypeConstructors = rule1074 _lhsItypeConstructors
+         _functionOvalueConstructors = rule1075 _lhsIvalueConstructors
+         _functionOwarnings = rule1076 _lhsIwarnings
+         _argumentsOallTypeConstructors = rule1077 _lhsIallTypeConstructors
+         _argumentsOallValueConstructors = rule1078 _lhsIallValueConstructors
+         _argumentsOclassEnvironment = rule1079 _lhsIclassEnvironment
+         _argumentsOclassMemberEnv = rule1080 _lhsIclassMemberEnv
+         _argumentsOcollectScopeInfos = rule1081 _functionIcollectScopeInfos
+         _argumentsOcounter = rule1082 _functionIcounter
+         _argumentsOkindErrors = rule1083 _functionIkindErrors
+         _argumentsOmiscerrors = rule1084 _functionImiscerrors
+         _argumentsOnamesInScope = rule1085 _lhsInamesInScope
+         _argumentsOoptions = rule1086 _lhsIoptions
+         _argumentsOorderedTypeSynonyms = rule1087 _lhsIorderedTypeSynonyms
+         _argumentsOtypeConstructors = rule1088 _lhsItypeConstructors
+         _argumentsOvalueConstructors = rule1089 _lhsIvalueConstructors
+         _argumentsOwarnings = rule1090 _functionIwarnings
+         __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
+         in __result_ )
+     in C_Expression_s41 v40
    {-# INLINE rule1054 #-}
-   rule1054 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
+   rule1054 = \ ((_argumentsIcollectInstances) :: [(Name, Instance)]) ((_functionIcollectInstances) :: [(Name, Instance)]) ->
+     _functionIcollectInstances  ++  _argumentsIcollectInstances
    {-# INLINE rule1055 #-}
-   rule1055 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
+   rule1055 = \ ((_argumentsIunboundNames) :: Names) ((_functionIunboundNames) :: Names) ->
+     _functionIunboundNames ++ _argumentsIunboundNames
    {-# INLINE rule1056 #-}
-   rule1056 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
+   rule1056 = \ ((_argumentsIself) :: Expressions) ((_functionIself) :: Expression) ((_rangeIself) :: Range) ->
+     Expression_NormalApplication _rangeIself _functionIself _argumentsIself
    {-# INLINE rule1057 #-}
-   rule1057 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
+   rule1057 = \ _self ->
+     _self
    {-# INLINE rule1058 #-}
-   rule1058 = \ ((_functionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _functionIcollectScopeInfos
+   rule1058 = \ ((_argumentsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _argumentsIcollectScopeInfos
    {-# INLINE rule1059 #-}
-   rule1059 = \ ((_functionIcounter) :: Int) ->
-     _functionIcounter
+   rule1059 = \ ((_argumentsIcounter) :: Int) ->
+     _argumentsIcounter
    {-# INLINE rule1060 #-}
-   rule1060 = \ ((_functionIkindErrors) :: [Error]) ->
-     _functionIkindErrors
+   rule1060 = \ ((_argumentsIkindErrors) :: [Error]) ->
+     _argumentsIkindErrors
    {-# INLINE rule1061 #-}
-   rule1061 = \ ((_functionImiscerrors) :: [Error]) ->
-     _functionImiscerrors
+   rule1061 = \ ((_argumentsImiscerrors) :: [Error]) ->
+     _argumentsImiscerrors
    {-# INLINE rule1062 #-}
-   rule1062 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
+   rule1062 = \ ((_argumentsIwarnings) :: [Warning]) ->
+     _argumentsIwarnings
    {-# INLINE rule1063 #-}
-   rule1063 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule1063 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
    {-# INLINE rule1064 #-}
-   rule1064 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule1064 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
    {-# INLINE rule1065 #-}
-   rule1065 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule1065 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
    {-# INLINE rule1066 #-}
-   rule1066 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule1066 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
    {-# INLINE rule1067 #-}
-   rule1067 = \ ((_functionIwarnings) :: [Warning]) ->
+   rule1067 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule1068 #-}
+   rule1068 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1069 #-}
+   rule1069 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule1070 #-}
+   rule1070 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1071 #-}
+   rule1071 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1072 #-}
+   rule1072 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1073 #-}
+   rule1073 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1074 #-}
+   rule1074 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1075 #-}
+   rule1075 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1076 #-}
+   rule1076 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule1077 #-}
+   rule1077 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1078 #-}
+   rule1078 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1079 #-}
+   rule1079 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1080 #-}
+   rule1080 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1081 #-}
+   rule1081 = \ ((_functionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _functionIcollectScopeInfos
+   {-# INLINE rule1082 #-}
+   rule1082 = \ ((_functionIcounter) :: Int) ->
+     _functionIcounter
+   {-# INLINE rule1083 #-}
+   rule1083 = \ ((_functionIkindErrors) :: [Error]) ->
+     _functionIkindErrors
+   {-# INLINE rule1084 #-}
+   rule1084 = \ ((_functionImiscerrors) :: [Error]) ->
+     _functionImiscerrors
+   {-# INLINE rule1085 #-}
+   rule1085 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1086 #-}
+   rule1086 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1087 #-}
+   rule1087 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1088 #-}
+   rule1088 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1089 #-}
+   rule1089 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1090 #-}
+   rule1090 = \ ((_functionIwarnings) :: [Warning]) ->
      _functionIwarnings
 {-# NOINLINE sem_Expression_InfixApplication #-}
 sem_Expression_InfixApplication :: T_Range  -> T_MaybeExpression  -> T_Expression  -> T_MaybeExpression  -> T_Expression 
@@ -6558,219 +6673,219 @@ sem_Expression_InfixApplication arg_range_ arg_leftExpression_ arg_operator_ arg
          (T_Expression_vOut40 _operatorIcollectInstances _operatorIcollectScopeInfos _operatorIcounter _operatorIkindErrors _operatorImiscerrors _operatorIself _operatorIunboundNames _operatorIwarnings) = inv_Expression_s41 _operatorX41 (T_Expression_vIn40 _operatorOallTypeConstructors _operatorOallValueConstructors _operatorOclassEnvironment _operatorOclassMemberEnv _operatorOcollectScopeInfos _operatorOcounter _operatorOkindErrors _operatorOmiscerrors _operatorOnamesInScope _operatorOoptions _operatorOorderedTypeSynonyms _operatorOtypeConstructors _operatorOvalueConstructors _operatorOwarnings)
          (T_MaybeExpression_vOut94 _rightExpressionIcollectInstances _rightExpressionIcollectScopeInfos _rightExpressionIcounter _rightExpressionIkindErrors _rightExpressionImiscerrors _rightExpressionIself _rightExpressionIunboundNames _rightExpressionIwarnings) = inv_MaybeExpression_s95 _rightExpressionX95 (T_MaybeExpression_vIn94 _rightExpressionOallTypeConstructors _rightExpressionOallValueConstructors _rightExpressionOclassEnvironment _rightExpressionOclassMemberEnv _rightExpressionOcollectScopeInfos _rightExpressionOcounter _rightExpressionOkindErrors _rightExpressionOmiscerrors _rightExpressionOnamesInScope _rightExpressionOoptions _rightExpressionOorderedTypeSynonyms _rightExpressionOtypeConstructors _rightExpressionOvalueConstructors _rightExpressionOwarnings)
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1068 _leftExpressionIcollectInstances _operatorIcollectInstances _rightExpressionIcollectInstances
+         _lhsOcollectInstances = rule1091 _leftExpressionIcollectInstances _operatorIcollectInstances _rightExpressionIcollectInstances
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1069 _leftExpressionIunboundNames _operatorIunboundNames _rightExpressionIunboundNames
-         _self = rule1070 _leftExpressionIself _operatorIself _rangeIself _rightExpressionIself
+         _lhsOunboundNames = rule1092 _leftExpressionIunboundNames _operatorIunboundNames _rightExpressionIunboundNames
+         _self = rule1093 _leftExpressionIself _operatorIself _rangeIself _rightExpressionIself
          _lhsOself :: Expression
-         _lhsOself = rule1071 _self
+         _lhsOself = rule1094 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1072 _rightExpressionIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1095 _rightExpressionIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1073 _rightExpressionIcounter
+         _lhsOcounter = rule1096 _rightExpressionIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1074 _rightExpressionIkindErrors
+         _lhsOkindErrors = rule1097 _rightExpressionIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1075 _rightExpressionImiscerrors
+         _lhsOmiscerrors = rule1098 _rightExpressionImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1076 _rightExpressionIwarnings
-         _leftExpressionOallTypeConstructors = rule1077 _lhsIallTypeConstructors
-         _leftExpressionOallValueConstructors = rule1078 _lhsIallValueConstructors
-         _leftExpressionOclassEnvironment = rule1079 _lhsIclassEnvironment
-         _leftExpressionOclassMemberEnv = rule1080 _lhsIclassMemberEnv
-         _leftExpressionOcollectScopeInfos = rule1081 _lhsIcollectScopeInfos
-         _leftExpressionOcounter = rule1082 _lhsIcounter
-         _leftExpressionOkindErrors = rule1083 _lhsIkindErrors
-         _leftExpressionOmiscerrors = rule1084 _lhsImiscerrors
-         _leftExpressionOnamesInScope = rule1085 _lhsInamesInScope
-         _leftExpressionOoptions = rule1086 _lhsIoptions
-         _leftExpressionOorderedTypeSynonyms = rule1087 _lhsIorderedTypeSynonyms
-         _leftExpressionOtypeConstructors = rule1088 _lhsItypeConstructors
-         _leftExpressionOvalueConstructors = rule1089 _lhsIvalueConstructors
-         _leftExpressionOwarnings = rule1090 _lhsIwarnings
-         _operatorOallTypeConstructors = rule1091 _lhsIallTypeConstructors
-         _operatorOallValueConstructors = rule1092 _lhsIallValueConstructors
-         _operatorOclassEnvironment = rule1093 _lhsIclassEnvironment
-         _operatorOclassMemberEnv = rule1094 _lhsIclassMemberEnv
-         _operatorOcollectScopeInfos = rule1095 _leftExpressionIcollectScopeInfos
-         _operatorOcounter = rule1096 _leftExpressionIcounter
-         _operatorOkindErrors = rule1097 _leftExpressionIkindErrors
-         _operatorOmiscerrors = rule1098 _leftExpressionImiscerrors
-         _operatorOnamesInScope = rule1099 _lhsInamesInScope
-         _operatorOoptions = rule1100 _lhsIoptions
-         _operatorOorderedTypeSynonyms = rule1101 _lhsIorderedTypeSynonyms
-         _operatorOtypeConstructors = rule1102 _lhsItypeConstructors
-         _operatorOvalueConstructors = rule1103 _lhsIvalueConstructors
-         _operatorOwarnings = rule1104 _leftExpressionIwarnings
-         _rightExpressionOallTypeConstructors = rule1105 _lhsIallTypeConstructors
-         _rightExpressionOallValueConstructors = rule1106 _lhsIallValueConstructors
-         _rightExpressionOclassEnvironment = rule1107 _lhsIclassEnvironment
-         _rightExpressionOclassMemberEnv = rule1108 _lhsIclassMemberEnv
-         _rightExpressionOcollectScopeInfos = rule1109 _operatorIcollectScopeInfos
-         _rightExpressionOcounter = rule1110 _operatorIcounter
-         _rightExpressionOkindErrors = rule1111 _operatorIkindErrors
-         _rightExpressionOmiscerrors = rule1112 _operatorImiscerrors
-         _rightExpressionOnamesInScope = rule1113 _lhsInamesInScope
-         _rightExpressionOoptions = rule1114 _lhsIoptions
-         _rightExpressionOorderedTypeSynonyms = rule1115 _lhsIorderedTypeSynonyms
-         _rightExpressionOtypeConstructors = rule1116 _lhsItypeConstructors
-         _rightExpressionOvalueConstructors = rule1117 _lhsIvalueConstructors
-         _rightExpressionOwarnings = rule1118 _operatorIwarnings
+         _lhsOwarnings = rule1099 _rightExpressionIwarnings
+         _leftExpressionOallTypeConstructors = rule1100 _lhsIallTypeConstructors
+         _leftExpressionOallValueConstructors = rule1101 _lhsIallValueConstructors
+         _leftExpressionOclassEnvironment = rule1102 _lhsIclassEnvironment
+         _leftExpressionOclassMemberEnv = rule1103 _lhsIclassMemberEnv
+         _leftExpressionOcollectScopeInfos = rule1104 _lhsIcollectScopeInfos
+         _leftExpressionOcounter = rule1105 _lhsIcounter
+         _leftExpressionOkindErrors = rule1106 _lhsIkindErrors
+         _leftExpressionOmiscerrors = rule1107 _lhsImiscerrors
+         _leftExpressionOnamesInScope = rule1108 _lhsInamesInScope
+         _leftExpressionOoptions = rule1109 _lhsIoptions
+         _leftExpressionOorderedTypeSynonyms = rule1110 _lhsIorderedTypeSynonyms
+         _leftExpressionOtypeConstructors = rule1111 _lhsItypeConstructors
+         _leftExpressionOvalueConstructors = rule1112 _lhsIvalueConstructors
+         _leftExpressionOwarnings = rule1113 _lhsIwarnings
+         _operatorOallTypeConstructors = rule1114 _lhsIallTypeConstructors
+         _operatorOallValueConstructors = rule1115 _lhsIallValueConstructors
+         _operatorOclassEnvironment = rule1116 _lhsIclassEnvironment
+         _operatorOclassMemberEnv = rule1117 _lhsIclassMemberEnv
+         _operatorOcollectScopeInfos = rule1118 _leftExpressionIcollectScopeInfos
+         _operatorOcounter = rule1119 _leftExpressionIcounter
+         _operatorOkindErrors = rule1120 _leftExpressionIkindErrors
+         _operatorOmiscerrors = rule1121 _leftExpressionImiscerrors
+         _operatorOnamesInScope = rule1122 _lhsInamesInScope
+         _operatorOoptions = rule1123 _lhsIoptions
+         _operatorOorderedTypeSynonyms = rule1124 _lhsIorderedTypeSynonyms
+         _operatorOtypeConstructors = rule1125 _lhsItypeConstructors
+         _operatorOvalueConstructors = rule1126 _lhsIvalueConstructors
+         _operatorOwarnings = rule1127 _leftExpressionIwarnings
+         _rightExpressionOallTypeConstructors = rule1128 _lhsIallTypeConstructors
+         _rightExpressionOallValueConstructors = rule1129 _lhsIallValueConstructors
+         _rightExpressionOclassEnvironment = rule1130 _lhsIclassEnvironment
+         _rightExpressionOclassMemberEnv = rule1131 _lhsIclassMemberEnv
+         _rightExpressionOcollectScopeInfos = rule1132 _operatorIcollectScopeInfos
+         _rightExpressionOcounter = rule1133 _operatorIcounter
+         _rightExpressionOkindErrors = rule1134 _operatorIkindErrors
+         _rightExpressionOmiscerrors = rule1135 _operatorImiscerrors
+         _rightExpressionOnamesInScope = rule1136 _lhsInamesInScope
+         _rightExpressionOoptions = rule1137 _lhsIoptions
+         _rightExpressionOorderedTypeSynonyms = rule1138 _lhsIorderedTypeSynonyms
+         _rightExpressionOtypeConstructors = rule1139 _lhsItypeConstructors
+         _rightExpressionOvalueConstructors = rule1140 _lhsIvalueConstructors
+         _rightExpressionOwarnings = rule1141 _operatorIwarnings
          __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule1068 #-}
-   rule1068 = \ ((_leftExpressionIcollectInstances) :: [(Name, Instance)]) ((_operatorIcollectInstances) :: [(Name, Instance)]) ((_rightExpressionIcollectInstances) :: [(Name, Instance)]) ->
-     _leftExpressionIcollectInstances  ++  _operatorIcollectInstances  ++  _rightExpressionIcollectInstances
-   {-# INLINE rule1069 #-}
-   rule1069 = \ ((_leftExpressionIunboundNames) :: Names) ((_operatorIunboundNames) :: Names) ((_rightExpressionIunboundNames) :: Names) ->
-     _leftExpressionIunboundNames ++ _operatorIunboundNames ++ _rightExpressionIunboundNames
-   {-# INLINE rule1070 #-}
-   rule1070 = \ ((_leftExpressionIself) :: MaybeExpression) ((_operatorIself) :: Expression) ((_rangeIself) :: Range) ((_rightExpressionIself) :: MaybeExpression) ->
-     Expression_InfixApplication _rangeIself _leftExpressionIself _operatorIself _rightExpressionIself
-   {-# INLINE rule1071 #-}
-   rule1071 = \ _self ->
-     _self
-   {-# INLINE rule1072 #-}
-   rule1072 = \ ((_rightExpressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _rightExpressionIcollectScopeInfos
-   {-# INLINE rule1073 #-}
-   rule1073 = \ ((_rightExpressionIcounter) :: Int) ->
-     _rightExpressionIcounter
-   {-# INLINE rule1074 #-}
-   rule1074 = \ ((_rightExpressionIkindErrors) :: [Error]) ->
-     _rightExpressionIkindErrors
-   {-# INLINE rule1075 #-}
-   rule1075 = \ ((_rightExpressionImiscerrors) :: [Error]) ->
-     _rightExpressionImiscerrors
-   {-# INLINE rule1076 #-}
-   rule1076 = \ ((_rightExpressionIwarnings) :: [Warning]) ->
-     _rightExpressionIwarnings
-   {-# INLINE rule1077 #-}
-   rule1077 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1078 #-}
-   rule1078 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1079 #-}
-   rule1079 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule1080 #-}
-   rule1080 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule1081 #-}
-   rule1081 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule1082 #-}
-   rule1082 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule1083 #-}
-   rule1083 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule1084 #-}
-   rule1084 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule1085 #-}
-   rule1085 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule1086 #-}
-   rule1086 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule1087 #-}
-   rule1087 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule1088 #-}
-   rule1088 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule1089 #-}
-   rule1089 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule1090 #-}
-   rule1090 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
    {-# INLINE rule1091 #-}
-   rule1091 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
+   rule1091 = \ ((_leftExpressionIcollectInstances) :: [(Name, Instance)]) ((_operatorIcollectInstances) :: [(Name, Instance)]) ((_rightExpressionIcollectInstances) :: [(Name, Instance)]) ->
+     _leftExpressionIcollectInstances  ++  _operatorIcollectInstances  ++  _rightExpressionIcollectInstances
    {-# INLINE rule1092 #-}
-   rule1092 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
+   rule1092 = \ ((_leftExpressionIunboundNames) :: Names) ((_operatorIunboundNames) :: Names) ((_rightExpressionIunboundNames) :: Names) ->
+     _leftExpressionIunboundNames ++ _operatorIunboundNames ++ _rightExpressionIunboundNames
    {-# INLINE rule1093 #-}
-   rule1093 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
+   rule1093 = \ ((_leftExpressionIself) :: MaybeExpression) ((_operatorIself) :: Expression) ((_rangeIself) :: Range) ((_rightExpressionIself) :: MaybeExpression) ->
+     Expression_InfixApplication _rangeIself _leftExpressionIself _operatorIself _rightExpressionIself
    {-# INLINE rule1094 #-}
-   rule1094 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
+   rule1094 = \ _self ->
+     _self
    {-# INLINE rule1095 #-}
-   rule1095 = \ ((_leftExpressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _leftExpressionIcollectScopeInfos
+   rule1095 = \ ((_rightExpressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _rightExpressionIcollectScopeInfos
    {-# INLINE rule1096 #-}
-   rule1096 = \ ((_leftExpressionIcounter) :: Int) ->
-     _leftExpressionIcounter
+   rule1096 = \ ((_rightExpressionIcounter) :: Int) ->
+     _rightExpressionIcounter
    {-# INLINE rule1097 #-}
-   rule1097 = \ ((_leftExpressionIkindErrors) :: [Error]) ->
-     _leftExpressionIkindErrors
+   rule1097 = \ ((_rightExpressionIkindErrors) :: [Error]) ->
+     _rightExpressionIkindErrors
    {-# INLINE rule1098 #-}
-   rule1098 = \ ((_leftExpressionImiscerrors) :: [Error]) ->
-     _leftExpressionImiscerrors
+   rule1098 = \ ((_rightExpressionImiscerrors) :: [Error]) ->
+     _rightExpressionImiscerrors
    {-# INLINE rule1099 #-}
-   rule1099 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
+   rule1099 = \ ((_rightExpressionIwarnings) :: [Warning]) ->
+     _rightExpressionIwarnings
    {-# INLINE rule1100 #-}
-   rule1100 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule1101 #-}
-   rule1101 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule1102 #-}
-   rule1102 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule1103 #-}
-   rule1103 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule1104 #-}
-   rule1104 = \ ((_leftExpressionIwarnings) :: [Warning]) ->
-     _leftExpressionIwarnings
-   {-# INLINE rule1105 #-}
-   rule1105 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   rule1100 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule1106 #-}
-   rule1106 = \ ((_lhsIallValueConstructors) :: Names) ->
+   {-# INLINE rule1101 #-}
+   rule1101 = \ ((_lhsIallValueConstructors) :: Names) ->
      _lhsIallValueConstructors
-   {-# INLINE rule1107 #-}
-   rule1107 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+   {-# INLINE rule1102 #-}
+   rule1102 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
      _lhsIclassEnvironment
-   {-# INLINE rule1108 #-}
-   rule1108 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+   {-# INLINE rule1103 #-}
+   rule1103 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
      _lhsIclassMemberEnv
-   {-# INLINE rule1109 #-}
-   rule1109 = \ ((_operatorIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _operatorIcollectScopeInfos
-   {-# INLINE rule1110 #-}
-   rule1110 = \ ((_operatorIcounter) :: Int) ->
-     _operatorIcounter
-   {-# INLINE rule1111 #-}
-   rule1111 = \ ((_operatorIkindErrors) :: [Error]) ->
-     _operatorIkindErrors
-   {-# INLINE rule1112 #-}
-   rule1112 = \ ((_operatorImiscerrors) :: [Error]) ->
-     _operatorImiscerrors
-   {-# INLINE rule1113 #-}
-   rule1113 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule1104 #-}
+   rule1104 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule1105 #-}
+   rule1105 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1106 #-}
+   rule1106 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule1107 #-}
+   rule1107 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1108 #-}
+   rule1108 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule1114 #-}
-   rule1114 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule1109 #-}
+   rule1109 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule1115 #-}
-   rule1115 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+   {-# INLINE rule1110 #-}
+   rule1110 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
      _lhsIorderedTypeSynonyms
-   {-# INLINE rule1116 #-}
-   rule1116 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule1111 #-}
+   rule1111 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule1117 #-}
-   rule1117 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+   {-# INLINE rule1112 #-}
+   rule1112 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
      _lhsIvalueConstructors
+   {-# INLINE rule1113 #-}
+   rule1113 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule1114 #-}
+   rule1114 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1115 #-}
+   rule1115 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1116 #-}
+   rule1116 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1117 #-}
+   rule1117 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
    {-# INLINE rule1118 #-}
-   rule1118 = \ ((_operatorIwarnings) :: [Warning]) ->
+   rule1118 = \ ((_leftExpressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _leftExpressionIcollectScopeInfos
+   {-# INLINE rule1119 #-}
+   rule1119 = \ ((_leftExpressionIcounter) :: Int) ->
+     _leftExpressionIcounter
+   {-# INLINE rule1120 #-}
+   rule1120 = \ ((_leftExpressionIkindErrors) :: [Error]) ->
+     _leftExpressionIkindErrors
+   {-# INLINE rule1121 #-}
+   rule1121 = \ ((_leftExpressionImiscerrors) :: [Error]) ->
+     _leftExpressionImiscerrors
+   {-# INLINE rule1122 #-}
+   rule1122 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1123 #-}
+   rule1123 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1124 #-}
+   rule1124 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1125 #-}
+   rule1125 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1126 #-}
+   rule1126 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1127 #-}
+   rule1127 = \ ((_leftExpressionIwarnings) :: [Warning]) ->
+     _leftExpressionIwarnings
+   {-# INLINE rule1128 #-}
+   rule1128 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1129 #-}
+   rule1129 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1130 #-}
+   rule1130 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1131 #-}
+   rule1131 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1132 #-}
+   rule1132 = \ ((_operatorIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _operatorIcollectScopeInfos
+   {-# INLINE rule1133 #-}
+   rule1133 = \ ((_operatorIcounter) :: Int) ->
+     _operatorIcounter
+   {-# INLINE rule1134 #-}
+   rule1134 = \ ((_operatorIkindErrors) :: [Error]) ->
+     _operatorIkindErrors
+   {-# INLINE rule1135 #-}
+   rule1135 = \ ((_operatorImiscerrors) :: [Error]) ->
+     _operatorImiscerrors
+   {-# INLINE rule1136 #-}
+   rule1136 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1137 #-}
+   rule1137 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1138 #-}
+   rule1138 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1139 #-}
+   rule1139 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1140 #-}
+   rule1140 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1141 #-}
+   rule1141 = \ ((_operatorIwarnings) :: [Warning]) ->
      _operatorIwarnings
 {-# NOINLINE sem_Expression_If #-}
 sem_Expression_If :: T_Range  -> T_Expression  -> T_Expression  -> T_Expression  -> T_Expression 
@@ -6788,219 +6903,219 @@ sem_Expression_If arg_range_ arg_guardExpression_ arg_thenExpression_ arg_elseEx
          (T_Expression_vOut40 _thenExpressionIcollectInstances _thenExpressionIcollectScopeInfos _thenExpressionIcounter _thenExpressionIkindErrors _thenExpressionImiscerrors _thenExpressionIself _thenExpressionIunboundNames _thenExpressionIwarnings) = inv_Expression_s41 _thenExpressionX41 (T_Expression_vIn40 _thenExpressionOallTypeConstructors _thenExpressionOallValueConstructors _thenExpressionOclassEnvironment _thenExpressionOclassMemberEnv _thenExpressionOcollectScopeInfos _thenExpressionOcounter _thenExpressionOkindErrors _thenExpressionOmiscerrors _thenExpressionOnamesInScope _thenExpressionOoptions _thenExpressionOorderedTypeSynonyms _thenExpressionOtypeConstructors _thenExpressionOvalueConstructors _thenExpressionOwarnings)
          (T_Expression_vOut40 _elseExpressionIcollectInstances _elseExpressionIcollectScopeInfos _elseExpressionIcounter _elseExpressionIkindErrors _elseExpressionImiscerrors _elseExpressionIself _elseExpressionIunboundNames _elseExpressionIwarnings) = inv_Expression_s41 _elseExpressionX41 (T_Expression_vIn40 _elseExpressionOallTypeConstructors _elseExpressionOallValueConstructors _elseExpressionOclassEnvironment _elseExpressionOclassMemberEnv _elseExpressionOcollectScopeInfos _elseExpressionOcounter _elseExpressionOkindErrors _elseExpressionOmiscerrors _elseExpressionOnamesInScope _elseExpressionOoptions _elseExpressionOorderedTypeSynonyms _elseExpressionOtypeConstructors _elseExpressionOvalueConstructors _elseExpressionOwarnings)
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1119 _elseExpressionIcollectInstances _guardExpressionIcollectInstances _thenExpressionIcollectInstances
+         _lhsOcollectInstances = rule1142 _elseExpressionIcollectInstances _guardExpressionIcollectInstances _thenExpressionIcollectInstances
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1120 _elseExpressionIunboundNames _guardExpressionIunboundNames _thenExpressionIunboundNames
-         _self = rule1121 _elseExpressionIself _guardExpressionIself _rangeIself _thenExpressionIself
+         _lhsOunboundNames = rule1143 _elseExpressionIunboundNames _guardExpressionIunboundNames _thenExpressionIunboundNames
+         _self = rule1144 _elseExpressionIself _guardExpressionIself _rangeIself _thenExpressionIself
          _lhsOself :: Expression
-         _lhsOself = rule1122 _self
+         _lhsOself = rule1145 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1123 _elseExpressionIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1146 _elseExpressionIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1124 _elseExpressionIcounter
+         _lhsOcounter = rule1147 _elseExpressionIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1125 _elseExpressionIkindErrors
+         _lhsOkindErrors = rule1148 _elseExpressionIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1126 _elseExpressionImiscerrors
+         _lhsOmiscerrors = rule1149 _elseExpressionImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1127 _elseExpressionIwarnings
-         _guardExpressionOallTypeConstructors = rule1128 _lhsIallTypeConstructors
-         _guardExpressionOallValueConstructors = rule1129 _lhsIallValueConstructors
-         _guardExpressionOclassEnvironment = rule1130 _lhsIclassEnvironment
-         _guardExpressionOclassMemberEnv = rule1131 _lhsIclassMemberEnv
-         _guardExpressionOcollectScopeInfos = rule1132 _lhsIcollectScopeInfos
-         _guardExpressionOcounter = rule1133 _lhsIcounter
-         _guardExpressionOkindErrors = rule1134 _lhsIkindErrors
-         _guardExpressionOmiscerrors = rule1135 _lhsImiscerrors
-         _guardExpressionOnamesInScope = rule1136 _lhsInamesInScope
-         _guardExpressionOoptions = rule1137 _lhsIoptions
-         _guardExpressionOorderedTypeSynonyms = rule1138 _lhsIorderedTypeSynonyms
-         _guardExpressionOtypeConstructors = rule1139 _lhsItypeConstructors
-         _guardExpressionOvalueConstructors = rule1140 _lhsIvalueConstructors
-         _guardExpressionOwarnings = rule1141 _lhsIwarnings
-         _thenExpressionOallTypeConstructors = rule1142 _lhsIallTypeConstructors
-         _thenExpressionOallValueConstructors = rule1143 _lhsIallValueConstructors
-         _thenExpressionOclassEnvironment = rule1144 _lhsIclassEnvironment
-         _thenExpressionOclassMemberEnv = rule1145 _lhsIclassMemberEnv
-         _thenExpressionOcollectScopeInfos = rule1146 _guardExpressionIcollectScopeInfos
-         _thenExpressionOcounter = rule1147 _guardExpressionIcounter
-         _thenExpressionOkindErrors = rule1148 _guardExpressionIkindErrors
-         _thenExpressionOmiscerrors = rule1149 _guardExpressionImiscerrors
-         _thenExpressionOnamesInScope = rule1150 _lhsInamesInScope
-         _thenExpressionOoptions = rule1151 _lhsIoptions
-         _thenExpressionOorderedTypeSynonyms = rule1152 _lhsIorderedTypeSynonyms
-         _thenExpressionOtypeConstructors = rule1153 _lhsItypeConstructors
-         _thenExpressionOvalueConstructors = rule1154 _lhsIvalueConstructors
-         _thenExpressionOwarnings = rule1155 _guardExpressionIwarnings
-         _elseExpressionOallTypeConstructors = rule1156 _lhsIallTypeConstructors
-         _elseExpressionOallValueConstructors = rule1157 _lhsIallValueConstructors
-         _elseExpressionOclassEnvironment = rule1158 _lhsIclassEnvironment
-         _elseExpressionOclassMemberEnv = rule1159 _lhsIclassMemberEnv
-         _elseExpressionOcollectScopeInfos = rule1160 _thenExpressionIcollectScopeInfos
-         _elseExpressionOcounter = rule1161 _thenExpressionIcounter
-         _elseExpressionOkindErrors = rule1162 _thenExpressionIkindErrors
-         _elseExpressionOmiscerrors = rule1163 _thenExpressionImiscerrors
-         _elseExpressionOnamesInScope = rule1164 _lhsInamesInScope
-         _elseExpressionOoptions = rule1165 _lhsIoptions
-         _elseExpressionOorderedTypeSynonyms = rule1166 _lhsIorderedTypeSynonyms
-         _elseExpressionOtypeConstructors = rule1167 _lhsItypeConstructors
-         _elseExpressionOvalueConstructors = rule1168 _lhsIvalueConstructors
-         _elseExpressionOwarnings = rule1169 _thenExpressionIwarnings
+         _lhsOwarnings = rule1150 _elseExpressionIwarnings
+         _guardExpressionOallTypeConstructors = rule1151 _lhsIallTypeConstructors
+         _guardExpressionOallValueConstructors = rule1152 _lhsIallValueConstructors
+         _guardExpressionOclassEnvironment = rule1153 _lhsIclassEnvironment
+         _guardExpressionOclassMemberEnv = rule1154 _lhsIclassMemberEnv
+         _guardExpressionOcollectScopeInfos = rule1155 _lhsIcollectScopeInfos
+         _guardExpressionOcounter = rule1156 _lhsIcounter
+         _guardExpressionOkindErrors = rule1157 _lhsIkindErrors
+         _guardExpressionOmiscerrors = rule1158 _lhsImiscerrors
+         _guardExpressionOnamesInScope = rule1159 _lhsInamesInScope
+         _guardExpressionOoptions = rule1160 _lhsIoptions
+         _guardExpressionOorderedTypeSynonyms = rule1161 _lhsIorderedTypeSynonyms
+         _guardExpressionOtypeConstructors = rule1162 _lhsItypeConstructors
+         _guardExpressionOvalueConstructors = rule1163 _lhsIvalueConstructors
+         _guardExpressionOwarnings = rule1164 _lhsIwarnings
+         _thenExpressionOallTypeConstructors = rule1165 _lhsIallTypeConstructors
+         _thenExpressionOallValueConstructors = rule1166 _lhsIallValueConstructors
+         _thenExpressionOclassEnvironment = rule1167 _lhsIclassEnvironment
+         _thenExpressionOclassMemberEnv = rule1168 _lhsIclassMemberEnv
+         _thenExpressionOcollectScopeInfos = rule1169 _guardExpressionIcollectScopeInfos
+         _thenExpressionOcounter = rule1170 _guardExpressionIcounter
+         _thenExpressionOkindErrors = rule1171 _guardExpressionIkindErrors
+         _thenExpressionOmiscerrors = rule1172 _guardExpressionImiscerrors
+         _thenExpressionOnamesInScope = rule1173 _lhsInamesInScope
+         _thenExpressionOoptions = rule1174 _lhsIoptions
+         _thenExpressionOorderedTypeSynonyms = rule1175 _lhsIorderedTypeSynonyms
+         _thenExpressionOtypeConstructors = rule1176 _lhsItypeConstructors
+         _thenExpressionOvalueConstructors = rule1177 _lhsIvalueConstructors
+         _thenExpressionOwarnings = rule1178 _guardExpressionIwarnings
+         _elseExpressionOallTypeConstructors = rule1179 _lhsIallTypeConstructors
+         _elseExpressionOallValueConstructors = rule1180 _lhsIallValueConstructors
+         _elseExpressionOclassEnvironment = rule1181 _lhsIclassEnvironment
+         _elseExpressionOclassMemberEnv = rule1182 _lhsIclassMemberEnv
+         _elseExpressionOcollectScopeInfos = rule1183 _thenExpressionIcollectScopeInfos
+         _elseExpressionOcounter = rule1184 _thenExpressionIcounter
+         _elseExpressionOkindErrors = rule1185 _thenExpressionIkindErrors
+         _elseExpressionOmiscerrors = rule1186 _thenExpressionImiscerrors
+         _elseExpressionOnamesInScope = rule1187 _lhsInamesInScope
+         _elseExpressionOoptions = rule1188 _lhsIoptions
+         _elseExpressionOorderedTypeSynonyms = rule1189 _lhsIorderedTypeSynonyms
+         _elseExpressionOtypeConstructors = rule1190 _lhsItypeConstructors
+         _elseExpressionOvalueConstructors = rule1191 _lhsIvalueConstructors
+         _elseExpressionOwarnings = rule1192 _thenExpressionIwarnings
          __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule1119 #-}
-   rule1119 = \ ((_elseExpressionIcollectInstances) :: [(Name, Instance)]) ((_guardExpressionIcollectInstances) :: [(Name, Instance)]) ((_thenExpressionIcollectInstances) :: [(Name, Instance)]) ->
-     _guardExpressionIcollectInstances  ++  _thenExpressionIcollectInstances  ++  _elseExpressionIcollectInstances
-   {-# INLINE rule1120 #-}
-   rule1120 = \ ((_elseExpressionIunboundNames) :: Names) ((_guardExpressionIunboundNames) :: Names) ((_thenExpressionIunboundNames) :: Names) ->
-     _guardExpressionIunboundNames ++ _thenExpressionIunboundNames ++ _elseExpressionIunboundNames
-   {-# INLINE rule1121 #-}
-   rule1121 = \ ((_elseExpressionIself) :: Expression) ((_guardExpressionIself) :: Expression) ((_rangeIself) :: Range) ((_thenExpressionIself) :: Expression) ->
-     Expression_If _rangeIself _guardExpressionIself _thenExpressionIself _elseExpressionIself
-   {-# INLINE rule1122 #-}
-   rule1122 = \ _self ->
-     _self
-   {-# INLINE rule1123 #-}
-   rule1123 = \ ((_elseExpressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _elseExpressionIcollectScopeInfos
-   {-# INLINE rule1124 #-}
-   rule1124 = \ ((_elseExpressionIcounter) :: Int) ->
-     _elseExpressionIcounter
-   {-# INLINE rule1125 #-}
-   rule1125 = \ ((_elseExpressionIkindErrors) :: [Error]) ->
-     _elseExpressionIkindErrors
-   {-# INLINE rule1126 #-}
-   rule1126 = \ ((_elseExpressionImiscerrors) :: [Error]) ->
-     _elseExpressionImiscerrors
-   {-# INLINE rule1127 #-}
-   rule1127 = \ ((_elseExpressionIwarnings) :: [Warning]) ->
-     _elseExpressionIwarnings
-   {-# INLINE rule1128 #-}
-   rule1128 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1129 #-}
-   rule1129 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1130 #-}
-   rule1130 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule1131 #-}
-   rule1131 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule1132 #-}
-   rule1132 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule1133 #-}
-   rule1133 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule1134 #-}
-   rule1134 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule1135 #-}
-   rule1135 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule1136 #-}
-   rule1136 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule1137 #-}
-   rule1137 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule1138 #-}
-   rule1138 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule1139 #-}
-   rule1139 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule1140 #-}
-   rule1140 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule1141 #-}
-   rule1141 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
    {-# INLINE rule1142 #-}
-   rule1142 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
+   rule1142 = \ ((_elseExpressionIcollectInstances) :: [(Name, Instance)]) ((_guardExpressionIcollectInstances) :: [(Name, Instance)]) ((_thenExpressionIcollectInstances) :: [(Name, Instance)]) ->
+     _guardExpressionIcollectInstances  ++  _thenExpressionIcollectInstances  ++  _elseExpressionIcollectInstances
    {-# INLINE rule1143 #-}
-   rule1143 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
+   rule1143 = \ ((_elseExpressionIunboundNames) :: Names) ((_guardExpressionIunboundNames) :: Names) ((_thenExpressionIunboundNames) :: Names) ->
+     _guardExpressionIunboundNames ++ _thenExpressionIunboundNames ++ _elseExpressionIunboundNames
    {-# INLINE rule1144 #-}
-   rule1144 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
+   rule1144 = \ ((_elseExpressionIself) :: Expression) ((_guardExpressionIself) :: Expression) ((_rangeIself) :: Range) ((_thenExpressionIself) :: Expression) ->
+     Expression_If _rangeIself _guardExpressionIself _thenExpressionIself _elseExpressionIself
    {-# INLINE rule1145 #-}
-   rule1145 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
+   rule1145 = \ _self ->
+     _self
    {-# INLINE rule1146 #-}
-   rule1146 = \ ((_guardExpressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _guardExpressionIcollectScopeInfos
+   rule1146 = \ ((_elseExpressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _elseExpressionIcollectScopeInfos
    {-# INLINE rule1147 #-}
-   rule1147 = \ ((_guardExpressionIcounter) :: Int) ->
-     _guardExpressionIcounter
+   rule1147 = \ ((_elseExpressionIcounter) :: Int) ->
+     _elseExpressionIcounter
    {-# INLINE rule1148 #-}
-   rule1148 = \ ((_guardExpressionIkindErrors) :: [Error]) ->
-     _guardExpressionIkindErrors
+   rule1148 = \ ((_elseExpressionIkindErrors) :: [Error]) ->
+     _elseExpressionIkindErrors
    {-# INLINE rule1149 #-}
-   rule1149 = \ ((_guardExpressionImiscerrors) :: [Error]) ->
-     _guardExpressionImiscerrors
+   rule1149 = \ ((_elseExpressionImiscerrors) :: [Error]) ->
+     _elseExpressionImiscerrors
    {-# INLINE rule1150 #-}
-   rule1150 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
+   rule1150 = \ ((_elseExpressionIwarnings) :: [Warning]) ->
+     _elseExpressionIwarnings
    {-# INLINE rule1151 #-}
-   rule1151 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule1152 #-}
-   rule1152 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule1153 #-}
-   rule1153 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule1154 #-}
-   rule1154 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule1155 #-}
-   rule1155 = \ ((_guardExpressionIwarnings) :: [Warning]) ->
-     _guardExpressionIwarnings
-   {-# INLINE rule1156 #-}
-   rule1156 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   rule1151 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule1157 #-}
-   rule1157 = \ ((_lhsIallValueConstructors) :: Names) ->
+   {-# INLINE rule1152 #-}
+   rule1152 = \ ((_lhsIallValueConstructors) :: Names) ->
      _lhsIallValueConstructors
-   {-# INLINE rule1158 #-}
-   rule1158 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+   {-# INLINE rule1153 #-}
+   rule1153 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
      _lhsIclassEnvironment
-   {-# INLINE rule1159 #-}
-   rule1159 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+   {-# INLINE rule1154 #-}
+   rule1154 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
      _lhsIclassMemberEnv
-   {-# INLINE rule1160 #-}
-   rule1160 = \ ((_thenExpressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _thenExpressionIcollectScopeInfos
-   {-# INLINE rule1161 #-}
-   rule1161 = \ ((_thenExpressionIcounter) :: Int) ->
-     _thenExpressionIcounter
-   {-# INLINE rule1162 #-}
-   rule1162 = \ ((_thenExpressionIkindErrors) :: [Error]) ->
-     _thenExpressionIkindErrors
-   {-# INLINE rule1163 #-}
-   rule1163 = \ ((_thenExpressionImiscerrors) :: [Error]) ->
-     _thenExpressionImiscerrors
-   {-# INLINE rule1164 #-}
-   rule1164 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule1155 #-}
+   rule1155 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule1156 #-}
+   rule1156 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1157 #-}
+   rule1157 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule1158 #-}
+   rule1158 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1159 #-}
+   rule1159 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule1165 #-}
-   rule1165 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule1160 #-}
+   rule1160 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule1166 #-}
-   rule1166 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+   {-# INLINE rule1161 #-}
+   rule1161 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
      _lhsIorderedTypeSynonyms
-   {-# INLINE rule1167 #-}
-   rule1167 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule1162 #-}
+   rule1162 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule1168 #-}
-   rule1168 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+   {-# INLINE rule1163 #-}
+   rule1163 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
      _lhsIvalueConstructors
+   {-# INLINE rule1164 #-}
+   rule1164 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule1165 #-}
+   rule1165 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1166 #-}
+   rule1166 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1167 #-}
+   rule1167 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1168 #-}
+   rule1168 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
    {-# INLINE rule1169 #-}
-   rule1169 = \ ((_thenExpressionIwarnings) :: [Warning]) ->
+   rule1169 = \ ((_guardExpressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _guardExpressionIcollectScopeInfos
+   {-# INLINE rule1170 #-}
+   rule1170 = \ ((_guardExpressionIcounter) :: Int) ->
+     _guardExpressionIcounter
+   {-# INLINE rule1171 #-}
+   rule1171 = \ ((_guardExpressionIkindErrors) :: [Error]) ->
+     _guardExpressionIkindErrors
+   {-# INLINE rule1172 #-}
+   rule1172 = \ ((_guardExpressionImiscerrors) :: [Error]) ->
+     _guardExpressionImiscerrors
+   {-# INLINE rule1173 #-}
+   rule1173 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1174 #-}
+   rule1174 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1175 #-}
+   rule1175 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1176 #-}
+   rule1176 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1177 #-}
+   rule1177 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1178 #-}
+   rule1178 = \ ((_guardExpressionIwarnings) :: [Warning]) ->
+     _guardExpressionIwarnings
+   {-# INLINE rule1179 #-}
+   rule1179 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1180 #-}
+   rule1180 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1181 #-}
+   rule1181 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1182 #-}
+   rule1182 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1183 #-}
+   rule1183 = \ ((_thenExpressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _thenExpressionIcollectScopeInfos
+   {-# INLINE rule1184 #-}
+   rule1184 = \ ((_thenExpressionIcounter) :: Int) ->
+     _thenExpressionIcounter
+   {-# INLINE rule1185 #-}
+   rule1185 = \ ((_thenExpressionIkindErrors) :: [Error]) ->
+     _thenExpressionIkindErrors
+   {-# INLINE rule1186 #-}
+   rule1186 = \ ((_thenExpressionImiscerrors) :: [Error]) ->
+     _thenExpressionImiscerrors
+   {-# INLINE rule1187 #-}
+   rule1187 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1188 #-}
+   rule1188 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1189 #-}
+   rule1189 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1190 #-}
+   rule1190 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1191 #-}
+   rule1191 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1192 #-}
+   rule1192 = \ ((_thenExpressionIwarnings) :: [Warning]) ->
      _thenExpressionIwarnings
 {-# NOINLINE sem_Expression_Lambda #-}
 sem_Expression_Lambda :: T_Range  -> T_Patterns  -> T_Expression  -> T_Expression 
@@ -7016,151 +7131,151 @@ sem_Expression_Lambda arg_range_ arg_patterns_ arg_expression_ = T_Expression (r
          (T_Patterns_vOut121 _patternsIcollectScopeInfos _patternsIcounter _patternsImiscerrors _patternsInumberOfPatterns _patternsIpatVarNames _patternsIself _patternsIunboundNames _patternsIwarnings) = inv_Patterns_s122 _patternsX122 (T_Patterns_vIn121 _patternsOallTypeConstructors _patternsOallValueConstructors _patternsOcollectScopeInfos _patternsOcounter _patternsOlhsPattern _patternsOmiscerrors _patternsOnamesInScope _patternsOtypeConstructors _patternsOvalueConstructors _patternsOwarnings)
          (T_Expression_vOut40 _expressionIcollectInstances _expressionIcollectScopeInfos _expressionIcounter _expressionIkindErrors _expressionImiscerrors _expressionIself _expressionIunboundNames _expressionIwarnings) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionOallTypeConstructors _expressionOallValueConstructors _expressionOclassEnvironment _expressionOclassMemberEnv _expressionOcollectScopeInfos _expressionOcounter _expressionOkindErrors _expressionOmiscerrors _expressionOnamesInScope _expressionOoptions _expressionOorderedTypeSynonyms _expressionOtypeConstructors _expressionOvalueConstructors _expressionOwarnings)
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1170 _expressionIcollectScopeInfos _scopeInfo
-         _patternsOlhsPattern = rule1171  ()
-         (_namesInScope,_unboundNames,_scopeInfo) = rule1172 _expressionIunboundNames _lhsInamesInScope _patternsIpatVarNames
+         _lhsOcollectScopeInfos = rule1193 _expressionIcollectScopeInfos _scopeInfo
+         _patternsOlhsPattern = rule1194  ()
+         (_namesInScope,_unboundNames,_scopeInfo) = rule1195 _expressionIunboundNames _lhsInamesInScope _patternsIpatVarNames
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1173 _unboundNames
+         _lhsOunboundNames = rule1196 _unboundNames
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1174 _expressionIcollectInstances
-         _self = rule1175 _expressionIself _patternsIself _rangeIself
+         _lhsOcollectInstances = rule1197 _expressionIcollectInstances
+         _self = rule1198 _expressionIself _patternsIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule1176 _self
+         _lhsOself = rule1199 _self
          _lhsOcounter :: Int
-         _lhsOcounter = rule1177 _expressionIcounter
+         _lhsOcounter = rule1200 _expressionIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1178 _expressionIkindErrors
+         _lhsOkindErrors = rule1201 _expressionIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1179 _expressionImiscerrors
+         _lhsOmiscerrors = rule1202 _expressionImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1180 _expressionIwarnings
-         _patternsOallTypeConstructors = rule1181 _lhsIallTypeConstructors
-         _patternsOallValueConstructors = rule1182 _lhsIallValueConstructors
-         _patternsOcollectScopeInfos = rule1183 _lhsIcollectScopeInfos
-         _patternsOcounter = rule1184 _lhsIcounter
-         _patternsOmiscerrors = rule1185 _lhsImiscerrors
-         _patternsOnamesInScope = rule1186 _namesInScope
-         _patternsOtypeConstructors = rule1187 _lhsItypeConstructors
-         _patternsOvalueConstructors = rule1188 _lhsIvalueConstructors
-         _patternsOwarnings = rule1189 _lhsIwarnings
-         _expressionOallTypeConstructors = rule1190 _lhsIallTypeConstructors
-         _expressionOallValueConstructors = rule1191 _lhsIallValueConstructors
-         _expressionOclassEnvironment = rule1192 _lhsIclassEnvironment
-         _expressionOclassMemberEnv = rule1193 _lhsIclassMemberEnv
-         _expressionOcollectScopeInfos = rule1194 _patternsIcollectScopeInfos
-         _expressionOcounter = rule1195 _patternsIcounter
-         _expressionOkindErrors = rule1196 _lhsIkindErrors
-         _expressionOmiscerrors = rule1197 _patternsImiscerrors
-         _expressionOnamesInScope = rule1198 _namesInScope
-         _expressionOoptions = rule1199 _lhsIoptions
-         _expressionOorderedTypeSynonyms = rule1200 _lhsIorderedTypeSynonyms
-         _expressionOtypeConstructors = rule1201 _lhsItypeConstructors
-         _expressionOvalueConstructors = rule1202 _lhsIvalueConstructors
-         _expressionOwarnings = rule1203 _patternsIwarnings
+         _lhsOwarnings = rule1203 _expressionIwarnings
+         _patternsOallTypeConstructors = rule1204 _lhsIallTypeConstructors
+         _patternsOallValueConstructors = rule1205 _lhsIallValueConstructors
+         _patternsOcollectScopeInfos = rule1206 _lhsIcollectScopeInfos
+         _patternsOcounter = rule1207 _lhsIcounter
+         _patternsOmiscerrors = rule1208 _lhsImiscerrors
+         _patternsOnamesInScope = rule1209 _namesInScope
+         _patternsOtypeConstructors = rule1210 _lhsItypeConstructors
+         _patternsOvalueConstructors = rule1211 _lhsIvalueConstructors
+         _patternsOwarnings = rule1212 _lhsIwarnings
+         _expressionOallTypeConstructors = rule1213 _lhsIallTypeConstructors
+         _expressionOallValueConstructors = rule1214 _lhsIallValueConstructors
+         _expressionOclassEnvironment = rule1215 _lhsIclassEnvironment
+         _expressionOclassMemberEnv = rule1216 _lhsIclassMemberEnv
+         _expressionOcollectScopeInfos = rule1217 _patternsIcollectScopeInfos
+         _expressionOcounter = rule1218 _patternsIcounter
+         _expressionOkindErrors = rule1219 _lhsIkindErrors
+         _expressionOmiscerrors = rule1220 _patternsImiscerrors
+         _expressionOnamesInScope = rule1221 _namesInScope
+         _expressionOoptions = rule1222 _lhsIoptions
+         _expressionOorderedTypeSynonyms = rule1223 _lhsIorderedTypeSynonyms
+         _expressionOtypeConstructors = rule1224 _lhsItypeConstructors
+         _expressionOvalueConstructors = rule1225 _lhsIvalueConstructors
+         _expressionOwarnings = rule1226 _patternsIwarnings
          __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule1170 #-}
-   rule1170 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) _scopeInfo ->
-                                                 (_scopeInfo, Variable)   : _expressionIcollectScopeInfos
-   {-# INLINE rule1171 #-}
-   rule1171 = \  (_ :: ()) ->
-                                                                False
-   {-# INLINE rule1172 #-}
-   rule1172 = \ ((_expressionIunboundNames) :: Names) ((_lhsInamesInScope) :: Names) ((_patternsIpatVarNames) :: Names) ->
-                                                                        changeOfScope _patternsIpatVarNames _expressionIunboundNames _lhsInamesInScope
-   {-# INLINE rule1173 #-}
-   rule1173 = \ _unboundNames ->
-                                             _unboundNames
-   {-# INLINE rule1174 #-}
-   rule1174 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
-     _expressionIcollectInstances
-   {-# INLINE rule1175 #-}
-   rule1175 = \ ((_expressionIself) :: Expression) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
-     Expression_Lambda _rangeIself _patternsIself _expressionIself
-   {-# INLINE rule1176 #-}
-   rule1176 = \ _self ->
-     _self
-   {-# INLINE rule1177 #-}
-   rule1177 = \ ((_expressionIcounter) :: Int) ->
-     _expressionIcounter
-   {-# INLINE rule1178 #-}
-   rule1178 = \ ((_expressionIkindErrors) :: [Error]) ->
-     _expressionIkindErrors
-   {-# INLINE rule1179 #-}
-   rule1179 = \ ((_expressionImiscerrors) :: [Error]) ->
-     _expressionImiscerrors
-   {-# INLINE rule1180 #-}
-   rule1180 = \ ((_expressionIwarnings) :: [Warning]) ->
-     _expressionIwarnings
-   {-# INLINE rule1181 #-}
-   rule1181 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1182 #-}
-   rule1182 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1183 #-}
-   rule1183 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule1184 #-}
-   rule1184 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule1185 #-}
-   rule1185 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule1186 #-}
-   rule1186 = \ _namesInScope ->
-     _namesInScope
-   {-# INLINE rule1187 #-}
-   rule1187 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule1188 #-}
-   rule1188 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule1189 #-}
-   rule1189 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
-   {-# INLINE rule1190 #-}
-   rule1190 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1191 #-}
-   rule1191 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1192 #-}
-   rule1192 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
    {-# INLINE rule1193 #-}
-   rule1193 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
+   rule1193 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) _scopeInfo ->
+                                                 (_scopeInfo, Variable)   : _expressionIcollectScopeInfos
    {-# INLINE rule1194 #-}
-   rule1194 = \ ((_patternsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _patternsIcollectScopeInfos
+   rule1194 = \  (_ :: ()) ->
+                                                                False
    {-# INLINE rule1195 #-}
-   rule1195 = \ ((_patternsIcounter) :: Int) ->
-     _patternsIcounter
+   rule1195 = \ ((_expressionIunboundNames) :: Names) ((_lhsInamesInScope) :: Names) ((_patternsIpatVarNames) :: Names) ->
+                                                                        changeOfScope _patternsIpatVarNames _expressionIunboundNames _lhsInamesInScope
    {-# INLINE rule1196 #-}
-   rule1196 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
+   rule1196 = \ _unboundNames ->
+                                             _unboundNames
    {-# INLINE rule1197 #-}
-   rule1197 = \ ((_patternsImiscerrors) :: [Error]) ->
-     _patternsImiscerrors
+   rule1197 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
+     _expressionIcollectInstances
    {-# INLINE rule1198 #-}
-   rule1198 = \ _namesInScope ->
-     _namesInScope
+   rule1198 = \ ((_expressionIself) :: Expression) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
+     Expression_Lambda _rangeIself _patternsIself _expressionIself
    {-# INLINE rule1199 #-}
-   rule1199 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule1199 = \ _self ->
+     _self
    {-# INLINE rule1200 #-}
-   rule1200 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule1200 = \ ((_expressionIcounter) :: Int) ->
+     _expressionIcounter
    {-# INLINE rule1201 #-}
-   rule1201 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule1201 = \ ((_expressionIkindErrors) :: [Error]) ->
+     _expressionIkindErrors
    {-# INLINE rule1202 #-}
-   rule1202 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule1202 = \ ((_expressionImiscerrors) :: [Error]) ->
+     _expressionImiscerrors
    {-# INLINE rule1203 #-}
-   rule1203 = \ ((_patternsIwarnings) :: [Warning]) ->
+   rule1203 = \ ((_expressionIwarnings) :: [Warning]) ->
+     _expressionIwarnings
+   {-# INLINE rule1204 #-}
+   rule1204 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1205 #-}
+   rule1205 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1206 #-}
+   rule1206 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule1207 #-}
+   rule1207 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1208 #-}
+   rule1208 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1209 #-}
+   rule1209 = \ _namesInScope ->
+     _namesInScope
+   {-# INLINE rule1210 #-}
+   rule1210 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1211 #-}
+   rule1211 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1212 #-}
+   rule1212 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule1213 #-}
+   rule1213 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1214 #-}
+   rule1214 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1215 #-}
+   rule1215 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1216 #-}
+   rule1216 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1217 #-}
+   rule1217 = \ ((_patternsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _patternsIcollectScopeInfos
+   {-# INLINE rule1218 #-}
+   rule1218 = \ ((_patternsIcounter) :: Int) ->
+     _patternsIcounter
+   {-# INLINE rule1219 #-}
+   rule1219 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule1220 #-}
+   rule1220 = \ ((_patternsImiscerrors) :: [Error]) ->
+     _patternsImiscerrors
+   {-# INLINE rule1221 #-}
+   rule1221 = \ _namesInScope ->
+     _namesInScope
+   {-# INLINE rule1222 #-}
+   rule1222 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1223 #-}
+   rule1223 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1224 #-}
+   rule1224 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1225 #-}
+   rule1225 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1226 #-}
+   rule1226 = \ ((_patternsIwarnings) :: [Warning]) ->
      _patternsIwarnings
 {-# NOINLINE sem_Expression_Case #-}
 sem_Expression_Case :: T_Range  -> T_Expression  -> T_Alternatives  -> T_Expression 
@@ -7176,163 +7291,163 @@ sem_Expression_Case arg_range_ arg_expression_ arg_alternatives_ = T_Expression 
          (T_Expression_vOut40 _expressionIcollectInstances _expressionIcollectScopeInfos _expressionIcounter _expressionIkindErrors _expressionImiscerrors _expressionIself _expressionIunboundNames _expressionIwarnings) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionOallTypeConstructors _expressionOallValueConstructors _expressionOclassEnvironment _expressionOclassMemberEnv _expressionOcollectScopeInfos _expressionOcounter _expressionOkindErrors _expressionOmiscerrors _expressionOnamesInScope _expressionOoptions _expressionOorderedTypeSynonyms _expressionOtypeConstructors _expressionOvalueConstructors _expressionOwarnings)
          (T_Alternatives_vOut4 _alternativesIcollectInstances _alternativesIcollectScopeInfos _alternativesIcounter _alternativesIkindErrors _alternativesImiscerrors _alternativesIself _alternativesIunboundNames _alternativesIwarnings) = inv_Alternatives_s5 _alternativesX5 (T_Alternatives_vIn4 _alternativesOallTypeConstructors _alternativesOallValueConstructors _alternativesOclassEnvironment _alternativesOclassMemberEnv _alternativesOcollectScopeInfos _alternativesOcounter _alternativesOkindErrors _alternativesOmiscerrors _alternativesOnamesInScope _alternativesOoptions _alternativesOorderedTypeSynonyms _alternativesOtypeConstructors _alternativesOvalueConstructors _alternativesOwarnings)
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1204 _alternativesIcollectInstances _expressionIcollectInstances
+         _lhsOcollectInstances = rule1227 _alternativesIcollectInstances _expressionIcollectInstances
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1205 _alternativesIunboundNames _expressionIunboundNames
-         _self = rule1206 _alternativesIself _expressionIself _rangeIself
+         _lhsOunboundNames = rule1228 _alternativesIunboundNames _expressionIunboundNames
+         _self = rule1229 _alternativesIself _expressionIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule1207 _self
+         _lhsOself = rule1230 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1208 _alternativesIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1231 _alternativesIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1209 _alternativesIcounter
+         _lhsOcounter = rule1232 _alternativesIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1210 _alternativesIkindErrors
+         _lhsOkindErrors = rule1233 _alternativesIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1211 _alternativesImiscerrors
+         _lhsOmiscerrors = rule1234 _alternativesImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1212 _alternativesIwarnings
-         _expressionOallTypeConstructors = rule1213 _lhsIallTypeConstructors
-         _expressionOallValueConstructors = rule1214 _lhsIallValueConstructors
-         _expressionOclassEnvironment = rule1215 _lhsIclassEnvironment
-         _expressionOclassMemberEnv = rule1216 _lhsIclassMemberEnv
-         _expressionOcollectScopeInfos = rule1217 _lhsIcollectScopeInfos
-         _expressionOcounter = rule1218 _lhsIcounter
-         _expressionOkindErrors = rule1219 _lhsIkindErrors
-         _expressionOmiscerrors = rule1220 _lhsImiscerrors
-         _expressionOnamesInScope = rule1221 _lhsInamesInScope
-         _expressionOoptions = rule1222 _lhsIoptions
-         _expressionOorderedTypeSynonyms = rule1223 _lhsIorderedTypeSynonyms
-         _expressionOtypeConstructors = rule1224 _lhsItypeConstructors
-         _expressionOvalueConstructors = rule1225 _lhsIvalueConstructors
-         _expressionOwarnings = rule1226 _lhsIwarnings
-         _alternativesOallTypeConstructors = rule1227 _lhsIallTypeConstructors
-         _alternativesOallValueConstructors = rule1228 _lhsIallValueConstructors
-         _alternativesOclassEnvironment = rule1229 _lhsIclassEnvironment
-         _alternativesOclassMemberEnv = rule1230 _lhsIclassMemberEnv
-         _alternativesOcollectScopeInfos = rule1231 _expressionIcollectScopeInfos
-         _alternativesOcounter = rule1232 _expressionIcounter
-         _alternativesOkindErrors = rule1233 _expressionIkindErrors
-         _alternativesOmiscerrors = rule1234 _expressionImiscerrors
-         _alternativesOnamesInScope = rule1235 _lhsInamesInScope
-         _alternativesOoptions = rule1236 _lhsIoptions
-         _alternativesOorderedTypeSynonyms = rule1237 _lhsIorderedTypeSynonyms
-         _alternativesOtypeConstructors = rule1238 _lhsItypeConstructors
-         _alternativesOvalueConstructors = rule1239 _lhsIvalueConstructors
-         _alternativesOwarnings = rule1240 _expressionIwarnings
+         _lhsOwarnings = rule1235 _alternativesIwarnings
+         _expressionOallTypeConstructors = rule1236 _lhsIallTypeConstructors
+         _expressionOallValueConstructors = rule1237 _lhsIallValueConstructors
+         _expressionOclassEnvironment = rule1238 _lhsIclassEnvironment
+         _expressionOclassMemberEnv = rule1239 _lhsIclassMemberEnv
+         _expressionOcollectScopeInfos = rule1240 _lhsIcollectScopeInfos
+         _expressionOcounter = rule1241 _lhsIcounter
+         _expressionOkindErrors = rule1242 _lhsIkindErrors
+         _expressionOmiscerrors = rule1243 _lhsImiscerrors
+         _expressionOnamesInScope = rule1244 _lhsInamesInScope
+         _expressionOoptions = rule1245 _lhsIoptions
+         _expressionOorderedTypeSynonyms = rule1246 _lhsIorderedTypeSynonyms
+         _expressionOtypeConstructors = rule1247 _lhsItypeConstructors
+         _expressionOvalueConstructors = rule1248 _lhsIvalueConstructors
+         _expressionOwarnings = rule1249 _lhsIwarnings
+         _alternativesOallTypeConstructors = rule1250 _lhsIallTypeConstructors
+         _alternativesOallValueConstructors = rule1251 _lhsIallValueConstructors
+         _alternativesOclassEnvironment = rule1252 _lhsIclassEnvironment
+         _alternativesOclassMemberEnv = rule1253 _lhsIclassMemberEnv
+         _alternativesOcollectScopeInfos = rule1254 _expressionIcollectScopeInfos
+         _alternativesOcounter = rule1255 _expressionIcounter
+         _alternativesOkindErrors = rule1256 _expressionIkindErrors
+         _alternativesOmiscerrors = rule1257 _expressionImiscerrors
+         _alternativesOnamesInScope = rule1258 _lhsInamesInScope
+         _alternativesOoptions = rule1259 _lhsIoptions
+         _alternativesOorderedTypeSynonyms = rule1260 _lhsIorderedTypeSynonyms
+         _alternativesOtypeConstructors = rule1261 _lhsItypeConstructors
+         _alternativesOvalueConstructors = rule1262 _lhsIvalueConstructors
+         _alternativesOwarnings = rule1263 _expressionIwarnings
          __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule1204 #-}
-   rule1204 = \ ((_alternativesIcollectInstances) :: [(Name, Instance)]) ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
-     _expressionIcollectInstances  ++  _alternativesIcollectInstances
-   {-# INLINE rule1205 #-}
-   rule1205 = \ ((_alternativesIunboundNames) :: Names) ((_expressionIunboundNames) :: Names) ->
-     _expressionIunboundNames ++ _alternativesIunboundNames
-   {-# INLINE rule1206 #-}
-   rule1206 = \ ((_alternativesIself) :: Alternatives) ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
-     Expression_Case _rangeIself _expressionIself _alternativesIself
-   {-# INLINE rule1207 #-}
-   rule1207 = \ _self ->
-     _self
-   {-# INLINE rule1208 #-}
-   rule1208 = \ ((_alternativesIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _alternativesIcollectScopeInfos
-   {-# INLINE rule1209 #-}
-   rule1209 = \ ((_alternativesIcounter) :: Int) ->
-     _alternativesIcounter
-   {-# INLINE rule1210 #-}
-   rule1210 = \ ((_alternativesIkindErrors) :: [Error]) ->
-     _alternativesIkindErrors
-   {-# INLINE rule1211 #-}
-   rule1211 = \ ((_alternativesImiscerrors) :: [Error]) ->
-     _alternativesImiscerrors
-   {-# INLINE rule1212 #-}
-   rule1212 = \ ((_alternativesIwarnings) :: [Warning]) ->
-     _alternativesIwarnings
-   {-# INLINE rule1213 #-}
-   rule1213 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1214 #-}
-   rule1214 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1215 #-}
-   rule1215 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule1216 #-}
-   rule1216 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule1217 #-}
-   rule1217 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule1218 #-}
-   rule1218 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule1219 #-}
-   rule1219 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule1220 #-}
-   rule1220 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule1221 #-}
-   rule1221 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule1222 #-}
-   rule1222 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule1223 #-}
-   rule1223 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule1224 #-}
-   rule1224 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule1225 #-}
-   rule1225 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule1226 #-}
-   rule1226 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
    {-# INLINE rule1227 #-}
-   rule1227 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
+   rule1227 = \ ((_alternativesIcollectInstances) :: [(Name, Instance)]) ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
+     _expressionIcollectInstances  ++  _alternativesIcollectInstances
    {-# INLINE rule1228 #-}
-   rule1228 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
+   rule1228 = \ ((_alternativesIunboundNames) :: Names) ((_expressionIunboundNames) :: Names) ->
+     _expressionIunboundNames ++ _alternativesIunboundNames
    {-# INLINE rule1229 #-}
-   rule1229 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
+   rule1229 = \ ((_alternativesIself) :: Alternatives) ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
+     Expression_Case _rangeIself _expressionIself _alternativesIself
    {-# INLINE rule1230 #-}
-   rule1230 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
+   rule1230 = \ _self ->
+     _self
    {-# INLINE rule1231 #-}
-   rule1231 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _expressionIcollectScopeInfos
+   rule1231 = \ ((_alternativesIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _alternativesIcollectScopeInfos
    {-# INLINE rule1232 #-}
-   rule1232 = \ ((_expressionIcounter) :: Int) ->
-     _expressionIcounter
+   rule1232 = \ ((_alternativesIcounter) :: Int) ->
+     _alternativesIcounter
    {-# INLINE rule1233 #-}
-   rule1233 = \ ((_expressionIkindErrors) :: [Error]) ->
-     _expressionIkindErrors
+   rule1233 = \ ((_alternativesIkindErrors) :: [Error]) ->
+     _alternativesIkindErrors
    {-# INLINE rule1234 #-}
-   rule1234 = \ ((_expressionImiscerrors) :: [Error]) ->
-     _expressionImiscerrors
+   rule1234 = \ ((_alternativesImiscerrors) :: [Error]) ->
+     _alternativesImiscerrors
    {-# INLINE rule1235 #-}
-   rule1235 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
+   rule1235 = \ ((_alternativesIwarnings) :: [Warning]) ->
+     _alternativesIwarnings
    {-# INLINE rule1236 #-}
-   rule1236 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule1236 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
    {-# INLINE rule1237 #-}
-   rule1237 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule1237 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
    {-# INLINE rule1238 #-}
-   rule1238 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule1238 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
    {-# INLINE rule1239 #-}
-   rule1239 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule1239 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
    {-# INLINE rule1240 #-}
-   rule1240 = \ ((_expressionIwarnings) :: [Warning]) ->
+   rule1240 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule1241 #-}
+   rule1241 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1242 #-}
+   rule1242 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule1243 #-}
+   rule1243 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1244 #-}
+   rule1244 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1245 #-}
+   rule1245 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1246 #-}
+   rule1246 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1247 #-}
+   rule1247 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1248 #-}
+   rule1248 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1249 #-}
+   rule1249 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule1250 #-}
+   rule1250 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1251 #-}
+   rule1251 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1252 #-}
+   rule1252 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1253 #-}
+   rule1253 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1254 #-}
+   rule1254 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _expressionIcollectScopeInfos
+   {-# INLINE rule1255 #-}
+   rule1255 = \ ((_expressionIcounter) :: Int) ->
+     _expressionIcounter
+   {-# INLINE rule1256 #-}
+   rule1256 = \ ((_expressionIkindErrors) :: [Error]) ->
+     _expressionIkindErrors
+   {-# INLINE rule1257 #-}
+   rule1257 = \ ((_expressionImiscerrors) :: [Error]) ->
+     _expressionImiscerrors
+   {-# INLINE rule1258 #-}
+   rule1258 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1259 #-}
+   rule1259 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1260 #-}
+   rule1260 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1261 #-}
+   rule1261 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1262 #-}
+   rule1262 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1263 #-}
+   rule1263 = \ ((_expressionIwarnings) :: [Warning]) ->
      _expressionIwarnings
 {-# NOINLINE sem_Expression_Let #-}
 sem_Expression_Let :: T_Range  -> T_Declarations  -> T_Expression  -> T_Expression 
@@ -7348,212 +7463,212 @@ sem_Expression_Let arg_range_ arg_declarations_ arg_expression_ = T_Expression (
          (T_Declarations_vOut31 _declarationsIclassEnv _declarationsIcollectClassMemberEnv _declarationsIcollectInstances _declarationsIcollectScopeInfos _declarationsIcollectTypeClasses _declarationsIcollectTypeConstructors _declarationsIcollectTypeSynonyms _declarationsIcollectValueConstructors _declarationsIcounter _declarationsIdeclVarNames _declarationsIinstances _declarationsIkindErrors _declarationsImiscerrors _declarationsIoperatorFixities _declarationsIpreviousWasAlsoFB _declarationsIrestrictedNames _declarationsIself _declarationsIsuspiciousFBs _declarationsItypeSignatures _declarationsIunboundNames _declarationsIwarnings) = inv_Declarations_s32 _declarationsX32 (T_Declarations_vIn31 _declarationsOallTypeConstructors _declarationsOallValueConstructors _declarationsOclassEnvironment _declarationsOclassMemberEnv _declarationsOcollectScopeInfos _declarationsOcollectTypeConstructors _declarationsOcollectTypeSynonyms _declarationsOcollectValueConstructors _declarationsOcounter _declarationsOkindErrors _declarationsOmiscerrors _declarationsOnamesInScope _declarationsOoperatorFixities _declarationsOoptions _declarationsOorderedTypeSynonyms _declarationsOpreviousWasAlsoFB _declarationsOsuspiciousFBs _declarationsOtypeConstructors _declarationsOtypeSignatures _declarationsOvalueConstructors _declarationsOwarnings)
          (T_Expression_vOut40 _expressionIcollectInstances _expressionIcollectScopeInfos _expressionIcounter _expressionIkindErrors _expressionImiscerrors _expressionIself _expressionIunboundNames _expressionIwarnings) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionOallTypeConstructors _expressionOallValueConstructors _expressionOclassEnvironment _expressionOclassMemberEnv _expressionOcollectScopeInfos _expressionOcounter _expressionOkindErrors _expressionOmiscerrors _expressionOnamesInScope _expressionOoptions _expressionOorderedTypeSynonyms _expressionOtypeConstructors _expressionOvalueConstructors _expressionOwarnings)
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1241 _expressionIcollectScopeInfos _scopeInfo
-         (_collectTypeConstructors,_collectValueConstructors,_collectTypeSynonyms,_collectConstructorEnv,_derivedFunctions,_operatorFixities) = rule1242  ()
+         _lhsOcollectScopeInfos = rule1264 _expressionIcollectScopeInfos _scopeInfo
+         (_collectTypeConstructors,_collectValueConstructors,_collectTypeSynonyms,_collectConstructorEnv,_derivedFunctions,_operatorFixities) = rule1265  ()
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1243 _expressionImiscerrors _typeSignatureErrors
-         (_,_doubles) = rule1244 _declarationsItypeSignatures
-         _typeSignatureErrors = rule1245 _declarationsIdeclVarNames _declarationsIrestrictedNames _declarationsItypeSignatures
+         _lhsOmiscerrors = rule1266 _expressionImiscerrors _typeSignatureErrors
+         (_,_doubles) = rule1267 _declarationsItypeSignatures
+         _typeSignatureErrors = rule1268 _declarationsIdeclVarNames _declarationsIrestrictedNames _declarationsItypeSignatures
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1246 _expressionIwarnings _suspiciousErrors
-         _declarationsOpreviousWasAlsoFB = rule1247  ()
-         _declarationsOsuspiciousFBs = rule1248  ()
-         _suspiciousErrors = rule1249 _declarationsIsuspiciousFBs _declarationsItypeSignatures
-         (_namesInScope,_unboundNames,_scopeInfo) = rule1250 _declarationsIdeclVarNames _declarationsIunboundNames _expressionIunboundNames _lhsInamesInScope
+         _lhsOwarnings = rule1269 _expressionIwarnings _suspiciousErrors
+         _declarationsOpreviousWasAlsoFB = rule1270  ()
+         _declarationsOsuspiciousFBs = rule1271  ()
+         _suspiciousErrors = rule1272 _declarationsIsuspiciousFBs _declarationsItypeSignatures
+         (_namesInScope,_unboundNames,_scopeInfo) = rule1273 _declarationsIdeclVarNames _declarationsIunboundNames _expressionIunboundNames _lhsInamesInScope
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1251 _unboundNames
-         _declarationsOtypeSignatures = rule1252  ()
+         _lhsOunboundNames = rule1274 _unboundNames
+         _declarationsOtypeSignatures = rule1275  ()
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1253 _declarationsIcollectInstances _expressionIcollectInstances
-         _self = rule1254 _declarationsIself _expressionIself _rangeIself
+         _lhsOcollectInstances = rule1276 _declarationsIcollectInstances _expressionIcollectInstances
+         _self = rule1277 _declarationsIself _expressionIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule1255 _self
+         _lhsOself = rule1278 _self
          _lhsOcounter :: Int
-         _lhsOcounter = rule1256 _expressionIcounter
+         _lhsOcounter = rule1279 _expressionIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1257 _expressionIkindErrors
-         _declarationsOallTypeConstructors = rule1258 _lhsIallTypeConstructors
-         _declarationsOallValueConstructors = rule1259 _lhsIallValueConstructors
-         _declarationsOclassEnvironment = rule1260 _lhsIclassEnvironment
-         _declarationsOclassMemberEnv = rule1261 _lhsIclassMemberEnv
-         _declarationsOcollectScopeInfos = rule1262 _lhsIcollectScopeInfos
-         _declarationsOcollectTypeConstructors = rule1263 _collectTypeConstructors
-         _declarationsOcollectTypeSynonyms = rule1264 _collectTypeSynonyms
-         _declarationsOcollectValueConstructors = rule1265 _collectValueConstructors
-         _declarationsOcounter = rule1266 _lhsIcounter
-         _declarationsOkindErrors = rule1267 _lhsIkindErrors
-         _declarationsOmiscerrors = rule1268 _lhsImiscerrors
-         _declarationsOnamesInScope = rule1269 _namesInScope
-         _declarationsOoperatorFixities = rule1270 _operatorFixities
-         _declarationsOoptions = rule1271 _lhsIoptions
-         _declarationsOorderedTypeSynonyms = rule1272 _lhsIorderedTypeSynonyms
-         _declarationsOtypeConstructors = rule1273 _lhsItypeConstructors
-         _declarationsOvalueConstructors = rule1274 _lhsIvalueConstructors
-         _declarationsOwarnings = rule1275 _lhsIwarnings
-         _expressionOallTypeConstructors = rule1276 _lhsIallTypeConstructors
-         _expressionOallValueConstructors = rule1277 _lhsIallValueConstructors
-         _expressionOclassEnvironment = rule1278 _lhsIclassEnvironment
-         _expressionOclassMemberEnv = rule1279 _lhsIclassMemberEnv
-         _expressionOcollectScopeInfos = rule1280 _declarationsIcollectScopeInfos
-         _expressionOcounter = rule1281 _declarationsIcounter
-         _expressionOkindErrors = rule1282 _declarationsIkindErrors
-         _expressionOmiscerrors = rule1283 _declarationsImiscerrors
-         _expressionOnamesInScope = rule1284 _namesInScope
-         _expressionOoptions = rule1285 _lhsIoptions
-         _expressionOorderedTypeSynonyms = rule1286 _lhsIorderedTypeSynonyms
-         _expressionOtypeConstructors = rule1287 _lhsItypeConstructors
-         _expressionOvalueConstructors = rule1288 _lhsIvalueConstructors
-         _expressionOwarnings = rule1289 _declarationsIwarnings
+         _lhsOkindErrors = rule1280 _expressionIkindErrors
+         _declarationsOallTypeConstructors = rule1281 _lhsIallTypeConstructors
+         _declarationsOallValueConstructors = rule1282 _lhsIallValueConstructors
+         _declarationsOclassEnvironment = rule1283 _lhsIclassEnvironment
+         _declarationsOclassMemberEnv = rule1284 _lhsIclassMemberEnv
+         _declarationsOcollectScopeInfos = rule1285 _lhsIcollectScopeInfos
+         _declarationsOcollectTypeConstructors = rule1286 _collectTypeConstructors
+         _declarationsOcollectTypeSynonyms = rule1287 _collectTypeSynonyms
+         _declarationsOcollectValueConstructors = rule1288 _collectValueConstructors
+         _declarationsOcounter = rule1289 _lhsIcounter
+         _declarationsOkindErrors = rule1290 _lhsIkindErrors
+         _declarationsOmiscerrors = rule1291 _lhsImiscerrors
+         _declarationsOnamesInScope = rule1292 _namesInScope
+         _declarationsOoperatorFixities = rule1293 _operatorFixities
+         _declarationsOoptions = rule1294 _lhsIoptions
+         _declarationsOorderedTypeSynonyms = rule1295 _lhsIorderedTypeSynonyms
+         _declarationsOtypeConstructors = rule1296 _lhsItypeConstructors
+         _declarationsOvalueConstructors = rule1297 _lhsIvalueConstructors
+         _declarationsOwarnings = rule1298 _lhsIwarnings
+         _expressionOallTypeConstructors = rule1299 _lhsIallTypeConstructors
+         _expressionOallValueConstructors = rule1300 _lhsIallValueConstructors
+         _expressionOclassEnvironment = rule1301 _lhsIclassEnvironment
+         _expressionOclassMemberEnv = rule1302 _lhsIclassMemberEnv
+         _expressionOcollectScopeInfos = rule1303 _declarationsIcollectScopeInfos
+         _expressionOcounter = rule1304 _declarationsIcounter
+         _expressionOkindErrors = rule1305 _declarationsIkindErrors
+         _expressionOmiscerrors = rule1306 _declarationsImiscerrors
+         _expressionOnamesInScope = rule1307 _namesInScope
+         _expressionOoptions = rule1308 _lhsIoptions
+         _expressionOorderedTypeSynonyms = rule1309 _lhsIorderedTypeSynonyms
+         _expressionOtypeConstructors = rule1310 _lhsItypeConstructors
+         _expressionOvalueConstructors = rule1311 _lhsIvalueConstructors
+         _expressionOwarnings = rule1312 _declarationsIwarnings
          __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule1241 #-}
-   rule1241 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) _scopeInfo ->
+   {-# INLINE rule1264 #-}
+   rule1264 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) _scopeInfo ->
                                                  (_scopeInfo, Definition) : _expressionIcollectScopeInfos
-   {-# INLINE rule1242 #-}
-   rule1242 = \  (_ :: ()) ->
+   {-# INLINE rule1265 #-}
+   rule1265 = \  (_ :: ()) ->
                                                                                                                                                    internalError "PartialSyntax.ag" "n/a" "toplevel Expression"
-   {-# INLINE rule1243 #-}
-   rule1243 = \ ((_expressionImiscerrors) :: [Error]) _typeSignatureErrors ->
+   {-# INLINE rule1266 #-}
+   rule1266 = \ ((_expressionImiscerrors) :: [Error]) _typeSignatureErrors ->
                                       _typeSignatureErrors ++ _expressionImiscerrors
-   {-# INLINE rule1244 #-}
-   rule1244 = \ ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
+   {-# INLINE rule1267 #-}
+   rule1267 = \ ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
                                        uniqueAppearance (map fst _declarationsItypeSignatures)
-   {-# INLINE rule1245 #-}
-   rule1245 = \ ((_declarationsIdeclVarNames) :: Names) ((_declarationsIrestrictedNames) :: Names) ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
+   {-# INLINE rule1268 #-}
+   rule1268 = \ ((_declarationsIdeclVarNames) :: Names) ((_declarationsIrestrictedNames) :: Names) ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
                                                checkTypeSignatures _declarationsIdeclVarNames _declarationsIrestrictedNames _declarationsItypeSignatures
-   {-# INLINE rule1246 #-}
-   rule1246 = \ ((_expressionIwarnings) :: [Warning]) _suspiciousErrors ->
+   {-# INLINE rule1269 #-}
+   rule1269 = \ ((_expressionIwarnings) :: [Warning]) _suspiciousErrors ->
                                   _expressionIwarnings ++
                                   _suspiciousErrors
-   {-# INLINE rule1247 #-}
-   rule1247 = \  (_ :: ()) ->
-                                                Nothing
-   {-# INLINE rule1248 #-}
-   rule1248 = \  (_ :: ()) ->
-                                                []
-   {-# INLINE rule1249 #-}
-   rule1249 = \ ((_declarationsIsuspiciousFBs) :: [(Name,Name)]) ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
-                                                findSimilarFunctionBindings _declarationsItypeSignatures _declarationsIsuspiciousFBs
-   {-# INLINE rule1250 #-}
-   rule1250 = \ ((_declarationsIdeclVarNames) :: Names) ((_declarationsIunboundNames) :: Names) ((_expressionIunboundNames) :: Names) ((_lhsInamesInScope) :: Names) ->
-                                                             changeOfScope _declarationsIdeclVarNames (_declarationsIunboundNames ++ _expressionIunboundNames) _lhsInamesInScope
-   {-# INLINE rule1251 #-}
-   rule1251 = \ _unboundNames ->
-                                  _unboundNames
-   {-# INLINE rule1252 #-}
-   rule1252 = \  (_ :: ()) ->
-                                                                  []
-   {-# INLINE rule1253 #-}
-   rule1253 = \ ((_declarationsIcollectInstances) :: [(Name, Instance)]) ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
-     _declarationsIcollectInstances  ++  _expressionIcollectInstances
-   {-# INLINE rule1254 #-}
-   rule1254 = \ ((_declarationsIself) :: Declarations) ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
-     Expression_Let _rangeIself _declarationsIself _expressionIself
-   {-# INLINE rule1255 #-}
-   rule1255 = \ _self ->
-     _self
-   {-# INLINE rule1256 #-}
-   rule1256 = \ ((_expressionIcounter) :: Int) ->
-     _expressionIcounter
-   {-# INLINE rule1257 #-}
-   rule1257 = \ ((_expressionIkindErrors) :: [Error]) ->
-     _expressionIkindErrors
-   {-# INLINE rule1258 #-}
-   rule1258 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1259 #-}
-   rule1259 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1260 #-}
-   rule1260 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule1261 #-}
-   rule1261 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule1262 #-}
-   rule1262 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule1263 #-}
-   rule1263 = \ _collectTypeConstructors ->
-     _collectTypeConstructors
-   {-# INLINE rule1264 #-}
-   rule1264 = \ _collectTypeSynonyms ->
-     _collectTypeSynonyms
-   {-# INLINE rule1265 #-}
-   rule1265 = \ _collectValueConstructors ->
-     _collectValueConstructors
-   {-# INLINE rule1266 #-}
-   rule1266 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule1267 #-}
-   rule1267 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule1268 #-}
-   rule1268 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule1269 #-}
-   rule1269 = \ _namesInScope ->
-     _namesInScope
    {-# INLINE rule1270 #-}
-   rule1270 = \ _operatorFixities ->
-     _operatorFixities
+   rule1270 = \  (_ :: ()) ->
+                                                Nothing
    {-# INLINE rule1271 #-}
-   rule1271 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule1271 = \  (_ :: ()) ->
+                                                []
    {-# INLINE rule1272 #-}
-   rule1272 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule1272 = \ ((_declarationsIsuspiciousFBs) :: [(Name,Name)]) ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
+                                                findSimilarFunctionBindings _declarationsItypeSignatures _declarationsIsuspiciousFBs
    {-# INLINE rule1273 #-}
-   rule1273 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule1273 = \ ((_declarationsIdeclVarNames) :: Names) ((_declarationsIunboundNames) :: Names) ((_expressionIunboundNames) :: Names) ((_lhsInamesInScope) :: Names) ->
+                                                             changeOfScope _declarationsIdeclVarNames (_declarationsIunboundNames ++ _expressionIunboundNames) _lhsInamesInScope
    {-# INLINE rule1274 #-}
-   rule1274 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule1274 = \ _unboundNames ->
+                                  _unboundNames
    {-# INLINE rule1275 #-}
-   rule1275 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
+   rule1275 = \  (_ :: ()) ->
+                                                                  []
    {-# INLINE rule1276 #-}
-   rule1276 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
+   rule1276 = \ ((_declarationsIcollectInstances) :: [(Name, Instance)]) ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
+     _declarationsIcollectInstances  ++  _expressionIcollectInstances
    {-# INLINE rule1277 #-}
-   rule1277 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
+   rule1277 = \ ((_declarationsIself) :: Declarations) ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
+     Expression_Let _rangeIself _declarationsIself _expressionIself
    {-# INLINE rule1278 #-}
-   rule1278 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
+   rule1278 = \ _self ->
+     _self
    {-# INLINE rule1279 #-}
-   rule1279 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
+   rule1279 = \ ((_expressionIcounter) :: Int) ->
+     _expressionIcounter
    {-# INLINE rule1280 #-}
-   rule1280 = \ ((_declarationsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _declarationsIcollectScopeInfos
+   rule1280 = \ ((_expressionIkindErrors) :: [Error]) ->
+     _expressionIkindErrors
    {-# INLINE rule1281 #-}
-   rule1281 = \ ((_declarationsIcounter) :: Int) ->
-     _declarationsIcounter
+   rule1281 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
    {-# INLINE rule1282 #-}
-   rule1282 = \ ((_declarationsIkindErrors) :: [Error]) ->
-     _declarationsIkindErrors
+   rule1282 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
    {-# INLINE rule1283 #-}
-   rule1283 = \ ((_declarationsImiscerrors) :: [Error]) ->
-     _declarationsImiscerrors
+   rule1283 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
    {-# INLINE rule1284 #-}
-   rule1284 = \ _namesInScope ->
-     _namesInScope
+   rule1284 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
    {-# INLINE rule1285 #-}
-   rule1285 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule1285 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
    {-# INLINE rule1286 #-}
-   rule1286 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule1286 = \ _collectTypeConstructors ->
+     _collectTypeConstructors
    {-# INLINE rule1287 #-}
-   rule1287 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule1287 = \ _collectTypeSynonyms ->
+     _collectTypeSynonyms
    {-# INLINE rule1288 #-}
-   rule1288 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule1288 = \ _collectValueConstructors ->
+     _collectValueConstructors
    {-# INLINE rule1289 #-}
-   rule1289 = \ ((_declarationsIwarnings) :: [Warning]) ->
+   rule1289 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1290 #-}
+   rule1290 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule1291 #-}
+   rule1291 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1292 #-}
+   rule1292 = \ _namesInScope ->
+     _namesInScope
+   {-# INLINE rule1293 #-}
+   rule1293 = \ _operatorFixities ->
+     _operatorFixities
+   {-# INLINE rule1294 #-}
+   rule1294 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1295 #-}
+   rule1295 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1296 #-}
+   rule1296 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1297 #-}
+   rule1297 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1298 #-}
+   rule1298 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule1299 #-}
+   rule1299 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1300 #-}
+   rule1300 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1301 #-}
+   rule1301 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1302 #-}
+   rule1302 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1303 #-}
+   rule1303 = \ ((_declarationsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _declarationsIcollectScopeInfos
+   {-# INLINE rule1304 #-}
+   rule1304 = \ ((_declarationsIcounter) :: Int) ->
+     _declarationsIcounter
+   {-# INLINE rule1305 #-}
+   rule1305 = \ ((_declarationsIkindErrors) :: [Error]) ->
+     _declarationsIkindErrors
+   {-# INLINE rule1306 #-}
+   rule1306 = \ ((_declarationsImiscerrors) :: [Error]) ->
+     _declarationsImiscerrors
+   {-# INLINE rule1307 #-}
+   rule1307 = \ _namesInScope ->
+     _namesInScope
+   {-# INLINE rule1308 #-}
+   rule1308 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1309 #-}
+   rule1309 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1310 #-}
+   rule1310 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1311 #-}
+   rule1311 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1312 #-}
+   rule1312 = \ ((_declarationsIwarnings) :: [Warning]) ->
      _declarationsIwarnings
 {-# NOINLINE sem_Expression_Do #-}
 sem_Expression_Do :: T_Range  -> T_Statements  -> T_Expression 
@@ -7566,196 +7681,82 @@ sem_Expression_Do arg_range_ arg_statements_ = T_Expression (return st41) where
          _statementsX158 = Control.Monad.Identity.runIdentity (attach_T_Statements (arg_statements_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Statements_vOut157 _statementsIcollectInstances _statementsIcollectScopeInfos _statementsIcounter _statementsIkindErrors _statementsIlastStatementIsExpr _statementsImiscerrors _statementsInamesInScope _statementsIself _statementsIunboundNames _statementsIwarnings) = inv_Statements_s158 _statementsX158 (T_Statements_vIn157 _statementsOallTypeConstructors _statementsOallValueConstructors _statementsOclassEnvironment _statementsOclassMemberEnv _statementsOcollectScopeInfos _statementsOcounter _statementsOkindErrors _statementsOlastStatementIsExpr _statementsOmiscerrors _statementsOnamesInScope _statementsOoptions _statementsOorderedTypeSynonyms _statementsOtypeConstructors _statementsOunboundNames _statementsOvalueConstructors _statementsOwarnings)
-         _statementsOlastStatementIsExpr = rule1290  ()
+         _statementsOlastStatementIsExpr = rule1313  ()
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1291 _lastStatementErrors _statementsImiscerrors
-         _lastStatementErrors = rule1292 _statementsIlastStatementIsExpr _statementsIself
-         _statementsOunboundNames = rule1293  ()
+         _lhsOmiscerrors = rule1314 _lastStatementErrors _statementsImiscerrors
+         _lastStatementErrors = rule1315 _statementsIlastStatementIsExpr _statementsIself
+         _statementsOunboundNames = rule1316  ()
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1294 _statementsIcollectInstances
+         _lhsOcollectInstances = rule1317 _statementsIcollectInstances
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1295 _statementsIunboundNames
-         _self = rule1296 _rangeIself _statementsIself
+         _lhsOunboundNames = rule1318 _statementsIunboundNames
+         _self = rule1319 _rangeIself _statementsIself
          _lhsOself :: Expression
-         _lhsOself = rule1297 _self
+         _lhsOself = rule1320 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1298 _statementsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1321 _statementsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1299 _statementsIcounter
+         _lhsOcounter = rule1322 _statementsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1300 _statementsIkindErrors
+         _lhsOkindErrors = rule1323 _statementsIkindErrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1301 _statementsIwarnings
-         _statementsOallTypeConstructors = rule1302 _lhsIallTypeConstructors
-         _statementsOallValueConstructors = rule1303 _lhsIallValueConstructors
-         _statementsOclassEnvironment = rule1304 _lhsIclassEnvironment
-         _statementsOclassMemberEnv = rule1305 _lhsIclassMemberEnv
-         _statementsOcollectScopeInfos = rule1306 _lhsIcollectScopeInfos
-         _statementsOcounter = rule1307 _lhsIcounter
-         _statementsOkindErrors = rule1308 _lhsIkindErrors
-         _statementsOmiscerrors = rule1309 _lhsImiscerrors
-         _statementsOnamesInScope = rule1310 _lhsInamesInScope
-         _statementsOoptions = rule1311 _lhsIoptions
-         _statementsOorderedTypeSynonyms = rule1312 _lhsIorderedTypeSynonyms
-         _statementsOtypeConstructors = rule1313 _lhsItypeConstructors
-         _statementsOvalueConstructors = rule1314 _lhsIvalueConstructors
-         _statementsOwarnings = rule1315 _lhsIwarnings
+         _lhsOwarnings = rule1324 _statementsIwarnings
+         _statementsOallTypeConstructors = rule1325 _lhsIallTypeConstructors
+         _statementsOallValueConstructors = rule1326 _lhsIallValueConstructors
+         _statementsOclassEnvironment = rule1327 _lhsIclassEnvironment
+         _statementsOclassMemberEnv = rule1328 _lhsIclassMemberEnv
+         _statementsOcollectScopeInfos = rule1329 _lhsIcollectScopeInfos
+         _statementsOcounter = rule1330 _lhsIcounter
+         _statementsOkindErrors = rule1331 _lhsIkindErrors
+         _statementsOmiscerrors = rule1332 _lhsImiscerrors
+         _statementsOnamesInScope = rule1333 _lhsInamesInScope
+         _statementsOoptions = rule1334 _lhsIoptions
+         _statementsOorderedTypeSynonyms = rule1335 _lhsIorderedTypeSynonyms
+         _statementsOtypeConstructors = rule1336 _lhsItypeConstructors
+         _statementsOvalueConstructors = rule1337 _lhsIvalueConstructors
+         _statementsOwarnings = rule1338 _lhsIwarnings
          __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule1290 #-}
-   rule1290 = \  (_ :: ()) ->
+   {-# INLINE rule1313 #-}
+   rule1313 = \  (_ :: ()) ->
                                                False
-   {-# INLINE rule1291 #-}
-   rule1291 = \ _lastStatementErrors ((_statementsImiscerrors) :: [Error]) ->
+   {-# INLINE rule1314 #-}
+   rule1314 = \ _lastStatementErrors ((_statementsImiscerrors) :: [Error]) ->
                                       _lastStatementErrors ++ _statementsImiscerrors
-   {-# INLINE rule1292 #-}
-   rule1292 = \ ((_statementsIlastStatementIsExpr) :: Bool) ((_statementsIself) :: Statements) ->
+   {-# INLINE rule1315 #-}
+   rule1315 = \ ((_statementsIlastStatementIsExpr) :: Bool) ((_statementsIself) :: Statements) ->
                                                if _statementsIlastStatementIsExpr
                                                  then []
                                                  else let range = getStatementRange (last _statementsIself)
                                                       in [ LastStatementNotExpr range ]
-   {-# INLINE rule1293 #-}
-   rule1293 = \  (_ :: ()) ->
-                                      []
-   {-# INLINE rule1294 #-}
-   rule1294 = \ ((_statementsIcollectInstances) :: [(Name, Instance)]) ->
-     _statementsIcollectInstances
-   {-# INLINE rule1295 #-}
-   rule1295 = \ ((_statementsIunboundNames) :: Names) ->
-     _statementsIunboundNames
-   {-# INLINE rule1296 #-}
-   rule1296 = \ ((_rangeIself) :: Range) ((_statementsIself) :: Statements) ->
-     Expression_Do _rangeIself _statementsIself
-   {-# INLINE rule1297 #-}
-   rule1297 = \ _self ->
-     _self
-   {-# INLINE rule1298 #-}
-   rule1298 = \ ((_statementsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _statementsIcollectScopeInfos
-   {-# INLINE rule1299 #-}
-   rule1299 = \ ((_statementsIcounter) :: Int) ->
-     _statementsIcounter
-   {-# INLINE rule1300 #-}
-   rule1300 = \ ((_statementsIkindErrors) :: [Error]) ->
-     _statementsIkindErrors
-   {-# INLINE rule1301 #-}
-   rule1301 = \ ((_statementsIwarnings) :: [Warning]) ->
-     _statementsIwarnings
-   {-# INLINE rule1302 #-}
-   rule1302 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1303 #-}
-   rule1303 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1304 #-}
-   rule1304 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule1305 #-}
-   rule1305 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule1306 #-}
-   rule1306 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule1307 #-}
-   rule1307 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule1308 #-}
-   rule1308 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule1309 #-}
-   rule1309 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule1310 #-}
-   rule1310 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule1311 #-}
-   rule1311 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule1312 #-}
-   rule1312 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule1313 #-}
-   rule1313 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule1314 #-}
-   rule1314 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule1315 #-}
-   rule1315 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
-{-# NOINLINE sem_Expression_List #-}
-sem_Expression_List :: T_Range  -> T_Expressions  -> T_Expression 
-sem_Expression_List arg_range_ arg_expressions_ = T_Expression (return st41) where
-   {-# NOINLINE st41 #-}
-   st41 = let
-      v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIallTypeConstructors _lhsIallValueConstructors _lhsIclassEnvironment _lhsIclassMemberEnv _lhsIcollectScopeInfos _lhsIcounter _lhsIkindErrors _lhsImiscerrors _lhsInamesInScope _lhsIoptions _lhsIorderedTypeSynonyms _lhsItypeConstructors _lhsIvalueConstructors _lhsIwarnings) -> ( let
-         _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
-         _expressionsX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_expressions_))
-         (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         (T_Expressions_vOut43 _expressionsIcollectInstances _expressionsIcollectScopeInfos _expressionsIcounter _expressionsIkindErrors _expressionsImiscerrors _expressionsIself _expressionsIunboundNames _expressionsIwarnings) = inv_Expressions_s44 _expressionsX44 (T_Expressions_vIn43 _expressionsOallTypeConstructors _expressionsOallValueConstructors _expressionsOclassEnvironment _expressionsOclassMemberEnv _expressionsOcollectScopeInfos _expressionsOcounter _expressionsOkindErrors _expressionsOmiscerrors _expressionsOnamesInScope _expressionsOoptions _expressionsOorderedTypeSynonyms _expressionsOtypeConstructors _expressionsOvalueConstructors _expressionsOwarnings)
-         _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1316 _expressionsIcollectInstances
-         _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1317 _expressionsIunboundNames
-         _self = rule1318 _expressionsIself _rangeIself
-         _lhsOself :: Expression
-         _lhsOself = rule1319 _self
-         _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1320 _expressionsIcollectScopeInfos
-         _lhsOcounter :: Int
-         _lhsOcounter = rule1321 _expressionsIcounter
-         _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1322 _expressionsIkindErrors
-         _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1323 _expressionsImiscerrors
-         _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1324 _expressionsIwarnings
-         _expressionsOallTypeConstructors = rule1325 _lhsIallTypeConstructors
-         _expressionsOallValueConstructors = rule1326 _lhsIallValueConstructors
-         _expressionsOclassEnvironment = rule1327 _lhsIclassEnvironment
-         _expressionsOclassMemberEnv = rule1328 _lhsIclassMemberEnv
-         _expressionsOcollectScopeInfos = rule1329 _lhsIcollectScopeInfos
-         _expressionsOcounter = rule1330 _lhsIcounter
-         _expressionsOkindErrors = rule1331 _lhsIkindErrors
-         _expressionsOmiscerrors = rule1332 _lhsImiscerrors
-         _expressionsOnamesInScope = rule1333 _lhsInamesInScope
-         _expressionsOoptions = rule1334 _lhsIoptions
-         _expressionsOorderedTypeSynonyms = rule1335 _lhsIorderedTypeSynonyms
-         _expressionsOtypeConstructors = rule1336 _lhsItypeConstructors
-         _expressionsOvalueConstructors = rule1337 _lhsIvalueConstructors
-         _expressionsOwarnings = rule1338 _lhsIwarnings
-         __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
-         in __result_ )
-     in C_Expression_s41 v40
    {-# INLINE rule1316 #-}
-   rule1316 = \ ((_expressionsIcollectInstances) :: [(Name, Instance)]) ->
-     _expressionsIcollectInstances
+   rule1316 = \  (_ :: ()) ->
+                                      []
    {-# INLINE rule1317 #-}
-   rule1317 = \ ((_expressionsIunboundNames) :: Names) ->
-     _expressionsIunboundNames
+   rule1317 = \ ((_statementsIcollectInstances) :: [(Name, Instance)]) ->
+     _statementsIcollectInstances
    {-# INLINE rule1318 #-}
-   rule1318 = \ ((_expressionsIself) :: Expressions) ((_rangeIself) :: Range) ->
-     Expression_List _rangeIself _expressionsIself
+   rule1318 = \ ((_statementsIunboundNames) :: Names) ->
+     _statementsIunboundNames
    {-# INLINE rule1319 #-}
-   rule1319 = \ _self ->
-     _self
+   rule1319 = \ ((_rangeIself) :: Range) ((_statementsIself) :: Statements) ->
+     Expression_Do _rangeIself _statementsIself
    {-# INLINE rule1320 #-}
-   rule1320 = \ ((_expressionsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _expressionsIcollectScopeInfos
+   rule1320 = \ _self ->
+     _self
    {-# INLINE rule1321 #-}
-   rule1321 = \ ((_expressionsIcounter) :: Int) ->
-     _expressionsIcounter
+   rule1321 = \ ((_statementsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _statementsIcollectScopeInfos
    {-# INLINE rule1322 #-}
-   rule1322 = \ ((_expressionsIkindErrors) :: [Error]) ->
-     _expressionsIkindErrors
+   rule1322 = \ ((_statementsIcounter) :: Int) ->
+     _statementsIcounter
    {-# INLINE rule1323 #-}
-   rule1323 = \ ((_expressionsImiscerrors) :: [Error]) ->
-     _expressionsImiscerrors
+   rule1323 = \ ((_statementsIkindErrors) :: [Error]) ->
+     _statementsIkindErrors
    {-# INLINE rule1324 #-}
-   rule1324 = \ ((_expressionsIwarnings) :: [Warning]) ->
-     _expressionsIwarnings
+   rule1324 = \ ((_statementsIwarnings) :: [Warning]) ->
+     _statementsIwarnings
    {-# INLINE rule1325 #-}
    rule1325 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
@@ -7798,6 +7799,120 @@ sem_Expression_List arg_range_ arg_expressions_ = T_Expression (return st41) whe
    {-# INLINE rule1338 #-}
    rule1338 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
+{-# NOINLINE sem_Expression_List #-}
+sem_Expression_List :: T_Range  -> T_Expressions  -> T_Expression 
+sem_Expression_List arg_range_ arg_expressions_ = T_Expression (return st41) where
+   {-# NOINLINE st41 #-}
+   st41 = let
+      v40 :: T_Expression_v40 
+      v40 = \ (T_Expression_vIn40 _lhsIallTypeConstructors _lhsIallValueConstructors _lhsIclassEnvironment _lhsIclassMemberEnv _lhsIcollectScopeInfos _lhsIcounter _lhsIkindErrors _lhsImiscerrors _lhsInamesInScope _lhsIoptions _lhsIorderedTypeSynonyms _lhsItypeConstructors _lhsIvalueConstructors _lhsIwarnings) -> ( let
+         _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
+         _expressionsX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_expressions_))
+         (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
+         (T_Expressions_vOut43 _expressionsIcollectInstances _expressionsIcollectScopeInfos _expressionsIcounter _expressionsIkindErrors _expressionsImiscerrors _expressionsIself _expressionsIunboundNames _expressionsIwarnings) = inv_Expressions_s44 _expressionsX44 (T_Expressions_vIn43 _expressionsOallTypeConstructors _expressionsOallValueConstructors _expressionsOclassEnvironment _expressionsOclassMemberEnv _expressionsOcollectScopeInfos _expressionsOcounter _expressionsOkindErrors _expressionsOmiscerrors _expressionsOnamesInScope _expressionsOoptions _expressionsOorderedTypeSynonyms _expressionsOtypeConstructors _expressionsOvalueConstructors _expressionsOwarnings)
+         _lhsOcollectInstances :: [(Name, Instance)]
+         _lhsOcollectInstances = rule1339 _expressionsIcollectInstances
+         _lhsOunboundNames :: Names
+         _lhsOunboundNames = rule1340 _expressionsIunboundNames
+         _self = rule1341 _expressionsIself _rangeIself
+         _lhsOself :: Expression
+         _lhsOself = rule1342 _self
+         _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
+         _lhsOcollectScopeInfos = rule1343 _expressionsIcollectScopeInfos
+         _lhsOcounter :: Int
+         _lhsOcounter = rule1344 _expressionsIcounter
+         _lhsOkindErrors :: [Error]
+         _lhsOkindErrors = rule1345 _expressionsIkindErrors
+         _lhsOmiscerrors :: [Error]
+         _lhsOmiscerrors = rule1346 _expressionsImiscerrors
+         _lhsOwarnings :: [Warning]
+         _lhsOwarnings = rule1347 _expressionsIwarnings
+         _expressionsOallTypeConstructors = rule1348 _lhsIallTypeConstructors
+         _expressionsOallValueConstructors = rule1349 _lhsIallValueConstructors
+         _expressionsOclassEnvironment = rule1350 _lhsIclassEnvironment
+         _expressionsOclassMemberEnv = rule1351 _lhsIclassMemberEnv
+         _expressionsOcollectScopeInfos = rule1352 _lhsIcollectScopeInfos
+         _expressionsOcounter = rule1353 _lhsIcounter
+         _expressionsOkindErrors = rule1354 _lhsIkindErrors
+         _expressionsOmiscerrors = rule1355 _lhsImiscerrors
+         _expressionsOnamesInScope = rule1356 _lhsInamesInScope
+         _expressionsOoptions = rule1357 _lhsIoptions
+         _expressionsOorderedTypeSynonyms = rule1358 _lhsIorderedTypeSynonyms
+         _expressionsOtypeConstructors = rule1359 _lhsItypeConstructors
+         _expressionsOvalueConstructors = rule1360 _lhsIvalueConstructors
+         _expressionsOwarnings = rule1361 _lhsIwarnings
+         __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
+         in __result_ )
+     in C_Expression_s41 v40
+   {-# INLINE rule1339 #-}
+   rule1339 = \ ((_expressionsIcollectInstances) :: [(Name, Instance)]) ->
+     _expressionsIcollectInstances
+   {-# INLINE rule1340 #-}
+   rule1340 = \ ((_expressionsIunboundNames) :: Names) ->
+     _expressionsIunboundNames
+   {-# INLINE rule1341 #-}
+   rule1341 = \ ((_expressionsIself) :: Expressions) ((_rangeIself) :: Range) ->
+     Expression_List _rangeIself _expressionsIself
+   {-# INLINE rule1342 #-}
+   rule1342 = \ _self ->
+     _self
+   {-# INLINE rule1343 #-}
+   rule1343 = \ ((_expressionsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _expressionsIcollectScopeInfos
+   {-# INLINE rule1344 #-}
+   rule1344 = \ ((_expressionsIcounter) :: Int) ->
+     _expressionsIcounter
+   {-# INLINE rule1345 #-}
+   rule1345 = \ ((_expressionsIkindErrors) :: [Error]) ->
+     _expressionsIkindErrors
+   {-# INLINE rule1346 #-}
+   rule1346 = \ ((_expressionsImiscerrors) :: [Error]) ->
+     _expressionsImiscerrors
+   {-# INLINE rule1347 #-}
+   rule1347 = \ ((_expressionsIwarnings) :: [Warning]) ->
+     _expressionsIwarnings
+   {-# INLINE rule1348 #-}
+   rule1348 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1349 #-}
+   rule1349 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1350 #-}
+   rule1350 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1351 #-}
+   rule1351 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1352 #-}
+   rule1352 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule1353 #-}
+   rule1353 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1354 #-}
+   rule1354 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule1355 #-}
+   rule1355 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1356 #-}
+   rule1356 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1357 #-}
+   rule1357 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1358 #-}
+   rule1358 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1359 #-}
+   rule1359 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1360 #-}
+   rule1360 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1361 #-}
+   rule1361 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
 {-# NOINLINE sem_Expression_Tuple #-}
 sem_Expression_Tuple :: T_Range  -> T_Expressions  -> T_Expression 
 sem_Expression_Tuple arg_range_ arg_expressions_ = T_Expression (return st41) where
@@ -7810,113 +7925,113 @@ sem_Expression_Tuple arg_range_ arg_expressions_ = T_Expression (return st41) wh
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expressions_vOut43 _expressionsIcollectInstances _expressionsIcollectScopeInfos _expressionsIcounter _expressionsIkindErrors _expressionsImiscerrors _expressionsIself _expressionsIunboundNames _expressionsIwarnings) = inv_Expressions_s44 _expressionsX44 (T_Expressions_vIn43 _expressionsOallTypeConstructors _expressionsOallValueConstructors _expressionsOclassEnvironment _expressionsOclassMemberEnv _expressionsOcollectScopeInfos _expressionsOcounter _expressionsOkindErrors _expressionsOmiscerrors _expressionsOnamesInScope _expressionsOoptions _expressionsOorderedTypeSynonyms _expressionsOtypeConstructors _expressionsOvalueConstructors _expressionsOwarnings)
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1339 _expressionsImiscerrors _tupleTooBigErrors
-         _tupleTooBigErrors = rule1340 _expressionsIself _rangeIself
+         _lhsOmiscerrors = rule1362 _expressionsImiscerrors _tupleTooBigErrors
+         _tupleTooBigErrors = rule1363 _expressionsIself _rangeIself
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1341 _expressionsIcollectInstances
+         _lhsOcollectInstances = rule1364 _expressionsIcollectInstances
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1342 _expressionsIunboundNames
-         _self = rule1343 _expressionsIself _rangeIself
+         _lhsOunboundNames = rule1365 _expressionsIunboundNames
+         _self = rule1366 _expressionsIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule1344 _self
+         _lhsOself = rule1367 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1345 _expressionsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1368 _expressionsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1346 _expressionsIcounter
+         _lhsOcounter = rule1369 _expressionsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1347 _expressionsIkindErrors
+         _lhsOkindErrors = rule1370 _expressionsIkindErrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1348 _expressionsIwarnings
-         _expressionsOallTypeConstructors = rule1349 _lhsIallTypeConstructors
-         _expressionsOallValueConstructors = rule1350 _lhsIallValueConstructors
-         _expressionsOclassEnvironment = rule1351 _lhsIclassEnvironment
-         _expressionsOclassMemberEnv = rule1352 _lhsIclassMemberEnv
-         _expressionsOcollectScopeInfos = rule1353 _lhsIcollectScopeInfos
-         _expressionsOcounter = rule1354 _lhsIcounter
-         _expressionsOkindErrors = rule1355 _lhsIkindErrors
-         _expressionsOmiscerrors = rule1356 _lhsImiscerrors
-         _expressionsOnamesInScope = rule1357 _lhsInamesInScope
-         _expressionsOoptions = rule1358 _lhsIoptions
-         _expressionsOorderedTypeSynonyms = rule1359 _lhsIorderedTypeSynonyms
-         _expressionsOtypeConstructors = rule1360 _lhsItypeConstructors
-         _expressionsOvalueConstructors = rule1361 _lhsIvalueConstructors
-         _expressionsOwarnings = rule1362 _lhsIwarnings
+         _lhsOwarnings = rule1371 _expressionsIwarnings
+         _expressionsOallTypeConstructors = rule1372 _lhsIallTypeConstructors
+         _expressionsOallValueConstructors = rule1373 _lhsIallValueConstructors
+         _expressionsOclassEnvironment = rule1374 _lhsIclassEnvironment
+         _expressionsOclassMemberEnv = rule1375 _lhsIclassMemberEnv
+         _expressionsOcollectScopeInfos = rule1376 _lhsIcollectScopeInfos
+         _expressionsOcounter = rule1377 _lhsIcounter
+         _expressionsOkindErrors = rule1378 _lhsIkindErrors
+         _expressionsOmiscerrors = rule1379 _lhsImiscerrors
+         _expressionsOnamesInScope = rule1380 _lhsInamesInScope
+         _expressionsOoptions = rule1381 _lhsIoptions
+         _expressionsOorderedTypeSynonyms = rule1382 _lhsIorderedTypeSynonyms
+         _expressionsOtypeConstructors = rule1383 _lhsItypeConstructors
+         _expressionsOvalueConstructors = rule1384 _lhsIvalueConstructors
+         _expressionsOwarnings = rule1385 _lhsIwarnings
          __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule1339 #-}
-   rule1339 = \ ((_expressionsImiscerrors) :: [Error]) _tupleTooBigErrors ->
+   {-# INLINE rule1362 #-}
+   rule1362 = \ ((_expressionsImiscerrors) :: [Error]) _tupleTooBigErrors ->
                                       _tupleTooBigErrors ++ _expressionsImiscerrors
-   {-# INLINE rule1340 #-}
-   rule1340 = \ ((_expressionsIself) :: Expressions) ((_rangeIself) :: Range) ->
+   {-# INLINE rule1363 #-}
+   rule1363 = \ ((_expressionsIself) :: Expressions) ((_rangeIself) :: Range) ->
                           [ TupleTooBig _rangeIself
                           | length _expressionsIself > 10
                           ]
-   {-# INLINE rule1341 #-}
-   rule1341 = \ ((_expressionsIcollectInstances) :: [(Name, Instance)]) ->
+   {-# INLINE rule1364 #-}
+   rule1364 = \ ((_expressionsIcollectInstances) :: [(Name, Instance)]) ->
      _expressionsIcollectInstances
-   {-# INLINE rule1342 #-}
-   rule1342 = \ ((_expressionsIunboundNames) :: Names) ->
+   {-# INLINE rule1365 #-}
+   rule1365 = \ ((_expressionsIunboundNames) :: Names) ->
      _expressionsIunboundNames
-   {-# INLINE rule1343 #-}
-   rule1343 = \ ((_expressionsIself) :: Expressions) ((_rangeIself) :: Range) ->
+   {-# INLINE rule1366 #-}
+   rule1366 = \ ((_expressionsIself) :: Expressions) ((_rangeIself) :: Range) ->
      Expression_Tuple _rangeIself _expressionsIself
-   {-# INLINE rule1344 #-}
-   rule1344 = \ _self ->
+   {-# INLINE rule1367 #-}
+   rule1367 = \ _self ->
      _self
-   {-# INLINE rule1345 #-}
-   rule1345 = \ ((_expressionsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule1368 #-}
+   rule1368 = \ ((_expressionsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _expressionsIcollectScopeInfos
-   {-# INLINE rule1346 #-}
-   rule1346 = \ ((_expressionsIcounter) :: Int) ->
+   {-# INLINE rule1369 #-}
+   rule1369 = \ ((_expressionsIcounter) :: Int) ->
      _expressionsIcounter
-   {-# INLINE rule1347 #-}
-   rule1347 = \ ((_expressionsIkindErrors) :: [Error]) ->
+   {-# INLINE rule1370 #-}
+   rule1370 = \ ((_expressionsIkindErrors) :: [Error]) ->
      _expressionsIkindErrors
-   {-# INLINE rule1348 #-}
-   rule1348 = \ ((_expressionsIwarnings) :: [Warning]) ->
+   {-# INLINE rule1371 #-}
+   rule1371 = \ ((_expressionsIwarnings) :: [Warning]) ->
      _expressionsIwarnings
-   {-# INLINE rule1349 #-}
-   rule1349 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   {-# INLINE rule1372 #-}
+   rule1372 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule1350 #-}
-   rule1350 = \ ((_lhsIallValueConstructors) :: Names) ->
+   {-# INLINE rule1373 #-}
+   rule1373 = \ ((_lhsIallValueConstructors) :: Names) ->
      _lhsIallValueConstructors
-   {-# INLINE rule1351 #-}
-   rule1351 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+   {-# INLINE rule1374 #-}
+   rule1374 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
      _lhsIclassEnvironment
-   {-# INLINE rule1352 #-}
-   rule1352 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+   {-# INLINE rule1375 #-}
+   rule1375 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
      _lhsIclassMemberEnv
-   {-# INLINE rule1353 #-}
-   rule1353 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule1376 #-}
+   rule1376 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule1354 #-}
-   rule1354 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule1377 #-}
+   rule1377 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule1355 #-}
-   rule1355 = \ ((_lhsIkindErrors) :: [Error]) ->
+   {-# INLINE rule1378 #-}
+   rule1378 = \ ((_lhsIkindErrors) :: [Error]) ->
      _lhsIkindErrors
-   {-# INLINE rule1356 #-}
-   rule1356 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule1379 #-}
+   rule1379 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule1357 #-}
-   rule1357 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule1380 #-}
+   rule1380 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule1358 #-}
-   rule1358 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule1381 #-}
+   rule1381 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule1359 #-}
-   rule1359 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+   {-# INLINE rule1382 #-}
+   rule1382 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
      _lhsIorderedTypeSynonyms
-   {-# INLINE rule1360 #-}
-   rule1360 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule1383 #-}
+   rule1383 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule1361 #-}
-   rule1361 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+   {-# INLINE rule1384 #-}
+   rule1384 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
      _lhsIvalueConstructors
-   {-# INLINE rule1362 #-}
-   rule1362 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule1385 #-}
+   rule1385 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_Expression_Comprehension #-}
 sem_Expression_Comprehension :: T_Range  -> T_Expression  -> T_Qualifiers  -> T_Expression 
@@ -7932,167 +8047,167 @@ sem_Expression_Comprehension arg_range_ arg_expression_ arg_qualifiers_ = T_Expr
          (T_Expression_vOut40 _expressionIcollectInstances _expressionIcollectScopeInfos _expressionIcounter _expressionIkindErrors _expressionImiscerrors _expressionIself _expressionIunboundNames _expressionIwarnings) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionOallTypeConstructors _expressionOallValueConstructors _expressionOclassEnvironment _expressionOclassMemberEnv _expressionOcollectScopeInfos _expressionOcounter _expressionOkindErrors _expressionOmiscerrors _expressionOnamesInScope _expressionOoptions _expressionOorderedTypeSynonyms _expressionOtypeConstructors _expressionOvalueConstructors _expressionOwarnings)
          (T_Qualifiers_vOut130 _qualifiersIcollectInstances _qualifiersIcollectScopeInfos _qualifiersIcounter _qualifiersIkindErrors _qualifiersImiscerrors _qualifiersInamesInScope _qualifiersIself _qualifiersIunboundNames _qualifiersIwarnings) = inv_Qualifiers_s131 _qualifiersX131 (T_Qualifiers_vIn130 _qualifiersOallTypeConstructors _qualifiersOallValueConstructors _qualifiersOclassEnvironment _qualifiersOclassMemberEnv _qualifiersOcollectScopeInfos _qualifiersOcounter _qualifiersOkindErrors _qualifiersOmiscerrors _qualifiersOnamesInScope _qualifiersOoptions _qualifiersOorderedTypeSynonyms _qualifiersOtypeConstructors _qualifiersOunboundNames _qualifiersOvalueConstructors _qualifiersOwarnings)
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1363 _qualifiersIunboundNames
-         _expressionOnamesInScope = rule1364 _qualifiersInamesInScope
-         _qualifiersOnamesInScope = rule1365 _lhsInamesInScope
-         _qualifiersOunboundNames = rule1366 _expressionIunboundNames
+         _lhsOunboundNames = rule1386 _qualifiersIunboundNames
+         _expressionOnamesInScope = rule1387 _qualifiersInamesInScope
+         _qualifiersOnamesInScope = rule1388 _lhsInamesInScope
+         _qualifiersOunboundNames = rule1389 _expressionIunboundNames
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1367 _expressionIcollectInstances _qualifiersIcollectInstances
-         _self = rule1368 _expressionIself _qualifiersIself _rangeIself
+         _lhsOcollectInstances = rule1390 _expressionIcollectInstances _qualifiersIcollectInstances
+         _self = rule1391 _expressionIself _qualifiersIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule1369 _self
+         _lhsOself = rule1392 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1370 _qualifiersIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1393 _qualifiersIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1371 _qualifiersIcounter
+         _lhsOcounter = rule1394 _qualifiersIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1372 _qualifiersIkindErrors
+         _lhsOkindErrors = rule1395 _qualifiersIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1373 _qualifiersImiscerrors
+         _lhsOmiscerrors = rule1396 _qualifiersImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1374 _qualifiersIwarnings
-         _expressionOallTypeConstructors = rule1375 _lhsIallTypeConstructors
-         _expressionOallValueConstructors = rule1376 _lhsIallValueConstructors
-         _expressionOclassEnvironment = rule1377 _lhsIclassEnvironment
-         _expressionOclassMemberEnv = rule1378 _lhsIclassMemberEnv
-         _expressionOcollectScopeInfos = rule1379 _lhsIcollectScopeInfos
-         _expressionOcounter = rule1380 _lhsIcounter
-         _expressionOkindErrors = rule1381 _lhsIkindErrors
-         _expressionOmiscerrors = rule1382 _lhsImiscerrors
-         _expressionOoptions = rule1383 _lhsIoptions
-         _expressionOorderedTypeSynonyms = rule1384 _lhsIorderedTypeSynonyms
-         _expressionOtypeConstructors = rule1385 _lhsItypeConstructors
-         _expressionOvalueConstructors = rule1386 _lhsIvalueConstructors
-         _expressionOwarnings = rule1387 _lhsIwarnings
-         _qualifiersOallTypeConstructors = rule1388 _lhsIallTypeConstructors
-         _qualifiersOallValueConstructors = rule1389 _lhsIallValueConstructors
-         _qualifiersOclassEnvironment = rule1390 _lhsIclassEnvironment
-         _qualifiersOclassMemberEnv = rule1391 _lhsIclassMemberEnv
-         _qualifiersOcollectScopeInfos = rule1392 _expressionIcollectScopeInfos
-         _qualifiersOcounter = rule1393 _expressionIcounter
-         _qualifiersOkindErrors = rule1394 _expressionIkindErrors
-         _qualifiersOmiscerrors = rule1395 _expressionImiscerrors
-         _qualifiersOoptions = rule1396 _lhsIoptions
-         _qualifiersOorderedTypeSynonyms = rule1397 _lhsIorderedTypeSynonyms
-         _qualifiersOtypeConstructors = rule1398 _lhsItypeConstructors
-         _qualifiersOvalueConstructors = rule1399 _lhsIvalueConstructors
-         _qualifiersOwarnings = rule1400 _expressionIwarnings
+         _lhsOwarnings = rule1397 _qualifiersIwarnings
+         _expressionOallTypeConstructors = rule1398 _lhsIallTypeConstructors
+         _expressionOallValueConstructors = rule1399 _lhsIallValueConstructors
+         _expressionOclassEnvironment = rule1400 _lhsIclassEnvironment
+         _expressionOclassMemberEnv = rule1401 _lhsIclassMemberEnv
+         _expressionOcollectScopeInfos = rule1402 _lhsIcollectScopeInfos
+         _expressionOcounter = rule1403 _lhsIcounter
+         _expressionOkindErrors = rule1404 _lhsIkindErrors
+         _expressionOmiscerrors = rule1405 _lhsImiscerrors
+         _expressionOoptions = rule1406 _lhsIoptions
+         _expressionOorderedTypeSynonyms = rule1407 _lhsIorderedTypeSynonyms
+         _expressionOtypeConstructors = rule1408 _lhsItypeConstructors
+         _expressionOvalueConstructors = rule1409 _lhsIvalueConstructors
+         _expressionOwarnings = rule1410 _lhsIwarnings
+         _qualifiersOallTypeConstructors = rule1411 _lhsIallTypeConstructors
+         _qualifiersOallValueConstructors = rule1412 _lhsIallValueConstructors
+         _qualifiersOclassEnvironment = rule1413 _lhsIclassEnvironment
+         _qualifiersOclassMemberEnv = rule1414 _lhsIclassMemberEnv
+         _qualifiersOcollectScopeInfos = rule1415 _expressionIcollectScopeInfos
+         _qualifiersOcounter = rule1416 _expressionIcounter
+         _qualifiersOkindErrors = rule1417 _expressionIkindErrors
+         _qualifiersOmiscerrors = rule1418 _expressionImiscerrors
+         _qualifiersOoptions = rule1419 _lhsIoptions
+         _qualifiersOorderedTypeSynonyms = rule1420 _lhsIorderedTypeSynonyms
+         _qualifiersOtypeConstructors = rule1421 _lhsItypeConstructors
+         _qualifiersOvalueConstructors = rule1422 _lhsIvalueConstructors
+         _qualifiersOwarnings = rule1423 _expressionIwarnings
          __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule1363 #-}
-   rule1363 = \ ((_qualifiersIunboundNames) :: Names) ->
-                                                   _qualifiersIunboundNames
-   {-# INLINE rule1364 #-}
-   rule1364 = \ ((_qualifiersInamesInScope) :: Names) ->
-                                                   _qualifiersInamesInScope
-   {-# INLINE rule1365 #-}
-   rule1365 = \ ((_lhsInamesInScope) :: Names) ->
-                                                   _lhsInamesInScope
-   {-# INLINE rule1366 #-}
-   rule1366 = \ ((_expressionIunboundNames) :: Names) ->
-                                                   _expressionIunboundNames
-   {-# INLINE rule1367 #-}
-   rule1367 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ((_qualifiersIcollectInstances) :: [(Name, Instance)]) ->
-     _expressionIcollectInstances  ++  _qualifiersIcollectInstances
-   {-# INLINE rule1368 #-}
-   rule1368 = \ ((_expressionIself) :: Expression) ((_qualifiersIself) :: Qualifiers) ((_rangeIself) :: Range) ->
-     Expression_Comprehension _rangeIself _expressionIself _qualifiersIself
-   {-# INLINE rule1369 #-}
-   rule1369 = \ _self ->
-     _self
-   {-# INLINE rule1370 #-}
-   rule1370 = \ ((_qualifiersIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _qualifiersIcollectScopeInfos
-   {-# INLINE rule1371 #-}
-   rule1371 = \ ((_qualifiersIcounter) :: Int) ->
-     _qualifiersIcounter
-   {-# INLINE rule1372 #-}
-   rule1372 = \ ((_qualifiersIkindErrors) :: [Error]) ->
-     _qualifiersIkindErrors
-   {-# INLINE rule1373 #-}
-   rule1373 = \ ((_qualifiersImiscerrors) :: [Error]) ->
-     _qualifiersImiscerrors
-   {-# INLINE rule1374 #-}
-   rule1374 = \ ((_qualifiersIwarnings) :: [Warning]) ->
-     _qualifiersIwarnings
-   {-# INLINE rule1375 #-}
-   rule1375 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1376 #-}
-   rule1376 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1377 #-}
-   rule1377 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule1378 #-}
-   rule1378 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule1379 #-}
-   rule1379 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule1380 #-}
-   rule1380 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule1381 #-}
-   rule1381 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule1382 #-}
-   rule1382 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule1383 #-}
-   rule1383 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule1384 #-}
-   rule1384 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule1385 #-}
-   rule1385 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
    {-# INLINE rule1386 #-}
-   rule1386 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule1386 = \ ((_qualifiersIunboundNames) :: Names) ->
+                                                   _qualifiersIunboundNames
    {-# INLINE rule1387 #-}
-   rule1387 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
+   rule1387 = \ ((_qualifiersInamesInScope) :: Names) ->
+                                                   _qualifiersInamesInScope
    {-# INLINE rule1388 #-}
-   rule1388 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
+   rule1388 = \ ((_lhsInamesInScope) :: Names) ->
+                                                   _lhsInamesInScope
    {-# INLINE rule1389 #-}
-   rule1389 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
+   rule1389 = \ ((_expressionIunboundNames) :: Names) ->
+                                                   _expressionIunboundNames
    {-# INLINE rule1390 #-}
-   rule1390 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
+   rule1390 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ((_qualifiersIcollectInstances) :: [(Name, Instance)]) ->
+     _expressionIcollectInstances  ++  _qualifiersIcollectInstances
    {-# INLINE rule1391 #-}
-   rule1391 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
+   rule1391 = \ ((_expressionIself) :: Expression) ((_qualifiersIself) :: Qualifiers) ((_rangeIself) :: Range) ->
+     Expression_Comprehension _rangeIself _expressionIself _qualifiersIself
    {-# INLINE rule1392 #-}
-   rule1392 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _expressionIcollectScopeInfos
+   rule1392 = \ _self ->
+     _self
    {-# INLINE rule1393 #-}
-   rule1393 = \ ((_expressionIcounter) :: Int) ->
-     _expressionIcounter
+   rule1393 = \ ((_qualifiersIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _qualifiersIcollectScopeInfos
    {-# INLINE rule1394 #-}
-   rule1394 = \ ((_expressionIkindErrors) :: [Error]) ->
-     _expressionIkindErrors
+   rule1394 = \ ((_qualifiersIcounter) :: Int) ->
+     _qualifiersIcounter
    {-# INLINE rule1395 #-}
-   rule1395 = \ ((_expressionImiscerrors) :: [Error]) ->
-     _expressionImiscerrors
+   rule1395 = \ ((_qualifiersIkindErrors) :: [Error]) ->
+     _qualifiersIkindErrors
    {-# INLINE rule1396 #-}
-   rule1396 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule1396 = \ ((_qualifiersImiscerrors) :: [Error]) ->
+     _qualifiersImiscerrors
    {-# INLINE rule1397 #-}
-   rule1397 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule1397 = \ ((_qualifiersIwarnings) :: [Warning]) ->
+     _qualifiersIwarnings
    {-# INLINE rule1398 #-}
-   rule1398 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule1398 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
    {-# INLINE rule1399 #-}
-   rule1399 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule1399 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
    {-# INLINE rule1400 #-}
-   rule1400 = \ ((_expressionIwarnings) :: [Warning]) ->
+   rule1400 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1401 #-}
+   rule1401 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1402 #-}
+   rule1402 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule1403 #-}
+   rule1403 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1404 #-}
+   rule1404 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule1405 #-}
+   rule1405 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1406 #-}
+   rule1406 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1407 #-}
+   rule1407 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1408 #-}
+   rule1408 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1409 #-}
+   rule1409 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1410 #-}
+   rule1410 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule1411 #-}
+   rule1411 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1412 #-}
+   rule1412 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1413 #-}
+   rule1413 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1414 #-}
+   rule1414 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1415 #-}
+   rule1415 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _expressionIcollectScopeInfos
+   {-# INLINE rule1416 #-}
+   rule1416 = \ ((_expressionIcounter) :: Int) ->
+     _expressionIcounter
+   {-# INLINE rule1417 #-}
+   rule1417 = \ ((_expressionIkindErrors) :: [Error]) ->
+     _expressionIkindErrors
+   {-# INLINE rule1418 #-}
+   rule1418 = \ ((_expressionImiscerrors) :: [Error]) ->
+     _expressionImiscerrors
+   {-# INLINE rule1419 #-}
+   rule1419 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1420 #-}
+   rule1420 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1421 #-}
+   rule1421 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1422 #-}
+   rule1422 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1423 #-}
+   rule1423 = \ ((_expressionIwarnings) :: [Warning]) ->
      _expressionIwarnings
 {-# NOINLINE sem_Expression_Typed #-}
 sem_Expression_Typed :: T_Range  -> T_Expression  -> T_Type  -> T_Expression 
@@ -8108,131 +8223,131 @@ sem_Expression_Typed arg_range_ arg_expression_ arg_type_ = T_Expression (return
          (T_Expression_vOut40 _expressionIcollectInstances _expressionIcollectScopeInfos _expressionIcounter _expressionIkindErrors _expressionImiscerrors _expressionIself _expressionIunboundNames _expressionIwarnings) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionOallTypeConstructors _expressionOallValueConstructors _expressionOclassEnvironment _expressionOclassMemberEnv _expressionOcollectScopeInfos _expressionOcounter _expressionOkindErrors _expressionOmiscerrors _expressionOnamesInScope _expressionOoptions _expressionOorderedTypeSynonyms _expressionOtypeConstructors _expressionOvalueConstructors _expressionOwarnings)
          (T_Type_vOut163 _typeIcontextRange _typeImiscerrors _typeIself _typeItypevariables _typeIwarnings) = inv_Type_s164 _typeX164 (T_Type_vIn163 _typeOallTypeConstructors _typeOmiscerrors _typeOoptions _typeOtypeConstructors _typeOwarnings)
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1401 _expressionIkindErrors _newErrors
-         _newErrors = rule1402 _lhsIallValueConstructors _lhsInamesInScope _lhsItypeConstructors _typeIself
+         _lhsOkindErrors = rule1424 _expressionIkindErrors _newErrors
+         _newErrors = rule1425 _lhsIallValueConstructors _lhsInamesInScope _lhsItypeConstructors _typeIself
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1403 _expressionIcollectInstances
+         _lhsOcollectInstances = rule1426 _expressionIcollectInstances
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1404 _expressionIunboundNames
-         _self = rule1405 _expressionIself _rangeIself _typeIself
+         _lhsOunboundNames = rule1427 _expressionIunboundNames
+         _self = rule1428 _expressionIself _rangeIself _typeIself
          _lhsOself :: Expression
-         _lhsOself = rule1406 _self
+         _lhsOself = rule1429 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1407 _expressionIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1430 _expressionIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1408 _expressionIcounter
+         _lhsOcounter = rule1431 _expressionIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1409 _typeImiscerrors
+         _lhsOmiscerrors = rule1432 _typeImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1410 _typeIwarnings
-         _expressionOallTypeConstructors = rule1411 _lhsIallTypeConstructors
-         _expressionOallValueConstructors = rule1412 _lhsIallValueConstructors
-         _expressionOclassEnvironment = rule1413 _lhsIclassEnvironment
-         _expressionOclassMemberEnv = rule1414 _lhsIclassMemberEnv
-         _expressionOcollectScopeInfos = rule1415 _lhsIcollectScopeInfos
-         _expressionOcounter = rule1416 _lhsIcounter
-         _expressionOkindErrors = rule1417 _lhsIkindErrors
-         _expressionOmiscerrors = rule1418 _lhsImiscerrors
-         _expressionOnamesInScope = rule1419 _lhsInamesInScope
-         _expressionOoptions = rule1420 _lhsIoptions
-         _expressionOorderedTypeSynonyms = rule1421 _lhsIorderedTypeSynonyms
-         _expressionOtypeConstructors = rule1422 _lhsItypeConstructors
-         _expressionOvalueConstructors = rule1423 _lhsIvalueConstructors
-         _expressionOwarnings = rule1424 _lhsIwarnings
-         _typeOallTypeConstructors = rule1425 _lhsIallTypeConstructors
-         _typeOmiscerrors = rule1426 _expressionImiscerrors
-         _typeOoptions = rule1427 _lhsIoptions
-         _typeOtypeConstructors = rule1428 _lhsItypeConstructors
-         _typeOwarnings = rule1429 _expressionIwarnings
+         _lhsOwarnings = rule1433 _typeIwarnings
+         _expressionOallTypeConstructors = rule1434 _lhsIallTypeConstructors
+         _expressionOallValueConstructors = rule1435 _lhsIallValueConstructors
+         _expressionOclassEnvironment = rule1436 _lhsIclassEnvironment
+         _expressionOclassMemberEnv = rule1437 _lhsIclassMemberEnv
+         _expressionOcollectScopeInfos = rule1438 _lhsIcollectScopeInfos
+         _expressionOcounter = rule1439 _lhsIcounter
+         _expressionOkindErrors = rule1440 _lhsIkindErrors
+         _expressionOmiscerrors = rule1441 _lhsImiscerrors
+         _expressionOnamesInScope = rule1442 _lhsInamesInScope
+         _expressionOoptions = rule1443 _lhsIoptions
+         _expressionOorderedTypeSynonyms = rule1444 _lhsIorderedTypeSynonyms
+         _expressionOtypeConstructors = rule1445 _lhsItypeConstructors
+         _expressionOvalueConstructors = rule1446 _lhsIvalueConstructors
+         _expressionOwarnings = rule1447 _lhsIwarnings
+         _typeOallTypeConstructors = rule1448 _lhsIallTypeConstructors
+         _typeOmiscerrors = rule1449 _expressionImiscerrors
+         _typeOoptions = rule1450 _lhsIoptions
+         _typeOtypeConstructors = rule1451 _lhsItypeConstructors
+         _typeOwarnings = rule1452 _expressionIwarnings
          __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule1401 #-}
-   rule1401 = \ ((_expressionIkindErrors) :: [Error]) _newErrors ->
-                                         _newErrors ++ _expressionIkindErrors
-   {-# INLINE rule1402 #-}
-   rule1402 = \ ((_lhsIallValueConstructors) :: Names) ((_lhsInamesInScope) :: Names) ((_lhsItypeConstructors) :: M.Map Name Int) ((_typeIself) :: Type) ->
-                                         checkType _lhsItypeConstructors (_lhsInamesInScope ++ _lhsIallValueConstructors) _typeIself
-   {-# INLINE rule1403 #-}
-   rule1403 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
-     _expressionIcollectInstances
-   {-# INLINE rule1404 #-}
-   rule1404 = \ ((_expressionIunboundNames) :: Names) ->
-     _expressionIunboundNames
-   {-# INLINE rule1405 #-}
-   rule1405 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
-     Expression_Typed _rangeIself _expressionIself _typeIself
-   {-# INLINE rule1406 #-}
-   rule1406 = \ _self ->
-     _self
-   {-# INLINE rule1407 #-}
-   rule1407 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _expressionIcollectScopeInfos
-   {-# INLINE rule1408 #-}
-   rule1408 = \ ((_expressionIcounter) :: Int) ->
-     _expressionIcounter
-   {-# INLINE rule1409 #-}
-   rule1409 = \ ((_typeImiscerrors) :: [Error]) ->
-     _typeImiscerrors
-   {-# INLINE rule1410 #-}
-   rule1410 = \ ((_typeIwarnings) :: [Warning]) ->
-     _typeIwarnings
-   {-# INLINE rule1411 #-}
-   rule1411 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1412 #-}
-   rule1412 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1413 #-}
-   rule1413 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule1414 #-}
-   rule1414 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule1415 #-}
-   rule1415 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule1416 #-}
-   rule1416 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule1417 #-}
-   rule1417 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule1418 #-}
-   rule1418 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule1419 #-}
-   rule1419 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule1420 #-}
-   rule1420 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule1421 #-}
-   rule1421 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule1422 #-}
-   rule1422 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule1423 #-}
-   rule1423 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
    {-# INLINE rule1424 #-}
-   rule1424 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
+   rule1424 = \ ((_expressionIkindErrors) :: [Error]) _newErrors ->
+                                         _newErrors ++ _expressionIkindErrors
    {-# INLINE rule1425 #-}
-   rule1425 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
+   rule1425 = \ ((_lhsIallValueConstructors) :: Names) ((_lhsInamesInScope) :: Names) ((_lhsItypeConstructors) :: M.Map Name Int) ((_typeIself) :: Type) ->
+                                         checkType _lhsItypeConstructors (_lhsInamesInScope ++ _lhsIallValueConstructors) _typeIself
    {-# INLINE rule1426 #-}
-   rule1426 = \ ((_expressionImiscerrors) :: [Error]) ->
-     _expressionImiscerrors
+   rule1426 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
+     _expressionIcollectInstances
    {-# INLINE rule1427 #-}
-   rule1427 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule1427 = \ ((_expressionIunboundNames) :: Names) ->
+     _expressionIunboundNames
    {-# INLINE rule1428 #-}
-   rule1428 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule1428 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
+     Expression_Typed _rangeIself _expressionIself _typeIself
    {-# INLINE rule1429 #-}
-   rule1429 = \ ((_expressionIwarnings) :: [Warning]) ->
+   rule1429 = \ _self ->
+     _self
+   {-# INLINE rule1430 #-}
+   rule1430 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _expressionIcollectScopeInfos
+   {-# INLINE rule1431 #-}
+   rule1431 = \ ((_expressionIcounter) :: Int) ->
+     _expressionIcounter
+   {-# INLINE rule1432 #-}
+   rule1432 = \ ((_typeImiscerrors) :: [Error]) ->
+     _typeImiscerrors
+   {-# INLINE rule1433 #-}
+   rule1433 = \ ((_typeIwarnings) :: [Warning]) ->
+     _typeIwarnings
+   {-# INLINE rule1434 #-}
+   rule1434 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1435 #-}
+   rule1435 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1436 #-}
+   rule1436 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1437 #-}
+   rule1437 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1438 #-}
+   rule1438 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule1439 #-}
+   rule1439 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1440 #-}
+   rule1440 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule1441 #-}
+   rule1441 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1442 #-}
+   rule1442 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1443 #-}
+   rule1443 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1444 #-}
+   rule1444 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1445 #-}
+   rule1445 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1446 #-}
+   rule1446 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1447 #-}
+   rule1447 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule1448 #-}
+   rule1448 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1449 #-}
+   rule1449 = \ ((_expressionImiscerrors) :: [Error]) ->
+     _expressionImiscerrors
+   {-# INLINE rule1450 #-}
+   rule1450 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1451 #-}
+   rule1451 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1452 #-}
+   rule1452 = \ ((_expressionIwarnings) :: [Warning]) ->
      _expressionIwarnings
 {-# NOINLINE sem_Expression_RecordConstruction #-}
 sem_Expression_RecordConstruction :: T_Range  -> T_Name  -> T_RecordExpressionBindings  -> T_Expression 
@@ -8247,84 +8362,84 @@ sem_Expression_RecordConstruction arg_range_ arg_name_ arg_recordExpressionBindi
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_RecordExpressionBindings_vOut139 _recordExpressionBindingsIcollectInstances _recordExpressionBindingsIcollectScopeInfos _recordExpressionBindingsIcounter _recordExpressionBindingsIself _recordExpressionBindingsIunboundNames) = inv_RecordExpressionBindings_s140 _recordExpressionBindingsX140 (T_RecordExpressionBindings_vIn139 _recordExpressionBindingsOclassEnvironment _recordExpressionBindingsOclassMemberEnv _recordExpressionBindingsOcollectScopeInfos _recordExpressionBindingsOcounter _recordExpressionBindingsOnamesInScope _recordExpressionBindingsOoptions _recordExpressionBindingsOorderedTypeSynonyms)
-         (_assumptions,_constraints,_beta) = rule1430  ()
+         (_assumptions,_constraints,_beta) = rule1453  ()
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1431 _recordExpressionBindingsIcollectInstances
+         _lhsOcollectInstances = rule1454 _recordExpressionBindingsIcollectInstances
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1432 _recordExpressionBindingsIunboundNames
-         _self = rule1433 _nameIself _rangeIself _recordExpressionBindingsIself
+         _lhsOunboundNames = rule1455 _recordExpressionBindingsIunboundNames
+         _self = rule1456 _nameIself _rangeIself _recordExpressionBindingsIself
          _lhsOself :: Expression
-         _lhsOself = rule1434 _self
+         _lhsOself = rule1457 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1435 _recordExpressionBindingsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1458 _recordExpressionBindingsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1436 _recordExpressionBindingsIcounter
+         _lhsOcounter = rule1459 _recordExpressionBindingsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1437 _lhsIkindErrors
+         _lhsOkindErrors = rule1460 _lhsIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1438 _lhsImiscerrors
+         _lhsOmiscerrors = rule1461 _lhsImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1439 _lhsIwarnings
-         _recordExpressionBindingsOclassEnvironment = rule1440 _lhsIclassEnvironment
-         _recordExpressionBindingsOclassMemberEnv = rule1441 _lhsIclassMemberEnv
-         _recordExpressionBindingsOcollectScopeInfos = rule1442 _lhsIcollectScopeInfos
-         _recordExpressionBindingsOcounter = rule1443 _lhsIcounter
-         _recordExpressionBindingsOnamesInScope = rule1444 _lhsInamesInScope
-         _recordExpressionBindingsOoptions = rule1445 _lhsIoptions
-         _recordExpressionBindingsOorderedTypeSynonyms = rule1446 _lhsIorderedTypeSynonyms
+         _lhsOwarnings = rule1462 _lhsIwarnings
+         _recordExpressionBindingsOclassEnvironment = rule1463 _lhsIclassEnvironment
+         _recordExpressionBindingsOclassMemberEnv = rule1464 _lhsIclassMemberEnv
+         _recordExpressionBindingsOcollectScopeInfos = rule1465 _lhsIcollectScopeInfos
+         _recordExpressionBindingsOcounter = rule1466 _lhsIcounter
+         _recordExpressionBindingsOnamesInScope = rule1467 _lhsInamesInScope
+         _recordExpressionBindingsOoptions = rule1468 _lhsIoptions
+         _recordExpressionBindingsOorderedTypeSynonyms = rule1469 _lhsIorderedTypeSynonyms
          __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule1430 #-}
-   rule1430 = \  (_ :: ()) ->
+   {-# INLINE rule1453 #-}
+   rule1453 = \  (_ :: ()) ->
                                                                  internalError "PartialSyntax.ag" "n/a" "Expression.RecordConstruction"
-   {-# INLINE rule1431 #-}
-   rule1431 = \ ((_recordExpressionBindingsIcollectInstances) :: [(Name, Instance)]) ->
+   {-# INLINE rule1454 #-}
+   rule1454 = \ ((_recordExpressionBindingsIcollectInstances) :: [(Name, Instance)]) ->
      _recordExpressionBindingsIcollectInstances
-   {-# INLINE rule1432 #-}
-   rule1432 = \ ((_recordExpressionBindingsIunboundNames) :: Names) ->
+   {-# INLINE rule1455 #-}
+   rule1455 = \ ((_recordExpressionBindingsIunboundNames) :: Names) ->
      _recordExpressionBindingsIunboundNames
-   {-# INLINE rule1433 #-}
-   rule1433 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_recordExpressionBindingsIself) :: RecordExpressionBindings) ->
+   {-# INLINE rule1456 #-}
+   rule1456 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_recordExpressionBindingsIself) :: RecordExpressionBindings) ->
      Expression_RecordConstruction _rangeIself _nameIself _recordExpressionBindingsIself
-   {-# INLINE rule1434 #-}
-   rule1434 = \ _self ->
+   {-# INLINE rule1457 #-}
+   rule1457 = \ _self ->
      _self
-   {-# INLINE rule1435 #-}
-   rule1435 = \ ((_recordExpressionBindingsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule1458 #-}
+   rule1458 = \ ((_recordExpressionBindingsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _recordExpressionBindingsIcollectScopeInfos
-   {-# INLINE rule1436 #-}
-   rule1436 = \ ((_recordExpressionBindingsIcounter) :: Int) ->
+   {-# INLINE rule1459 #-}
+   rule1459 = \ ((_recordExpressionBindingsIcounter) :: Int) ->
      _recordExpressionBindingsIcounter
-   {-# INLINE rule1437 #-}
-   rule1437 = \ ((_lhsIkindErrors) :: [Error]) ->
+   {-# INLINE rule1460 #-}
+   rule1460 = \ ((_lhsIkindErrors) :: [Error]) ->
      _lhsIkindErrors
-   {-# INLINE rule1438 #-}
-   rule1438 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule1461 #-}
+   rule1461 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule1439 #-}
-   rule1439 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule1462 #-}
+   rule1462 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
-   {-# INLINE rule1440 #-}
-   rule1440 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+   {-# INLINE rule1463 #-}
+   rule1463 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
      _lhsIclassEnvironment
-   {-# INLINE rule1441 #-}
-   rule1441 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+   {-# INLINE rule1464 #-}
+   rule1464 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
      _lhsIclassMemberEnv
-   {-# INLINE rule1442 #-}
-   rule1442 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule1465 #-}
+   rule1465 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule1443 #-}
-   rule1443 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule1466 #-}
+   rule1466 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule1444 #-}
-   rule1444 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule1467 #-}
+   rule1467 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule1445 #-}
-   rule1445 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule1468 #-}
+   rule1468 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule1446 #-}
-   rule1446 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+   {-# INLINE rule1469 #-}
+   rule1469 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
      _lhsIorderedTypeSynonyms
 {-# NOINLINE sem_Expression_RecordUpdate #-}
 sem_Expression_RecordUpdate :: T_Range  -> T_Expression  -> T_RecordExpressionBindings  -> T_Expression 
@@ -8340,135 +8455,135 @@ sem_Expression_RecordUpdate arg_range_ arg_expression_ arg_recordExpressionBindi
          (T_Expression_vOut40 _expressionIcollectInstances _expressionIcollectScopeInfos _expressionIcounter _expressionIkindErrors _expressionImiscerrors _expressionIself _expressionIunboundNames _expressionIwarnings) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionOallTypeConstructors _expressionOallValueConstructors _expressionOclassEnvironment _expressionOclassMemberEnv _expressionOcollectScopeInfos _expressionOcounter _expressionOkindErrors _expressionOmiscerrors _expressionOnamesInScope _expressionOoptions _expressionOorderedTypeSynonyms _expressionOtypeConstructors _expressionOvalueConstructors _expressionOwarnings)
          (T_RecordExpressionBindings_vOut139 _recordExpressionBindingsIcollectInstances _recordExpressionBindingsIcollectScopeInfos _recordExpressionBindingsIcounter _recordExpressionBindingsIself _recordExpressionBindingsIunboundNames) = inv_RecordExpressionBindings_s140 _recordExpressionBindingsX140 (T_RecordExpressionBindings_vIn139 _recordExpressionBindingsOclassEnvironment _recordExpressionBindingsOclassMemberEnv _recordExpressionBindingsOcollectScopeInfos _recordExpressionBindingsOcounter _recordExpressionBindingsOnamesInScope _recordExpressionBindingsOoptions _recordExpressionBindingsOorderedTypeSynonyms)
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1447 _expressionIcollectInstances _recordExpressionBindingsIcollectInstances
+         _lhsOcollectInstances = rule1470 _expressionIcollectInstances _recordExpressionBindingsIcollectInstances
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1448 _expressionIunboundNames _recordExpressionBindingsIunboundNames
-         _self = rule1449 _expressionIself _rangeIself _recordExpressionBindingsIself
+         _lhsOunboundNames = rule1471 _expressionIunboundNames _recordExpressionBindingsIunboundNames
+         _self = rule1472 _expressionIself _rangeIself _recordExpressionBindingsIself
          _lhsOself :: Expression
-         _lhsOself = rule1450 _self
+         _lhsOself = rule1473 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1451 _recordExpressionBindingsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1474 _recordExpressionBindingsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1452 _recordExpressionBindingsIcounter
+         _lhsOcounter = rule1475 _recordExpressionBindingsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1453 _expressionIkindErrors
+         _lhsOkindErrors = rule1476 _expressionIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1454 _expressionImiscerrors
+         _lhsOmiscerrors = rule1477 _expressionImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1455 _expressionIwarnings
-         _expressionOallTypeConstructors = rule1456 _lhsIallTypeConstructors
-         _expressionOallValueConstructors = rule1457 _lhsIallValueConstructors
-         _expressionOclassEnvironment = rule1458 _lhsIclassEnvironment
-         _expressionOclassMemberEnv = rule1459 _lhsIclassMemberEnv
-         _expressionOcollectScopeInfos = rule1460 _lhsIcollectScopeInfos
-         _expressionOcounter = rule1461 _lhsIcounter
-         _expressionOkindErrors = rule1462 _lhsIkindErrors
-         _expressionOmiscerrors = rule1463 _lhsImiscerrors
-         _expressionOnamesInScope = rule1464 _lhsInamesInScope
-         _expressionOoptions = rule1465 _lhsIoptions
-         _expressionOorderedTypeSynonyms = rule1466 _lhsIorderedTypeSynonyms
-         _expressionOtypeConstructors = rule1467 _lhsItypeConstructors
-         _expressionOvalueConstructors = rule1468 _lhsIvalueConstructors
-         _expressionOwarnings = rule1469 _lhsIwarnings
-         _recordExpressionBindingsOclassEnvironment = rule1470 _lhsIclassEnvironment
-         _recordExpressionBindingsOclassMemberEnv = rule1471 _lhsIclassMemberEnv
-         _recordExpressionBindingsOcollectScopeInfos = rule1472 _expressionIcollectScopeInfos
-         _recordExpressionBindingsOcounter = rule1473 _expressionIcounter
-         _recordExpressionBindingsOnamesInScope = rule1474 _lhsInamesInScope
-         _recordExpressionBindingsOoptions = rule1475 _lhsIoptions
-         _recordExpressionBindingsOorderedTypeSynonyms = rule1476 _lhsIorderedTypeSynonyms
+         _lhsOwarnings = rule1478 _expressionIwarnings
+         _expressionOallTypeConstructors = rule1479 _lhsIallTypeConstructors
+         _expressionOallValueConstructors = rule1480 _lhsIallValueConstructors
+         _expressionOclassEnvironment = rule1481 _lhsIclassEnvironment
+         _expressionOclassMemberEnv = rule1482 _lhsIclassMemberEnv
+         _expressionOcollectScopeInfos = rule1483 _lhsIcollectScopeInfos
+         _expressionOcounter = rule1484 _lhsIcounter
+         _expressionOkindErrors = rule1485 _lhsIkindErrors
+         _expressionOmiscerrors = rule1486 _lhsImiscerrors
+         _expressionOnamesInScope = rule1487 _lhsInamesInScope
+         _expressionOoptions = rule1488 _lhsIoptions
+         _expressionOorderedTypeSynonyms = rule1489 _lhsIorderedTypeSynonyms
+         _expressionOtypeConstructors = rule1490 _lhsItypeConstructors
+         _expressionOvalueConstructors = rule1491 _lhsIvalueConstructors
+         _expressionOwarnings = rule1492 _lhsIwarnings
+         _recordExpressionBindingsOclassEnvironment = rule1493 _lhsIclassEnvironment
+         _recordExpressionBindingsOclassMemberEnv = rule1494 _lhsIclassMemberEnv
+         _recordExpressionBindingsOcollectScopeInfos = rule1495 _expressionIcollectScopeInfos
+         _recordExpressionBindingsOcounter = rule1496 _expressionIcounter
+         _recordExpressionBindingsOnamesInScope = rule1497 _lhsInamesInScope
+         _recordExpressionBindingsOoptions = rule1498 _lhsIoptions
+         _recordExpressionBindingsOorderedTypeSynonyms = rule1499 _lhsIorderedTypeSynonyms
          __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule1447 #-}
-   rule1447 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ((_recordExpressionBindingsIcollectInstances) :: [(Name, Instance)]) ->
-     _expressionIcollectInstances  ++  _recordExpressionBindingsIcollectInstances
-   {-# INLINE rule1448 #-}
-   rule1448 = \ ((_expressionIunboundNames) :: Names) ((_recordExpressionBindingsIunboundNames) :: Names) ->
-     _expressionIunboundNames ++ _recordExpressionBindingsIunboundNames
-   {-# INLINE rule1449 #-}
-   rule1449 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ((_recordExpressionBindingsIself) :: RecordExpressionBindings) ->
-     Expression_RecordUpdate _rangeIself _expressionIself _recordExpressionBindingsIself
-   {-# INLINE rule1450 #-}
-   rule1450 = \ _self ->
-     _self
-   {-# INLINE rule1451 #-}
-   rule1451 = \ ((_recordExpressionBindingsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _recordExpressionBindingsIcollectScopeInfos
-   {-# INLINE rule1452 #-}
-   rule1452 = \ ((_recordExpressionBindingsIcounter) :: Int) ->
-     _recordExpressionBindingsIcounter
-   {-# INLINE rule1453 #-}
-   rule1453 = \ ((_expressionIkindErrors) :: [Error]) ->
-     _expressionIkindErrors
-   {-# INLINE rule1454 #-}
-   rule1454 = \ ((_expressionImiscerrors) :: [Error]) ->
-     _expressionImiscerrors
-   {-# INLINE rule1455 #-}
-   rule1455 = \ ((_expressionIwarnings) :: [Warning]) ->
-     _expressionIwarnings
-   {-# INLINE rule1456 #-}
-   rule1456 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1457 #-}
-   rule1457 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1458 #-}
-   rule1458 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule1459 #-}
-   rule1459 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule1460 #-}
-   rule1460 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule1461 #-}
-   rule1461 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule1462 #-}
-   rule1462 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule1463 #-}
-   rule1463 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule1464 #-}
-   rule1464 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule1465 #-}
-   rule1465 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule1466 #-}
-   rule1466 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule1467 #-}
-   rule1467 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule1468 #-}
-   rule1468 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule1469 #-}
-   rule1469 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
    {-# INLINE rule1470 #-}
-   rule1470 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
+   rule1470 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ((_recordExpressionBindingsIcollectInstances) :: [(Name, Instance)]) ->
+     _expressionIcollectInstances  ++  _recordExpressionBindingsIcollectInstances
    {-# INLINE rule1471 #-}
-   rule1471 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
+   rule1471 = \ ((_expressionIunboundNames) :: Names) ((_recordExpressionBindingsIunboundNames) :: Names) ->
+     _expressionIunboundNames ++ _recordExpressionBindingsIunboundNames
    {-# INLINE rule1472 #-}
-   rule1472 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _expressionIcollectScopeInfos
+   rule1472 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ((_recordExpressionBindingsIself) :: RecordExpressionBindings) ->
+     Expression_RecordUpdate _rangeIself _expressionIself _recordExpressionBindingsIself
    {-# INLINE rule1473 #-}
-   rule1473 = \ ((_expressionIcounter) :: Int) ->
-     _expressionIcounter
+   rule1473 = \ _self ->
+     _self
    {-# INLINE rule1474 #-}
-   rule1474 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
+   rule1474 = \ ((_recordExpressionBindingsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _recordExpressionBindingsIcollectScopeInfos
    {-# INLINE rule1475 #-}
-   rule1475 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule1475 = \ ((_recordExpressionBindingsIcounter) :: Int) ->
+     _recordExpressionBindingsIcounter
    {-# INLINE rule1476 #-}
-   rule1476 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+   rule1476 = \ ((_expressionIkindErrors) :: [Error]) ->
+     _expressionIkindErrors
+   {-# INLINE rule1477 #-}
+   rule1477 = \ ((_expressionImiscerrors) :: [Error]) ->
+     _expressionImiscerrors
+   {-# INLINE rule1478 #-}
+   rule1478 = \ ((_expressionIwarnings) :: [Warning]) ->
+     _expressionIwarnings
+   {-# INLINE rule1479 #-}
+   rule1479 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1480 #-}
+   rule1480 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1481 #-}
+   rule1481 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1482 #-}
+   rule1482 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1483 #-}
+   rule1483 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule1484 #-}
+   rule1484 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1485 #-}
+   rule1485 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule1486 #-}
+   rule1486 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1487 #-}
+   rule1487 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1488 #-}
+   rule1488 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1489 #-}
+   rule1489 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1490 #-}
+   rule1490 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1491 #-}
+   rule1491 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1492 #-}
+   rule1492 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule1493 #-}
+   rule1493 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1494 #-}
+   rule1494 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1495 #-}
+   rule1495 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _expressionIcollectScopeInfos
+   {-# INLINE rule1496 #-}
+   rule1496 = \ ((_expressionIcounter) :: Int) ->
+     _expressionIcounter
+   {-# INLINE rule1497 #-}
+   rule1497 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1498 #-}
+   rule1498 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1499 #-}
+   rule1499 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
      _lhsIorderedTypeSynonyms
 {-# NOINLINE sem_Expression_Enum #-}
 sem_Expression_Enum :: T_Range  -> T_Expression  -> T_MaybeExpression  -> T_MaybeExpression  -> T_Expression 
@@ -8486,292 +8601,178 @@ sem_Expression_Enum arg_range_ arg_from_ arg_then_ arg_to_ = T_Expression (retur
          (T_MaybeExpression_vOut94 _thenIcollectInstances _thenIcollectScopeInfos _thenIcounter _thenIkindErrors _thenImiscerrors _thenIself _thenIunboundNames _thenIwarnings) = inv_MaybeExpression_s95 _thenX95 (T_MaybeExpression_vIn94 _thenOallTypeConstructors _thenOallValueConstructors _thenOclassEnvironment _thenOclassMemberEnv _thenOcollectScopeInfos _thenOcounter _thenOkindErrors _thenOmiscerrors _thenOnamesInScope _thenOoptions _thenOorderedTypeSynonyms _thenOtypeConstructors _thenOvalueConstructors _thenOwarnings)
          (T_MaybeExpression_vOut94 _toIcollectInstances _toIcollectScopeInfos _toIcounter _toIkindErrors _toImiscerrors _toIself _toIunboundNames _toIwarnings) = inv_MaybeExpression_s95 _toX95 (T_MaybeExpression_vIn94 _toOallTypeConstructors _toOallValueConstructors _toOclassEnvironment _toOclassMemberEnv _toOcollectScopeInfos _toOcounter _toOkindErrors _toOmiscerrors _toOnamesInScope _toOoptions _toOorderedTypeSynonyms _toOtypeConstructors _toOvalueConstructors _toOwarnings)
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1477 _fromIcollectInstances _thenIcollectInstances _toIcollectInstances
+         _lhsOcollectInstances = rule1500 _fromIcollectInstances _thenIcollectInstances _toIcollectInstances
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1478 _fromIunboundNames _thenIunboundNames _toIunboundNames
-         _self = rule1479 _fromIself _rangeIself _thenIself _toIself
+         _lhsOunboundNames = rule1501 _fromIunboundNames _thenIunboundNames _toIunboundNames
+         _self = rule1502 _fromIself _rangeIself _thenIself _toIself
          _lhsOself :: Expression
-         _lhsOself = rule1480 _self
+         _lhsOself = rule1503 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1481 _toIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1504 _toIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1482 _toIcounter
+         _lhsOcounter = rule1505 _toIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1483 _toIkindErrors
+         _lhsOkindErrors = rule1506 _toIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1484 _toImiscerrors
+         _lhsOmiscerrors = rule1507 _toImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1485 _toIwarnings
-         _fromOallTypeConstructors = rule1486 _lhsIallTypeConstructors
-         _fromOallValueConstructors = rule1487 _lhsIallValueConstructors
-         _fromOclassEnvironment = rule1488 _lhsIclassEnvironment
-         _fromOclassMemberEnv = rule1489 _lhsIclassMemberEnv
-         _fromOcollectScopeInfos = rule1490 _lhsIcollectScopeInfos
-         _fromOcounter = rule1491 _lhsIcounter
-         _fromOkindErrors = rule1492 _lhsIkindErrors
-         _fromOmiscerrors = rule1493 _lhsImiscerrors
-         _fromOnamesInScope = rule1494 _lhsInamesInScope
-         _fromOoptions = rule1495 _lhsIoptions
-         _fromOorderedTypeSynonyms = rule1496 _lhsIorderedTypeSynonyms
-         _fromOtypeConstructors = rule1497 _lhsItypeConstructors
-         _fromOvalueConstructors = rule1498 _lhsIvalueConstructors
-         _fromOwarnings = rule1499 _lhsIwarnings
-         _thenOallTypeConstructors = rule1500 _lhsIallTypeConstructors
-         _thenOallValueConstructors = rule1501 _lhsIallValueConstructors
-         _thenOclassEnvironment = rule1502 _lhsIclassEnvironment
-         _thenOclassMemberEnv = rule1503 _lhsIclassMemberEnv
-         _thenOcollectScopeInfos = rule1504 _fromIcollectScopeInfos
-         _thenOcounter = rule1505 _fromIcounter
-         _thenOkindErrors = rule1506 _fromIkindErrors
-         _thenOmiscerrors = rule1507 _fromImiscerrors
-         _thenOnamesInScope = rule1508 _lhsInamesInScope
-         _thenOoptions = rule1509 _lhsIoptions
-         _thenOorderedTypeSynonyms = rule1510 _lhsIorderedTypeSynonyms
-         _thenOtypeConstructors = rule1511 _lhsItypeConstructors
-         _thenOvalueConstructors = rule1512 _lhsIvalueConstructors
-         _thenOwarnings = rule1513 _fromIwarnings
-         _toOallTypeConstructors = rule1514 _lhsIallTypeConstructors
-         _toOallValueConstructors = rule1515 _lhsIallValueConstructors
-         _toOclassEnvironment = rule1516 _lhsIclassEnvironment
-         _toOclassMemberEnv = rule1517 _lhsIclassMemberEnv
-         _toOcollectScopeInfos = rule1518 _thenIcollectScopeInfos
-         _toOcounter = rule1519 _thenIcounter
-         _toOkindErrors = rule1520 _thenIkindErrors
-         _toOmiscerrors = rule1521 _thenImiscerrors
-         _toOnamesInScope = rule1522 _lhsInamesInScope
-         _toOoptions = rule1523 _lhsIoptions
-         _toOorderedTypeSynonyms = rule1524 _lhsIorderedTypeSynonyms
-         _toOtypeConstructors = rule1525 _lhsItypeConstructors
-         _toOvalueConstructors = rule1526 _lhsIvalueConstructors
-         _toOwarnings = rule1527 _thenIwarnings
+         _lhsOwarnings = rule1508 _toIwarnings
+         _fromOallTypeConstructors = rule1509 _lhsIallTypeConstructors
+         _fromOallValueConstructors = rule1510 _lhsIallValueConstructors
+         _fromOclassEnvironment = rule1511 _lhsIclassEnvironment
+         _fromOclassMemberEnv = rule1512 _lhsIclassMemberEnv
+         _fromOcollectScopeInfos = rule1513 _lhsIcollectScopeInfos
+         _fromOcounter = rule1514 _lhsIcounter
+         _fromOkindErrors = rule1515 _lhsIkindErrors
+         _fromOmiscerrors = rule1516 _lhsImiscerrors
+         _fromOnamesInScope = rule1517 _lhsInamesInScope
+         _fromOoptions = rule1518 _lhsIoptions
+         _fromOorderedTypeSynonyms = rule1519 _lhsIorderedTypeSynonyms
+         _fromOtypeConstructors = rule1520 _lhsItypeConstructors
+         _fromOvalueConstructors = rule1521 _lhsIvalueConstructors
+         _fromOwarnings = rule1522 _lhsIwarnings
+         _thenOallTypeConstructors = rule1523 _lhsIallTypeConstructors
+         _thenOallValueConstructors = rule1524 _lhsIallValueConstructors
+         _thenOclassEnvironment = rule1525 _lhsIclassEnvironment
+         _thenOclassMemberEnv = rule1526 _lhsIclassMemberEnv
+         _thenOcollectScopeInfos = rule1527 _fromIcollectScopeInfos
+         _thenOcounter = rule1528 _fromIcounter
+         _thenOkindErrors = rule1529 _fromIkindErrors
+         _thenOmiscerrors = rule1530 _fromImiscerrors
+         _thenOnamesInScope = rule1531 _lhsInamesInScope
+         _thenOoptions = rule1532 _lhsIoptions
+         _thenOorderedTypeSynonyms = rule1533 _lhsIorderedTypeSynonyms
+         _thenOtypeConstructors = rule1534 _lhsItypeConstructors
+         _thenOvalueConstructors = rule1535 _lhsIvalueConstructors
+         _thenOwarnings = rule1536 _fromIwarnings
+         _toOallTypeConstructors = rule1537 _lhsIallTypeConstructors
+         _toOallValueConstructors = rule1538 _lhsIallValueConstructors
+         _toOclassEnvironment = rule1539 _lhsIclassEnvironment
+         _toOclassMemberEnv = rule1540 _lhsIclassMemberEnv
+         _toOcollectScopeInfos = rule1541 _thenIcollectScopeInfos
+         _toOcounter = rule1542 _thenIcounter
+         _toOkindErrors = rule1543 _thenIkindErrors
+         _toOmiscerrors = rule1544 _thenImiscerrors
+         _toOnamesInScope = rule1545 _lhsInamesInScope
+         _toOoptions = rule1546 _lhsIoptions
+         _toOorderedTypeSynonyms = rule1547 _lhsIorderedTypeSynonyms
+         _toOtypeConstructors = rule1548 _lhsItypeConstructors
+         _toOvalueConstructors = rule1549 _lhsIvalueConstructors
+         _toOwarnings = rule1550 _thenIwarnings
          __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule1477 #-}
-   rule1477 = \ ((_fromIcollectInstances) :: [(Name, Instance)]) ((_thenIcollectInstances) :: [(Name, Instance)]) ((_toIcollectInstances) :: [(Name, Instance)]) ->
-     _fromIcollectInstances  ++  _thenIcollectInstances  ++  _toIcollectInstances
-   {-# INLINE rule1478 #-}
-   rule1478 = \ ((_fromIunboundNames) :: Names) ((_thenIunboundNames) :: Names) ((_toIunboundNames) :: Names) ->
-     _fromIunboundNames ++ _thenIunboundNames ++ _toIunboundNames
-   {-# INLINE rule1479 #-}
-   rule1479 = \ ((_fromIself) :: Expression) ((_rangeIself) :: Range) ((_thenIself) :: MaybeExpression) ((_toIself) :: MaybeExpression) ->
-     Expression_Enum _rangeIself _fromIself _thenIself _toIself
-   {-# INLINE rule1480 #-}
-   rule1480 = \ _self ->
-     _self
-   {-# INLINE rule1481 #-}
-   rule1481 = \ ((_toIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _toIcollectScopeInfos
-   {-# INLINE rule1482 #-}
-   rule1482 = \ ((_toIcounter) :: Int) ->
-     _toIcounter
-   {-# INLINE rule1483 #-}
-   rule1483 = \ ((_toIkindErrors) :: [Error]) ->
-     _toIkindErrors
-   {-# INLINE rule1484 #-}
-   rule1484 = \ ((_toImiscerrors) :: [Error]) ->
-     _toImiscerrors
-   {-# INLINE rule1485 #-}
-   rule1485 = \ ((_toIwarnings) :: [Warning]) ->
-     _toIwarnings
-   {-# INLINE rule1486 #-}
-   rule1486 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1487 #-}
-   rule1487 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1488 #-}
-   rule1488 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule1489 #-}
-   rule1489 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule1490 #-}
-   rule1490 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule1491 #-}
-   rule1491 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule1492 #-}
-   rule1492 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule1493 #-}
-   rule1493 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule1494 #-}
-   rule1494 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule1495 #-}
-   rule1495 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule1496 #-}
-   rule1496 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule1497 #-}
-   rule1497 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule1498 #-}
-   rule1498 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule1499 #-}
-   rule1499 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
    {-# INLINE rule1500 #-}
-   rule1500 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
+   rule1500 = \ ((_fromIcollectInstances) :: [(Name, Instance)]) ((_thenIcollectInstances) :: [(Name, Instance)]) ((_toIcollectInstances) :: [(Name, Instance)]) ->
+     _fromIcollectInstances  ++  _thenIcollectInstances  ++  _toIcollectInstances
    {-# INLINE rule1501 #-}
-   rule1501 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
+   rule1501 = \ ((_fromIunboundNames) :: Names) ((_thenIunboundNames) :: Names) ((_toIunboundNames) :: Names) ->
+     _fromIunboundNames ++ _thenIunboundNames ++ _toIunboundNames
    {-# INLINE rule1502 #-}
-   rule1502 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
+   rule1502 = \ ((_fromIself) :: Expression) ((_rangeIself) :: Range) ((_thenIself) :: MaybeExpression) ((_toIself) :: MaybeExpression) ->
+     Expression_Enum _rangeIself _fromIself _thenIself _toIself
    {-# INLINE rule1503 #-}
-   rule1503 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule1504 #-}
-   rule1504 = \ ((_fromIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _fromIcollectScopeInfos
-   {-# INLINE rule1505 #-}
-   rule1505 = \ ((_fromIcounter) :: Int) ->
-     _fromIcounter
-   {-# INLINE rule1506 #-}
-   rule1506 = \ ((_fromIkindErrors) :: [Error]) ->
-     _fromIkindErrors
-   {-# INLINE rule1507 #-}
-   rule1507 = \ ((_fromImiscerrors) :: [Error]) ->
-     _fromImiscerrors
-   {-# INLINE rule1508 #-}
-   rule1508 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule1509 #-}
-   rule1509 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule1510 #-}
-   rule1510 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule1511 #-}
-   rule1511 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule1512 #-}
-   rule1512 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule1513 #-}
-   rule1513 = \ ((_fromIwarnings) :: [Warning]) ->
-     _fromIwarnings
-   {-# INLINE rule1514 #-}
-   rule1514 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1515 #-}
-   rule1515 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1516 #-}
-   rule1516 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule1517 #-}
-   rule1517 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule1518 #-}
-   rule1518 = \ ((_thenIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _thenIcollectScopeInfos
-   {-# INLINE rule1519 #-}
-   rule1519 = \ ((_thenIcounter) :: Int) ->
-     _thenIcounter
-   {-# INLINE rule1520 #-}
-   rule1520 = \ ((_thenIkindErrors) :: [Error]) ->
-     _thenIkindErrors
-   {-# INLINE rule1521 #-}
-   rule1521 = \ ((_thenImiscerrors) :: [Error]) ->
-     _thenImiscerrors
-   {-# INLINE rule1522 #-}
-   rule1522 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule1523 #-}
-   rule1523 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule1524 #-}
-   rule1524 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule1525 #-}
-   rule1525 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule1526 #-}
-   rule1526 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule1527 #-}
-   rule1527 = \ ((_thenIwarnings) :: [Warning]) ->
-     _thenIwarnings
-{-# NOINLINE sem_Expression_Negate #-}
-sem_Expression_Negate :: T_Range  -> T_Expression  -> T_Expression 
-sem_Expression_Negate arg_range_ arg_expression_ = T_Expression (return st41) where
-   {-# NOINLINE st41 #-}
-   st41 = let
-      v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIallTypeConstructors _lhsIallValueConstructors _lhsIclassEnvironment _lhsIclassMemberEnv _lhsIcollectScopeInfos _lhsIcounter _lhsIkindErrors _lhsImiscerrors _lhsInamesInScope _lhsIoptions _lhsIorderedTypeSynonyms _lhsItypeConstructors _lhsIvalueConstructors _lhsIwarnings) -> ( let
-         _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
-         _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
-         (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         (T_Expression_vOut40 _expressionIcollectInstances _expressionIcollectScopeInfos _expressionIcounter _expressionIkindErrors _expressionImiscerrors _expressionIself _expressionIunboundNames _expressionIwarnings) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionOallTypeConstructors _expressionOallValueConstructors _expressionOclassEnvironment _expressionOclassMemberEnv _expressionOcollectScopeInfos _expressionOcounter _expressionOkindErrors _expressionOmiscerrors _expressionOnamesInScope _expressionOoptions _expressionOorderedTypeSynonyms _expressionOtypeConstructors _expressionOvalueConstructors _expressionOwarnings)
-         _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1528 _expressionIcollectInstances
-         _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1529 _expressionIunboundNames
-         _self = rule1530 _expressionIself _rangeIself
-         _lhsOself :: Expression
-         _lhsOself = rule1531 _self
-         _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1532 _expressionIcollectScopeInfos
-         _lhsOcounter :: Int
-         _lhsOcounter = rule1533 _expressionIcounter
-         _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1534 _expressionIkindErrors
-         _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1535 _expressionImiscerrors
-         _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1536 _expressionIwarnings
-         _expressionOallTypeConstructors = rule1537 _lhsIallTypeConstructors
-         _expressionOallValueConstructors = rule1538 _lhsIallValueConstructors
-         _expressionOclassEnvironment = rule1539 _lhsIclassEnvironment
-         _expressionOclassMemberEnv = rule1540 _lhsIclassMemberEnv
-         _expressionOcollectScopeInfos = rule1541 _lhsIcollectScopeInfos
-         _expressionOcounter = rule1542 _lhsIcounter
-         _expressionOkindErrors = rule1543 _lhsIkindErrors
-         _expressionOmiscerrors = rule1544 _lhsImiscerrors
-         _expressionOnamesInScope = rule1545 _lhsInamesInScope
-         _expressionOoptions = rule1546 _lhsIoptions
-         _expressionOorderedTypeSynonyms = rule1547 _lhsIorderedTypeSynonyms
-         _expressionOtypeConstructors = rule1548 _lhsItypeConstructors
-         _expressionOvalueConstructors = rule1549 _lhsIvalueConstructors
-         _expressionOwarnings = rule1550 _lhsIwarnings
-         __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
-         in __result_ )
-     in C_Expression_s41 v40
-   {-# INLINE rule1528 #-}
-   rule1528 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
-     _expressionIcollectInstances
-   {-# INLINE rule1529 #-}
-   rule1529 = \ ((_expressionIunboundNames) :: Names) ->
-     _expressionIunboundNames
-   {-# INLINE rule1530 #-}
-   rule1530 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
-     Expression_Negate _rangeIself _expressionIself
-   {-# INLINE rule1531 #-}
-   rule1531 = \ _self ->
+   rule1503 = \ _self ->
      _self
+   {-# INLINE rule1504 #-}
+   rule1504 = \ ((_toIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _toIcollectScopeInfos
+   {-# INLINE rule1505 #-}
+   rule1505 = \ ((_toIcounter) :: Int) ->
+     _toIcounter
+   {-# INLINE rule1506 #-}
+   rule1506 = \ ((_toIkindErrors) :: [Error]) ->
+     _toIkindErrors
+   {-# INLINE rule1507 #-}
+   rule1507 = \ ((_toImiscerrors) :: [Error]) ->
+     _toImiscerrors
+   {-# INLINE rule1508 #-}
+   rule1508 = \ ((_toIwarnings) :: [Warning]) ->
+     _toIwarnings
+   {-# INLINE rule1509 #-}
+   rule1509 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1510 #-}
+   rule1510 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1511 #-}
+   rule1511 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1512 #-}
+   rule1512 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1513 #-}
+   rule1513 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule1514 #-}
+   rule1514 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1515 #-}
+   rule1515 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule1516 #-}
+   rule1516 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1517 #-}
+   rule1517 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1518 #-}
+   rule1518 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1519 #-}
+   rule1519 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1520 #-}
+   rule1520 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1521 #-}
+   rule1521 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1522 #-}
+   rule1522 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule1523 #-}
+   rule1523 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1524 #-}
+   rule1524 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1525 #-}
+   rule1525 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1526 #-}
+   rule1526 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1527 #-}
+   rule1527 = \ ((_fromIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _fromIcollectScopeInfos
+   {-# INLINE rule1528 #-}
+   rule1528 = \ ((_fromIcounter) :: Int) ->
+     _fromIcounter
+   {-# INLINE rule1529 #-}
+   rule1529 = \ ((_fromIkindErrors) :: [Error]) ->
+     _fromIkindErrors
+   {-# INLINE rule1530 #-}
+   rule1530 = \ ((_fromImiscerrors) :: [Error]) ->
+     _fromImiscerrors
+   {-# INLINE rule1531 #-}
+   rule1531 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
    {-# INLINE rule1532 #-}
-   rule1532 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _expressionIcollectScopeInfos
+   rule1532 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
    {-# INLINE rule1533 #-}
-   rule1533 = \ ((_expressionIcounter) :: Int) ->
-     _expressionIcounter
+   rule1533 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
    {-# INLINE rule1534 #-}
-   rule1534 = \ ((_expressionIkindErrors) :: [Error]) ->
-     _expressionIkindErrors
+   rule1534 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
    {-# INLINE rule1535 #-}
-   rule1535 = \ ((_expressionImiscerrors) :: [Error]) ->
-     _expressionImiscerrors
+   rule1535 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
    {-# INLINE rule1536 #-}
-   rule1536 = \ ((_expressionIwarnings) :: [Warning]) ->
-     _expressionIwarnings
+   rule1536 = \ ((_fromIwarnings) :: [Warning]) ->
+     _fromIwarnings
    {-# INLINE rule1537 #-}
    rule1537 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
@@ -8785,17 +8786,17 @@ sem_Expression_Negate arg_range_ arg_expression_ = T_Expression (return st41) wh
    rule1540 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
      _lhsIclassMemberEnv
    {-# INLINE rule1541 #-}
-   rule1541 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
+   rule1541 = \ ((_thenIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _thenIcollectScopeInfos
    {-# INLINE rule1542 #-}
-   rule1542 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
+   rule1542 = \ ((_thenIcounter) :: Int) ->
+     _thenIcounter
    {-# INLINE rule1543 #-}
-   rule1543 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
+   rule1543 = \ ((_thenIkindErrors) :: [Error]) ->
+     _thenIkindErrors
    {-# INLINE rule1544 #-}
-   rule1544 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
+   rule1544 = \ ((_thenImiscerrors) :: [Error]) ->
+     _thenImiscerrors
    {-# INLINE rule1545 #-}
    rule1545 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
@@ -8812,11 +8813,11 @@ sem_Expression_Negate arg_range_ arg_expression_ = T_Expression (return st41) wh
    rule1549 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
      _lhsIvalueConstructors
    {-# INLINE rule1550 #-}
-   rule1550 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
-{-# NOINLINE sem_Expression_NegateFloat #-}
-sem_Expression_NegateFloat :: T_Range  -> T_Expression  -> T_Expression 
-sem_Expression_NegateFloat arg_range_ arg_expression_ = T_Expression (return st41) where
+   rule1550 = \ ((_thenIwarnings) :: [Warning]) ->
+     _thenIwarnings
+{-# NOINLINE sem_Expression_Negate #-}
+sem_Expression_Negate :: T_Range  -> T_Expression  -> T_Expression 
+sem_Expression_Negate arg_range_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
    st41 = let
       v40 :: T_Expression_v40 
@@ -8867,7 +8868,7 @@ sem_Expression_NegateFloat arg_range_ arg_expression_ = T_Expression (return st4
      _expressionIunboundNames
    {-# INLINE rule1553 #-}
    rule1553 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
-     Expression_NegateFloat _rangeIself _expressionIself
+     Expression_Negate _rangeIself _expressionIself
    {-# INLINE rule1554 #-}
    rule1554 = \ _self ->
      _self
@@ -8928,6 +8929,120 @@ sem_Expression_NegateFloat arg_range_ arg_expression_ = T_Expression (return st4
    {-# INLINE rule1573 #-}
    rule1573 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
+{-# NOINLINE sem_Expression_NegateFloat #-}
+sem_Expression_NegateFloat :: T_Range  -> T_Expression  -> T_Expression 
+sem_Expression_NegateFloat arg_range_ arg_expression_ = T_Expression (return st41) where
+   {-# NOINLINE st41 #-}
+   st41 = let
+      v40 :: T_Expression_v40 
+      v40 = \ (T_Expression_vIn40 _lhsIallTypeConstructors _lhsIallValueConstructors _lhsIclassEnvironment _lhsIclassMemberEnv _lhsIcollectScopeInfos _lhsIcounter _lhsIkindErrors _lhsImiscerrors _lhsInamesInScope _lhsIoptions _lhsIorderedTypeSynonyms _lhsItypeConstructors _lhsIvalueConstructors _lhsIwarnings) -> ( let
+         _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
+         _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
+         (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
+         (T_Expression_vOut40 _expressionIcollectInstances _expressionIcollectScopeInfos _expressionIcounter _expressionIkindErrors _expressionImiscerrors _expressionIself _expressionIunboundNames _expressionIwarnings) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionOallTypeConstructors _expressionOallValueConstructors _expressionOclassEnvironment _expressionOclassMemberEnv _expressionOcollectScopeInfos _expressionOcounter _expressionOkindErrors _expressionOmiscerrors _expressionOnamesInScope _expressionOoptions _expressionOorderedTypeSynonyms _expressionOtypeConstructors _expressionOvalueConstructors _expressionOwarnings)
+         _lhsOcollectInstances :: [(Name, Instance)]
+         _lhsOcollectInstances = rule1574 _expressionIcollectInstances
+         _lhsOunboundNames :: Names
+         _lhsOunboundNames = rule1575 _expressionIunboundNames
+         _self = rule1576 _expressionIself _rangeIself
+         _lhsOself :: Expression
+         _lhsOself = rule1577 _self
+         _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
+         _lhsOcollectScopeInfos = rule1578 _expressionIcollectScopeInfos
+         _lhsOcounter :: Int
+         _lhsOcounter = rule1579 _expressionIcounter
+         _lhsOkindErrors :: [Error]
+         _lhsOkindErrors = rule1580 _expressionIkindErrors
+         _lhsOmiscerrors :: [Error]
+         _lhsOmiscerrors = rule1581 _expressionImiscerrors
+         _lhsOwarnings :: [Warning]
+         _lhsOwarnings = rule1582 _expressionIwarnings
+         _expressionOallTypeConstructors = rule1583 _lhsIallTypeConstructors
+         _expressionOallValueConstructors = rule1584 _lhsIallValueConstructors
+         _expressionOclassEnvironment = rule1585 _lhsIclassEnvironment
+         _expressionOclassMemberEnv = rule1586 _lhsIclassMemberEnv
+         _expressionOcollectScopeInfos = rule1587 _lhsIcollectScopeInfos
+         _expressionOcounter = rule1588 _lhsIcounter
+         _expressionOkindErrors = rule1589 _lhsIkindErrors
+         _expressionOmiscerrors = rule1590 _lhsImiscerrors
+         _expressionOnamesInScope = rule1591 _lhsInamesInScope
+         _expressionOoptions = rule1592 _lhsIoptions
+         _expressionOorderedTypeSynonyms = rule1593 _lhsIorderedTypeSynonyms
+         _expressionOtypeConstructors = rule1594 _lhsItypeConstructors
+         _expressionOvalueConstructors = rule1595 _lhsIvalueConstructors
+         _expressionOwarnings = rule1596 _lhsIwarnings
+         __result_ = T_Expression_vOut40 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
+         in __result_ )
+     in C_Expression_s41 v40
+   {-# INLINE rule1574 #-}
+   rule1574 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
+     _expressionIcollectInstances
+   {-# INLINE rule1575 #-}
+   rule1575 = \ ((_expressionIunboundNames) :: Names) ->
+     _expressionIunboundNames
+   {-# INLINE rule1576 #-}
+   rule1576 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
+     Expression_NegateFloat _rangeIself _expressionIself
+   {-# INLINE rule1577 #-}
+   rule1577 = \ _self ->
+     _self
+   {-# INLINE rule1578 #-}
+   rule1578 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _expressionIcollectScopeInfos
+   {-# INLINE rule1579 #-}
+   rule1579 = \ ((_expressionIcounter) :: Int) ->
+     _expressionIcounter
+   {-# INLINE rule1580 #-}
+   rule1580 = \ ((_expressionIkindErrors) :: [Error]) ->
+     _expressionIkindErrors
+   {-# INLINE rule1581 #-}
+   rule1581 = \ ((_expressionImiscerrors) :: [Error]) ->
+     _expressionImiscerrors
+   {-# INLINE rule1582 #-}
+   rule1582 = \ ((_expressionIwarnings) :: [Warning]) ->
+     _expressionIwarnings
+   {-# INLINE rule1583 #-}
+   rule1583 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1584 #-}
+   rule1584 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1585 #-}
+   rule1585 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1586 #-}
+   rule1586 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1587 #-}
+   rule1587 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule1588 #-}
+   rule1588 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1589 #-}
+   rule1589 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule1590 #-}
+   rule1590 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1591 #-}
+   rule1591 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1592 #-}
+   rule1592 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1593 #-}
+   rule1593 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1594 #-}
+   rule1594 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1595 #-}
+   rule1595 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1596 #-}
+   rule1596 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
 
 -- Expressions -------------------------------------------------
 -- wrapper
@@ -8971,163 +9086,163 @@ sem_Expressions_Cons arg_hd_ arg_tl_ = T_Expressions (return st44) where
          (T_Expression_vOut40 _hdIcollectInstances _hdIcollectScopeInfos _hdIcounter _hdIkindErrors _hdImiscerrors _hdIself _hdIunboundNames _hdIwarnings) = inv_Expression_s41 _hdX41 (T_Expression_vIn40 _hdOallTypeConstructors _hdOallValueConstructors _hdOclassEnvironment _hdOclassMemberEnv _hdOcollectScopeInfos _hdOcounter _hdOkindErrors _hdOmiscerrors _hdOnamesInScope _hdOoptions _hdOorderedTypeSynonyms _hdOtypeConstructors _hdOvalueConstructors _hdOwarnings)
          (T_Expressions_vOut43 _tlIcollectInstances _tlIcollectScopeInfos _tlIcounter _tlIkindErrors _tlImiscerrors _tlIself _tlIunboundNames _tlIwarnings) = inv_Expressions_s44 _tlX44 (T_Expressions_vIn43 _tlOallTypeConstructors _tlOallValueConstructors _tlOclassEnvironment _tlOclassMemberEnv _tlOcollectScopeInfos _tlOcounter _tlOkindErrors _tlOmiscerrors _tlOnamesInScope _tlOoptions _tlOorderedTypeSynonyms _tlOtypeConstructors _tlOvalueConstructors _tlOwarnings)
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1574 _hdIcollectInstances _tlIcollectInstances
+         _lhsOcollectInstances = rule1597 _hdIcollectInstances _tlIcollectInstances
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1575 _hdIunboundNames _tlIunboundNames
-         _self = rule1576 _hdIself _tlIself
+         _lhsOunboundNames = rule1598 _hdIunboundNames _tlIunboundNames
+         _self = rule1599 _hdIself _tlIself
          _lhsOself :: Expressions
-         _lhsOself = rule1577 _self
+         _lhsOself = rule1600 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1578 _tlIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1601 _tlIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1579 _tlIcounter
+         _lhsOcounter = rule1602 _tlIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1580 _tlIkindErrors
+         _lhsOkindErrors = rule1603 _tlIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1581 _tlImiscerrors
+         _lhsOmiscerrors = rule1604 _tlImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1582 _tlIwarnings
-         _hdOallTypeConstructors = rule1583 _lhsIallTypeConstructors
-         _hdOallValueConstructors = rule1584 _lhsIallValueConstructors
-         _hdOclassEnvironment = rule1585 _lhsIclassEnvironment
-         _hdOclassMemberEnv = rule1586 _lhsIclassMemberEnv
-         _hdOcollectScopeInfos = rule1587 _lhsIcollectScopeInfos
-         _hdOcounter = rule1588 _lhsIcounter
-         _hdOkindErrors = rule1589 _lhsIkindErrors
-         _hdOmiscerrors = rule1590 _lhsImiscerrors
-         _hdOnamesInScope = rule1591 _lhsInamesInScope
-         _hdOoptions = rule1592 _lhsIoptions
-         _hdOorderedTypeSynonyms = rule1593 _lhsIorderedTypeSynonyms
-         _hdOtypeConstructors = rule1594 _lhsItypeConstructors
-         _hdOvalueConstructors = rule1595 _lhsIvalueConstructors
-         _hdOwarnings = rule1596 _lhsIwarnings
-         _tlOallTypeConstructors = rule1597 _lhsIallTypeConstructors
-         _tlOallValueConstructors = rule1598 _lhsIallValueConstructors
-         _tlOclassEnvironment = rule1599 _lhsIclassEnvironment
-         _tlOclassMemberEnv = rule1600 _lhsIclassMemberEnv
-         _tlOcollectScopeInfos = rule1601 _hdIcollectScopeInfos
-         _tlOcounter = rule1602 _hdIcounter
-         _tlOkindErrors = rule1603 _hdIkindErrors
-         _tlOmiscerrors = rule1604 _hdImiscerrors
-         _tlOnamesInScope = rule1605 _lhsInamesInScope
-         _tlOoptions = rule1606 _lhsIoptions
-         _tlOorderedTypeSynonyms = rule1607 _lhsIorderedTypeSynonyms
-         _tlOtypeConstructors = rule1608 _lhsItypeConstructors
-         _tlOvalueConstructors = rule1609 _lhsIvalueConstructors
-         _tlOwarnings = rule1610 _hdIwarnings
+         _lhsOwarnings = rule1605 _tlIwarnings
+         _hdOallTypeConstructors = rule1606 _lhsIallTypeConstructors
+         _hdOallValueConstructors = rule1607 _lhsIallValueConstructors
+         _hdOclassEnvironment = rule1608 _lhsIclassEnvironment
+         _hdOclassMemberEnv = rule1609 _lhsIclassMemberEnv
+         _hdOcollectScopeInfos = rule1610 _lhsIcollectScopeInfos
+         _hdOcounter = rule1611 _lhsIcounter
+         _hdOkindErrors = rule1612 _lhsIkindErrors
+         _hdOmiscerrors = rule1613 _lhsImiscerrors
+         _hdOnamesInScope = rule1614 _lhsInamesInScope
+         _hdOoptions = rule1615 _lhsIoptions
+         _hdOorderedTypeSynonyms = rule1616 _lhsIorderedTypeSynonyms
+         _hdOtypeConstructors = rule1617 _lhsItypeConstructors
+         _hdOvalueConstructors = rule1618 _lhsIvalueConstructors
+         _hdOwarnings = rule1619 _lhsIwarnings
+         _tlOallTypeConstructors = rule1620 _lhsIallTypeConstructors
+         _tlOallValueConstructors = rule1621 _lhsIallValueConstructors
+         _tlOclassEnvironment = rule1622 _lhsIclassEnvironment
+         _tlOclassMemberEnv = rule1623 _lhsIclassMemberEnv
+         _tlOcollectScopeInfos = rule1624 _hdIcollectScopeInfos
+         _tlOcounter = rule1625 _hdIcounter
+         _tlOkindErrors = rule1626 _hdIkindErrors
+         _tlOmiscerrors = rule1627 _hdImiscerrors
+         _tlOnamesInScope = rule1628 _lhsInamesInScope
+         _tlOoptions = rule1629 _lhsIoptions
+         _tlOorderedTypeSynonyms = rule1630 _lhsIorderedTypeSynonyms
+         _tlOtypeConstructors = rule1631 _lhsItypeConstructors
+         _tlOvalueConstructors = rule1632 _lhsIvalueConstructors
+         _tlOwarnings = rule1633 _hdIwarnings
          __result_ = T_Expressions_vOut43 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Expressions_s44 v43
-   {-# INLINE rule1574 #-}
-   rule1574 = \ ((_hdIcollectInstances) :: [(Name, Instance)]) ((_tlIcollectInstances) :: [(Name, Instance)]) ->
-     _hdIcollectInstances  ++  _tlIcollectInstances
-   {-# INLINE rule1575 #-}
-   rule1575 = \ ((_hdIunboundNames) :: Names) ((_tlIunboundNames) :: Names) ->
-     _hdIunboundNames ++ _tlIunboundNames
-   {-# INLINE rule1576 #-}
-   rule1576 = \ ((_hdIself) :: Expression) ((_tlIself) :: Expressions) ->
-     (:) _hdIself _tlIself
-   {-# INLINE rule1577 #-}
-   rule1577 = \ _self ->
-     _self
-   {-# INLINE rule1578 #-}
-   rule1578 = \ ((_tlIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _tlIcollectScopeInfos
-   {-# INLINE rule1579 #-}
-   rule1579 = \ ((_tlIcounter) :: Int) ->
-     _tlIcounter
-   {-# INLINE rule1580 #-}
-   rule1580 = \ ((_tlIkindErrors) :: [Error]) ->
-     _tlIkindErrors
-   {-# INLINE rule1581 #-}
-   rule1581 = \ ((_tlImiscerrors) :: [Error]) ->
-     _tlImiscerrors
-   {-# INLINE rule1582 #-}
-   rule1582 = \ ((_tlIwarnings) :: [Warning]) ->
-     _tlIwarnings
-   {-# INLINE rule1583 #-}
-   rule1583 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1584 #-}
-   rule1584 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1585 #-}
-   rule1585 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule1586 #-}
-   rule1586 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule1587 #-}
-   rule1587 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule1588 #-}
-   rule1588 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule1589 #-}
-   rule1589 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule1590 #-}
-   rule1590 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule1591 #-}
-   rule1591 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule1592 #-}
-   rule1592 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule1593 #-}
-   rule1593 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule1594 #-}
-   rule1594 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule1595 #-}
-   rule1595 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule1596 #-}
-   rule1596 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
    {-# INLINE rule1597 #-}
-   rule1597 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
+   rule1597 = \ ((_hdIcollectInstances) :: [(Name, Instance)]) ((_tlIcollectInstances) :: [(Name, Instance)]) ->
+     _hdIcollectInstances  ++  _tlIcollectInstances
    {-# INLINE rule1598 #-}
-   rule1598 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
+   rule1598 = \ ((_hdIunboundNames) :: Names) ((_tlIunboundNames) :: Names) ->
+     _hdIunboundNames ++ _tlIunboundNames
    {-# INLINE rule1599 #-}
-   rule1599 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
+   rule1599 = \ ((_hdIself) :: Expression) ((_tlIself) :: Expressions) ->
+     (:) _hdIself _tlIself
    {-# INLINE rule1600 #-}
-   rule1600 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
+   rule1600 = \ _self ->
+     _self
    {-# INLINE rule1601 #-}
-   rule1601 = \ ((_hdIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _hdIcollectScopeInfos
+   rule1601 = \ ((_tlIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _tlIcollectScopeInfos
    {-# INLINE rule1602 #-}
-   rule1602 = \ ((_hdIcounter) :: Int) ->
-     _hdIcounter
+   rule1602 = \ ((_tlIcounter) :: Int) ->
+     _tlIcounter
    {-# INLINE rule1603 #-}
-   rule1603 = \ ((_hdIkindErrors) :: [Error]) ->
-     _hdIkindErrors
+   rule1603 = \ ((_tlIkindErrors) :: [Error]) ->
+     _tlIkindErrors
    {-# INLINE rule1604 #-}
-   rule1604 = \ ((_hdImiscerrors) :: [Error]) ->
-     _hdImiscerrors
+   rule1604 = \ ((_tlImiscerrors) :: [Error]) ->
+     _tlImiscerrors
    {-# INLINE rule1605 #-}
-   rule1605 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
+   rule1605 = \ ((_tlIwarnings) :: [Warning]) ->
+     _tlIwarnings
    {-# INLINE rule1606 #-}
-   rule1606 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule1606 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
    {-# INLINE rule1607 #-}
-   rule1607 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule1607 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
    {-# INLINE rule1608 #-}
-   rule1608 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule1608 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
    {-# INLINE rule1609 #-}
-   rule1609 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule1609 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
    {-# INLINE rule1610 #-}
-   rule1610 = \ ((_hdIwarnings) :: [Warning]) ->
+   rule1610 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule1611 #-}
+   rule1611 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1612 #-}
+   rule1612 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule1613 #-}
+   rule1613 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1614 #-}
+   rule1614 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1615 #-}
+   rule1615 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1616 #-}
+   rule1616 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1617 #-}
+   rule1617 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1618 #-}
+   rule1618 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1619 #-}
+   rule1619 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule1620 #-}
+   rule1620 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1621 #-}
+   rule1621 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1622 #-}
+   rule1622 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1623 #-}
+   rule1623 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1624 #-}
+   rule1624 = \ ((_hdIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _hdIcollectScopeInfos
+   {-# INLINE rule1625 #-}
+   rule1625 = \ ((_hdIcounter) :: Int) ->
+     _hdIcounter
+   {-# INLINE rule1626 #-}
+   rule1626 = \ ((_hdIkindErrors) :: [Error]) ->
+     _hdIkindErrors
+   {-# INLINE rule1627 #-}
+   rule1627 = \ ((_hdImiscerrors) :: [Error]) ->
+     _hdImiscerrors
+   {-# INLINE rule1628 #-}
+   rule1628 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1629 #-}
+   rule1629 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1630 #-}
+   rule1630 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1631 #-}
+   rule1631 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1632 #-}
+   rule1632 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1633 #-}
+   rule1633 = \ ((_hdIwarnings) :: [Warning]) ->
      _hdIwarnings
 {-# NOINLINE sem_Expressions_Nil #-}
 sem_Expressions_Nil ::  T_Expressions 
@@ -9137,51 +9252,51 @@ sem_Expressions_Nil  = T_Expressions (return st44) where
       v43 :: T_Expressions_v43 
       v43 = \ (T_Expressions_vIn43 _lhsIallTypeConstructors _lhsIallValueConstructors _lhsIclassEnvironment _lhsIclassMemberEnv _lhsIcollectScopeInfos _lhsIcounter _lhsIkindErrors _lhsImiscerrors _lhsInamesInScope _lhsIoptions _lhsIorderedTypeSynonyms _lhsItypeConstructors _lhsIvalueConstructors _lhsIwarnings) -> ( let
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1611  ()
+         _lhsOcollectInstances = rule1634  ()
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1612  ()
-         _self = rule1613  ()
+         _lhsOunboundNames = rule1635  ()
+         _self = rule1636  ()
          _lhsOself :: Expressions
-         _lhsOself = rule1614 _self
+         _lhsOself = rule1637 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1615 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1638 _lhsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1616 _lhsIcounter
+         _lhsOcounter = rule1639 _lhsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1617 _lhsIkindErrors
+         _lhsOkindErrors = rule1640 _lhsIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1618 _lhsImiscerrors
+         _lhsOmiscerrors = rule1641 _lhsImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1619 _lhsIwarnings
+         _lhsOwarnings = rule1642 _lhsIwarnings
          __result_ = T_Expressions_vOut43 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Expressions_s44 v43
-   {-# INLINE rule1611 #-}
-   rule1611 = \  (_ :: ()) ->
+   {-# INLINE rule1634 #-}
+   rule1634 = \  (_ :: ()) ->
      []
-   {-# INLINE rule1612 #-}
-   rule1612 = \  (_ :: ()) ->
+   {-# INLINE rule1635 #-}
+   rule1635 = \  (_ :: ()) ->
      []
-   {-# INLINE rule1613 #-}
-   rule1613 = \  (_ :: ()) ->
+   {-# INLINE rule1636 #-}
+   rule1636 = \  (_ :: ()) ->
      []
-   {-# INLINE rule1614 #-}
-   rule1614 = \ _self ->
+   {-# INLINE rule1637 #-}
+   rule1637 = \ _self ->
      _self
-   {-# INLINE rule1615 #-}
-   rule1615 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule1638 #-}
+   rule1638 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule1616 #-}
-   rule1616 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule1639 #-}
+   rule1639 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule1617 #-}
-   rule1617 = \ ((_lhsIkindErrors) :: [Error]) ->
+   {-# INLINE rule1640 #-}
+   rule1640 = \ ((_lhsIkindErrors) :: [Error]) ->
      _lhsIkindErrors
-   {-# INLINE rule1618 #-}
-   rule1618 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule1641 #-}
+   rule1641 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule1619 #-}
-   rule1619 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule1642 #-}
+   rule1642 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 
 -- FieldDeclaration --------------------------------------------
@@ -9227,76 +9342,76 @@ sem_FieldDeclaration_FieldDeclaration arg_range_ arg_names_ arg_type_ = T_FieldD
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Names_vOut115 _namesIself) = inv_Names_s116 _namesX116 (T_Names_vIn115 )
          (T_AnnotatedType_vOut7 _typeIcounter _typeIkindErrors _typeImiscerrors _typeIself _typeItype _typeItypevariables _typeIunboundNames _typeIwarnings) = inv_AnnotatedType_s8 _typeX8 (T_AnnotatedType_vIn7 _typeOallTypeConstructors _typeOallValueConstructors _typeOcounter _typeOkindErrors _typeOmiscerrors _typeOnamesInScope _typeOoptions _typeOtypeConstructors _typeOvalueConstructors _typeOwarnings)
-         (_kindErrors,_tyconEnv,_constructorenv,_importEnvironment,_valueConstructors,_allValueConstructors,_typeConstructors,_allTypeConstructors,_warnings) = rule1620  ()
+         (_kindErrors,_tyconEnv,_constructorenv,_importEnvironment,_valueConstructors,_allValueConstructors,_typeConstructors,_allTypeConstructors,_warnings) = rule1643  ()
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1621 _typeIunboundNames
-         _self = rule1622 _namesIself _rangeIself _typeIself
+         _lhsOunboundNames = rule1644 _typeIunboundNames
+         _self = rule1645 _namesIself _rangeIself _typeIself
          _lhsOself :: FieldDeclaration
-         _lhsOself = rule1623 _self
+         _lhsOself = rule1646 _self
          _lhsOcounter :: Int
-         _lhsOcounter = rule1624 _typeIcounter
+         _lhsOcounter = rule1647 _typeIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1625 _typeImiscerrors
-         _typeOallTypeConstructors = rule1626 _allTypeConstructors
-         _typeOallValueConstructors = rule1627 _allValueConstructors
-         _typeOcounter = rule1628 _lhsIcounter
-         _typeOkindErrors = rule1629 _kindErrors
-         _typeOmiscerrors = rule1630 _lhsImiscerrors
-         _typeOnamesInScope = rule1631 _lhsInamesInScope
-         _typeOoptions = rule1632 _lhsIoptions
-         _typeOtypeConstructors = rule1633 _typeConstructors
-         _typeOvalueConstructors = rule1634 _valueConstructors
-         _typeOwarnings = rule1635 _warnings
+         _lhsOmiscerrors = rule1648 _typeImiscerrors
+         _typeOallTypeConstructors = rule1649 _allTypeConstructors
+         _typeOallValueConstructors = rule1650 _allValueConstructors
+         _typeOcounter = rule1651 _lhsIcounter
+         _typeOkindErrors = rule1652 _kindErrors
+         _typeOmiscerrors = rule1653 _lhsImiscerrors
+         _typeOnamesInScope = rule1654 _lhsInamesInScope
+         _typeOoptions = rule1655 _lhsIoptions
+         _typeOtypeConstructors = rule1656 _typeConstructors
+         _typeOvalueConstructors = rule1657 _valueConstructors
+         _typeOwarnings = rule1658 _warnings
          __result_ = T_FieldDeclaration_vOut46 _lhsOcounter _lhsOmiscerrors _lhsOself _lhsOunboundNames
          in __result_ )
      in C_FieldDeclaration_s47 v46
-   {-# INLINE rule1620 #-}
-   rule1620 = \  (_ :: ()) ->
+   {-# INLINE rule1643 #-}
+   rule1643 = \  (_ :: ()) ->
                                                                                                                                                                               internalError "PartialSyntax.ag" "n/a" "FieldDeclaration.FieldDeclaration"
-   {-# INLINE rule1621 #-}
-   rule1621 = \ ((_typeIunboundNames) :: Names) ->
+   {-# INLINE rule1644 #-}
+   rule1644 = \ ((_typeIunboundNames) :: Names) ->
      _typeIunboundNames
-   {-# INLINE rule1622 #-}
-   rule1622 = \ ((_namesIself) :: Names) ((_rangeIself) :: Range) ((_typeIself) :: AnnotatedType) ->
+   {-# INLINE rule1645 #-}
+   rule1645 = \ ((_namesIself) :: Names) ((_rangeIself) :: Range) ((_typeIself) :: AnnotatedType) ->
      FieldDeclaration_FieldDeclaration _rangeIself _namesIself _typeIself
-   {-# INLINE rule1623 #-}
-   rule1623 = \ _self ->
+   {-# INLINE rule1646 #-}
+   rule1646 = \ _self ->
      _self
-   {-# INLINE rule1624 #-}
-   rule1624 = \ ((_typeIcounter) :: Int) ->
+   {-# INLINE rule1647 #-}
+   rule1647 = \ ((_typeIcounter) :: Int) ->
      _typeIcounter
-   {-# INLINE rule1625 #-}
-   rule1625 = \ ((_typeImiscerrors) :: [Error]) ->
+   {-# INLINE rule1648 #-}
+   rule1648 = \ ((_typeImiscerrors) :: [Error]) ->
      _typeImiscerrors
-   {-# INLINE rule1626 #-}
-   rule1626 = \ _allTypeConstructors ->
+   {-# INLINE rule1649 #-}
+   rule1649 = \ _allTypeConstructors ->
      _allTypeConstructors
-   {-# INLINE rule1627 #-}
-   rule1627 = \ _allValueConstructors ->
+   {-# INLINE rule1650 #-}
+   rule1650 = \ _allValueConstructors ->
      _allValueConstructors
-   {-# INLINE rule1628 #-}
-   rule1628 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule1651 #-}
+   rule1651 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule1629 #-}
-   rule1629 = \ _kindErrors ->
+   {-# INLINE rule1652 #-}
+   rule1652 = \ _kindErrors ->
      _kindErrors
-   {-# INLINE rule1630 #-}
-   rule1630 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule1653 #-}
+   rule1653 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule1631 #-}
-   rule1631 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule1654 #-}
+   rule1654 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule1632 #-}
-   rule1632 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule1655 #-}
+   rule1655 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule1633 #-}
-   rule1633 = \ _typeConstructors ->
+   {-# INLINE rule1656 #-}
+   rule1656 = \ _typeConstructors ->
      _typeConstructors
-   {-# INLINE rule1634 #-}
-   rule1634 = \ _valueConstructors ->
+   {-# INLINE rule1657 #-}
+   rule1657 = \ _valueConstructors ->
      _valueConstructors
-   {-# INLINE rule1635 #-}
-   rule1635 = \ _warnings ->
+   {-# INLINE rule1658 #-}
+   rule1658 = \ _warnings ->
      _warnings
 
 -- FieldDeclarations -------------------------------------------
@@ -9341,63 +9456,63 @@ sem_FieldDeclarations_Cons arg_hd_ arg_tl_ = T_FieldDeclarations (return st50) w
          (T_FieldDeclaration_vOut46 _hdIcounter _hdImiscerrors _hdIself _hdIunboundNames) = inv_FieldDeclaration_s47 _hdX47 (T_FieldDeclaration_vIn46 _hdOcounter _hdOmiscerrors _hdOnamesInScope _hdOoptions)
          (T_FieldDeclarations_vOut49 _tlIcounter _tlImiscerrors _tlIself _tlIunboundNames) = inv_FieldDeclarations_s50 _tlX50 (T_FieldDeclarations_vIn49 _tlOcounter _tlOmiscerrors _tlOnamesInScope _tlOoptions)
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1636 _hdIunboundNames _tlIunboundNames
-         _self = rule1637 _hdIself _tlIself
+         _lhsOunboundNames = rule1659 _hdIunboundNames _tlIunboundNames
+         _self = rule1660 _hdIself _tlIself
          _lhsOself :: FieldDeclarations
-         _lhsOself = rule1638 _self
+         _lhsOself = rule1661 _self
          _lhsOcounter :: Int
-         _lhsOcounter = rule1639 _tlIcounter
+         _lhsOcounter = rule1662 _tlIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1640 _tlImiscerrors
-         _hdOcounter = rule1641 _lhsIcounter
-         _hdOmiscerrors = rule1642 _lhsImiscerrors
-         _hdOnamesInScope = rule1643 _lhsInamesInScope
-         _hdOoptions = rule1644 _lhsIoptions
-         _tlOcounter = rule1645 _hdIcounter
-         _tlOmiscerrors = rule1646 _hdImiscerrors
-         _tlOnamesInScope = rule1647 _lhsInamesInScope
-         _tlOoptions = rule1648 _lhsIoptions
+         _lhsOmiscerrors = rule1663 _tlImiscerrors
+         _hdOcounter = rule1664 _lhsIcounter
+         _hdOmiscerrors = rule1665 _lhsImiscerrors
+         _hdOnamesInScope = rule1666 _lhsInamesInScope
+         _hdOoptions = rule1667 _lhsIoptions
+         _tlOcounter = rule1668 _hdIcounter
+         _tlOmiscerrors = rule1669 _hdImiscerrors
+         _tlOnamesInScope = rule1670 _lhsInamesInScope
+         _tlOoptions = rule1671 _lhsIoptions
          __result_ = T_FieldDeclarations_vOut49 _lhsOcounter _lhsOmiscerrors _lhsOself _lhsOunboundNames
          in __result_ )
      in C_FieldDeclarations_s50 v49
-   {-# INLINE rule1636 #-}
-   rule1636 = \ ((_hdIunboundNames) :: Names) ((_tlIunboundNames) :: Names) ->
+   {-# INLINE rule1659 #-}
+   rule1659 = \ ((_hdIunboundNames) :: Names) ((_tlIunboundNames) :: Names) ->
      _hdIunboundNames ++ _tlIunboundNames
-   {-# INLINE rule1637 #-}
-   rule1637 = \ ((_hdIself) :: FieldDeclaration) ((_tlIself) :: FieldDeclarations) ->
+   {-# INLINE rule1660 #-}
+   rule1660 = \ ((_hdIself) :: FieldDeclaration) ((_tlIself) :: FieldDeclarations) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule1638 #-}
-   rule1638 = \ _self ->
+   {-# INLINE rule1661 #-}
+   rule1661 = \ _self ->
      _self
-   {-# INLINE rule1639 #-}
-   rule1639 = \ ((_tlIcounter) :: Int) ->
+   {-# INLINE rule1662 #-}
+   rule1662 = \ ((_tlIcounter) :: Int) ->
      _tlIcounter
-   {-# INLINE rule1640 #-}
-   rule1640 = \ ((_tlImiscerrors) :: [Error]) ->
+   {-# INLINE rule1663 #-}
+   rule1663 = \ ((_tlImiscerrors) :: [Error]) ->
      _tlImiscerrors
-   {-# INLINE rule1641 #-}
-   rule1641 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule1664 #-}
+   rule1664 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule1642 #-}
-   rule1642 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule1665 #-}
+   rule1665 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule1643 #-}
-   rule1643 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule1666 #-}
+   rule1666 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule1644 #-}
-   rule1644 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule1667 #-}
+   rule1667 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule1645 #-}
-   rule1645 = \ ((_hdIcounter) :: Int) ->
+   {-# INLINE rule1668 #-}
+   rule1668 = \ ((_hdIcounter) :: Int) ->
      _hdIcounter
-   {-# INLINE rule1646 #-}
-   rule1646 = \ ((_hdImiscerrors) :: [Error]) ->
+   {-# INLINE rule1669 #-}
+   rule1669 = \ ((_hdImiscerrors) :: [Error]) ->
      _hdImiscerrors
-   {-# INLINE rule1647 #-}
-   rule1647 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule1670 #-}
+   rule1670 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule1648 #-}
-   rule1648 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule1671 #-}
+   rule1671 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
 {-# NOINLINE sem_FieldDeclarations_Nil #-}
 sem_FieldDeclarations_Nil ::  T_FieldDeclarations 
@@ -9407,31 +9522,31 @@ sem_FieldDeclarations_Nil  = T_FieldDeclarations (return st50) where
       v49 :: T_FieldDeclarations_v49 
       v49 = \ (T_FieldDeclarations_vIn49 _lhsIcounter _lhsImiscerrors _lhsInamesInScope _lhsIoptions) -> ( let
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1649  ()
-         _self = rule1650  ()
+         _lhsOunboundNames = rule1672  ()
+         _self = rule1673  ()
          _lhsOself :: FieldDeclarations
-         _lhsOself = rule1651 _self
+         _lhsOself = rule1674 _self
          _lhsOcounter :: Int
-         _lhsOcounter = rule1652 _lhsIcounter
+         _lhsOcounter = rule1675 _lhsIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1653 _lhsImiscerrors
+         _lhsOmiscerrors = rule1676 _lhsImiscerrors
          __result_ = T_FieldDeclarations_vOut49 _lhsOcounter _lhsOmiscerrors _lhsOself _lhsOunboundNames
          in __result_ )
      in C_FieldDeclarations_s50 v49
-   {-# INLINE rule1649 #-}
-   rule1649 = \  (_ :: ()) ->
+   {-# INLINE rule1672 #-}
+   rule1672 = \  (_ :: ()) ->
      []
-   {-# INLINE rule1650 #-}
-   rule1650 = \  (_ :: ()) ->
+   {-# INLINE rule1673 #-}
+   rule1673 = \  (_ :: ()) ->
      []
-   {-# INLINE rule1651 #-}
-   rule1651 = \ _self ->
+   {-# INLINE rule1674 #-}
+   rule1674 = \ _self ->
      _self
-   {-# INLINE rule1652 #-}
-   rule1652 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule1675 #-}
+   rule1675 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule1653 #-}
-   rule1653 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule1676 #-}
+   rule1676 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
 
 -- Fixity ------------------------------------------------------
@@ -9475,17 +9590,17 @@ sem_Fixity_Infixl arg_range_ = T_Fixity (return st53) where
       v52 = \ (T_Fixity_vIn52 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule1654 _rangeIself
+         _self = rule1677 _rangeIself
          _lhsOself :: Fixity
-         _lhsOself = rule1655 _self
+         _lhsOself = rule1678 _self
          __result_ = T_Fixity_vOut52 _lhsOself
          in __result_ )
      in C_Fixity_s53 v52
-   {-# INLINE rule1654 #-}
-   rule1654 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule1677 #-}
+   rule1677 = \ ((_rangeIself) :: Range) ->
      Fixity_Infixl _rangeIself
-   {-# INLINE rule1655 #-}
-   rule1655 = \ _self ->
+   {-# INLINE rule1678 #-}
+   rule1678 = \ _self ->
      _self
 {-# NOINLINE sem_Fixity_Infixr #-}
 sem_Fixity_Infixr :: T_Range  -> T_Fixity 
@@ -9496,17 +9611,17 @@ sem_Fixity_Infixr arg_range_ = T_Fixity (return st53) where
       v52 = \ (T_Fixity_vIn52 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule1656 _rangeIself
+         _self = rule1679 _rangeIself
          _lhsOself :: Fixity
-         _lhsOself = rule1657 _self
+         _lhsOself = rule1680 _self
          __result_ = T_Fixity_vOut52 _lhsOself
          in __result_ )
      in C_Fixity_s53 v52
-   {-# INLINE rule1656 #-}
-   rule1656 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule1679 #-}
+   rule1679 = \ ((_rangeIself) :: Range) ->
      Fixity_Infixr _rangeIself
-   {-# INLINE rule1657 #-}
-   rule1657 = \ _self ->
+   {-# INLINE rule1680 #-}
+   rule1680 = \ _self ->
      _self
 {-# NOINLINE sem_Fixity_Infix #-}
 sem_Fixity_Infix :: T_Range  -> T_Fixity 
@@ -9517,17 +9632,17 @@ sem_Fixity_Infix arg_range_ = T_Fixity (return st53) where
       v52 = \ (T_Fixity_vIn52 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule1658 _rangeIself
+         _self = rule1681 _rangeIself
          _lhsOself :: Fixity
-         _lhsOself = rule1659 _self
+         _lhsOself = rule1682 _self
          __result_ = T_Fixity_vOut52 _lhsOself
          in __result_ )
      in C_Fixity_s53 v52
-   {-# INLINE rule1658 #-}
-   rule1658 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule1681 #-}
+   rule1681 = \ ((_rangeIself) :: Range) ->
      Fixity_Infix _rangeIself
-   {-# INLINE rule1659 #-}
-   rule1659 = \ _self ->
+   {-# INLINE rule1682 #-}
+   rule1682 = \ _self ->
      _self
 
 -- FunctionBinding ---------------------------------------------
@@ -9563,7 +9678,7 @@ type T_FunctionBinding_v55  = (T_FunctionBinding_vIn55 ) -> (T_FunctionBinding_v
 data T_FunctionBinding_vIn55  = T_FunctionBinding_vIn55 (Names) (Names) (ClassEnvironment) (ClassMemberEnvironment) ([(ScopeInfo, Entity)]) (Int) ([Error]) ([Error]) (Names) ([Option]) (OrderedTypeSynonyms) (M.Map Name Int) (M.Map Name TpScheme) ([Warning])
 data T_FunctionBinding_vOut55  = T_FunctionBinding_vOut55 (Int) ([(Name, Instance)]) ([(ScopeInfo, Entity)]) (Int) ([Error]) ([Error]) (Name) (FunctionBinding) (Names) ([Warning])
 {-# NOINLINE sem_FunctionBinding_Hole #-}
-sem_FunctionBinding_Hole :: T_Range  -> (Integer) -> T_FunctionBinding 
+sem_FunctionBinding_Hole :: T_Range  -> (String) -> T_FunctionBinding 
 sem_FunctionBinding_Hole arg_range_ arg_id_ = T_FunctionBinding (return st56) where
    {-# NOINLINE st56 #-}
    st56 = let
@@ -9572,61 +9687,61 @@ sem_FunctionBinding_Hole arg_range_ arg_id_ = T_FunctionBinding (return st56) wh
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _lhsOarity :: Int
-         _lhsOarity = rule1660  ()
+         _lhsOarity = rule1683  ()
          _lhsOname :: Name
-         _lhsOname = rule1661  ()
+         _lhsOname = rule1684  ()
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1662  ()
+         _lhsOcollectInstances = rule1685  ()
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1663  ()
-         _self = rule1664 _rangeIself arg_id_
+         _lhsOunboundNames = rule1686  ()
+         _self = rule1687 _rangeIself arg_id_
          _lhsOself :: FunctionBinding
-         _lhsOself = rule1665 _self
+         _lhsOself = rule1688 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1666 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1689 _lhsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1667 _lhsIcounter
+         _lhsOcounter = rule1690 _lhsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1668 _lhsIkindErrors
+         _lhsOkindErrors = rule1691 _lhsIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1669 _lhsImiscerrors
+         _lhsOmiscerrors = rule1692 _lhsImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1670 _lhsIwarnings
+         _lhsOwarnings = rule1693 _lhsIwarnings
          __result_ = T_FunctionBinding_vOut55 _lhsOarity _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOname _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_FunctionBinding_s56 v55
-   {-# INLINE rule1660 #-}
-   rule1660 = \  (_ :: ()) ->
+   {-# INLINE rule1683 #-}
+   rule1683 = \  (_ :: ()) ->
                                     0
-   {-# INLINE rule1661 #-}
-   rule1661 = \  (_ :: ()) ->
+   {-# INLINE rule1684 #-}
+   rule1684 = \  (_ :: ()) ->
                          internalError "StaticChecks.ag" "n/a" "empty FunctionBindings"
-   {-# INLINE rule1662 #-}
-   rule1662 = \  (_ :: ()) ->
+   {-# INLINE rule1685 #-}
+   rule1685 = \  (_ :: ()) ->
      []
-   {-# INLINE rule1663 #-}
-   rule1663 = \  (_ :: ()) ->
+   {-# INLINE rule1686 #-}
+   rule1686 = \  (_ :: ()) ->
      []
-   {-# INLINE rule1664 #-}
-   rule1664 = \ ((_rangeIself) :: Range) id_ ->
+   {-# INLINE rule1687 #-}
+   rule1687 = \ ((_rangeIself) :: Range) id_ ->
      FunctionBinding_Hole _rangeIself id_
-   {-# INLINE rule1665 #-}
-   rule1665 = \ _self ->
+   {-# INLINE rule1688 #-}
+   rule1688 = \ _self ->
      _self
-   {-# INLINE rule1666 #-}
-   rule1666 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule1689 #-}
+   rule1689 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule1667 #-}
-   rule1667 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule1690 #-}
+   rule1690 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule1668 #-}
-   rule1668 = \ ((_lhsIkindErrors) :: [Error]) ->
+   {-# INLINE rule1691 #-}
+   rule1691 = \ ((_lhsIkindErrors) :: [Error]) ->
      _lhsIkindErrors
-   {-# INLINE rule1669 #-}
-   rule1669 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule1692 #-}
+   rule1692 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule1670 #-}
-   rule1670 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule1693 #-}
+   rule1693 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_FunctionBinding_Feedback #-}
 sem_FunctionBinding_Feedback :: T_Range  -> (String) -> T_FunctionBinding  -> T_FunctionBinding 
@@ -9640,117 +9755,117 @@ sem_FunctionBinding_Feedback arg_range_ arg_feedback_ arg_functionBinding_ = T_F
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_FunctionBinding_vOut55 _functionBindingIarity _functionBindingIcollectInstances _functionBindingIcollectScopeInfos _functionBindingIcounter _functionBindingIkindErrors _functionBindingImiscerrors _functionBindingIname _functionBindingIself _functionBindingIunboundNames _functionBindingIwarnings) = inv_FunctionBinding_s56 _functionBindingX56 (T_FunctionBinding_vIn55 _functionBindingOallTypeConstructors _functionBindingOallValueConstructors _functionBindingOclassEnvironment _functionBindingOclassMemberEnv _functionBindingOcollectScopeInfos _functionBindingOcounter _functionBindingOkindErrors _functionBindingOmiscerrors _functionBindingOnamesInScope _functionBindingOoptions _functionBindingOorderedTypeSynonyms _functionBindingOtypeConstructors _functionBindingOvalueConstructors _functionBindingOwarnings)
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1671 _functionBindingIcollectInstances
+         _lhsOcollectInstances = rule1694 _functionBindingIcollectInstances
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1672 _functionBindingIunboundNames
-         _self = rule1673 _functionBindingIself _rangeIself arg_feedback_
+         _lhsOunboundNames = rule1695 _functionBindingIunboundNames
+         _self = rule1696 _functionBindingIself _rangeIself arg_feedback_
          _lhsOself :: FunctionBinding
-         _lhsOself = rule1674 _self
+         _lhsOself = rule1697 _self
          _lhsOarity :: Int
-         _lhsOarity = rule1675 _functionBindingIarity
+         _lhsOarity = rule1698 _functionBindingIarity
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1676 _functionBindingIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1699 _functionBindingIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1677 _functionBindingIcounter
+         _lhsOcounter = rule1700 _functionBindingIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1678 _functionBindingIkindErrors
+         _lhsOkindErrors = rule1701 _functionBindingIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1679 _functionBindingImiscerrors
+         _lhsOmiscerrors = rule1702 _functionBindingImiscerrors
          _lhsOname :: Name
-         _lhsOname = rule1680 _functionBindingIname
+         _lhsOname = rule1703 _functionBindingIname
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1681 _functionBindingIwarnings
-         _functionBindingOallTypeConstructors = rule1682 _lhsIallTypeConstructors
-         _functionBindingOallValueConstructors = rule1683 _lhsIallValueConstructors
-         _functionBindingOclassEnvironment = rule1684 _lhsIclassEnvironment
-         _functionBindingOclassMemberEnv = rule1685 _lhsIclassMemberEnv
-         _functionBindingOcollectScopeInfos = rule1686 _lhsIcollectScopeInfos
-         _functionBindingOcounter = rule1687 _lhsIcounter
-         _functionBindingOkindErrors = rule1688 _lhsIkindErrors
-         _functionBindingOmiscerrors = rule1689 _lhsImiscerrors
-         _functionBindingOnamesInScope = rule1690 _lhsInamesInScope
-         _functionBindingOoptions = rule1691 _lhsIoptions
-         _functionBindingOorderedTypeSynonyms = rule1692 _lhsIorderedTypeSynonyms
-         _functionBindingOtypeConstructors = rule1693 _lhsItypeConstructors
-         _functionBindingOvalueConstructors = rule1694 _lhsIvalueConstructors
-         _functionBindingOwarnings = rule1695 _lhsIwarnings
+         _lhsOwarnings = rule1704 _functionBindingIwarnings
+         _functionBindingOallTypeConstructors = rule1705 _lhsIallTypeConstructors
+         _functionBindingOallValueConstructors = rule1706 _lhsIallValueConstructors
+         _functionBindingOclassEnvironment = rule1707 _lhsIclassEnvironment
+         _functionBindingOclassMemberEnv = rule1708 _lhsIclassMemberEnv
+         _functionBindingOcollectScopeInfos = rule1709 _lhsIcollectScopeInfos
+         _functionBindingOcounter = rule1710 _lhsIcounter
+         _functionBindingOkindErrors = rule1711 _lhsIkindErrors
+         _functionBindingOmiscerrors = rule1712 _lhsImiscerrors
+         _functionBindingOnamesInScope = rule1713 _lhsInamesInScope
+         _functionBindingOoptions = rule1714 _lhsIoptions
+         _functionBindingOorderedTypeSynonyms = rule1715 _lhsIorderedTypeSynonyms
+         _functionBindingOtypeConstructors = rule1716 _lhsItypeConstructors
+         _functionBindingOvalueConstructors = rule1717 _lhsIvalueConstructors
+         _functionBindingOwarnings = rule1718 _lhsIwarnings
          __result_ = T_FunctionBinding_vOut55 _lhsOarity _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOname _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_FunctionBinding_s56 v55
-   {-# INLINE rule1671 #-}
-   rule1671 = \ ((_functionBindingIcollectInstances) :: [(Name, Instance)]) ->
-     _functionBindingIcollectInstances
-   {-# INLINE rule1672 #-}
-   rule1672 = \ ((_functionBindingIunboundNames) :: Names) ->
-     _functionBindingIunboundNames
-   {-# INLINE rule1673 #-}
-   rule1673 = \ ((_functionBindingIself) :: FunctionBinding) ((_rangeIself) :: Range) feedback_ ->
-     FunctionBinding_Feedback _rangeIself feedback_ _functionBindingIself
-   {-# INLINE rule1674 #-}
-   rule1674 = \ _self ->
-     _self
-   {-# INLINE rule1675 #-}
-   rule1675 = \ ((_functionBindingIarity) :: Int) ->
-     _functionBindingIarity
-   {-# INLINE rule1676 #-}
-   rule1676 = \ ((_functionBindingIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _functionBindingIcollectScopeInfos
-   {-# INLINE rule1677 #-}
-   rule1677 = \ ((_functionBindingIcounter) :: Int) ->
-     _functionBindingIcounter
-   {-# INLINE rule1678 #-}
-   rule1678 = \ ((_functionBindingIkindErrors) :: [Error]) ->
-     _functionBindingIkindErrors
-   {-# INLINE rule1679 #-}
-   rule1679 = \ ((_functionBindingImiscerrors) :: [Error]) ->
-     _functionBindingImiscerrors
-   {-# INLINE rule1680 #-}
-   rule1680 = \ ((_functionBindingIname) :: Name) ->
-     _functionBindingIname
-   {-# INLINE rule1681 #-}
-   rule1681 = \ ((_functionBindingIwarnings) :: [Warning]) ->
-     _functionBindingIwarnings
-   {-# INLINE rule1682 #-}
-   rule1682 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1683 #-}
-   rule1683 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1684 #-}
-   rule1684 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule1685 #-}
-   rule1685 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule1686 #-}
-   rule1686 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule1687 #-}
-   rule1687 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule1688 #-}
-   rule1688 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule1689 #-}
-   rule1689 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule1690 #-}
-   rule1690 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule1691 #-}
-   rule1691 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule1692 #-}
-   rule1692 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule1693 #-}
-   rule1693 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
    {-# INLINE rule1694 #-}
-   rule1694 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule1694 = \ ((_functionBindingIcollectInstances) :: [(Name, Instance)]) ->
+     _functionBindingIcollectInstances
    {-# INLINE rule1695 #-}
-   rule1695 = \ ((_lhsIwarnings) :: [Warning]) ->
+   rule1695 = \ ((_functionBindingIunboundNames) :: Names) ->
+     _functionBindingIunboundNames
+   {-# INLINE rule1696 #-}
+   rule1696 = \ ((_functionBindingIself) :: FunctionBinding) ((_rangeIself) :: Range) feedback_ ->
+     FunctionBinding_Feedback _rangeIself feedback_ _functionBindingIself
+   {-# INLINE rule1697 #-}
+   rule1697 = \ _self ->
+     _self
+   {-# INLINE rule1698 #-}
+   rule1698 = \ ((_functionBindingIarity) :: Int) ->
+     _functionBindingIarity
+   {-# INLINE rule1699 #-}
+   rule1699 = \ ((_functionBindingIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _functionBindingIcollectScopeInfos
+   {-# INLINE rule1700 #-}
+   rule1700 = \ ((_functionBindingIcounter) :: Int) ->
+     _functionBindingIcounter
+   {-# INLINE rule1701 #-}
+   rule1701 = \ ((_functionBindingIkindErrors) :: [Error]) ->
+     _functionBindingIkindErrors
+   {-# INLINE rule1702 #-}
+   rule1702 = \ ((_functionBindingImiscerrors) :: [Error]) ->
+     _functionBindingImiscerrors
+   {-# INLINE rule1703 #-}
+   rule1703 = \ ((_functionBindingIname) :: Name) ->
+     _functionBindingIname
+   {-# INLINE rule1704 #-}
+   rule1704 = \ ((_functionBindingIwarnings) :: [Warning]) ->
+     _functionBindingIwarnings
+   {-# INLINE rule1705 #-}
+   rule1705 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1706 #-}
+   rule1706 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1707 #-}
+   rule1707 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1708 #-}
+   rule1708 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1709 #-}
+   rule1709 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule1710 #-}
+   rule1710 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1711 #-}
+   rule1711 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule1712 #-}
+   rule1712 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1713 #-}
+   rule1713 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1714 #-}
+   rule1714 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1715 #-}
+   rule1715 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1716 #-}
+   rule1716 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1717 #-}
+   rule1717 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1718 #-}
+   rule1718 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_FunctionBinding_FunctionBinding #-}
 sem_FunctionBinding_FunctionBinding :: T_Range  -> T_LeftHandSide  -> T_RightHandSide  -> T_FunctionBinding 
@@ -9766,157 +9881,157 @@ sem_FunctionBinding_FunctionBinding arg_range_ arg_lefthandside_ arg_righthandsi
          (T_LeftHandSide_vOut82 _lefthandsideIcollectScopeInfos _lefthandsideIcounter _lefthandsideImiscerrors _lefthandsideIname _lefthandsideInumberOfPatterns _lefthandsideIpatVarNames _lefthandsideIself _lefthandsideIunboundNames _lefthandsideIwarnings) = inv_LeftHandSide_s83 _lefthandsideX83 (T_LeftHandSide_vIn82 _lefthandsideOallTypeConstructors _lefthandsideOallValueConstructors _lefthandsideOcollectScopeInfos _lefthandsideOcounter _lefthandsideOmiscerrors _lefthandsideOnamesInScope _lefthandsideOtypeConstructors _lefthandsideOvalueConstructors _lefthandsideOwarnings)
          (T_RightHandSide_vOut148 _righthandsideIcollectInstances _righthandsideIcollectScopeInfos _righthandsideIcounter _righthandsideIkindErrors _righthandsideImiscerrors _righthandsideIself _righthandsideIunboundNames _righthandsideIwarnings) = inv_RightHandSide_s149 _righthandsideX149 (T_RightHandSide_vIn148 _righthandsideOallTypeConstructors _righthandsideOallValueConstructors _righthandsideOclassEnvironment _righthandsideOclassMemberEnv _righthandsideOcollectScopeInfos _righthandsideOcounter _righthandsideOkindErrors _righthandsideOmiscerrors _righthandsideOnamesInScope _righthandsideOoptions _righthandsideOorderedTypeSynonyms _righthandsideOtypeConstructors _righthandsideOvalueConstructors _righthandsideOwarnings)
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1696 _righthandsideIcollectScopeInfos _scopeInfo
+         _lhsOcollectScopeInfos = rule1719 _righthandsideIcollectScopeInfos _scopeInfo
          _lhsOarity :: Int
-         _lhsOarity = rule1697 _lefthandsideInumberOfPatterns
-         (_namesInScope,_unboundNames,_scopeInfo) = rule1698 _lefthandsideIpatVarNames _lhsInamesInScope _righthandsideIunboundNames
+         _lhsOarity = rule1720 _lefthandsideInumberOfPatterns
+         (_namesInScope,_unboundNames,_scopeInfo) = rule1721 _lefthandsideIpatVarNames _lhsInamesInScope _righthandsideIunboundNames
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1699 _unboundNames
+         _lhsOunboundNames = rule1722 _unboundNames
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1700 _righthandsideIcollectInstances
-         _self = rule1701 _lefthandsideIself _rangeIself _righthandsideIself
+         _lhsOcollectInstances = rule1723 _righthandsideIcollectInstances
+         _self = rule1724 _lefthandsideIself _rangeIself _righthandsideIself
          _lhsOself :: FunctionBinding
-         _lhsOself = rule1702 _self
+         _lhsOself = rule1725 _self
          _lhsOcounter :: Int
-         _lhsOcounter = rule1703 _righthandsideIcounter
+         _lhsOcounter = rule1726 _righthandsideIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1704 _righthandsideIkindErrors
+         _lhsOkindErrors = rule1727 _righthandsideIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1705 _righthandsideImiscerrors
+         _lhsOmiscerrors = rule1728 _righthandsideImiscerrors
          _lhsOname :: Name
-         _lhsOname = rule1706 _lefthandsideIname
+         _lhsOname = rule1729 _lefthandsideIname
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1707 _righthandsideIwarnings
-         _lefthandsideOallTypeConstructors = rule1708 _lhsIallTypeConstructors
-         _lefthandsideOallValueConstructors = rule1709 _lhsIallValueConstructors
-         _lefthandsideOcollectScopeInfos = rule1710 _lhsIcollectScopeInfos
-         _lefthandsideOcounter = rule1711 _lhsIcounter
-         _lefthandsideOmiscerrors = rule1712 _lhsImiscerrors
-         _lefthandsideOnamesInScope = rule1713 _namesInScope
-         _lefthandsideOtypeConstructors = rule1714 _lhsItypeConstructors
-         _lefthandsideOvalueConstructors = rule1715 _lhsIvalueConstructors
-         _lefthandsideOwarnings = rule1716 _lhsIwarnings
-         _righthandsideOallTypeConstructors = rule1717 _lhsIallTypeConstructors
-         _righthandsideOallValueConstructors = rule1718 _lhsIallValueConstructors
-         _righthandsideOclassEnvironment = rule1719 _lhsIclassEnvironment
-         _righthandsideOclassMemberEnv = rule1720 _lhsIclassMemberEnv
-         _righthandsideOcollectScopeInfos = rule1721 _lefthandsideIcollectScopeInfos
-         _righthandsideOcounter = rule1722 _lefthandsideIcounter
-         _righthandsideOkindErrors = rule1723 _lhsIkindErrors
-         _righthandsideOmiscerrors = rule1724 _lefthandsideImiscerrors
-         _righthandsideOnamesInScope = rule1725 _namesInScope
-         _righthandsideOoptions = rule1726 _lhsIoptions
-         _righthandsideOorderedTypeSynonyms = rule1727 _lhsIorderedTypeSynonyms
-         _righthandsideOtypeConstructors = rule1728 _lhsItypeConstructors
-         _righthandsideOvalueConstructors = rule1729 _lhsIvalueConstructors
-         _righthandsideOwarnings = rule1730 _lefthandsideIwarnings
+         _lhsOwarnings = rule1730 _righthandsideIwarnings
+         _lefthandsideOallTypeConstructors = rule1731 _lhsIallTypeConstructors
+         _lefthandsideOallValueConstructors = rule1732 _lhsIallValueConstructors
+         _lefthandsideOcollectScopeInfos = rule1733 _lhsIcollectScopeInfos
+         _lefthandsideOcounter = rule1734 _lhsIcounter
+         _lefthandsideOmiscerrors = rule1735 _lhsImiscerrors
+         _lefthandsideOnamesInScope = rule1736 _namesInScope
+         _lefthandsideOtypeConstructors = rule1737 _lhsItypeConstructors
+         _lefthandsideOvalueConstructors = rule1738 _lhsIvalueConstructors
+         _lefthandsideOwarnings = rule1739 _lhsIwarnings
+         _righthandsideOallTypeConstructors = rule1740 _lhsIallTypeConstructors
+         _righthandsideOallValueConstructors = rule1741 _lhsIallValueConstructors
+         _righthandsideOclassEnvironment = rule1742 _lhsIclassEnvironment
+         _righthandsideOclassMemberEnv = rule1743 _lhsIclassMemberEnv
+         _righthandsideOcollectScopeInfos = rule1744 _lefthandsideIcollectScopeInfos
+         _righthandsideOcounter = rule1745 _lefthandsideIcounter
+         _righthandsideOkindErrors = rule1746 _lhsIkindErrors
+         _righthandsideOmiscerrors = rule1747 _lefthandsideImiscerrors
+         _righthandsideOnamesInScope = rule1748 _namesInScope
+         _righthandsideOoptions = rule1749 _lhsIoptions
+         _righthandsideOorderedTypeSynonyms = rule1750 _lhsIorderedTypeSynonyms
+         _righthandsideOtypeConstructors = rule1751 _lhsItypeConstructors
+         _righthandsideOvalueConstructors = rule1752 _lhsIvalueConstructors
+         _righthandsideOwarnings = rule1753 _lefthandsideIwarnings
          __result_ = T_FunctionBinding_vOut55 _lhsOarity _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOname _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_FunctionBinding_s56 v55
-   {-# INLINE rule1696 #-}
-   rule1696 = \ ((_righthandsideIcollectScopeInfos) :: [(ScopeInfo, Entity)]) _scopeInfo ->
-                                                 (_scopeInfo, Variable)   : _righthandsideIcollectScopeInfos
-   {-# INLINE rule1697 #-}
-   rule1697 = \ ((_lefthandsideInumberOfPatterns) :: Int) ->
-                                    _lefthandsideInumberOfPatterns
-   {-# INLINE rule1698 #-}
-   rule1698 = \ ((_lefthandsideIpatVarNames) :: Names) ((_lhsInamesInScope) :: Names) ((_righthandsideIunboundNames) :: Names) ->
-                                                                        changeOfScope _lefthandsideIpatVarNames _righthandsideIunboundNames _lhsInamesInScope
-   {-# INLINE rule1699 #-}
-   rule1699 = \ _unboundNames ->
-                                             _unboundNames
-   {-# INLINE rule1700 #-}
-   rule1700 = \ ((_righthandsideIcollectInstances) :: [(Name, Instance)]) ->
-     _righthandsideIcollectInstances
-   {-# INLINE rule1701 #-}
-   rule1701 = \ ((_lefthandsideIself) :: LeftHandSide) ((_rangeIself) :: Range) ((_righthandsideIself) :: RightHandSide) ->
-     FunctionBinding_FunctionBinding _rangeIself _lefthandsideIself _righthandsideIself
-   {-# INLINE rule1702 #-}
-   rule1702 = \ _self ->
-     _self
-   {-# INLINE rule1703 #-}
-   rule1703 = \ ((_righthandsideIcounter) :: Int) ->
-     _righthandsideIcounter
-   {-# INLINE rule1704 #-}
-   rule1704 = \ ((_righthandsideIkindErrors) :: [Error]) ->
-     _righthandsideIkindErrors
-   {-# INLINE rule1705 #-}
-   rule1705 = \ ((_righthandsideImiscerrors) :: [Error]) ->
-     _righthandsideImiscerrors
-   {-# INLINE rule1706 #-}
-   rule1706 = \ ((_lefthandsideIname) :: Name) ->
-     _lefthandsideIname
-   {-# INLINE rule1707 #-}
-   rule1707 = \ ((_righthandsideIwarnings) :: [Warning]) ->
-     _righthandsideIwarnings
-   {-# INLINE rule1708 #-}
-   rule1708 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1709 #-}
-   rule1709 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1710 #-}
-   rule1710 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule1711 #-}
-   rule1711 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule1712 #-}
-   rule1712 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule1713 #-}
-   rule1713 = \ _namesInScope ->
-     _namesInScope
-   {-# INLINE rule1714 #-}
-   rule1714 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule1715 #-}
-   rule1715 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule1716 #-}
-   rule1716 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
-   {-# INLINE rule1717 #-}
-   rule1717 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1718 #-}
-   rule1718 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
    {-# INLINE rule1719 #-}
-   rule1719 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
+   rule1719 = \ ((_righthandsideIcollectScopeInfos) :: [(ScopeInfo, Entity)]) _scopeInfo ->
+                                                 (_scopeInfo, Variable)   : _righthandsideIcollectScopeInfos
    {-# INLINE rule1720 #-}
-   rule1720 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
+   rule1720 = \ ((_lefthandsideInumberOfPatterns) :: Int) ->
+                                    _lefthandsideInumberOfPatterns
    {-# INLINE rule1721 #-}
-   rule1721 = \ ((_lefthandsideIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lefthandsideIcollectScopeInfos
+   rule1721 = \ ((_lefthandsideIpatVarNames) :: Names) ((_lhsInamesInScope) :: Names) ((_righthandsideIunboundNames) :: Names) ->
+                                                                        changeOfScope _lefthandsideIpatVarNames _righthandsideIunboundNames _lhsInamesInScope
    {-# INLINE rule1722 #-}
-   rule1722 = \ ((_lefthandsideIcounter) :: Int) ->
-     _lefthandsideIcounter
+   rule1722 = \ _unboundNames ->
+                                             _unboundNames
    {-# INLINE rule1723 #-}
-   rule1723 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
+   rule1723 = \ ((_righthandsideIcollectInstances) :: [(Name, Instance)]) ->
+     _righthandsideIcollectInstances
    {-# INLINE rule1724 #-}
-   rule1724 = \ ((_lefthandsideImiscerrors) :: [Error]) ->
-     _lefthandsideImiscerrors
+   rule1724 = \ ((_lefthandsideIself) :: LeftHandSide) ((_rangeIself) :: Range) ((_righthandsideIself) :: RightHandSide) ->
+     FunctionBinding_FunctionBinding _rangeIself _lefthandsideIself _righthandsideIself
    {-# INLINE rule1725 #-}
-   rule1725 = \ _namesInScope ->
-     _namesInScope
+   rule1725 = \ _self ->
+     _self
    {-# INLINE rule1726 #-}
-   rule1726 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule1726 = \ ((_righthandsideIcounter) :: Int) ->
+     _righthandsideIcounter
    {-# INLINE rule1727 #-}
-   rule1727 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule1727 = \ ((_righthandsideIkindErrors) :: [Error]) ->
+     _righthandsideIkindErrors
    {-# INLINE rule1728 #-}
-   rule1728 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule1728 = \ ((_righthandsideImiscerrors) :: [Error]) ->
+     _righthandsideImiscerrors
    {-# INLINE rule1729 #-}
-   rule1729 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule1729 = \ ((_lefthandsideIname) :: Name) ->
+     _lefthandsideIname
    {-# INLINE rule1730 #-}
-   rule1730 = \ ((_lefthandsideIwarnings) :: [Warning]) ->
+   rule1730 = \ ((_righthandsideIwarnings) :: [Warning]) ->
+     _righthandsideIwarnings
+   {-# INLINE rule1731 #-}
+   rule1731 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1732 #-}
+   rule1732 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1733 #-}
+   rule1733 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule1734 #-}
+   rule1734 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1735 #-}
+   rule1735 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1736 #-}
+   rule1736 = \ _namesInScope ->
+     _namesInScope
+   {-# INLINE rule1737 #-}
+   rule1737 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1738 #-}
+   rule1738 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1739 #-}
+   rule1739 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule1740 #-}
+   rule1740 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1741 #-}
+   rule1741 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1742 #-}
+   rule1742 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1743 #-}
+   rule1743 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1744 #-}
+   rule1744 = \ ((_lefthandsideIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lefthandsideIcollectScopeInfos
+   {-# INLINE rule1745 #-}
+   rule1745 = \ ((_lefthandsideIcounter) :: Int) ->
+     _lefthandsideIcounter
+   {-# INLINE rule1746 #-}
+   rule1746 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule1747 #-}
+   rule1747 = \ ((_lefthandsideImiscerrors) :: [Error]) ->
+     _lefthandsideImiscerrors
+   {-# INLINE rule1748 #-}
+   rule1748 = \ _namesInScope ->
+     _namesInScope
+   {-# INLINE rule1749 #-}
+   rule1749 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1750 #-}
+   rule1750 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1751 #-}
+   rule1751 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1752 #-}
+   rule1752 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1753 #-}
+   rule1753 = \ ((_lefthandsideIwarnings) :: [Warning]) ->
      _lefthandsideIwarnings
 
 -- FunctionBindings --------------------------------------------
@@ -9961,173 +10076,173 @@ sem_FunctionBindings_Cons arg_hd_ arg_tl_ = T_FunctionBindings (return st59) whe
          (T_FunctionBinding_vOut55 _hdIarity _hdIcollectInstances _hdIcollectScopeInfos _hdIcounter _hdIkindErrors _hdImiscerrors _hdIname _hdIself _hdIunboundNames _hdIwarnings) = inv_FunctionBinding_s56 _hdX56 (T_FunctionBinding_vIn55 _hdOallTypeConstructors _hdOallValueConstructors _hdOclassEnvironment _hdOclassMemberEnv _hdOcollectScopeInfos _hdOcounter _hdOkindErrors _hdOmiscerrors _hdOnamesInScope _hdOoptions _hdOorderedTypeSynonyms _hdOtypeConstructors _hdOvalueConstructors _hdOwarnings)
          (T_FunctionBindings_vOut58 _tlIarities _tlIcollectInstances _tlIcollectScopeInfos _tlIcounter _tlIkindErrors _tlImiscerrors _tlIname _tlIself _tlIunboundNames _tlIwarnings) = inv_FunctionBindings_s59 _tlX59 (T_FunctionBindings_vIn58 _tlOallTypeConstructors _tlOallValueConstructors _tlOclassEnvironment _tlOclassMemberEnv _tlOcollectScopeInfos _tlOcounter _tlOkindErrors _tlOmiscerrors _tlOnamesInScope _tlOoptions _tlOorderedTypeSynonyms _tlOtypeConstructors _tlOvalueConstructors _tlOwarnings)
          _lhsOarities ::  [Int] 
-         _lhsOarities = rule1731 _hdIarity _tlIarities
+         _lhsOarities = rule1754 _hdIarity _tlIarities
          _lhsOname :: Name
-         _lhsOname = rule1732 _hdIname
+         _lhsOname = rule1755 _hdIname
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1733 _hdIcollectInstances _tlIcollectInstances
+         _lhsOcollectInstances = rule1756 _hdIcollectInstances _tlIcollectInstances
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1734 _hdIunboundNames _tlIunboundNames
-         _self = rule1735 _hdIself _tlIself
+         _lhsOunboundNames = rule1757 _hdIunboundNames _tlIunboundNames
+         _self = rule1758 _hdIself _tlIself
          _lhsOself :: FunctionBindings
-         _lhsOself = rule1736 _self
+         _lhsOself = rule1759 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1737 _tlIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1760 _tlIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1738 _tlIcounter
+         _lhsOcounter = rule1761 _tlIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1739 _tlIkindErrors
+         _lhsOkindErrors = rule1762 _tlIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1740 _tlImiscerrors
+         _lhsOmiscerrors = rule1763 _tlImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1741 _tlIwarnings
-         _hdOallTypeConstructors = rule1742 _lhsIallTypeConstructors
-         _hdOallValueConstructors = rule1743 _lhsIallValueConstructors
-         _hdOclassEnvironment = rule1744 _lhsIclassEnvironment
-         _hdOclassMemberEnv = rule1745 _lhsIclassMemberEnv
-         _hdOcollectScopeInfos = rule1746 _lhsIcollectScopeInfos
-         _hdOcounter = rule1747 _lhsIcounter
-         _hdOkindErrors = rule1748 _lhsIkindErrors
-         _hdOmiscerrors = rule1749 _lhsImiscerrors
-         _hdOnamesInScope = rule1750 _lhsInamesInScope
-         _hdOoptions = rule1751 _lhsIoptions
-         _hdOorderedTypeSynonyms = rule1752 _lhsIorderedTypeSynonyms
-         _hdOtypeConstructors = rule1753 _lhsItypeConstructors
-         _hdOvalueConstructors = rule1754 _lhsIvalueConstructors
-         _hdOwarnings = rule1755 _lhsIwarnings
-         _tlOallTypeConstructors = rule1756 _lhsIallTypeConstructors
-         _tlOallValueConstructors = rule1757 _lhsIallValueConstructors
-         _tlOclassEnvironment = rule1758 _lhsIclassEnvironment
-         _tlOclassMemberEnv = rule1759 _lhsIclassMemberEnv
-         _tlOcollectScopeInfos = rule1760 _hdIcollectScopeInfos
-         _tlOcounter = rule1761 _hdIcounter
-         _tlOkindErrors = rule1762 _hdIkindErrors
-         _tlOmiscerrors = rule1763 _hdImiscerrors
-         _tlOnamesInScope = rule1764 _lhsInamesInScope
-         _tlOoptions = rule1765 _lhsIoptions
-         _tlOorderedTypeSynonyms = rule1766 _lhsIorderedTypeSynonyms
-         _tlOtypeConstructors = rule1767 _lhsItypeConstructors
-         _tlOvalueConstructors = rule1768 _lhsIvalueConstructors
-         _tlOwarnings = rule1769 _hdIwarnings
+         _lhsOwarnings = rule1764 _tlIwarnings
+         _hdOallTypeConstructors = rule1765 _lhsIallTypeConstructors
+         _hdOallValueConstructors = rule1766 _lhsIallValueConstructors
+         _hdOclassEnvironment = rule1767 _lhsIclassEnvironment
+         _hdOclassMemberEnv = rule1768 _lhsIclassMemberEnv
+         _hdOcollectScopeInfos = rule1769 _lhsIcollectScopeInfos
+         _hdOcounter = rule1770 _lhsIcounter
+         _hdOkindErrors = rule1771 _lhsIkindErrors
+         _hdOmiscerrors = rule1772 _lhsImiscerrors
+         _hdOnamesInScope = rule1773 _lhsInamesInScope
+         _hdOoptions = rule1774 _lhsIoptions
+         _hdOorderedTypeSynonyms = rule1775 _lhsIorderedTypeSynonyms
+         _hdOtypeConstructors = rule1776 _lhsItypeConstructors
+         _hdOvalueConstructors = rule1777 _lhsIvalueConstructors
+         _hdOwarnings = rule1778 _lhsIwarnings
+         _tlOallTypeConstructors = rule1779 _lhsIallTypeConstructors
+         _tlOallValueConstructors = rule1780 _lhsIallValueConstructors
+         _tlOclassEnvironment = rule1781 _lhsIclassEnvironment
+         _tlOclassMemberEnv = rule1782 _lhsIclassMemberEnv
+         _tlOcollectScopeInfos = rule1783 _hdIcollectScopeInfos
+         _tlOcounter = rule1784 _hdIcounter
+         _tlOkindErrors = rule1785 _hdIkindErrors
+         _tlOmiscerrors = rule1786 _hdImiscerrors
+         _tlOnamesInScope = rule1787 _lhsInamesInScope
+         _tlOoptions = rule1788 _lhsIoptions
+         _tlOorderedTypeSynonyms = rule1789 _lhsIorderedTypeSynonyms
+         _tlOtypeConstructors = rule1790 _lhsItypeConstructors
+         _tlOvalueConstructors = rule1791 _lhsIvalueConstructors
+         _tlOwarnings = rule1792 _hdIwarnings
          __result_ = T_FunctionBindings_vOut58 _lhsOarities _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOname _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_FunctionBindings_s59 v58
-   {-# INLINE rule1731 #-}
-   rule1731 = \ ((_hdIarity) :: Int) ((_tlIarities) ::  [Int] ) ->
-                         _hdIarity : _tlIarities
-   {-# INLINE rule1732 #-}
-   rule1732 = \ ((_hdIname) :: Name) ->
-                         _hdIname
-   {-# INLINE rule1733 #-}
-   rule1733 = \ ((_hdIcollectInstances) :: [(Name, Instance)]) ((_tlIcollectInstances) :: [(Name, Instance)]) ->
-     _hdIcollectInstances  ++  _tlIcollectInstances
-   {-# INLINE rule1734 #-}
-   rule1734 = \ ((_hdIunboundNames) :: Names) ((_tlIunboundNames) :: Names) ->
-     _hdIunboundNames ++ _tlIunboundNames
-   {-# INLINE rule1735 #-}
-   rule1735 = \ ((_hdIself) :: FunctionBinding) ((_tlIself) :: FunctionBindings) ->
-     (:) _hdIself _tlIself
-   {-# INLINE rule1736 #-}
-   rule1736 = \ _self ->
-     _self
-   {-# INLINE rule1737 #-}
-   rule1737 = \ ((_tlIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _tlIcollectScopeInfos
-   {-# INLINE rule1738 #-}
-   rule1738 = \ ((_tlIcounter) :: Int) ->
-     _tlIcounter
-   {-# INLINE rule1739 #-}
-   rule1739 = \ ((_tlIkindErrors) :: [Error]) ->
-     _tlIkindErrors
-   {-# INLINE rule1740 #-}
-   rule1740 = \ ((_tlImiscerrors) :: [Error]) ->
-     _tlImiscerrors
-   {-# INLINE rule1741 #-}
-   rule1741 = \ ((_tlIwarnings) :: [Warning]) ->
-     _tlIwarnings
-   {-# INLINE rule1742 #-}
-   rule1742 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1743 #-}
-   rule1743 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1744 #-}
-   rule1744 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule1745 #-}
-   rule1745 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule1746 #-}
-   rule1746 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule1747 #-}
-   rule1747 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule1748 #-}
-   rule1748 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule1749 #-}
-   rule1749 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule1750 #-}
-   rule1750 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule1751 #-}
-   rule1751 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule1752 #-}
-   rule1752 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule1753 #-}
-   rule1753 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
    {-# INLINE rule1754 #-}
-   rule1754 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule1754 = \ ((_hdIarity) :: Int) ((_tlIarities) ::  [Int] ) ->
+                         _hdIarity : _tlIarities
    {-# INLINE rule1755 #-}
-   rule1755 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
+   rule1755 = \ ((_hdIname) :: Name) ->
+                         _hdIname
    {-# INLINE rule1756 #-}
-   rule1756 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
+   rule1756 = \ ((_hdIcollectInstances) :: [(Name, Instance)]) ((_tlIcollectInstances) :: [(Name, Instance)]) ->
+     _hdIcollectInstances  ++  _tlIcollectInstances
    {-# INLINE rule1757 #-}
-   rule1757 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
+   rule1757 = \ ((_hdIunboundNames) :: Names) ((_tlIunboundNames) :: Names) ->
+     _hdIunboundNames ++ _tlIunboundNames
    {-# INLINE rule1758 #-}
-   rule1758 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
+   rule1758 = \ ((_hdIself) :: FunctionBinding) ((_tlIself) :: FunctionBindings) ->
+     (:) _hdIself _tlIself
    {-# INLINE rule1759 #-}
-   rule1759 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
+   rule1759 = \ _self ->
+     _self
    {-# INLINE rule1760 #-}
-   rule1760 = \ ((_hdIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _hdIcollectScopeInfos
+   rule1760 = \ ((_tlIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _tlIcollectScopeInfos
    {-# INLINE rule1761 #-}
-   rule1761 = \ ((_hdIcounter) :: Int) ->
-     _hdIcounter
+   rule1761 = \ ((_tlIcounter) :: Int) ->
+     _tlIcounter
    {-# INLINE rule1762 #-}
-   rule1762 = \ ((_hdIkindErrors) :: [Error]) ->
-     _hdIkindErrors
+   rule1762 = \ ((_tlIkindErrors) :: [Error]) ->
+     _tlIkindErrors
    {-# INLINE rule1763 #-}
-   rule1763 = \ ((_hdImiscerrors) :: [Error]) ->
-     _hdImiscerrors
+   rule1763 = \ ((_tlImiscerrors) :: [Error]) ->
+     _tlImiscerrors
    {-# INLINE rule1764 #-}
-   rule1764 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
+   rule1764 = \ ((_tlIwarnings) :: [Warning]) ->
+     _tlIwarnings
    {-# INLINE rule1765 #-}
-   rule1765 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule1765 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
    {-# INLINE rule1766 #-}
-   rule1766 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule1766 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
    {-# INLINE rule1767 #-}
-   rule1767 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule1767 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
    {-# INLINE rule1768 #-}
-   rule1768 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule1768 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
    {-# INLINE rule1769 #-}
-   rule1769 = \ ((_hdIwarnings) :: [Warning]) ->
+   rule1769 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule1770 #-}
+   rule1770 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1771 #-}
+   rule1771 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule1772 #-}
+   rule1772 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1773 #-}
+   rule1773 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1774 #-}
+   rule1774 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1775 #-}
+   rule1775 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1776 #-}
+   rule1776 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1777 #-}
+   rule1777 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1778 #-}
+   rule1778 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule1779 #-}
+   rule1779 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1780 #-}
+   rule1780 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1781 #-}
+   rule1781 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1782 #-}
+   rule1782 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1783 #-}
+   rule1783 = \ ((_hdIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _hdIcollectScopeInfos
+   {-# INLINE rule1784 #-}
+   rule1784 = \ ((_hdIcounter) :: Int) ->
+     _hdIcounter
+   {-# INLINE rule1785 #-}
+   rule1785 = \ ((_hdIkindErrors) :: [Error]) ->
+     _hdIkindErrors
+   {-# INLINE rule1786 #-}
+   rule1786 = \ ((_hdImiscerrors) :: [Error]) ->
+     _hdImiscerrors
+   {-# INLINE rule1787 #-}
+   rule1787 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1788 #-}
+   rule1788 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1789 #-}
+   rule1789 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1790 #-}
+   rule1790 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1791 #-}
+   rule1791 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1792 #-}
+   rule1792 = \ ((_hdIwarnings) :: [Warning]) ->
      _hdIwarnings
 {-# NOINLINE sem_FunctionBindings_Nil #-}
 sem_FunctionBindings_Nil ::  T_FunctionBindings 
@@ -10137,61 +10252,61 @@ sem_FunctionBindings_Nil  = T_FunctionBindings (return st59) where
       v58 :: T_FunctionBindings_v58 
       v58 = \ (T_FunctionBindings_vIn58 _lhsIallTypeConstructors _lhsIallValueConstructors _lhsIclassEnvironment _lhsIclassMemberEnv _lhsIcollectScopeInfos _lhsIcounter _lhsIkindErrors _lhsImiscerrors _lhsInamesInScope _lhsIoptions _lhsIorderedTypeSynonyms _lhsItypeConstructors _lhsIvalueConstructors _lhsIwarnings) -> ( let
          _lhsOarities ::  [Int] 
-         _lhsOarities = rule1770  ()
+         _lhsOarities = rule1793  ()
          _lhsOname :: Name
-         _lhsOname = rule1771  ()
+         _lhsOname = rule1794  ()
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1772  ()
+         _lhsOcollectInstances = rule1795  ()
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1773  ()
-         _self = rule1774  ()
+         _lhsOunboundNames = rule1796  ()
+         _self = rule1797  ()
          _lhsOself :: FunctionBindings
-         _lhsOself = rule1775 _self
+         _lhsOself = rule1798 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1776 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1799 _lhsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1777 _lhsIcounter
+         _lhsOcounter = rule1800 _lhsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1778 _lhsIkindErrors
+         _lhsOkindErrors = rule1801 _lhsIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1779 _lhsImiscerrors
+         _lhsOmiscerrors = rule1802 _lhsImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1780 _lhsIwarnings
+         _lhsOwarnings = rule1803 _lhsIwarnings
          __result_ = T_FunctionBindings_vOut58 _lhsOarities _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOname _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_FunctionBindings_s59 v58
-   {-# INLINE rule1770 #-}
-   rule1770 = \  (_ :: ()) ->
+   {-# INLINE rule1793 #-}
+   rule1793 = \  (_ :: ()) ->
                          []
-   {-# INLINE rule1771 #-}
-   rule1771 = \  (_ :: ()) ->
+   {-# INLINE rule1794 #-}
+   rule1794 = \  (_ :: ()) ->
                          internalError "StaticChecks.ag" "n/a" "empty FunctionBindings"
-   {-# INLINE rule1772 #-}
-   rule1772 = \  (_ :: ()) ->
+   {-# INLINE rule1795 #-}
+   rule1795 = \  (_ :: ()) ->
      []
-   {-# INLINE rule1773 #-}
-   rule1773 = \  (_ :: ()) ->
+   {-# INLINE rule1796 #-}
+   rule1796 = \  (_ :: ()) ->
      []
-   {-# INLINE rule1774 #-}
-   rule1774 = \  (_ :: ()) ->
+   {-# INLINE rule1797 #-}
+   rule1797 = \  (_ :: ()) ->
      []
-   {-# INLINE rule1775 #-}
-   rule1775 = \ _self ->
+   {-# INLINE rule1798 #-}
+   rule1798 = \ _self ->
      _self
-   {-# INLINE rule1776 #-}
-   rule1776 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule1799 #-}
+   rule1799 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule1777 #-}
-   rule1777 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule1800 #-}
+   rule1800 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule1778 #-}
-   rule1778 = \ ((_lhsIkindErrors) :: [Error]) ->
+   {-# INLINE rule1801 #-}
+   rule1801 = \ ((_lhsIkindErrors) :: [Error]) ->
      _lhsIkindErrors
-   {-# INLINE rule1779 #-}
-   rule1779 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule1802 #-}
+   rule1802 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule1780 #-}
-   rule1780 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule1803 #-}
+   rule1803 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 
 -- GuardedExpression -------------------------------------------
@@ -10238,163 +10353,163 @@ sem_GuardedExpression_GuardedExpression arg_range_ arg_guard_ arg_expression_ = 
          (T_Expression_vOut40 _guardIcollectInstances _guardIcollectScopeInfos _guardIcounter _guardIkindErrors _guardImiscerrors _guardIself _guardIunboundNames _guardIwarnings) = inv_Expression_s41 _guardX41 (T_Expression_vIn40 _guardOallTypeConstructors _guardOallValueConstructors _guardOclassEnvironment _guardOclassMemberEnv _guardOcollectScopeInfos _guardOcounter _guardOkindErrors _guardOmiscerrors _guardOnamesInScope _guardOoptions _guardOorderedTypeSynonyms _guardOtypeConstructors _guardOvalueConstructors _guardOwarnings)
          (T_Expression_vOut40 _expressionIcollectInstances _expressionIcollectScopeInfos _expressionIcounter _expressionIkindErrors _expressionImiscerrors _expressionIself _expressionIunboundNames _expressionIwarnings) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionOallTypeConstructors _expressionOallValueConstructors _expressionOclassEnvironment _expressionOclassMemberEnv _expressionOcollectScopeInfos _expressionOcounter _expressionOkindErrors _expressionOmiscerrors _expressionOnamesInScope _expressionOoptions _expressionOorderedTypeSynonyms _expressionOtypeConstructors _expressionOvalueConstructors _expressionOwarnings)
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1781 _expressionIcollectInstances _guardIcollectInstances
+         _lhsOcollectInstances = rule1804 _expressionIcollectInstances _guardIcollectInstances
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1782 _expressionIunboundNames _guardIunboundNames
-         _self = rule1783 _expressionIself _guardIself _rangeIself
+         _lhsOunboundNames = rule1805 _expressionIunboundNames _guardIunboundNames
+         _self = rule1806 _expressionIself _guardIself _rangeIself
          _lhsOself :: GuardedExpression
-         _lhsOself = rule1784 _self
+         _lhsOself = rule1807 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1785 _expressionIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1808 _expressionIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1786 _expressionIcounter
+         _lhsOcounter = rule1809 _expressionIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1787 _expressionIkindErrors
+         _lhsOkindErrors = rule1810 _expressionIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1788 _expressionImiscerrors
+         _lhsOmiscerrors = rule1811 _expressionImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1789 _expressionIwarnings
-         _guardOallTypeConstructors = rule1790 _lhsIallTypeConstructors
-         _guardOallValueConstructors = rule1791 _lhsIallValueConstructors
-         _guardOclassEnvironment = rule1792 _lhsIclassEnvironment
-         _guardOclassMemberEnv = rule1793 _lhsIclassMemberEnv
-         _guardOcollectScopeInfos = rule1794 _lhsIcollectScopeInfos
-         _guardOcounter = rule1795 _lhsIcounter
-         _guardOkindErrors = rule1796 _lhsIkindErrors
-         _guardOmiscerrors = rule1797 _lhsImiscerrors
-         _guardOnamesInScope = rule1798 _lhsInamesInScope
-         _guardOoptions = rule1799 _lhsIoptions
-         _guardOorderedTypeSynonyms = rule1800 _lhsIorderedTypeSynonyms
-         _guardOtypeConstructors = rule1801 _lhsItypeConstructors
-         _guardOvalueConstructors = rule1802 _lhsIvalueConstructors
-         _guardOwarnings = rule1803 _lhsIwarnings
-         _expressionOallTypeConstructors = rule1804 _lhsIallTypeConstructors
-         _expressionOallValueConstructors = rule1805 _lhsIallValueConstructors
-         _expressionOclassEnvironment = rule1806 _lhsIclassEnvironment
-         _expressionOclassMemberEnv = rule1807 _lhsIclassMemberEnv
-         _expressionOcollectScopeInfos = rule1808 _guardIcollectScopeInfos
-         _expressionOcounter = rule1809 _guardIcounter
-         _expressionOkindErrors = rule1810 _guardIkindErrors
-         _expressionOmiscerrors = rule1811 _guardImiscerrors
-         _expressionOnamesInScope = rule1812 _lhsInamesInScope
-         _expressionOoptions = rule1813 _lhsIoptions
-         _expressionOorderedTypeSynonyms = rule1814 _lhsIorderedTypeSynonyms
-         _expressionOtypeConstructors = rule1815 _lhsItypeConstructors
-         _expressionOvalueConstructors = rule1816 _lhsIvalueConstructors
-         _expressionOwarnings = rule1817 _guardIwarnings
+         _lhsOwarnings = rule1812 _expressionIwarnings
+         _guardOallTypeConstructors = rule1813 _lhsIallTypeConstructors
+         _guardOallValueConstructors = rule1814 _lhsIallValueConstructors
+         _guardOclassEnvironment = rule1815 _lhsIclassEnvironment
+         _guardOclassMemberEnv = rule1816 _lhsIclassMemberEnv
+         _guardOcollectScopeInfos = rule1817 _lhsIcollectScopeInfos
+         _guardOcounter = rule1818 _lhsIcounter
+         _guardOkindErrors = rule1819 _lhsIkindErrors
+         _guardOmiscerrors = rule1820 _lhsImiscerrors
+         _guardOnamesInScope = rule1821 _lhsInamesInScope
+         _guardOoptions = rule1822 _lhsIoptions
+         _guardOorderedTypeSynonyms = rule1823 _lhsIorderedTypeSynonyms
+         _guardOtypeConstructors = rule1824 _lhsItypeConstructors
+         _guardOvalueConstructors = rule1825 _lhsIvalueConstructors
+         _guardOwarnings = rule1826 _lhsIwarnings
+         _expressionOallTypeConstructors = rule1827 _lhsIallTypeConstructors
+         _expressionOallValueConstructors = rule1828 _lhsIallValueConstructors
+         _expressionOclassEnvironment = rule1829 _lhsIclassEnvironment
+         _expressionOclassMemberEnv = rule1830 _lhsIclassMemberEnv
+         _expressionOcollectScopeInfos = rule1831 _guardIcollectScopeInfos
+         _expressionOcounter = rule1832 _guardIcounter
+         _expressionOkindErrors = rule1833 _guardIkindErrors
+         _expressionOmiscerrors = rule1834 _guardImiscerrors
+         _expressionOnamesInScope = rule1835 _lhsInamesInScope
+         _expressionOoptions = rule1836 _lhsIoptions
+         _expressionOorderedTypeSynonyms = rule1837 _lhsIorderedTypeSynonyms
+         _expressionOtypeConstructors = rule1838 _lhsItypeConstructors
+         _expressionOvalueConstructors = rule1839 _lhsIvalueConstructors
+         _expressionOwarnings = rule1840 _guardIwarnings
          __result_ = T_GuardedExpression_vOut61 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_GuardedExpression_s62 v61
-   {-# INLINE rule1781 #-}
-   rule1781 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ((_guardIcollectInstances) :: [(Name, Instance)]) ->
-     _guardIcollectInstances  ++  _expressionIcollectInstances
-   {-# INLINE rule1782 #-}
-   rule1782 = \ ((_expressionIunboundNames) :: Names) ((_guardIunboundNames) :: Names) ->
-     _guardIunboundNames ++ _expressionIunboundNames
-   {-# INLINE rule1783 #-}
-   rule1783 = \ ((_expressionIself) :: Expression) ((_guardIself) :: Expression) ((_rangeIself) :: Range) ->
-     GuardedExpression_GuardedExpression _rangeIself _guardIself _expressionIself
-   {-# INLINE rule1784 #-}
-   rule1784 = \ _self ->
-     _self
-   {-# INLINE rule1785 #-}
-   rule1785 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _expressionIcollectScopeInfos
-   {-# INLINE rule1786 #-}
-   rule1786 = \ ((_expressionIcounter) :: Int) ->
-     _expressionIcounter
-   {-# INLINE rule1787 #-}
-   rule1787 = \ ((_expressionIkindErrors) :: [Error]) ->
-     _expressionIkindErrors
-   {-# INLINE rule1788 #-}
-   rule1788 = \ ((_expressionImiscerrors) :: [Error]) ->
-     _expressionImiscerrors
-   {-# INLINE rule1789 #-}
-   rule1789 = \ ((_expressionIwarnings) :: [Warning]) ->
-     _expressionIwarnings
-   {-# INLINE rule1790 #-}
-   rule1790 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1791 #-}
-   rule1791 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1792 #-}
-   rule1792 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule1793 #-}
-   rule1793 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule1794 #-}
-   rule1794 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule1795 #-}
-   rule1795 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule1796 #-}
-   rule1796 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule1797 #-}
-   rule1797 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule1798 #-}
-   rule1798 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule1799 #-}
-   rule1799 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule1800 #-}
-   rule1800 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule1801 #-}
-   rule1801 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule1802 #-}
-   rule1802 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule1803 #-}
-   rule1803 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
    {-# INLINE rule1804 #-}
-   rule1804 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
+   rule1804 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ((_guardIcollectInstances) :: [(Name, Instance)]) ->
+     _guardIcollectInstances  ++  _expressionIcollectInstances
    {-# INLINE rule1805 #-}
-   rule1805 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
+   rule1805 = \ ((_expressionIunboundNames) :: Names) ((_guardIunboundNames) :: Names) ->
+     _guardIunboundNames ++ _expressionIunboundNames
    {-# INLINE rule1806 #-}
-   rule1806 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
+   rule1806 = \ ((_expressionIself) :: Expression) ((_guardIself) :: Expression) ((_rangeIself) :: Range) ->
+     GuardedExpression_GuardedExpression _rangeIself _guardIself _expressionIself
    {-# INLINE rule1807 #-}
-   rule1807 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
+   rule1807 = \ _self ->
+     _self
    {-# INLINE rule1808 #-}
-   rule1808 = \ ((_guardIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _guardIcollectScopeInfos
+   rule1808 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _expressionIcollectScopeInfos
    {-# INLINE rule1809 #-}
-   rule1809 = \ ((_guardIcounter) :: Int) ->
-     _guardIcounter
+   rule1809 = \ ((_expressionIcounter) :: Int) ->
+     _expressionIcounter
    {-# INLINE rule1810 #-}
-   rule1810 = \ ((_guardIkindErrors) :: [Error]) ->
-     _guardIkindErrors
+   rule1810 = \ ((_expressionIkindErrors) :: [Error]) ->
+     _expressionIkindErrors
    {-# INLINE rule1811 #-}
-   rule1811 = \ ((_guardImiscerrors) :: [Error]) ->
-     _guardImiscerrors
+   rule1811 = \ ((_expressionImiscerrors) :: [Error]) ->
+     _expressionImiscerrors
    {-# INLINE rule1812 #-}
-   rule1812 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
+   rule1812 = \ ((_expressionIwarnings) :: [Warning]) ->
+     _expressionIwarnings
    {-# INLINE rule1813 #-}
-   rule1813 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule1813 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
    {-# INLINE rule1814 #-}
-   rule1814 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule1814 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
    {-# INLINE rule1815 #-}
-   rule1815 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule1815 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
    {-# INLINE rule1816 #-}
-   rule1816 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule1816 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
    {-# INLINE rule1817 #-}
-   rule1817 = \ ((_guardIwarnings) :: [Warning]) ->
+   rule1817 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule1818 #-}
+   rule1818 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1819 #-}
+   rule1819 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule1820 #-}
+   rule1820 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1821 #-}
+   rule1821 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1822 #-}
+   rule1822 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1823 #-}
+   rule1823 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1824 #-}
+   rule1824 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1825 #-}
+   rule1825 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1826 #-}
+   rule1826 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule1827 #-}
+   rule1827 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1828 #-}
+   rule1828 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1829 #-}
+   rule1829 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1830 #-}
+   rule1830 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1831 #-}
+   rule1831 = \ ((_guardIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _guardIcollectScopeInfos
+   {-# INLINE rule1832 #-}
+   rule1832 = \ ((_guardIcounter) :: Int) ->
+     _guardIcounter
+   {-# INLINE rule1833 #-}
+   rule1833 = \ ((_guardIkindErrors) :: [Error]) ->
+     _guardIkindErrors
+   {-# INLINE rule1834 #-}
+   rule1834 = \ ((_guardImiscerrors) :: [Error]) ->
+     _guardImiscerrors
+   {-# INLINE rule1835 #-}
+   rule1835 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1836 #-}
+   rule1836 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1837 #-}
+   rule1837 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1838 #-}
+   rule1838 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1839 #-}
+   rule1839 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1840 #-}
+   rule1840 = \ ((_guardIwarnings) :: [Warning]) ->
      _guardIwarnings
 
 -- GuardedExpressions ------------------------------------------
@@ -10439,163 +10554,163 @@ sem_GuardedExpressions_Cons arg_hd_ arg_tl_ = T_GuardedExpressions (return st65)
          (T_GuardedExpression_vOut61 _hdIcollectInstances _hdIcollectScopeInfos _hdIcounter _hdIkindErrors _hdImiscerrors _hdIself _hdIunboundNames _hdIwarnings) = inv_GuardedExpression_s62 _hdX62 (T_GuardedExpression_vIn61 _hdOallTypeConstructors _hdOallValueConstructors _hdOclassEnvironment _hdOclassMemberEnv _hdOcollectScopeInfos _hdOcounter _hdOkindErrors _hdOmiscerrors _hdOnamesInScope _hdOoptions _hdOorderedTypeSynonyms _hdOtypeConstructors _hdOvalueConstructors _hdOwarnings)
          (T_GuardedExpressions_vOut64 _tlIcollectInstances _tlIcollectScopeInfos _tlIcounter _tlIkindErrors _tlImiscerrors _tlIself _tlIunboundNames _tlIwarnings) = inv_GuardedExpressions_s65 _tlX65 (T_GuardedExpressions_vIn64 _tlOallTypeConstructors _tlOallValueConstructors _tlOclassEnvironment _tlOclassMemberEnv _tlOcollectScopeInfos _tlOcounter _tlOkindErrors _tlOmiscerrors _tlOnamesInScope _tlOoptions _tlOorderedTypeSynonyms _tlOtypeConstructors _tlOvalueConstructors _tlOwarnings)
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1818 _hdIcollectInstances _tlIcollectInstances
+         _lhsOcollectInstances = rule1841 _hdIcollectInstances _tlIcollectInstances
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1819 _hdIunboundNames _tlIunboundNames
-         _self = rule1820 _hdIself _tlIself
+         _lhsOunboundNames = rule1842 _hdIunboundNames _tlIunboundNames
+         _self = rule1843 _hdIself _tlIself
          _lhsOself :: GuardedExpressions
-         _lhsOself = rule1821 _self
+         _lhsOself = rule1844 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1822 _tlIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1845 _tlIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1823 _tlIcounter
+         _lhsOcounter = rule1846 _tlIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1824 _tlIkindErrors
+         _lhsOkindErrors = rule1847 _tlIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1825 _tlImiscerrors
+         _lhsOmiscerrors = rule1848 _tlImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1826 _tlIwarnings
-         _hdOallTypeConstructors = rule1827 _lhsIallTypeConstructors
-         _hdOallValueConstructors = rule1828 _lhsIallValueConstructors
-         _hdOclassEnvironment = rule1829 _lhsIclassEnvironment
-         _hdOclassMemberEnv = rule1830 _lhsIclassMemberEnv
-         _hdOcollectScopeInfos = rule1831 _lhsIcollectScopeInfos
-         _hdOcounter = rule1832 _lhsIcounter
-         _hdOkindErrors = rule1833 _lhsIkindErrors
-         _hdOmiscerrors = rule1834 _lhsImiscerrors
-         _hdOnamesInScope = rule1835 _lhsInamesInScope
-         _hdOoptions = rule1836 _lhsIoptions
-         _hdOorderedTypeSynonyms = rule1837 _lhsIorderedTypeSynonyms
-         _hdOtypeConstructors = rule1838 _lhsItypeConstructors
-         _hdOvalueConstructors = rule1839 _lhsIvalueConstructors
-         _hdOwarnings = rule1840 _lhsIwarnings
-         _tlOallTypeConstructors = rule1841 _lhsIallTypeConstructors
-         _tlOallValueConstructors = rule1842 _lhsIallValueConstructors
-         _tlOclassEnvironment = rule1843 _lhsIclassEnvironment
-         _tlOclassMemberEnv = rule1844 _lhsIclassMemberEnv
-         _tlOcollectScopeInfos = rule1845 _hdIcollectScopeInfos
-         _tlOcounter = rule1846 _hdIcounter
-         _tlOkindErrors = rule1847 _hdIkindErrors
-         _tlOmiscerrors = rule1848 _hdImiscerrors
-         _tlOnamesInScope = rule1849 _lhsInamesInScope
-         _tlOoptions = rule1850 _lhsIoptions
-         _tlOorderedTypeSynonyms = rule1851 _lhsIorderedTypeSynonyms
-         _tlOtypeConstructors = rule1852 _lhsItypeConstructors
-         _tlOvalueConstructors = rule1853 _lhsIvalueConstructors
-         _tlOwarnings = rule1854 _hdIwarnings
+         _lhsOwarnings = rule1849 _tlIwarnings
+         _hdOallTypeConstructors = rule1850 _lhsIallTypeConstructors
+         _hdOallValueConstructors = rule1851 _lhsIallValueConstructors
+         _hdOclassEnvironment = rule1852 _lhsIclassEnvironment
+         _hdOclassMemberEnv = rule1853 _lhsIclassMemberEnv
+         _hdOcollectScopeInfos = rule1854 _lhsIcollectScopeInfos
+         _hdOcounter = rule1855 _lhsIcounter
+         _hdOkindErrors = rule1856 _lhsIkindErrors
+         _hdOmiscerrors = rule1857 _lhsImiscerrors
+         _hdOnamesInScope = rule1858 _lhsInamesInScope
+         _hdOoptions = rule1859 _lhsIoptions
+         _hdOorderedTypeSynonyms = rule1860 _lhsIorderedTypeSynonyms
+         _hdOtypeConstructors = rule1861 _lhsItypeConstructors
+         _hdOvalueConstructors = rule1862 _lhsIvalueConstructors
+         _hdOwarnings = rule1863 _lhsIwarnings
+         _tlOallTypeConstructors = rule1864 _lhsIallTypeConstructors
+         _tlOallValueConstructors = rule1865 _lhsIallValueConstructors
+         _tlOclassEnvironment = rule1866 _lhsIclassEnvironment
+         _tlOclassMemberEnv = rule1867 _lhsIclassMemberEnv
+         _tlOcollectScopeInfos = rule1868 _hdIcollectScopeInfos
+         _tlOcounter = rule1869 _hdIcounter
+         _tlOkindErrors = rule1870 _hdIkindErrors
+         _tlOmiscerrors = rule1871 _hdImiscerrors
+         _tlOnamesInScope = rule1872 _lhsInamesInScope
+         _tlOoptions = rule1873 _lhsIoptions
+         _tlOorderedTypeSynonyms = rule1874 _lhsIorderedTypeSynonyms
+         _tlOtypeConstructors = rule1875 _lhsItypeConstructors
+         _tlOvalueConstructors = rule1876 _lhsIvalueConstructors
+         _tlOwarnings = rule1877 _hdIwarnings
          __result_ = T_GuardedExpressions_vOut64 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_GuardedExpressions_s65 v64
-   {-# INLINE rule1818 #-}
-   rule1818 = \ ((_hdIcollectInstances) :: [(Name, Instance)]) ((_tlIcollectInstances) :: [(Name, Instance)]) ->
-     _hdIcollectInstances  ++  _tlIcollectInstances
-   {-# INLINE rule1819 #-}
-   rule1819 = \ ((_hdIunboundNames) :: Names) ((_tlIunboundNames) :: Names) ->
-     _hdIunboundNames ++ _tlIunboundNames
-   {-# INLINE rule1820 #-}
-   rule1820 = \ ((_hdIself) :: GuardedExpression) ((_tlIself) :: GuardedExpressions) ->
-     (:) _hdIself _tlIself
-   {-# INLINE rule1821 #-}
-   rule1821 = \ _self ->
-     _self
-   {-# INLINE rule1822 #-}
-   rule1822 = \ ((_tlIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _tlIcollectScopeInfos
-   {-# INLINE rule1823 #-}
-   rule1823 = \ ((_tlIcounter) :: Int) ->
-     _tlIcounter
-   {-# INLINE rule1824 #-}
-   rule1824 = \ ((_tlIkindErrors) :: [Error]) ->
-     _tlIkindErrors
-   {-# INLINE rule1825 #-}
-   rule1825 = \ ((_tlImiscerrors) :: [Error]) ->
-     _tlImiscerrors
-   {-# INLINE rule1826 #-}
-   rule1826 = \ ((_tlIwarnings) :: [Warning]) ->
-     _tlIwarnings
-   {-# INLINE rule1827 #-}
-   rule1827 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1828 #-}
-   rule1828 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1829 #-}
-   rule1829 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule1830 #-}
-   rule1830 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule1831 #-}
-   rule1831 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule1832 #-}
-   rule1832 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule1833 #-}
-   rule1833 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule1834 #-}
-   rule1834 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule1835 #-}
-   rule1835 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule1836 #-}
-   rule1836 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule1837 #-}
-   rule1837 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule1838 #-}
-   rule1838 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule1839 #-}
-   rule1839 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule1840 #-}
-   rule1840 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
    {-# INLINE rule1841 #-}
-   rule1841 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
+   rule1841 = \ ((_hdIcollectInstances) :: [(Name, Instance)]) ((_tlIcollectInstances) :: [(Name, Instance)]) ->
+     _hdIcollectInstances  ++  _tlIcollectInstances
    {-# INLINE rule1842 #-}
-   rule1842 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
+   rule1842 = \ ((_hdIunboundNames) :: Names) ((_tlIunboundNames) :: Names) ->
+     _hdIunboundNames ++ _tlIunboundNames
    {-# INLINE rule1843 #-}
-   rule1843 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
+   rule1843 = \ ((_hdIself) :: GuardedExpression) ((_tlIself) :: GuardedExpressions) ->
+     (:) _hdIself _tlIself
    {-# INLINE rule1844 #-}
-   rule1844 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
+   rule1844 = \ _self ->
+     _self
    {-# INLINE rule1845 #-}
-   rule1845 = \ ((_hdIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _hdIcollectScopeInfos
+   rule1845 = \ ((_tlIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _tlIcollectScopeInfos
    {-# INLINE rule1846 #-}
-   rule1846 = \ ((_hdIcounter) :: Int) ->
-     _hdIcounter
+   rule1846 = \ ((_tlIcounter) :: Int) ->
+     _tlIcounter
    {-# INLINE rule1847 #-}
-   rule1847 = \ ((_hdIkindErrors) :: [Error]) ->
-     _hdIkindErrors
+   rule1847 = \ ((_tlIkindErrors) :: [Error]) ->
+     _tlIkindErrors
    {-# INLINE rule1848 #-}
-   rule1848 = \ ((_hdImiscerrors) :: [Error]) ->
-     _hdImiscerrors
+   rule1848 = \ ((_tlImiscerrors) :: [Error]) ->
+     _tlImiscerrors
    {-# INLINE rule1849 #-}
-   rule1849 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
+   rule1849 = \ ((_tlIwarnings) :: [Warning]) ->
+     _tlIwarnings
    {-# INLINE rule1850 #-}
-   rule1850 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule1850 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
    {-# INLINE rule1851 #-}
-   rule1851 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule1851 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
    {-# INLINE rule1852 #-}
-   rule1852 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule1852 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
    {-# INLINE rule1853 #-}
-   rule1853 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule1853 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
    {-# INLINE rule1854 #-}
-   rule1854 = \ ((_hdIwarnings) :: [Warning]) ->
+   rule1854 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule1855 #-}
+   rule1855 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1856 #-}
+   rule1856 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule1857 #-}
+   rule1857 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1858 #-}
+   rule1858 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1859 #-}
+   rule1859 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1860 #-}
+   rule1860 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1861 #-}
+   rule1861 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1862 #-}
+   rule1862 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1863 #-}
+   rule1863 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule1864 #-}
+   rule1864 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1865 #-}
+   rule1865 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1866 #-}
+   rule1866 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule1867 #-}
+   rule1867 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule1868 #-}
+   rule1868 = \ ((_hdIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _hdIcollectScopeInfos
+   {-# INLINE rule1869 #-}
+   rule1869 = \ ((_hdIcounter) :: Int) ->
+     _hdIcounter
+   {-# INLINE rule1870 #-}
+   rule1870 = \ ((_hdIkindErrors) :: [Error]) ->
+     _hdIkindErrors
+   {-# INLINE rule1871 #-}
+   rule1871 = \ ((_hdImiscerrors) :: [Error]) ->
+     _hdImiscerrors
+   {-# INLINE rule1872 #-}
+   rule1872 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1873 #-}
+   rule1873 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule1874 #-}
+   rule1874 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule1875 #-}
+   rule1875 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1876 #-}
+   rule1876 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1877 #-}
+   rule1877 = \ ((_hdIwarnings) :: [Warning]) ->
      _hdIwarnings
 {-# NOINLINE sem_GuardedExpressions_Nil #-}
 sem_GuardedExpressions_Nil ::  T_GuardedExpressions 
@@ -10605,51 +10720,51 @@ sem_GuardedExpressions_Nil  = T_GuardedExpressions (return st65) where
       v64 :: T_GuardedExpressions_v64 
       v64 = \ (T_GuardedExpressions_vIn64 _lhsIallTypeConstructors _lhsIallValueConstructors _lhsIclassEnvironment _lhsIclassMemberEnv _lhsIcollectScopeInfos _lhsIcounter _lhsIkindErrors _lhsImiscerrors _lhsInamesInScope _lhsIoptions _lhsIorderedTypeSynonyms _lhsItypeConstructors _lhsIvalueConstructors _lhsIwarnings) -> ( let
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1855  ()
+         _lhsOcollectInstances = rule1878  ()
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1856  ()
-         _self = rule1857  ()
+         _lhsOunboundNames = rule1879  ()
+         _self = rule1880  ()
          _lhsOself :: GuardedExpressions
-         _lhsOself = rule1858 _self
+         _lhsOself = rule1881 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1859 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1882 _lhsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1860 _lhsIcounter
+         _lhsOcounter = rule1883 _lhsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1861 _lhsIkindErrors
+         _lhsOkindErrors = rule1884 _lhsIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1862 _lhsImiscerrors
+         _lhsOmiscerrors = rule1885 _lhsImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1863 _lhsIwarnings
+         _lhsOwarnings = rule1886 _lhsIwarnings
          __result_ = T_GuardedExpressions_vOut64 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_GuardedExpressions_s65 v64
-   {-# INLINE rule1855 #-}
-   rule1855 = \  (_ :: ()) ->
+   {-# INLINE rule1878 #-}
+   rule1878 = \  (_ :: ()) ->
      []
-   {-# INLINE rule1856 #-}
-   rule1856 = \  (_ :: ()) ->
+   {-# INLINE rule1879 #-}
+   rule1879 = \  (_ :: ()) ->
      []
-   {-# INLINE rule1857 #-}
-   rule1857 = \  (_ :: ()) ->
+   {-# INLINE rule1880 #-}
+   rule1880 = \  (_ :: ()) ->
      []
-   {-# INLINE rule1858 #-}
-   rule1858 = \ _self ->
+   {-# INLINE rule1881 #-}
+   rule1881 = \ _self ->
      _self
-   {-# INLINE rule1859 #-}
-   rule1859 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule1882 #-}
+   rule1882 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule1860 #-}
-   rule1860 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule1883 #-}
+   rule1883 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule1861 #-}
-   rule1861 = \ ((_lhsIkindErrors) :: [Error]) ->
+   {-# INLINE rule1884 #-}
+   rule1884 = \ ((_lhsIkindErrors) :: [Error]) ->
      _lhsIkindErrors
-   {-# INLINE rule1862 #-}
-   rule1862 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule1885 #-}
+   rule1885 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule1863 #-}
-   rule1863 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule1886 #-}
+   rule1886 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 
 -- Import ------------------------------------------------------
@@ -10695,17 +10810,17 @@ sem_Import_Variable arg_range_ arg_name_ = T_Import (return st68) where
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
-         _self = rule1864 _nameIself _rangeIself
+         _self = rule1887 _nameIself _rangeIself
          _lhsOself :: Import
-         _lhsOself = rule1865 _self
+         _lhsOself = rule1888 _self
          __result_ = T_Import_vOut67 _lhsOself
          in __result_ )
      in C_Import_s68 v67
-   {-# INLINE rule1864 #-}
-   rule1864 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule1887 #-}
+   rule1887 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Import_Variable _rangeIself _nameIself
-   {-# INLINE rule1865 #-}
-   rule1865 = \ _self ->
+   {-# INLINE rule1888 #-}
+   rule1888 = \ _self ->
      _self
 {-# NOINLINE sem_Import_TypeOrClass #-}
 sem_Import_TypeOrClass :: T_Range  -> T_Name  -> T_MaybeNames  -> T_Import 
@@ -10720,17 +10835,17 @@ sem_Import_TypeOrClass arg_range_ arg_name_ arg_names_ = T_Import (return st68) 
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_MaybeNames_vOut106 _namesIself) = inv_MaybeNames_s107 _namesX107 (T_MaybeNames_vIn106 )
-         _self = rule1866 _nameIself _namesIself _rangeIself
+         _self = rule1889 _nameIself _namesIself _rangeIself
          _lhsOself :: Import
-         _lhsOself = rule1867 _self
+         _lhsOself = rule1890 _self
          __result_ = T_Import_vOut67 _lhsOself
          in __result_ )
      in C_Import_s68 v67
-   {-# INLINE rule1866 #-}
-   rule1866 = \ ((_nameIself) :: Name) ((_namesIself) :: MaybeNames) ((_rangeIself) :: Range) ->
+   {-# INLINE rule1889 #-}
+   rule1889 = \ ((_nameIself) :: Name) ((_namesIself) :: MaybeNames) ((_rangeIself) :: Range) ->
      Import_TypeOrClass _rangeIself _nameIself _namesIself
-   {-# INLINE rule1867 #-}
-   rule1867 = \ _self ->
+   {-# INLINE rule1890 #-}
+   rule1890 = \ _self ->
      _self
 {-# NOINLINE sem_Import_TypeOrClassComplete #-}
 sem_Import_TypeOrClassComplete :: T_Range  -> T_Name  -> T_Import 
@@ -10743,17 +10858,17 @@ sem_Import_TypeOrClassComplete arg_range_ arg_name_ = T_Import (return st68) whe
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
-         _self = rule1868 _nameIself _rangeIself
+         _self = rule1891 _nameIself _rangeIself
          _lhsOself :: Import
-         _lhsOself = rule1869 _self
+         _lhsOself = rule1892 _self
          __result_ = T_Import_vOut67 _lhsOself
          in __result_ )
      in C_Import_s68 v67
-   {-# INLINE rule1868 #-}
-   rule1868 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule1891 #-}
+   rule1891 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Import_TypeOrClassComplete _rangeIself _nameIself
-   {-# INLINE rule1869 #-}
-   rule1869 = \ _self ->
+   {-# INLINE rule1892 #-}
+   rule1892 = \ _self ->
      _self
 
 -- ImportDeclaration -------------------------------------------
@@ -10803,21 +10918,21 @@ sem_ImportDeclaration_Import arg_range_ arg_qualified_ arg_name_ arg_asname_ arg
          (T_MaybeName_vOut103 _asnameIself) = inv_MaybeName_s104 _asnameX104 (T_MaybeName_vIn103 )
          (T_MaybeImportSpecification_vOut97 _importspecificationIself) = inv_MaybeImportSpecification_s98 _importspecificationX98 (T_MaybeImportSpecification_vIn97 )
          _lhsOimportedModules :: Names
-         _lhsOimportedModules = rule1870 _lhsIimportedModules _nameIself
-         _self = rule1871 _asnameIself _importspecificationIself _nameIself _rangeIself arg_qualified_
+         _lhsOimportedModules = rule1893 _lhsIimportedModules _nameIself
+         _self = rule1894 _asnameIself _importspecificationIself _nameIself _rangeIself arg_qualified_
          _lhsOself :: ImportDeclaration
-         _lhsOself = rule1872 _self
+         _lhsOself = rule1895 _self
          __result_ = T_ImportDeclaration_vOut70 _lhsOimportedModules _lhsOself
          in __result_ )
      in C_ImportDeclaration_s71 v70
-   {-# INLINE rule1870 #-}
-   rule1870 = \ ((_lhsIimportedModules) :: Names) ((_nameIself) :: Name) ->
+   {-# INLINE rule1893 #-}
+   rule1893 = \ ((_lhsIimportedModules) :: Names) ((_nameIself) :: Name) ->
                                        _nameIself : _lhsIimportedModules
-   {-# INLINE rule1871 #-}
-   rule1871 = \ ((_asnameIself) :: MaybeName) ((_importspecificationIself) :: MaybeImportSpecification) ((_nameIself) :: Name) ((_rangeIself) :: Range) qualified_ ->
+   {-# INLINE rule1894 #-}
+   rule1894 = \ ((_asnameIself) :: MaybeName) ((_importspecificationIself) :: MaybeImportSpecification) ((_nameIself) :: Name) ((_rangeIself) :: Range) qualified_ ->
      ImportDeclaration_Import _rangeIself qualified_ _nameIself _asnameIself _importspecificationIself
-   {-# INLINE rule1872 #-}
-   rule1872 = \ _self ->
+   {-# INLINE rule1895 #-}
+   rule1895 = \ _self ->
      _self
 {-# NOINLINE sem_ImportDeclaration_Empty #-}
 sem_ImportDeclaration_Empty :: T_Range  -> T_ImportDeclaration 
@@ -10828,22 +10943,22 @@ sem_ImportDeclaration_Empty arg_range_ = T_ImportDeclaration (return st71) where
       v70 = \ (T_ImportDeclaration_vIn70 _lhsIimportedModules) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule1873 _rangeIself
+         _self = rule1896 _rangeIself
          _lhsOself :: ImportDeclaration
-         _lhsOself = rule1874 _self
+         _lhsOself = rule1897 _self
          _lhsOimportedModules :: Names
-         _lhsOimportedModules = rule1875 _lhsIimportedModules
+         _lhsOimportedModules = rule1898 _lhsIimportedModules
          __result_ = T_ImportDeclaration_vOut70 _lhsOimportedModules _lhsOself
          in __result_ )
      in C_ImportDeclaration_s71 v70
-   {-# INLINE rule1873 #-}
-   rule1873 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule1896 #-}
+   rule1896 = \ ((_rangeIself) :: Range) ->
      ImportDeclaration_Empty _rangeIself
-   {-# INLINE rule1874 #-}
-   rule1874 = \ _self ->
+   {-# INLINE rule1897 #-}
+   rule1897 = \ _self ->
      _self
-   {-# INLINE rule1875 #-}
-   rule1875 = \ ((_lhsIimportedModules) :: Names) ->
+   {-# INLINE rule1898 #-}
+   rule1898 = \ ((_lhsIimportedModules) :: Names) ->
      _lhsIimportedModules
 
 -- ImportDeclarations ------------------------------------------
@@ -10887,30 +11002,30 @@ sem_ImportDeclarations_Cons arg_hd_ arg_tl_ = T_ImportDeclarations (return st74)
          _tlX74 = Control.Monad.Identity.runIdentity (attach_T_ImportDeclarations (arg_tl_))
          (T_ImportDeclaration_vOut70 _hdIimportedModules _hdIself) = inv_ImportDeclaration_s71 _hdX71 (T_ImportDeclaration_vIn70 _hdOimportedModules)
          (T_ImportDeclarations_vOut73 _tlIimportedModules _tlIself) = inv_ImportDeclarations_s74 _tlX74 (T_ImportDeclarations_vIn73 _tlOimportedModules)
-         _self = rule1876 _hdIself _tlIself
+         _self = rule1899 _hdIself _tlIself
          _lhsOself :: ImportDeclarations
-         _lhsOself = rule1877 _self
+         _lhsOself = rule1900 _self
          _lhsOimportedModules :: Names
-         _lhsOimportedModules = rule1878 _tlIimportedModules
-         _hdOimportedModules = rule1879 _lhsIimportedModules
-         _tlOimportedModules = rule1880 _hdIimportedModules
+         _lhsOimportedModules = rule1901 _tlIimportedModules
+         _hdOimportedModules = rule1902 _lhsIimportedModules
+         _tlOimportedModules = rule1903 _hdIimportedModules
          __result_ = T_ImportDeclarations_vOut73 _lhsOimportedModules _lhsOself
          in __result_ )
      in C_ImportDeclarations_s74 v73
-   {-# INLINE rule1876 #-}
-   rule1876 = \ ((_hdIself) :: ImportDeclaration) ((_tlIself) :: ImportDeclarations) ->
+   {-# INLINE rule1899 #-}
+   rule1899 = \ ((_hdIself) :: ImportDeclaration) ((_tlIself) :: ImportDeclarations) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule1877 #-}
-   rule1877 = \ _self ->
+   {-# INLINE rule1900 #-}
+   rule1900 = \ _self ->
      _self
-   {-# INLINE rule1878 #-}
-   rule1878 = \ ((_tlIimportedModules) :: Names) ->
+   {-# INLINE rule1901 #-}
+   rule1901 = \ ((_tlIimportedModules) :: Names) ->
      _tlIimportedModules
-   {-# INLINE rule1879 #-}
-   rule1879 = \ ((_lhsIimportedModules) :: Names) ->
+   {-# INLINE rule1902 #-}
+   rule1902 = \ ((_lhsIimportedModules) :: Names) ->
      _lhsIimportedModules
-   {-# INLINE rule1880 #-}
-   rule1880 = \ ((_hdIimportedModules) :: Names) ->
+   {-# INLINE rule1903 #-}
+   rule1903 = \ ((_hdIimportedModules) :: Names) ->
      _hdIimportedModules
 {-# NOINLINE sem_ImportDeclarations_Nil #-}
 sem_ImportDeclarations_Nil ::  T_ImportDeclarations 
@@ -10919,22 +11034,22 @@ sem_ImportDeclarations_Nil  = T_ImportDeclarations (return st74) where
    st74 = let
       v73 :: T_ImportDeclarations_v73 
       v73 = \ (T_ImportDeclarations_vIn73 _lhsIimportedModules) -> ( let
-         _self = rule1881  ()
+         _self = rule1904  ()
          _lhsOself :: ImportDeclarations
-         _lhsOself = rule1882 _self
+         _lhsOself = rule1905 _self
          _lhsOimportedModules :: Names
-         _lhsOimportedModules = rule1883 _lhsIimportedModules
+         _lhsOimportedModules = rule1906 _lhsIimportedModules
          __result_ = T_ImportDeclarations_vOut73 _lhsOimportedModules _lhsOself
          in __result_ )
      in C_ImportDeclarations_s74 v73
-   {-# INLINE rule1881 #-}
-   rule1881 = \  (_ :: ()) ->
+   {-# INLINE rule1904 #-}
+   rule1904 = \  (_ :: ()) ->
      []
-   {-# INLINE rule1882 #-}
-   rule1882 = \ _self ->
+   {-# INLINE rule1905 #-}
+   rule1905 = \ _self ->
      _self
-   {-# INLINE rule1883 #-}
-   rule1883 = \ ((_lhsIimportedModules) :: Names) ->
+   {-# INLINE rule1906 #-}
+   rule1906 = \ ((_lhsIimportedModules) :: Names) ->
      _lhsIimportedModules
 
 -- ImportSpecification -----------------------------------------
@@ -10978,17 +11093,17 @@ sem_ImportSpecification_Import arg_range_ arg_hiding_ arg_imports_ = T_ImportSpe
          _importsX80 = Control.Monad.Identity.runIdentity (attach_T_Imports (arg_imports_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Imports_vOut79 _importsIself) = inv_Imports_s80 _importsX80 (T_Imports_vIn79 )
-         _self = rule1884 _importsIself _rangeIself arg_hiding_
+         _self = rule1907 _importsIself _rangeIself arg_hiding_
          _lhsOself :: ImportSpecification
-         _lhsOself = rule1885 _self
+         _lhsOself = rule1908 _self
          __result_ = T_ImportSpecification_vOut76 _lhsOself
          in __result_ )
      in C_ImportSpecification_s77 v76
-   {-# INLINE rule1884 #-}
-   rule1884 = \ ((_importsIself) :: Imports) ((_rangeIself) :: Range) hiding_ ->
+   {-# INLINE rule1907 #-}
+   rule1907 = \ ((_importsIself) :: Imports) ((_rangeIself) :: Range) hiding_ ->
      ImportSpecification_Import _rangeIself hiding_ _importsIself
-   {-# INLINE rule1885 #-}
-   rule1885 = \ _self ->
+   {-# INLINE rule1908 #-}
+   rule1908 = \ _self ->
      _self
 
 -- Imports -----------------------------------------------------
@@ -11032,17 +11147,17 @@ sem_Imports_Cons arg_hd_ arg_tl_ = T_Imports (return st80) where
          _tlX80 = Control.Monad.Identity.runIdentity (attach_T_Imports (arg_tl_))
          (T_Import_vOut67 _hdIself) = inv_Import_s68 _hdX68 (T_Import_vIn67 )
          (T_Imports_vOut79 _tlIself) = inv_Imports_s80 _tlX80 (T_Imports_vIn79 )
-         _self = rule1886 _hdIself _tlIself
+         _self = rule1909 _hdIself _tlIself
          _lhsOself :: Imports
-         _lhsOself = rule1887 _self
+         _lhsOself = rule1910 _self
          __result_ = T_Imports_vOut79 _lhsOself
          in __result_ )
      in C_Imports_s80 v79
-   {-# INLINE rule1886 #-}
-   rule1886 = \ ((_hdIself) :: Import) ((_tlIself) :: Imports) ->
+   {-# INLINE rule1909 #-}
+   rule1909 = \ ((_hdIself) :: Import) ((_tlIself) :: Imports) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule1887 #-}
-   rule1887 = \ _self ->
+   {-# INLINE rule1910 #-}
+   rule1910 = \ _self ->
      _self
 {-# NOINLINE sem_Imports_Nil #-}
 sem_Imports_Nil ::  T_Imports 
@@ -11051,17 +11166,17 @@ sem_Imports_Nil  = T_Imports (return st80) where
    st80 = let
       v79 :: T_Imports_v79 
       v79 = \ (T_Imports_vIn79 ) -> ( let
-         _self = rule1888  ()
+         _self = rule1911  ()
          _lhsOself :: Imports
-         _lhsOself = rule1889 _self
+         _lhsOself = rule1912 _self
          __result_ = T_Imports_vOut79 _lhsOself
          in __result_ )
      in C_Imports_s80 v79
-   {-# INLINE rule1888 #-}
-   rule1888 = \  (_ :: ()) ->
+   {-# INLINE rule1911 #-}
+   rule1911 = \  (_ :: ()) ->
      []
-   {-# INLINE rule1889 #-}
-   rule1889 = \ _self ->
+   {-# INLINE rule1912 #-}
+   rule1912 = \ _self ->
      _self
 
 -- LeftHandSide ------------------------------------------------
@@ -11109,97 +11224,97 @@ sem_LeftHandSide_Function arg_range_ arg_name_ arg_patterns_ = T_LeftHandSide (r
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Patterns_vOut121 _patternsIcollectScopeInfos _patternsIcounter _patternsImiscerrors _patternsInumberOfPatterns _patternsIpatVarNames _patternsIself _patternsIunboundNames _patternsIwarnings) = inv_Patterns_s122 _patternsX122 (T_Patterns_vIn121 _patternsOallTypeConstructors _patternsOallValueConstructors _patternsOcollectScopeInfos _patternsOcounter _patternsOlhsPattern _patternsOmiscerrors _patternsOnamesInScope _patternsOtypeConstructors _patternsOvalueConstructors _patternsOwarnings)
-         _patternsOlhsPattern = rule1890  ()
+         _patternsOlhsPattern = rule1913  ()
          _lhsOname :: Name
-         _lhsOname = rule1891 _nameIself
+         _lhsOname = rule1914 _nameIself
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule1892 _patternsIpatVarNames
+         _lhsOpatVarNames = rule1915 _patternsIpatVarNames
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1893 _patternsIunboundNames
-         _self = rule1894 _nameIself _patternsIself _rangeIself
+         _lhsOunboundNames = rule1916 _patternsIunboundNames
+         _self = rule1917 _nameIself _patternsIself _rangeIself
          _lhsOself :: LeftHandSide
-         _lhsOself = rule1895 _self
+         _lhsOself = rule1918 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1896 _patternsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1919 _patternsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1897 _patternsIcounter
+         _lhsOcounter = rule1920 _patternsIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1898 _patternsImiscerrors
+         _lhsOmiscerrors = rule1921 _patternsImiscerrors
          _lhsOnumberOfPatterns :: Int
-         _lhsOnumberOfPatterns = rule1899 _patternsInumberOfPatterns
+         _lhsOnumberOfPatterns = rule1922 _patternsInumberOfPatterns
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1900 _patternsIwarnings
-         _patternsOallTypeConstructors = rule1901 _lhsIallTypeConstructors
-         _patternsOallValueConstructors = rule1902 _lhsIallValueConstructors
-         _patternsOcollectScopeInfos = rule1903 _lhsIcollectScopeInfos
-         _patternsOcounter = rule1904 _lhsIcounter
-         _patternsOmiscerrors = rule1905 _lhsImiscerrors
-         _patternsOnamesInScope = rule1906 _lhsInamesInScope
-         _patternsOtypeConstructors = rule1907 _lhsItypeConstructors
-         _patternsOvalueConstructors = rule1908 _lhsIvalueConstructors
-         _patternsOwarnings = rule1909 _lhsIwarnings
+         _lhsOwarnings = rule1923 _patternsIwarnings
+         _patternsOallTypeConstructors = rule1924 _lhsIallTypeConstructors
+         _patternsOallValueConstructors = rule1925 _lhsIallValueConstructors
+         _patternsOcollectScopeInfos = rule1926 _lhsIcollectScopeInfos
+         _patternsOcounter = rule1927 _lhsIcounter
+         _patternsOmiscerrors = rule1928 _lhsImiscerrors
+         _patternsOnamesInScope = rule1929 _lhsInamesInScope
+         _patternsOtypeConstructors = rule1930 _lhsItypeConstructors
+         _patternsOvalueConstructors = rule1931 _lhsIvalueConstructors
+         _patternsOwarnings = rule1932 _lhsIwarnings
          __result_ = T_LeftHandSide_vOut82 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOname _lhsOnumberOfPatterns _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_LeftHandSide_s83 v82
-   {-# INLINE rule1890 #-}
-   rule1890 = \  (_ :: ()) ->
+   {-# INLINE rule1913 #-}
+   rule1913 = \  (_ :: ()) ->
                                                                 False
-   {-# INLINE rule1891 #-}
-   rule1891 = \ ((_nameIself) :: Name) ->
+   {-# INLINE rule1914 #-}
+   rule1914 = \ ((_nameIself) :: Name) ->
                              _nameIself
-   {-# INLINE rule1892 #-}
-   rule1892 = \ ((_patternsIpatVarNames) :: Names) ->
+   {-# INLINE rule1915 #-}
+   rule1915 = \ ((_patternsIpatVarNames) :: Names) ->
      _patternsIpatVarNames
-   {-# INLINE rule1893 #-}
-   rule1893 = \ ((_patternsIunboundNames) :: Names) ->
+   {-# INLINE rule1916 #-}
+   rule1916 = \ ((_patternsIunboundNames) :: Names) ->
      _patternsIunboundNames
-   {-# INLINE rule1894 #-}
-   rule1894 = \ ((_nameIself) :: Name) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
+   {-# INLINE rule1917 #-}
+   rule1917 = \ ((_nameIself) :: Name) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
      LeftHandSide_Function _rangeIself _nameIself _patternsIself
-   {-# INLINE rule1895 #-}
-   rule1895 = \ _self ->
+   {-# INLINE rule1918 #-}
+   rule1918 = \ _self ->
      _self
-   {-# INLINE rule1896 #-}
-   rule1896 = \ ((_patternsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule1919 #-}
+   rule1919 = \ ((_patternsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _patternsIcollectScopeInfos
-   {-# INLINE rule1897 #-}
-   rule1897 = \ ((_patternsIcounter) :: Int) ->
+   {-# INLINE rule1920 #-}
+   rule1920 = \ ((_patternsIcounter) :: Int) ->
      _patternsIcounter
-   {-# INLINE rule1898 #-}
-   rule1898 = \ ((_patternsImiscerrors) :: [Error]) ->
+   {-# INLINE rule1921 #-}
+   rule1921 = \ ((_patternsImiscerrors) :: [Error]) ->
      _patternsImiscerrors
-   {-# INLINE rule1899 #-}
-   rule1899 = \ ((_patternsInumberOfPatterns) :: Int) ->
+   {-# INLINE rule1922 #-}
+   rule1922 = \ ((_patternsInumberOfPatterns) :: Int) ->
      _patternsInumberOfPatterns
-   {-# INLINE rule1900 #-}
-   rule1900 = \ ((_patternsIwarnings) :: [Warning]) ->
+   {-# INLINE rule1923 #-}
+   rule1923 = \ ((_patternsIwarnings) :: [Warning]) ->
      _patternsIwarnings
-   {-# INLINE rule1901 #-}
-   rule1901 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   {-# INLINE rule1924 #-}
+   rule1924 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule1902 #-}
-   rule1902 = \ ((_lhsIallValueConstructors) :: Names) ->
+   {-# INLINE rule1925 #-}
+   rule1925 = \ ((_lhsIallValueConstructors) :: Names) ->
      _lhsIallValueConstructors
-   {-# INLINE rule1903 #-}
-   rule1903 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule1926 #-}
+   rule1926 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule1904 #-}
-   rule1904 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule1927 #-}
+   rule1927 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule1905 #-}
-   rule1905 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule1928 #-}
+   rule1928 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule1906 #-}
-   rule1906 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule1929 #-}
+   rule1929 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule1907 #-}
-   rule1907 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule1930 #-}
+   rule1930 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule1908 #-}
-   rule1908 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+   {-# INLINE rule1931 #-}
+   rule1931 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
      _lhsIvalueConstructors
-   {-# INLINE rule1909 #-}
-   rule1909 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule1932 #-}
+   rule1932 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_LeftHandSide_Infix #-}
 sem_LeftHandSide_Infix :: T_Range  -> T_Pattern  -> T_Name  -> T_Pattern  -> T_LeftHandSide 
@@ -11216,137 +11331,137 @@ sem_LeftHandSide_Infix arg_range_ arg_leftPattern_ arg_operator_ arg_rightPatter
          (T_Pattern_vOut118 _leftPatternIcollectScopeInfos _leftPatternIcounter _leftPatternImiscerrors _leftPatternIpatVarNames _leftPatternIself _leftPatternIunboundNames _leftPatternIwarnings) = inv_Pattern_s119 _leftPatternX119 (T_Pattern_vIn118 _leftPatternOallTypeConstructors _leftPatternOallValueConstructors _leftPatternOcollectScopeInfos _leftPatternOcounter _leftPatternOlhsPattern _leftPatternOmiscerrors _leftPatternOnamesInScope _leftPatternOtypeConstructors _leftPatternOvalueConstructors _leftPatternOwarnings)
          (T_Name_vOut112 _operatorIself) = inv_Name_s113 _operatorX113 (T_Name_vIn112 )
          (T_Pattern_vOut118 _rightPatternIcollectScopeInfos _rightPatternIcounter _rightPatternImiscerrors _rightPatternIpatVarNames _rightPatternIself _rightPatternIunboundNames _rightPatternIwarnings) = inv_Pattern_s119 _rightPatternX119 (T_Pattern_vIn118 _rightPatternOallTypeConstructors _rightPatternOallValueConstructors _rightPatternOcollectScopeInfos _rightPatternOcounter _rightPatternOlhsPattern _rightPatternOmiscerrors _rightPatternOnamesInScope _rightPatternOtypeConstructors _rightPatternOvalueConstructors _rightPatternOwarnings)
-         _leftPatternOlhsPattern = rule1910  ()
-         _rightPatternOlhsPattern = rule1911  ()
+         _leftPatternOlhsPattern = rule1933  ()
+         _rightPatternOlhsPattern = rule1934  ()
          _lhsOname :: Name
-         _lhsOname = rule1912 _operatorIself
+         _lhsOname = rule1935 _operatorIself
          _lhsOnumberOfPatterns :: Int
-         _lhsOnumberOfPatterns = rule1913  ()
+         _lhsOnumberOfPatterns = rule1936  ()
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule1914 _leftPatternIpatVarNames _rightPatternIpatVarNames
+         _lhsOpatVarNames = rule1937 _leftPatternIpatVarNames _rightPatternIpatVarNames
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1915 _leftPatternIunboundNames _rightPatternIunboundNames
-         _self = rule1916 _leftPatternIself _operatorIself _rangeIself _rightPatternIself
+         _lhsOunboundNames = rule1938 _leftPatternIunboundNames _rightPatternIunboundNames
+         _self = rule1939 _leftPatternIself _operatorIself _rangeIself _rightPatternIself
          _lhsOself :: LeftHandSide
-         _lhsOself = rule1917 _self
+         _lhsOself = rule1940 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1918 _rightPatternIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1941 _rightPatternIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1919 _rightPatternIcounter
+         _lhsOcounter = rule1942 _rightPatternIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1920 _rightPatternImiscerrors
+         _lhsOmiscerrors = rule1943 _rightPatternImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1921 _rightPatternIwarnings
-         _leftPatternOallTypeConstructors = rule1922 _lhsIallTypeConstructors
-         _leftPatternOallValueConstructors = rule1923 _lhsIallValueConstructors
-         _leftPatternOcollectScopeInfos = rule1924 _lhsIcollectScopeInfos
-         _leftPatternOcounter = rule1925 _lhsIcounter
-         _leftPatternOmiscerrors = rule1926 _lhsImiscerrors
-         _leftPatternOnamesInScope = rule1927 _lhsInamesInScope
-         _leftPatternOtypeConstructors = rule1928 _lhsItypeConstructors
-         _leftPatternOvalueConstructors = rule1929 _lhsIvalueConstructors
-         _leftPatternOwarnings = rule1930 _lhsIwarnings
-         _rightPatternOallTypeConstructors = rule1931 _lhsIallTypeConstructors
-         _rightPatternOallValueConstructors = rule1932 _lhsIallValueConstructors
-         _rightPatternOcollectScopeInfos = rule1933 _leftPatternIcollectScopeInfos
-         _rightPatternOcounter = rule1934 _leftPatternIcounter
-         _rightPatternOmiscerrors = rule1935 _leftPatternImiscerrors
-         _rightPatternOnamesInScope = rule1936 _lhsInamesInScope
-         _rightPatternOtypeConstructors = rule1937 _lhsItypeConstructors
-         _rightPatternOvalueConstructors = rule1938 _lhsIvalueConstructors
-         _rightPatternOwarnings = rule1939 _leftPatternIwarnings
+         _lhsOwarnings = rule1944 _rightPatternIwarnings
+         _leftPatternOallTypeConstructors = rule1945 _lhsIallTypeConstructors
+         _leftPatternOallValueConstructors = rule1946 _lhsIallValueConstructors
+         _leftPatternOcollectScopeInfos = rule1947 _lhsIcollectScopeInfos
+         _leftPatternOcounter = rule1948 _lhsIcounter
+         _leftPatternOmiscerrors = rule1949 _lhsImiscerrors
+         _leftPatternOnamesInScope = rule1950 _lhsInamesInScope
+         _leftPatternOtypeConstructors = rule1951 _lhsItypeConstructors
+         _leftPatternOvalueConstructors = rule1952 _lhsIvalueConstructors
+         _leftPatternOwarnings = rule1953 _lhsIwarnings
+         _rightPatternOallTypeConstructors = rule1954 _lhsIallTypeConstructors
+         _rightPatternOallValueConstructors = rule1955 _lhsIallValueConstructors
+         _rightPatternOcollectScopeInfos = rule1956 _leftPatternIcollectScopeInfos
+         _rightPatternOcounter = rule1957 _leftPatternIcounter
+         _rightPatternOmiscerrors = rule1958 _leftPatternImiscerrors
+         _rightPatternOnamesInScope = rule1959 _lhsInamesInScope
+         _rightPatternOtypeConstructors = rule1960 _lhsItypeConstructors
+         _rightPatternOvalueConstructors = rule1961 _lhsIvalueConstructors
+         _rightPatternOwarnings = rule1962 _leftPatternIwarnings
          __result_ = T_LeftHandSide_vOut82 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOname _lhsOnumberOfPatterns _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_LeftHandSide_s83 v82
-   {-# INLINE rule1910 #-}
-   rule1910 = \  (_ :: ()) ->
-                                                                False
-   {-# INLINE rule1911 #-}
-   rule1911 = \  (_ :: ()) ->
-                                                                False
-   {-# INLINE rule1912 #-}
-   rule1912 = \ ((_operatorIself) :: Name) ->
-                             _operatorIself
-   {-# INLINE rule1913 #-}
-   rule1913 = \  (_ :: ()) ->
-                                         2
-   {-# INLINE rule1914 #-}
-   rule1914 = \ ((_leftPatternIpatVarNames) :: Names) ((_rightPatternIpatVarNames) :: Names) ->
-     _leftPatternIpatVarNames ++ _rightPatternIpatVarNames
-   {-# INLINE rule1915 #-}
-   rule1915 = \ ((_leftPatternIunboundNames) :: Names) ((_rightPatternIunboundNames) :: Names) ->
-     _leftPatternIunboundNames ++ _rightPatternIunboundNames
-   {-# INLINE rule1916 #-}
-   rule1916 = \ ((_leftPatternIself) :: Pattern) ((_operatorIself) :: Name) ((_rangeIself) :: Range) ((_rightPatternIself) :: Pattern) ->
-     LeftHandSide_Infix _rangeIself _leftPatternIself _operatorIself _rightPatternIself
-   {-# INLINE rule1917 #-}
-   rule1917 = \ _self ->
-     _self
-   {-# INLINE rule1918 #-}
-   rule1918 = \ ((_rightPatternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _rightPatternIcollectScopeInfos
-   {-# INLINE rule1919 #-}
-   rule1919 = \ ((_rightPatternIcounter) :: Int) ->
-     _rightPatternIcounter
-   {-# INLINE rule1920 #-}
-   rule1920 = \ ((_rightPatternImiscerrors) :: [Error]) ->
-     _rightPatternImiscerrors
-   {-# INLINE rule1921 #-}
-   rule1921 = \ ((_rightPatternIwarnings) :: [Warning]) ->
-     _rightPatternIwarnings
-   {-# INLINE rule1922 #-}
-   rule1922 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1923 #-}
-   rule1923 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1924 #-}
-   rule1924 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule1925 #-}
-   rule1925 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule1926 #-}
-   rule1926 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule1927 #-}
-   rule1927 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule1928 #-}
-   rule1928 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule1929 #-}
-   rule1929 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule1930 #-}
-   rule1930 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
-   {-# INLINE rule1931 #-}
-   rule1931 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1932 #-}
-   rule1932 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
    {-# INLINE rule1933 #-}
-   rule1933 = \ ((_leftPatternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _leftPatternIcollectScopeInfos
+   rule1933 = \  (_ :: ()) ->
+                                                                False
    {-# INLINE rule1934 #-}
-   rule1934 = \ ((_leftPatternIcounter) :: Int) ->
-     _leftPatternIcounter
+   rule1934 = \  (_ :: ()) ->
+                                                                False
    {-# INLINE rule1935 #-}
-   rule1935 = \ ((_leftPatternImiscerrors) :: [Error]) ->
-     _leftPatternImiscerrors
+   rule1935 = \ ((_operatorIself) :: Name) ->
+                             _operatorIself
    {-# INLINE rule1936 #-}
-   rule1936 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
+   rule1936 = \  (_ :: ()) ->
+                                         2
    {-# INLINE rule1937 #-}
-   rule1937 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule1937 = \ ((_leftPatternIpatVarNames) :: Names) ((_rightPatternIpatVarNames) :: Names) ->
+     _leftPatternIpatVarNames ++ _rightPatternIpatVarNames
    {-# INLINE rule1938 #-}
-   rule1938 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule1938 = \ ((_leftPatternIunboundNames) :: Names) ((_rightPatternIunboundNames) :: Names) ->
+     _leftPatternIunboundNames ++ _rightPatternIunboundNames
    {-# INLINE rule1939 #-}
-   rule1939 = \ ((_leftPatternIwarnings) :: [Warning]) ->
+   rule1939 = \ ((_leftPatternIself) :: Pattern) ((_operatorIself) :: Name) ((_rangeIself) :: Range) ((_rightPatternIself) :: Pattern) ->
+     LeftHandSide_Infix _rangeIself _leftPatternIself _operatorIself _rightPatternIself
+   {-# INLINE rule1940 #-}
+   rule1940 = \ _self ->
+     _self
+   {-# INLINE rule1941 #-}
+   rule1941 = \ ((_rightPatternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _rightPatternIcollectScopeInfos
+   {-# INLINE rule1942 #-}
+   rule1942 = \ ((_rightPatternIcounter) :: Int) ->
+     _rightPatternIcounter
+   {-# INLINE rule1943 #-}
+   rule1943 = \ ((_rightPatternImiscerrors) :: [Error]) ->
+     _rightPatternImiscerrors
+   {-# INLINE rule1944 #-}
+   rule1944 = \ ((_rightPatternIwarnings) :: [Warning]) ->
+     _rightPatternIwarnings
+   {-# INLINE rule1945 #-}
+   rule1945 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1946 #-}
+   rule1946 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1947 #-}
+   rule1947 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule1948 #-}
+   rule1948 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1949 #-}
+   rule1949 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1950 #-}
+   rule1950 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1951 #-}
+   rule1951 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1952 #-}
+   rule1952 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1953 #-}
+   rule1953 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule1954 #-}
+   rule1954 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1955 #-}
+   rule1955 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1956 #-}
+   rule1956 = \ ((_leftPatternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _leftPatternIcollectScopeInfos
+   {-# INLINE rule1957 #-}
+   rule1957 = \ ((_leftPatternIcounter) :: Int) ->
+     _leftPatternIcounter
+   {-# INLINE rule1958 #-}
+   rule1958 = \ ((_leftPatternImiscerrors) :: [Error]) ->
+     _leftPatternImiscerrors
+   {-# INLINE rule1959 #-}
+   rule1959 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1960 #-}
+   rule1960 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1961 #-}
+   rule1961 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1962 #-}
+   rule1962 = \ ((_leftPatternIwarnings) :: [Warning]) ->
      _leftPatternIwarnings
 {-# NOINLINE sem_LeftHandSide_Parenthesized #-}
 sem_LeftHandSide_Parenthesized :: T_Range  -> T_LeftHandSide  -> T_Patterns  -> T_LeftHandSide 
@@ -11361,133 +11476,133 @@ sem_LeftHandSide_Parenthesized arg_range_ arg_lefthandside_ arg_patterns_ = T_Le
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_LeftHandSide_vOut82 _lefthandsideIcollectScopeInfos _lefthandsideIcounter _lefthandsideImiscerrors _lefthandsideIname _lefthandsideInumberOfPatterns _lefthandsideIpatVarNames _lefthandsideIself _lefthandsideIunboundNames _lefthandsideIwarnings) = inv_LeftHandSide_s83 _lefthandsideX83 (T_LeftHandSide_vIn82 _lefthandsideOallTypeConstructors _lefthandsideOallValueConstructors _lefthandsideOcollectScopeInfos _lefthandsideOcounter _lefthandsideOmiscerrors _lefthandsideOnamesInScope _lefthandsideOtypeConstructors _lefthandsideOvalueConstructors _lefthandsideOwarnings)
          (T_Patterns_vOut121 _patternsIcollectScopeInfos _patternsIcounter _patternsImiscerrors _patternsInumberOfPatterns _patternsIpatVarNames _patternsIself _patternsIunboundNames _patternsIwarnings) = inv_Patterns_s122 _patternsX122 (T_Patterns_vIn121 _patternsOallTypeConstructors _patternsOallValueConstructors _patternsOcollectScopeInfos _patternsOcounter _patternsOlhsPattern _patternsOmiscerrors _patternsOnamesInScope _patternsOtypeConstructors _patternsOvalueConstructors _patternsOwarnings)
-         _patternsOlhsPattern = rule1940  ()
+         _patternsOlhsPattern = rule1963  ()
          _lhsOnumberOfPatterns :: Int
-         _lhsOnumberOfPatterns = rule1941 _lefthandsideInumberOfPatterns _patternsInumberOfPatterns
+         _lhsOnumberOfPatterns = rule1964 _lefthandsideInumberOfPatterns _patternsInumberOfPatterns
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule1942 _lefthandsideIpatVarNames _patternsIpatVarNames
+         _lhsOpatVarNames = rule1965 _lefthandsideIpatVarNames _patternsIpatVarNames
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1943 _lefthandsideIunboundNames _patternsIunboundNames
-         _self = rule1944 _lefthandsideIself _patternsIself _rangeIself
+         _lhsOunboundNames = rule1966 _lefthandsideIunboundNames _patternsIunboundNames
+         _self = rule1967 _lefthandsideIself _patternsIself _rangeIself
          _lhsOself :: LeftHandSide
-         _lhsOself = rule1945 _self
+         _lhsOself = rule1968 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1946 _patternsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1969 _patternsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1947 _patternsIcounter
+         _lhsOcounter = rule1970 _patternsIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1948 _patternsImiscerrors
+         _lhsOmiscerrors = rule1971 _patternsImiscerrors
          _lhsOname :: Name
-         _lhsOname = rule1949 _lefthandsideIname
+         _lhsOname = rule1972 _lefthandsideIname
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1950 _patternsIwarnings
-         _lefthandsideOallTypeConstructors = rule1951 _lhsIallTypeConstructors
-         _lefthandsideOallValueConstructors = rule1952 _lhsIallValueConstructors
-         _lefthandsideOcollectScopeInfos = rule1953 _lhsIcollectScopeInfos
-         _lefthandsideOcounter = rule1954 _lhsIcounter
-         _lefthandsideOmiscerrors = rule1955 _lhsImiscerrors
-         _lefthandsideOnamesInScope = rule1956 _lhsInamesInScope
-         _lefthandsideOtypeConstructors = rule1957 _lhsItypeConstructors
-         _lefthandsideOvalueConstructors = rule1958 _lhsIvalueConstructors
-         _lefthandsideOwarnings = rule1959 _lhsIwarnings
-         _patternsOallTypeConstructors = rule1960 _lhsIallTypeConstructors
-         _patternsOallValueConstructors = rule1961 _lhsIallValueConstructors
-         _patternsOcollectScopeInfos = rule1962 _lefthandsideIcollectScopeInfos
-         _patternsOcounter = rule1963 _lefthandsideIcounter
-         _patternsOmiscerrors = rule1964 _lefthandsideImiscerrors
-         _patternsOnamesInScope = rule1965 _lhsInamesInScope
-         _patternsOtypeConstructors = rule1966 _lhsItypeConstructors
-         _patternsOvalueConstructors = rule1967 _lhsIvalueConstructors
-         _patternsOwarnings = rule1968 _lefthandsideIwarnings
+         _lhsOwarnings = rule1973 _patternsIwarnings
+         _lefthandsideOallTypeConstructors = rule1974 _lhsIallTypeConstructors
+         _lefthandsideOallValueConstructors = rule1975 _lhsIallValueConstructors
+         _lefthandsideOcollectScopeInfos = rule1976 _lhsIcollectScopeInfos
+         _lefthandsideOcounter = rule1977 _lhsIcounter
+         _lefthandsideOmiscerrors = rule1978 _lhsImiscerrors
+         _lefthandsideOnamesInScope = rule1979 _lhsInamesInScope
+         _lefthandsideOtypeConstructors = rule1980 _lhsItypeConstructors
+         _lefthandsideOvalueConstructors = rule1981 _lhsIvalueConstructors
+         _lefthandsideOwarnings = rule1982 _lhsIwarnings
+         _patternsOallTypeConstructors = rule1983 _lhsIallTypeConstructors
+         _patternsOallValueConstructors = rule1984 _lhsIallValueConstructors
+         _patternsOcollectScopeInfos = rule1985 _lefthandsideIcollectScopeInfos
+         _patternsOcounter = rule1986 _lefthandsideIcounter
+         _patternsOmiscerrors = rule1987 _lefthandsideImiscerrors
+         _patternsOnamesInScope = rule1988 _lhsInamesInScope
+         _patternsOtypeConstructors = rule1989 _lhsItypeConstructors
+         _patternsOvalueConstructors = rule1990 _lhsIvalueConstructors
+         _patternsOwarnings = rule1991 _lefthandsideIwarnings
          __result_ = T_LeftHandSide_vOut82 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOname _lhsOnumberOfPatterns _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_LeftHandSide_s83 v82
-   {-# INLINE rule1940 #-}
-   rule1940 = \  (_ :: ()) ->
-                                                                False
-   {-# INLINE rule1941 #-}
-   rule1941 = \ ((_lefthandsideInumberOfPatterns) :: Int) ((_patternsInumberOfPatterns) :: Int) ->
-                                             _lefthandsideInumberOfPatterns + _patternsInumberOfPatterns
-   {-# INLINE rule1942 #-}
-   rule1942 = \ ((_lefthandsideIpatVarNames) :: Names) ((_patternsIpatVarNames) :: Names) ->
-     _lefthandsideIpatVarNames ++ _patternsIpatVarNames
-   {-# INLINE rule1943 #-}
-   rule1943 = \ ((_lefthandsideIunboundNames) :: Names) ((_patternsIunboundNames) :: Names) ->
-     _lefthandsideIunboundNames ++ _patternsIunboundNames
-   {-# INLINE rule1944 #-}
-   rule1944 = \ ((_lefthandsideIself) :: LeftHandSide) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
-     LeftHandSide_Parenthesized _rangeIself _lefthandsideIself _patternsIself
-   {-# INLINE rule1945 #-}
-   rule1945 = \ _self ->
-     _self
-   {-# INLINE rule1946 #-}
-   rule1946 = \ ((_patternsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _patternsIcollectScopeInfos
-   {-# INLINE rule1947 #-}
-   rule1947 = \ ((_patternsIcounter) :: Int) ->
-     _patternsIcounter
-   {-# INLINE rule1948 #-}
-   rule1948 = \ ((_patternsImiscerrors) :: [Error]) ->
-     _patternsImiscerrors
-   {-# INLINE rule1949 #-}
-   rule1949 = \ ((_lefthandsideIname) :: Name) ->
-     _lefthandsideIname
-   {-# INLINE rule1950 #-}
-   rule1950 = \ ((_patternsIwarnings) :: [Warning]) ->
-     _patternsIwarnings
-   {-# INLINE rule1951 #-}
-   rule1951 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1952 #-}
-   rule1952 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1953 #-}
-   rule1953 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule1954 #-}
-   rule1954 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule1955 #-}
-   rule1955 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule1956 #-}
-   rule1956 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule1957 #-}
-   rule1957 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule1958 #-}
-   rule1958 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule1959 #-}
-   rule1959 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
-   {-# INLINE rule1960 #-}
-   rule1960 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule1961 #-}
-   rule1961 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule1962 #-}
-   rule1962 = \ ((_lefthandsideIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lefthandsideIcollectScopeInfos
    {-# INLINE rule1963 #-}
-   rule1963 = \ ((_lefthandsideIcounter) :: Int) ->
-     _lefthandsideIcounter
+   rule1963 = \  (_ :: ()) ->
+                                                                False
    {-# INLINE rule1964 #-}
-   rule1964 = \ ((_lefthandsideImiscerrors) :: [Error]) ->
-     _lefthandsideImiscerrors
+   rule1964 = \ ((_lefthandsideInumberOfPatterns) :: Int) ((_patternsInumberOfPatterns) :: Int) ->
+                                             _lefthandsideInumberOfPatterns + _patternsInumberOfPatterns
    {-# INLINE rule1965 #-}
-   rule1965 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
+   rule1965 = \ ((_lefthandsideIpatVarNames) :: Names) ((_patternsIpatVarNames) :: Names) ->
+     _lefthandsideIpatVarNames ++ _patternsIpatVarNames
    {-# INLINE rule1966 #-}
-   rule1966 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule1966 = \ ((_lefthandsideIunboundNames) :: Names) ((_patternsIunboundNames) :: Names) ->
+     _lefthandsideIunboundNames ++ _patternsIunboundNames
    {-# INLINE rule1967 #-}
-   rule1967 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule1967 = \ ((_lefthandsideIself) :: LeftHandSide) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
+     LeftHandSide_Parenthesized _rangeIself _lefthandsideIself _patternsIself
    {-# INLINE rule1968 #-}
-   rule1968 = \ ((_lefthandsideIwarnings) :: [Warning]) ->
+   rule1968 = \ _self ->
+     _self
+   {-# INLINE rule1969 #-}
+   rule1969 = \ ((_patternsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _patternsIcollectScopeInfos
+   {-# INLINE rule1970 #-}
+   rule1970 = \ ((_patternsIcounter) :: Int) ->
+     _patternsIcounter
+   {-# INLINE rule1971 #-}
+   rule1971 = \ ((_patternsImiscerrors) :: [Error]) ->
+     _patternsImiscerrors
+   {-# INLINE rule1972 #-}
+   rule1972 = \ ((_lefthandsideIname) :: Name) ->
+     _lefthandsideIname
+   {-# INLINE rule1973 #-}
+   rule1973 = \ ((_patternsIwarnings) :: [Warning]) ->
+     _patternsIwarnings
+   {-# INLINE rule1974 #-}
+   rule1974 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1975 #-}
+   rule1975 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1976 #-}
+   rule1976 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule1977 #-}
+   rule1977 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule1978 #-}
+   rule1978 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule1979 #-}
+   rule1979 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1980 #-}
+   rule1980 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1981 #-}
+   rule1981 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1982 #-}
+   rule1982 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule1983 #-}
+   rule1983 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule1984 #-}
+   rule1984 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule1985 #-}
+   rule1985 = \ ((_lefthandsideIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lefthandsideIcollectScopeInfos
+   {-# INLINE rule1986 #-}
+   rule1986 = \ ((_lefthandsideIcounter) :: Int) ->
+     _lefthandsideIcounter
+   {-# INLINE rule1987 #-}
+   rule1987 = \ ((_lefthandsideImiscerrors) :: [Error]) ->
+     _lefthandsideImiscerrors
+   {-# INLINE rule1988 #-}
+   rule1988 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule1989 #-}
+   rule1989 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule1990 #-}
+   rule1990 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule1991 #-}
+   rule1991 = \ ((_lefthandsideIwarnings) :: [Warning]) ->
      _lefthandsideIwarnings
 
 -- Literal -----------------------------------------------------
@@ -11532,35 +11647,35 @@ sem_Literal_Int arg_range_ arg_value_ = T_Literal (return st86) where
       v85 = \ (T_Literal_vIn85 _lhsIcollectScopeInfos _lhsImiscerrors) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _intLiteralTooBigErrors = rule1969 _rangeIself arg_value_
+         _intLiteralTooBigErrors = rule1992 _rangeIself arg_value_
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1970 _intLiteralTooBigErrors _lhsImiscerrors
-         _self = rule1971 _rangeIself arg_value_
+         _lhsOmiscerrors = rule1993 _intLiteralTooBigErrors _lhsImiscerrors
+         _self = rule1994 _rangeIself arg_value_
          _lhsOself :: Literal
-         _lhsOself = rule1972 _self
+         _lhsOself = rule1995 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1973 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1996 _lhsIcollectScopeInfos
          __result_ = T_Literal_vOut85 _lhsOcollectScopeInfos _lhsOmiscerrors _lhsOself
          in __result_ )
      in C_Literal_s86 v85
-   {-# INLINE rule1969 #-}
-   rule1969 = \ ((_rangeIself) :: Range) value_ ->
+   {-# INLINE rule1992 #-}
+   rule1992 = \ ((_rangeIself) :: Range) value_ ->
                    let val = read value_ :: Integer in
                    if length value_ > 9 && (val > maxInt || val < minInt)  then
                       [ IntLiteralTooBig _rangeIself value_ ]
                    else
                       []
-   {-# INLINE rule1970 #-}
-   rule1970 = \ _intLiteralTooBigErrors ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule1993 #-}
+   rule1993 = \ _intLiteralTooBigErrors ((_lhsImiscerrors) :: [Error]) ->
                              _intLiteralTooBigErrors ++ _lhsImiscerrors
-   {-# INLINE rule1971 #-}
-   rule1971 = \ ((_rangeIself) :: Range) value_ ->
+   {-# INLINE rule1994 #-}
+   rule1994 = \ ((_rangeIself) :: Range) value_ ->
      Literal_Int _rangeIself value_
-   {-# INLINE rule1972 #-}
-   rule1972 = \ _self ->
+   {-# INLINE rule1995 #-}
+   rule1995 = \ _self ->
      _self
-   {-# INLINE rule1973 #-}
-   rule1973 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule1996 #-}
+   rule1996 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
 {-# NOINLINE sem_Literal_Char #-}
 sem_Literal_Char :: T_Range  -> (String) -> T_Literal 
@@ -11571,27 +11686,27 @@ sem_Literal_Char arg_range_ arg_value_ = T_Literal (return st86) where
       v85 = \ (T_Literal_vIn85 _lhsIcollectScopeInfos _lhsImiscerrors) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule1974 _rangeIself arg_value_
+         _self = rule1997 _rangeIself arg_value_
          _lhsOself :: Literal
-         _lhsOself = rule1975 _self
+         _lhsOself = rule1998 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1976 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule1999 _lhsIcollectScopeInfos
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1977 _lhsImiscerrors
+         _lhsOmiscerrors = rule2000 _lhsImiscerrors
          __result_ = T_Literal_vOut85 _lhsOcollectScopeInfos _lhsOmiscerrors _lhsOself
          in __result_ )
      in C_Literal_s86 v85
-   {-# INLINE rule1974 #-}
-   rule1974 = \ ((_rangeIself) :: Range) value_ ->
+   {-# INLINE rule1997 #-}
+   rule1997 = \ ((_rangeIself) :: Range) value_ ->
      Literal_Char _rangeIself value_
-   {-# INLINE rule1975 #-}
-   rule1975 = \ _self ->
+   {-# INLINE rule1998 #-}
+   rule1998 = \ _self ->
      _self
-   {-# INLINE rule1976 #-}
-   rule1976 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule1999 #-}
+   rule1999 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule1977 #-}
-   rule1977 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2000 #-}
+   rule2000 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
 {-# NOINLINE sem_Literal_Float #-}
 sem_Literal_Float :: T_Range  -> (String) -> T_Literal 
@@ -11602,27 +11717,27 @@ sem_Literal_Float arg_range_ arg_value_ = T_Literal (return st86) where
       v85 = \ (T_Literal_vIn85 _lhsIcollectScopeInfos _lhsImiscerrors) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule1978 _rangeIself arg_value_
+         _self = rule2001 _rangeIself arg_value_
          _lhsOself :: Literal
-         _lhsOself = rule1979 _self
+         _lhsOself = rule2002 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1980 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2003 _lhsIcollectScopeInfos
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1981 _lhsImiscerrors
+         _lhsOmiscerrors = rule2004 _lhsImiscerrors
          __result_ = T_Literal_vOut85 _lhsOcollectScopeInfos _lhsOmiscerrors _lhsOself
          in __result_ )
      in C_Literal_s86 v85
-   {-# INLINE rule1978 #-}
-   rule1978 = \ ((_rangeIself) :: Range) value_ ->
+   {-# INLINE rule2001 #-}
+   rule2001 = \ ((_rangeIself) :: Range) value_ ->
      Literal_Float _rangeIself value_
-   {-# INLINE rule1979 #-}
-   rule1979 = \ _self ->
+   {-# INLINE rule2002 #-}
+   rule2002 = \ _self ->
      _self
-   {-# INLINE rule1980 #-}
-   rule1980 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2003 #-}
+   rule2003 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule1981 #-}
-   rule1981 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2004 #-}
+   rule2004 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
 {-# NOINLINE sem_Literal_String #-}
 sem_Literal_String :: T_Range  -> (String) -> T_Literal 
@@ -11633,27 +11748,27 @@ sem_Literal_String arg_range_ arg_value_ = T_Literal (return st86) where
       v85 = \ (T_Literal_vIn85 _lhsIcollectScopeInfos _lhsImiscerrors) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
-         _self = rule1982 _rangeIself arg_value_
+         _self = rule2005 _rangeIself arg_value_
          _lhsOself :: Literal
-         _lhsOself = rule1983 _self
+         _lhsOself = rule2006 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1984 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2007 _lhsIcollectScopeInfos
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1985 _lhsImiscerrors
+         _lhsOmiscerrors = rule2008 _lhsImiscerrors
          __result_ = T_Literal_vOut85 _lhsOcollectScopeInfos _lhsOmiscerrors _lhsOself
          in __result_ )
      in C_Literal_s86 v85
-   {-# INLINE rule1982 #-}
-   rule1982 = \ ((_rangeIself) :: Range) value_ ->
+   {-# INLINE rule2005 #-}
+   rule2005 = \ ((_rangeIself) :: Range) value_ ->
      Literal_String _rangeIself value_
-   {-# INLINE rule1983 #-}
-   rule1983 = \ _self ->
+   {-# INLINE rule2006 #-}
+   rule2006 = \ _self ->
      _self
-   {-# INLINE rule1984 #-}
-   rule1984 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2007 #-}
+   rule2007 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule1985 #-}
-   rule1985 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2008 #-}
+   rule2008 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
 
 -- MaybeDeclarations -------------------------------------------
@@ -11695,66 +11810,66 @@ sem_MaybeDeclarations_Nothing  = T_MaybeDeclarations (return st89) where
       v88 :: T_MaybeDeclarations_v88 
       v88 = \ (T_MaybeDeclarations_vIn88 _lhsIallTypeConstructors _lhsIallValueConstructors _lhsIclassEnvironment _lhsIclassMemberEnv _lhsIcollectScopeInfos _lhsIcounter _lhsIkindErrors _lhsImiscerrors _lhsInamesInScope _lhsIoptions _lhsIorderedTypeSynonyms _lhsItypeConstructors _lhsIunboundNames _lhsIvalueConstructors _lhsIwarnings) -> ( let
          _lhsOdeclVarNames :: Names
-         _lhsOdeclVarNames = rule1986  ()
+         _lhsOdeclVarNames = rule2009  ()
          _lhsOtypeSignatures :: [(Name,TpScheme)]
-         _lhsOtypeSignatures = rule1987  ()
+         _lhsOtypeSignatures = rule2010  ()
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule1988  ()
-         _self = rule1989  ()
+         _lhsOcollectInstances = rule2011  ()
+         _self = rule2012  ()
          _lhsOself :: MaybeDeclarations
-         _lhsOself = rule1990 _self
+         _lhsOself = rule2013 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1991 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2014 _lhsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule1992 _lhsIcounter
+         _lhsOcounter = rule2015 _lhsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule1993 _lhsIkindErrors
+         _lhsOkindErrors = rule2016 _lhsIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule1994 _lhsImiscerrors
+         _lhsOmiscerrors = rule2017 _lhsImiscerrors
          _lhsOnamesInScope :: Names
-         _lhsOnamesInScope = rule1995 _lhsInamesInScope
+         _lhsOnamesInScope = rule2018 _lhsInamesInScope
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule1996 _lhsIunboundNames
+         _lhsOunboundNames = rule2019 _lhsIunboundNames
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule1997 _lhsIwarnings
+         _lhsOwarnings = rule2020 _lhsIwarnings
          __result_ = T_MaybeDeclarations_vOut88 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOdeclVarNames _lhsOkindErrors _lhsOmiscerrors _lhsOnamesInScope _lhsOself _lhsOtypeSignatures _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_MaybeDeclarations_s89 v88
-   {-# INLINE rule1986 #-}
-   rule1986 = \  (_ :: ()) ->
+   {-# INLINE rule2009 #-}
+   rule2009 = \  (_ :: ()) ->
                                                                 []
-   {-# INLINE rule1987 #-}
-   rule1987 = \  (_ :: ()) ->
+   {-# INLINE rule2010 #-}
+   rule2010 = \  (_ :: ()) ->
                                                                   []
-   {-# INLINE rule1988 #-}
-   rule1988 = \  (_ :: ()) ->
+   {-# INLINE rule2011 #-}
+   rule2011 = \  (_ :: ()) ->
      []
-   {-# INLINE rule1989 #-}
-   rule1989 = \  (_ :: ()) ->
+   {-# INLINE rule2012 #-}
+   rule2012 = \  (_ :: ()) ->
      MaybeDeclarations_Nothing
-   {-# INLINE rule1990 #-}
-   rule1990 = \ _self ->
+   {-# INLINE rule2013 #-}
+   rule2013 = \ _self ->
      _self
-   {-# INLINE rule1991 #-}
-   rule1991 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2014 #-}
+   rule2014 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule1992 #-}
-   rule1992 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2015 #-}
+   rule2015 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule1993 #-}
-   rule1993 = \ ((_lhsIkindErrors) :: [Error]) ->
+   {-# INLINE rule2016 #-}
+   rule2016 = \ ((_lhsIkindErrors) :: [Error]) ->
      _lhsIkindErrors
-   {-# INLINE rule1994 #-}
-   rule1994 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2017 #-}
+   rule2017 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule1995 #-}
-   rule1995 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule2018 #-}
+   rule2018 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule1996 #-}
-   rule1996 = \ ((_lhsIunboundNames) :: Names) ->
+   {-# INLINE rule2019 #-}
+   rule2019 = \ ((_lhsIunboundNames) :: Names) ->
      _lhsIunboundNames
-   {-# INLINE rule1997 #-}
-   rule1997 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2020 #-}
+   rule2020 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_MaybeDeclarations_Just #-}
 sem_MaybeDeclarations_Just :: T_Declarations  -> T_MaybeDeclarations 
@@ -11766,171 +11881,171 @@ sem_MaybeDeclarations_Just arg_declarations_ = T_MaybeDeclarations (return st89)
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          (T_Declarations_vOut31 _declarationsIclassEnv _declarationsIcollectClassMemberEnv _declarationsIcollectInstances _declarationsIcollectScopeInfos _declarationsIcollectTypeClasses _declarationsIcollectTypeConstructors _declarationsIcollectTypeSynonyms _declarationsIcollectValueConstructors _declarationsIcounter _declarationsIdeclVarNames _declarationsIinstances _declarationsIkindErrors _declarationsImiscerrors _declarationsIoperatorFixities _declarationsIpreviousWasAlsoFB _declarationsIrestrictedNames _declarationsIself _declarationsIsuspiciousFBs _declarationsItypeSignatures _declarationsIunboundNames _declarationsIwarnings) = inv_Declarations_s32 _declarationsX32 (T_Declarations_vIn31 _declarationsOallTypeConstructors _declarationsOallValueConstructors _declarationsOclassEnvironment _declarationsOclassMemberEnv _declarationsOcollectScopeInfos _declarationsOcollectTypeConstructors _declarationsOcollectTypeSynonyms _declarationsOcollectValueConstructors _declarationsOcounter _declarationsOkindErrors _declarationsOmiscerrors _declarationsOnamesInScope _declarationsOoperatorFixities _declarationsOoptions _declarationsOorderedTypeSynonyms _declarationsOpreviousWasAlsoFB _declarationsOsuspiciousFBs _declarationsOtypeConstructors _declarationsOtypeSignatures _declarationsOvalueConstructors _declarationsOwarnings)
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule1998 _declarationsIcollectScopeInfos _scopeInfo
-         (_collectTypeConstructors,_collectValueConstructors,_collectTypeSynonyms,_collectConstructorEnv,_derivedFunctions,_operatorFixities) = rule1999  ()
+         _lhsOcollectScopeInfos = rule2021 _declarationsIcollectScopeInfos _scopeInfo
+         (_collectTypeConstructors,_collectValueConstructors,_collectTypeSynonyms,_collectConstructorEnv,_derivedFunctions,_operatorFixities) = rule2022  ()
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2000 _declarationsImiscerrors _typeSignatureErrors
-         (_,_doubles) = rule2001 _declarationsItypeSignatures
-         _typeSignatureErrors = rule2002 _declarationsIdeclVarNames _declarationsIrestrictedNames _declarationsItypeSignatures
+         _lhsOmiscerrors = rule2023 _declarationsImiscerrors _typeSignatureErrors
+         (_,_doubles) = rule2024 _declarationsItypeSignatures
+         _typeSignatureErrors = rule2025 _declarationsIdeclVarNames _declarationsIrestrictedNames _declarationsItypeSignatures
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2003 _declarationsIwarnings _suspiciousErrors
-         _declarationsOpreviousWasAlsoFB = rule2004  ()
-         _declarationsOsuspiciousFBs = rule2005  ()
-         _suspiciousErrors = rule2006 _declarationsIsuspiciousFBs _declarationsItypeSignatures
-         (_namesInScope,_unboundNames,_scopeInfo) = rule2007 _declarationsIdeclVarNames _declarationsIunboundNames _lhsInamesInScope _lhsIunboundNames
+         _lhsOwarnings = rule2026 _declarationsIwarnings _suspiciousErrors
+         _declarationsOpreviousWasAlsoFB = rule2027  ()
+         _declarationsOsuspiciousFBs = rule2028  ()
+         _suspiciousErrors = rule2029 _declarationsIsuspiciousFBs _declarationsItypeSignatures
+         (_namesInScope,_unboundNames,_scopeInfo) = rule2030 _declarationsIdeclVarNames _declarationsIunboundNames _lhsInamesInScope _lhsIunboundNames
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2008 _unboundNames
+         _lhsOunboundNames = rule2031 _unboundNames
          _lhsOdeclVarNames :: Names
-         _lhsOdeclVarNames = rule2009 _declarationsIdeclVarNames
-         _declarationsOtypeSignatures = rule2010  ()
+         _lhsOdeclVarNames = rule2032 _declarationsIdeclVarNames
+         _declarationsOtypeSignatures = rule2033  ()
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2011 _declarationsIcollectInstances
-         _self = rule2012 _declarationsIself
+         _lhsOcollectInstances = rule2034 _declarationsIcollectInstances
+         _self = rule2035 _declarationsIself
          _lhsOself :: MaybeDeclarations
-         _lhsOself = rule2013 _self
+         _lhsOself = rule2036 _self
          _lhsOcounter :: Int
-         _lhsOcounter = rule2014 _declarationsIcounter
+         _lhsOcounter = rule2037 _declarationsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule2015 _declarationsIkindErrors
+         _lhsOkindErrors = rule2038 _declarationsIkindErrors
          _lhsOnamesInScope :: Names
-         _lhsOnamesInScope = rule2016 _namesInScope
+         _lhsOnamesInScope = rule2039 _namesInScope
          _lhsOtypeSignatures :: [(Name,TpScheme)]
-         _lhsOtypeSignatures = rule2017 _declarationsItypeSignatures
-         _declarationsOallTypeConstructors = rule2018 _lhsIallTypeConstructors
-         _declarationsOallValueConstructors = rule2019 _lhsIallValueConstructors
-         _declarationsOclassEnvironment = rule2020 _lhsIclassEnvironment
-         _declarationsOclassMemberEnv = rule2021 _lhsIclassMemberEnv
-         _declarationsOcollectScopeInfos = rule2022 _lhsIcollectScopeInfos
-         _declarationsOcollectTypeConstructors = rule2023 _collectTypeConstructors
-         _declarationsOcollectTypeSynonyms = rule2024 _collectTypeSynonyms
-         _declarationsOcollectValueConstructors = rule2025 _collectValueConstructors
-         _declarationsOcounter = rule2026 _lhsIcounter
-         _declarationsOkindErrors = rule2027 _lhsIkindErrors
-         _declarationsOmiscerrors = rule2028 _lhsImiscerrors
-         _declarationsOnamesInScope = rule2029 _namesInScope
-         _declarationsOoperatorFixities = rule2030 _operatorFixities
-         _declarationsOoptions = rule2031 _lhsIoptions
-         _declarationsOorderedTypeSynonyms = rule2032 _lhsIorderedTypeSynonyms
-         _declarationsOtypeConstructors = rule2033 _lhsItypeConstructors
-         _declarationsOvalueConstructors = rule2034 _lhsIvalueConstructors
-         _declarationsOwarnings = rule2035 _lhsIwarnings
+         _lhsOtypeSignatures = rule2040 _declarationsItypeSignatures
+         _declarationsOallTypeConstructors = rule2041 _lhsIallTypeConstructors
+         _declarationsOallValueConstructors = rule2042 _lhsIallValueConstructors
+         _declarationsOclassEnvironment = rule2043 _lhsIclassEnvironment
+         _declarationsOclassMemberEnv = rule2044 _lhsIclassMemberEnv
+         _declarationsOcollectScopeInfos = rule2045 _lhsIcollectScopeInfos
+         _declarationsOcollectTypeConstructors = rule2046 _collectTypeConstructors
+         _declarationsOcollectTypeSynonyms = rule2047 _collectTypeSynonyms
+         _declarationsOcollectValueConstructors = rule2048 _collectValueConstructors
+         _declarationsOcounter = rule2049 _lhsIcounter
+         _declarationsOkindErrors = rule2050 _lhsIkindErrors
+         _declarationsOmiscerrors = rule2051 _lhsImiscerrors
+         _declarationsOnamesInScope = rule2052 _namesInScope
+         _declarationsOoperatorFixities = rule2053 _operatorFixities
+         _declarationsOoptions = rule2054 _lhsIoptions
+         _declarationsOorderedTypeSynonyms = rule2055 _lhsIorderedTypeSynonyms
+         _declarationsOtypeConstructors = rule2056 _lhsItypeConstructors
+         _declarationsOvalueConstructors = rule2057 _lhsIvalueConstructors
+         _declarationsOwarnings = rule2058 _lhsIwarnings
          __result_ = T_MaybeDeclarations_vOut88 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOdeclVarNames _lhsOkindErrors _lhsOmiscerrors _lhsOnamesInScope _lhsOself _lhsOtypeSignatures _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_MaybeDeclarations_s89 v88
-   {-# INLINE rule1998 #-}
-   rule1998 = \ ((_declarationsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) _scopeInfo ->
+   {-# INLINE rule2021 #-}
+   rule2021 = \ ((_declarationsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) _scopeInfo ->
                                                  (_scopeInfo, Definition) : _declarationsIcollectScopeInfos
-   {-# INLINE rule1999 #-}
-   rule1999 = \  (_ :: ()) ->
+   {-# INLINE rule2022 #-}
+   rule2022 = \  (_ :: ()) ->
                                                                                                                                                    internalError "PartialSyntax.ag" "n/a" "toplevel MaybeDeclaration"
-   {-# INLINE rule2000 #-}
-   rule2000 = \ ((_declarationsImiscerrors) :: [Error]) _typeSignatureErrors ->
+   {-# INLINE rule2023 #-}
+   rule2023 = \ ((_declarationsImiscerrors) :: [Error]) _typeSignatureErrors ->
                                 _typeSignatureErrors ++ _declarationsImiscerrors
-   {-# INLINE rule2001 #-}
-   rule2001 = \ ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
+   {-# INLINE rule2024 #-}
+   rule2024 = \ ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
                                  uniqueAppearance (map fst _declarationsItypeSignatures)
-   {-# INLINE rule2002 #-}
-   rule2002 = \ ((_declarationsIdeclVarNames) :: Names) ((_declarationsIrestrictedNames) :: Names) ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
+   {-# INLINE rule2025 #-}
+   rule2025 = \ ((_declarationsIdeclVarNames) :: Names) ((_declarationsIrestrictedNames) :: Names) ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
                                          checkTypeSignatures _declarationsIdeclVarNames _declarationsIrestrictedNames _declarationsItypeSignatures
-   {-# INLINE rule2003 #-}
-   rule2003 = \ ((_declarationsIwarnings) :: [Warning]) _suspiciousErrors ->
+   {-# INLINE rule2026 #-}
+   rule2026 = \ ((_declarationsIwarnings) :: [Warning]) _suspiciousErrors ->
                             _declarationsIwarnings ++
                             _suspiciousErrors
-   {-# INLINE rule2004 #-}
-   rule2004 = \  (_ :: ()) ->
-                                                Nothing
-   {-# INLINE rule2005 #-}
-   rule2005 = \  (_ :: ()) ->
-                                                []
-   {-# INLINE rule2006 #-}
-   rule2006 = \ ((_declarationsIsuspiciousFBs) :: [(Name,Name)]) ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
-                                                findSimilarFunctionBindings _declarationsItypeSignatures _declarationsIsuspiciousFBs
-   {-# INLINE rule2007 #-}
-   rule2007 = \ ((_declarationsIdeclVarNames) :: Names) ((_declarationsIunboundNames) :: Names) ((_lhsInamesInScope) :: Names) ((_lhsIunboundNames) :: Names) ->
-                                                               changeOfScope _declarationsIdeclVarNames (_declarationsIunboundNames ++ _lhsIunboundNames) _lhsInamesInScope
-   {-# INLINE rule2008 #-}
-   rule2008 = \ _unboundNames ->
-                                  _unboundNames
-   {-# INLINE rule2009 #-}
-   rule2009 = \ ((_declarationsIdeclVarNames) :: Names) ->
-                                                                _declarationsIdeclVarNames
-   {-# INLINE rule2010 #-}
-   rule2010 = \  (_ :: ()) ->
-                                                                  []
-   {-# INLINE rule2011 #-}
-   rule2011 = \ ((_declarationsIcollectInstances) :: [(Name, Instance)]) ->
-     _declarationsIcollectInstances
-   {-# INLINE rule2012 #-}
-   rule2012 = \ ((_declarationsIself) :: Declarations) ->
-     MaybeDeclarations_Just _declarationsIself
-   {-# INLINE rule2013 #-}
-   rule2013 = \ _self ->
-     _self
-   {-# INLINE rule2014 #-}
-   rule2014 = \ ((_declarationsIcounter) :: Int) ->
-     _declarationsIcounter
-   {-# INLINE rule2015 #-}
-   rule2015 = \ ((_declarationsIkindErrors) :: [Error]) ->
-     _declarationsIkindErrors
-   {-# INLINE rule2016 #-}
-   rule2016 = \ _namesInScope ->
-     _namesInScope
-   {-# INLINE rule2017 #-}
-   rule2017 = \ ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
-     _declarationsItypeSignatures
-   {-# INLINE rule2018 #-}
-   rule2018 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule2019 #-}
-   rule2019 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule2020 #-}
-   rule2020 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule2021 #-}
-   rule2021 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule2022 #-}
-   rule2022 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule2023 #-}
-   rule2023 = \ _collectTypeConstructors ->
-     _collectTypeConstructors
-   {-# INLINE rule2024 #-}
-   rule2024 = \ _collectTypeSynonyms ->
-     _collectTypeSynonyms
-   {-# INLINE rule2025 #-}
-   rule2025 = \ _collectValueConstructors ->
-     _collectValueConstructors
-   {-# INLINE rule2026 #-}
-   rule2026 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
    {-# INLINE rule2027 #-}
-   rule2027 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
+   rule2027 = \  (_ :: ()) ->
+                                                Nothing
    {-# INLINE rule2028 #-}
-   rule2028 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
+   rule2028 = \  (_ :: ()) ->
+                                                []
    {-# INLINE rule2029 #-}
-   rule2029 = \ _namesInScope ->
-     _namesInScope
+   rule2029 = \ ((_declarationsIsuspiciousFBs) :: [(Name,Name)]) ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
+                                                findSimilarFunctionBindings _declarationsItypeSignatures _declarationsIsuspiciousFBs
    {-# INLINE rule2030 #-}
-   rule2030 = \ _operatorFixities ->
-     _operatorFixities
+   rule2030 = \ ((_declarationsIdeclVarNames) :: Names) ((_declarationsIunboundNames) :: Names) ((_lhsInamesInScope) :: Names) ((_lhsIunboundNames) :: Names) ->
+                                                               changeOfScope _declarationsIdeclVarNames (_declarationsIunboundNames ++ _lhsIunboundNames) _lhsInamesInScope
    {-# INLINE rule2031 #-}
-   rule2031 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule2031 = \ _unboundNames ->
+                                  _unboundNames
    {-# INLINE rule2032 #-}
-   rule2032 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule2032 = \ ((_declarationsIdeclVarNames) :: Names) ->
+                                                                _declarationsIdeclVarNames
    {-# INLINE rule2033 #-}
-   rule2033 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule2033 = \  (_ :: ()) ->
+                                                                  []
    {-# INLINE rule2034 #-}
-   rule2034 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule2034 = \ ((_declarationsIcollectInstances) :: [(Name, Instance)]) ->
+     _declarationsIcollectInstances
    {-# INLINE rule2035 #-}
-   rule2035 = \ ((_lhsIwarnings) :: [Warning]) ->
+   rule2035 = \ ((_declarationsIself) :: Declarations) ->
+     MaybeDeclarations_Just _declarationsIself
+   {-# INLINE rule2036 #-}
+   rule2036 = \ _self ->
+     _self
+   {-# INLINE rule2037 #-}
+   rule2037 = \ ((_declarationsIcounter) :: Int) ->
+     _declarationsIcounter
+   {-# INLINE rule2038 #-}
+   rule2038 = \ ((_declarationsIkindErrors) :: [Error]) ->
+     _declarationsIkindErrors
+   {-# INLINE rule2039 #-}
+   rule2039 = \ _namesInScope ->
+     _namesInScope
+   {-# INLINE rule2040 #-}
+   rule2040 = \ ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
+     _declarationsItypeSignatures
+   {-# INLINE rule2041 #-}
+   rule2041 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule2042 #-}
+   rule2042 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule2043 #-}
+   rule2043 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule2044 #-}
+   rule2044 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule2045 #-}
+   rule2045 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule2046 #-}
+   rule2046 = \ _collectTypeConstructors ->
+     _collectTypeConstructors
+   {-# INLINE rule2047 #-}
+   rule2047 = \ _collectTypeSynonyms ->
+     _collectTypeSynonyms
+   {-# INLINE rule2048 #-}
+   rule2048 = \ _collectValueConstructors ->
+     _collectValueConstructors
+   {-# INLINE rule2049 #-}
+   rule2049 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule2050 #-}
+   rule2050 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule2051 #-}
+   rule2051 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule2052 #-}
+   rule2052 = \ _namesInScope ->
+     _namesInScope
+   {-# INLINE rule2053 #-}
+   rule2053 = \ _operatorFixities ->
+     _operatorFixities
+   {-# INLINE rule2054 #-}
+   rule2054 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule2055 #-}
+   rule2055 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule2056 #-}
+   rule2056 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2057 #-}
+   rule2057 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2058 #-}
+   rule2058 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 
 -- MaybeExports ------------------------------------------------
@@ -11972,21 +12087,21 @@ sem_MaybeExports_Nothing  = T_MaybeExports (return st92) where
       v91 :: T_MaybeExports_v91 
       v91 = \ (T_MaybeExports_vIn91 _lhsIconsInScope _lhsImodulesInScope _lhsInamesInScop _lhsItyconsInScope) -> ( let
          _lhsOexportErrors :: [Error]
-         _lhsOexportErrors = rule2036  ()
-         _self = rule2037  ()
+         _lhsOexportErrors = rule2059  ()
+         _self = rule2060  ()
          _lhsOself :: MaybeExports
-         _lhsOself = rule2038 _self
+         _lhsOself = rule2061 _self
          __result_ = T_MaybeExports_vOut91 _lhsOexportErrors _lhsOself
          in __result_ )
      in C_MaybeExports_s92 v91
-   {-# INLINE rule2036 #-}
-   rule2036 = \  (_ :: ()) ->
+   {-# INLINE rule2059 #-}
+   rule2059 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2037 #-}
-   rule2037 = \  (_ :: ()) ->
+   {-# INLINE rule2060 #-}
+   rule2060 = \  (_ :: ()) ->
      MaybeExports_Nothing
-   {-# INLINE rule2038 #-}
-   rule2038 = \ _self ->
+   {-# INLINE rule2061 #-}
+   rule2061 = \ _self ->
      _self
 {-# NOINLINE sem_MaybeExports_Just #-}
 sem_MaybeExports_Just :: T_Exports  -> T_MaybeExports 
@@ -11998,37 +12113,37 @@ sem_MaybeExports_Just arg_exports_ = T_MaybeExports (return st92) where
          _exportsX38 = Control.Monad.Identity.runIdentity (attach_T_Exports (arg_exports_))
          (T_Exports_vOut37 _exportsIexportErrors _exportsIself) = inv_Exports_s38 _exportsX38 (T_Exports_vIn37 _exportsOconsInScope _exportsOmodulesInScope _exportsOnamesInScop _exportsOtyconsInScope)
          _lhsOexportErrors :: [Error]
-         _lhsOexportErrors = rule2039 _exportsIexportErrors
-         _self = rule2040 _exportsIself
+         _lhsOexportErrors = rule2062 _exportsIexportErrors
+         _self = rule2063 _exportsIself
          _lhsOself :: MaybeExports
-         _lhsOself = rule2041 _self
-         _exportsOconsInScope = rule2042 _lhsIconsInScope
-         _exportsOmodulesInScope = rule2043 _lhsImodulesInScope
-         _exportsOnamesInScop = rule2044 _lhsInamesInScop
-         _exportsOtyconsInScope = rule2045 _lhsItyconsInScope
+         _lhsOself = rule2064 _self
+         _exportsOconsInScope = rule2065 _lhsIconsInScope
+         _exportsOmodulesInScope = rule2066 _lhsImodulesInScope
+         _exportsOnamesInScop = rule2067 _lhsInamesInScop
+         _exportsOtyconsInScope = rule2068 _lhsItyconsInScope
          __result_ = T_MaybeExports_vOut91 _lhsOexportErrors _lhsOself
          in __result_ )
      in C_MaybeExports_s92 v91
-   {-# INLINE rule2039 #-}
-   rule2039 = \ ((_exportsIexportErrors) :: [Error]) ->
+   {-# INLINE rule2062 #-}
+   rule2062 = \ ((_exportsIexportErrors) :: [Error]) ->
      _exportsIexportErrors
-   {-# INLINE rule2040 #-}
-   rule2040 = \ ((_exportsIself) :: Exports) ->
+   {-# INLINE rule2063 #-}
+   rule2063 = \ ((_exportsIself) :: Exports) ->
      MaybeExports_Just _exportsIself
-   {-# INLINE rule2041 #-}
-   rule2041 = \ _self ->
+   {-# INLINE rule2064 #-}
+   rule2064 = \ _self ->
      _self
-   {-# INLINE rule2042 #-}
-   rule2042 = \ ((_lhsIconsInScope) :: Names) ->
+   {-# INLINE rule2065 #-}
+   rule2065 = \ ((_lhsIconsInScope) :: Names) ->
      _lhsIconsInScope
-   {-# INLINE rule2043 #-}
-   rule2043 = \ ((_lhsImodulesInScope) :: Names) ->
+   {-# INLINE rule2066 #-}
+   rule2066 = \ ((_lhsImodulesInScope) :: Names) ->
      _lhsImodulesInScope
-   {-# INLINE rule2044 #-}
-   rule2044 = \ ((_lhsInamesInScop) :: Names) ->
+   {-# INLINE rule2067 #-}
+   rule2067 = \ ((_lhsInamesInScop) :: Names) ->
      _lhsInamesInScop
-   {-# INLINE rule2045 #-}
-   rule2045 = \ ((_lhsItyconsInScope) :: Names) ->
+   {-# INLINE rule2068 #-}
+   rule2068 = \ ((_lhsItyconsInScope) :: Names) ->
      _lhsItyconsInScope
 
 -- MaybeExpression ---------------------------------------------
@@ -12070,51 +12185,51 @@ sem_MaybeExpression_Nothing  = T_MaybeExpression (return st95) where
       v94 :: T_MaybeExpression_v94 
       v94 = \ (T_MaybeExpression_vIn94 _lhsIallTypeConstructors _lhsIallValueConstructors _lhsIclassEnvironment _lhsIclassMemberEnv _lhsIcollectScopeInfos _lhsIcounter _lhsIkindErrors _lhsImiscerrors _lhsInamesInScope _lhsIoptions _lhsIorderedTypeSynonyms _lhsItypeConstructors _lhsIvalueConstructors _lhsIwarnings) -> ( let
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2046  ()
+         _lhsOcollectInstances = rule2069  ()
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2047  ()
-         _self = rule2048  ()
+         _lhsOunboundNames = rule2070  ()
+         _self = rule2071  ()
          _lhsOself :: MaybeExpression
-         _lhsOself = rule2049 _self
+         _lhsOself = rule2072 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2050 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2073 _lhsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2051 _lhsIcounter
+         _lhsOcounter = rule2074 _lhsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule2052 _lhsIkindErrors
+         _lhsOkindErrors = rule2075 _lhsIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2053 _lhsImiscerrors
+         _lhsOmiscerrors = rule2076 _lhsImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2054 _lhsIwarnings
+         _lhsOwarnings = rule2077 _lhsIwarnings
          __result_ = T_MaybeExpression_vOut94 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_MaybeExpression_s95 v94
-   {-# INLINE rule2046 #-}
-   rule2046 = \  (_ :: ()) ->
+   {-# INLINE rule2069 #-}
+   rule2069 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2047 #-}
-   rule2047 = \  (_ :: ()) ->
+   {-# INLINE rule2070 #-}
+   rule2070 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2048 #-}
-   rule2048 = \  (_ :: ()) ->
+   {-# INLINE rule2071 #-}
+   rule2071 = \  (_ :: ()) ->
      MaybeExpression_Nothing
-   {-# INLINE rule2049 #-}
-   rule2049 = \ _self ->
+   {-# INLINE rule2072 #-}
+   rule2072 = \ _self ->
      _self
-   {-# INLINE rule2050 #-}
-   rule2050 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2073 #-}
+   rule2073 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2051 #-}
-   rule2051 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2074 #-}
+   rule2074 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2052 #-}
-   rule2052 = \ ((_lhsIkindErrors) :: [Error]) ->
+   {-# INLINE rule2075 #-}
+   rule2075 = \ ((_lhsIkindErrors) :: [Error]) ->
      _lhsIkindErrors
-   {-# INLINE rule2053 #-}
-   rule2053 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2076 #-}
+   rule2076 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2054 #-}
-   rule2054 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2077 #-}
+   rule2077 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_MaybeExpression_Just #-}
 sem_MaybeExpression_Just :: T_Expression  -> T_MaybeExpression 
@@ -12126,107 +12241,107 @@ sem_MaybeExpression_Just arg_expression_ = T_MaybeExpression (return st95) where
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Expression_vOut40 _expressionIcollectInstances _expressionIcollectScopeInfos _expressionIcounter _expressionIkindErrors _expressionImiscerrors _expressionIself _expressionIunboundNames _expressionIwarnings) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionOallTypeConstructors _expressionOallValueConstructors _expressionOclassEnvironment _expressionOclassMemberEnv _expressionOcollectScopeInfos _expressionOcounter _expressionOkindErrors _expressionOmiscerrors _expressionOnamesInScope _expressionOoptions _expressionOorderedTypeSynonyms _expressionOtypeConstructors _expressionOvalueConstructors _expressionOwarnings)
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2055 _expressionIcollectInstances
+         _lhsOcollectInstances = rule2078 _expressionIcollectInstances
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2056 _expressionIunboundNames
-         _self = rule2057 _expressionIself
+         _lhsOunboundNames = rule2079 _expressionIunboundNames
+         _self = rule2080 _expressionIself
          _lhsOself :: MaybeExpression
-         _lhsOself = rule2058 _self
+         _lhsOself = rule2081 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2059 _expressionIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2082 _expressionIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2060 _expressionIcounter
+         _lhsOcounter = rule2083 _expressionIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule2061 _expressionIkindErrors
+         _lhsOkindErrors = rule2084 _expressionIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2062 _expressionImiscerrors
+         _lhsOmiscerrors = rule2085 _expressionImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2063 _expressionIwarnings
-         _expressionOallTypeConstructors = rule2064 _lhsIallTypeConstructors
-         _expressionOallValueConstructors = rule2065 _lhsIallValueConstructors
-         _expressionOclassEnvironment = rule2066 _lhsIclassEnvironment
-         _expressionOclassMemberEnv = rule2067 _lhsIclassMemberEnv
-         _expressionOcollectScopeInfos = rule2068 _lhsIcollectScopeInfos
-         _expressionOcounter = rule2069 _lhsIcounter
-         _expressionOkindErrors = rule2070 _lhsIkindErrors
-         _expressionOmiscerrors = rule2071 _lhsImiscerrors
-         _expressionOnamesInScope = rule2072 _lhsInamesInScope
-         _expressionOoptions = rule2073 _lhsIoptions
-         _expressionOorderedTypeSynonyms = rule2074 _lhsIorderedTypeSynonyms
-         _expressionOtypeConstructors = rule2075 _lhsItypeConstructors
-         _expressionOvalueConstructors = rule2076 _lhsIvalueConstructors
-         _expressionOwarnings = rule2077 _lhsIwarnings
+         _lhsOwarnings = rule2086 _expressionIwarnings
+         _expressionOallTypeConstructors = rule2087 _lhsIallTypeConstructors
+         _expressionOallValueConstructors = rule2088 _lhsIallValueConstructors
+         _expressionOclassEnvironment = rule2089 _lhsIclassEnvironment
+         _expressionOclassMemberEnv = rule2090 _lhsIclassMemberEnv
+         _expressionOcollectScopeInfos = rule2091 _lhsIcollectScopeInfos
+         _expressionOcounter = rule2092 _lhsIcounter
+         _expressionOkindErrors = rule2093 _lhsIkindErrors
+         _expressionOmiscerrors = rule2094 _lhsImiscerrors
+         _expressionOnamesInScope = rule2095 _lhsInamesInScope
+         _expressionOoptions = rule2096 _lhsIoptions
+         _expressionOorderedTypeSynonyms = rule2097 _lhsIorderedTypeSynonyms
+         _expressionOtypeConstructors = rule2098 _lhsItypeConstructors
+         _expressionOvalueConstructors = rule2099 _lhsIvalueConstructors
+         _expressionOwarnings = rule2100 _lhsIwarnings
          __result_ = T_MaybeExpression_vOut94 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_MaybeExpression_s95 v94
-   {-# INLINE rule2055 #-}
-   rule2055 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
+   {-# INLINE rule2078 #-}
+   rule2078 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
      _expressionIcollectInstances
-   {-# INLINE rule2056 #-}
-   rule2056 = \ ((_expressionIunboundNames) :: Names) ->
+   {-# INLINE rule2079 #-}
+   rule2079 = \ ((_expressionIunboundNames) :: Names) ->
      _expressionIunboundNames
-   {-# INLINE rule2057 #-}
-   rule2057 = \ ((_expressionIself) :: Expression) ->
+   {-# INLINE rule2080 #-}
+   rule2080 = \ ((_expressionIself) :: Expression) ->
      MaybeExpression_Just _expressionIself
-   {-# INLINE rule2058 #-}
-   rule2058 = \ _self ->
+   {-# INLINE rule2081 #-}
+   rule2081 = \ _self ->
      _self
-   {-# INLINE rule2059 #-}
-   rule2059 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2082 #-}
+   rule2082 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _expressionIcollectScopeInfos
-   {-# INLINE rule2060 #-}
-   rule2060 = \ ((_expressionIcounter) :: Int) ->
+   {-# INLINE rule2083 #-}
+   rule2083 = \ ((_expressionIcounter) :: Int) ->
      _expressionIcounter
-   {-# INLINE rule2061 #-}
-   rule2061 = \ ((_expressionIkindErrors) :: [Error]) ->
+   {-# INLINE rule2084 #-}
+   rule2084 = \ ((_expressionIkindErrors) :: [Error]) ->
      _expressionIkindErrors
-   {-# INLINE rule2062 #-}
-   rule2062 = \ ((_expressionImiscerrors) :: [Error]) ->
+   {-# INLINE rule2085 #-}
+   rule2085 = \ ((_expressionImiscerrors) :: [Error]) ->
      _expressionImiscerrors
-   {-# INLINE rule2063 #-}
-   rule2063 = \ ((_expressionIwarnings) :: [Warning]) ->
+   {-# INLINE rule2086 #-}
+   rule2086 = \ ((_expressionIwarnings) :: [Warning]) ->
      _expressionIwarnings
-   {-# INLINE rule2064 #-}
-   rule2064 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   {-# INLINE rule2087 #-}
+   rule2087 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule2065 #-}
-   rule2065 = \ ((_lhsIallValueConstructors) :: Names) ->
+   {-# INLINE rule2088 #-}
+   rule2088 = \ ((_lhsIallValueConstructors) :: Names) ->
      _lhsIallValueConstructors
-   {-# INLINE rule2066 #-}
-   rule2066 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+   {-# INLINE rule2089 #-}
+   rule2089 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
      _lhsIclassEnvironment
-   {-# INLINE rule2067 #-}
-   rule2067 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+   {-# INLINE rule2090 #-}
+   rule2090 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
      _lhsIclassMemberEnv
-   {-# INLINE rule2068 #-}
-   rule2068 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2091 #-}
+   rule2091 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2069 #-}
-   rule2069 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2092 #-}
+   rule2092 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2070 #-}
-   rule2070 = \ ((_lhsIkindErrors) :: [Error]) ->
+   {-# INLINE rule2093 #-}
+   rule2093 = \ ((_lhsIkindErrors) :: [Error]) ->
      _lhsIkindErrors
-   {-# INLINE rule2071 #-}
-   rule2071 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2094 #-}
+   rule2094 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2072 #-}
-   rule2072 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule2095 #-}
+   rule2095 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule2073 #-}
-   rule2073 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule2096 #-}
+   rule2096 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule2074 #-}
-   rule2074 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+   {-# INLINE rule2097 #-}
+   rule2097 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
      _lhsIorderedTypeSynonyms
-   {-# INLINE rule2075 #-}
-   rule2075 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule2098 #-}
+   rule2098 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule2076 #-}
-   rule2076 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+   {-# INLINE rule2099 #-}
+   rule2099 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
      _lhsIvalueConstructors
-   {-# INLINE rule2077 #-}
-   rule2077 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2100 #-}
+   rule2100 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 
 -- MaybeImportSpecification ------------------------------------
@@ -12267,17 +12382,17 @@ sem_MaybeImportSpecification_Nothing  = T_MaybeImportSpecification (return st98)
    st98 = let
       v97 :: T_MaybeImportSpecification_v97 
       v97 = \ (T_MaybeImportSpecification_vIn97 ) -> ( let
-         _self = rule2078  ()
+         _self = rule2101  ()
          _lhsOself :: MaybeImportSpecification
-         _lhsOself = rule2079 _self
+         _lhsOself = rule2102 _self
          __result_ = T_MaybeImportSpecification_vOut97 _lhsOself
          in __result_ )
      in C_MaybeImportSpecification_s98 v97
-   {-# INLINE rule2078 #-}
-   rule2078 = \  (_ :: ()) ->
+   {-# INLINE rule2101 #-}
+   rule2101 = \  (_ :: ()) ->
      MaybeImportSpecification_Nothing
-   {-# INLINE rule2079 #-}
-   rule2079 = \ _self ->
+   {-# INLINE rule2102 #-}
+   rule2102 = \ _self ->
      _self
 {-# NOINLINE sem_MaybeImportSpecification_Just #-}
 sem_MaybeImportSpecification_Just :: T_ImportSpecification  -> T_MaybeImportSpecification 
@@ -12288,17 +12403,17 @@ sem_MaybeImportSpecification_Just arg_importspecification_ = T_MaybeImportSpecif
       v97 = \ (T_MaybeImportSpecification_vIn97 ) -> ( let
          _importspecificationX77 = Control.Monad.Identity.runIdentity (attach_T_ImportSpecification (arg_importspecification_))
          (T_ImportSpecification_vOut76 _importspecificationIself) = inv_ImportSpecification_s77 _importspecificationX77 (T_ImportSpecification_vIn76 )
-         _self = rule2080 _importspecificationIself
+         _self = rule2103 _importspecificationIself
          _lhsOself :: MaybeImportSpecification
-         _lhsOself = rule2081 _self
+         _lhsOself = rule2104 _self
          __result_ = T_MaybeImportSpecification_vOut97 _lhsOself
          in __result_ )
      in C_MaybeImportSpecification_s98 v97
-   {-# INLINE rule2080 #-}
-   rule2080 = \ ((_importspecificationIself) :: ImportSpecification) ->
+   {-# INLINE rule2103 #-}
+   rule2103 = \ ((_importspecificationIself) :: ImportSpecification) ->
      MaybeImportSpecification_Just _importspecificationIself
-   {-# INLINE rule2081 #-}
-   rule2081 = \ _self ->
+   {-# INLINE rule2104 #-}
+   rule2104 = \ _self ->
      _self
 
 -- MaybeInt ----------------------------------------------------
@@ -12339,17 +12454,17 @@ sem_MaybeInt_Nothing  = T_MaybeInt (return st101) where
    st101 = let
       v100 :: T_MaybeInt_v100 
       v100 = \ (T_MaybeInt_vIn100 ) -> ( let
-         _self = rule2082  ()
+         _self = rule2105  ()
          _lhsOself :: MaybeInt
-         _lhsOself = rule2083 _self
+         _lhsOself = rule2106 _self
          __result_ = T_MaybeInt_vOut100 _lhsOself
          in __result_ )
      in C_MaybeInt_s101 v100
-   {-# INLINE rule2082 #-}
-   rule2082 = \  (_ :: ()) ->
+   {-# INLINE rule2105 #-}
+   rule2105 = \  (_ :: ()) ->
      MaybeInt_Nothing
-   {-# INLINE rule2083 #-}
-   rule2083 = \ _self ->
+   {-# INLINE rule2106 #-}
+   rule2106 = \ _self ->
      _self
 {-# NOINLINE sem_MaybeInt_Just #-}
 sem_MaybeInt_Just :: (Int) -> T_MaybeInt 
@@ -12358,17 +12473,17 @@ sem_MaybeInt_Just arg_int_ = T_MaybeInt (return st101) where
    st101 = let
       v100 :: T_MaybeInt_v100 
       v100 = \ (T_MaybeInt_vIn100 ) -> ( let
-         _self = rule2084 arg_int_
+         _self = rule2107 arg_int_
          _lhsOself :: MaybeInt
-         _lhsOself = rule2085 _self
+         _lhsOself = rule2108 _self
          __result_ = T_MaybeInt_vOut100 _lhsOself
          in __result_ )
      in C_MaybeInt_s101 v100
-   {-# INLINE rule2084 #-}
-   rule2084 = \ int_ ->
+   {-# INLINE rule2107 #-}
+   rule2107 = \ int_ ->
      MaybeInt_Just int_
-   {-# INLINE rule2085 #-}
-   rule2085 = \ _self ->
+   {-# INLINE rule2108 #-}
+   rule2108 = \ _self ->
      _self
 
 -- MaybeName ---------------------------------------------------
@@ -12409,17 +12524,17 @@ sem_MaybeName_Nothing  = T_MaybeName (return st104) where
    st104 = let
       v103 :: T_MaybeName_v103 
       v103 = \ (T_MaybeName_vIn103 ) -> ( let
-         _self = rule2086  ()
+         _self = rule2109  ()
          _lhsOself :: MaybeName
-         _lhsOself = rule2087 _self
+         _lhsOself = rule2110 _self
          __result_ = T_MaybeName_vOut103 _lhsOself
          in __result_ )
      in C_MaybeName_s104 v103
-   {-# INLINE rule2086 #-}
-   rule2086 = \  (_ :: ()) ->
+   {-# INLINE rule2109 #-}
+   rule2109 = \  (_ :: ()) ->
      MaybeName_Nothing
-   {-# INLINE rule2087 #-}
-   rule2087 = \ _self ->
+   {-# INLINE rule2110 #-}
+   rule2110 = \ _self ->
      _self
 {-# NOINLINE sem_MaybeName_Just #-}
 sem_MaybeName_Just :: T_Name  -> T_MaybeName 
@@ -12430,17 +12545,17 @@ sem_MaybeName_Just arg_name_ = T_MaybeName (return st104) where
       v103 = \ (T_MaybeName_vIn103 ) -> ( let
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
-         _self = rule2088 _nameIself
+         _self = rule2111 _nameIself
          _lhsOself :: MaybeName
-         _lhsOself = rule2089 _self
+         _lhsOself = rule2112 _self
          __result_ = T_MaybeName_vOut103 _lhsOself
          in __result_ )
      in C_MaybeName_s104 v103
-   {-# INLINE rule2088 #-}
-   rule2088 = \ ((_nameIself) :: Name) ->
+   {-# INLINE rule2111 #-}
+   rule2111 = \ ((_nameIself) :: Name) ->
      MaybeName_Just _nameIself
-   {-# INLINE rule2089 #-}
-   rule2089 = \ _self ->
+   {-# INLINE rule2112 #-}
+   rule2112 = \ _self ->
      _self
 
 -- MaybeNames --------------------------------------------------
@@ -12481,17 +12596,17 @@ sem_MaybeNames_Nothing  = T_MaybeNames (return st107) where
    st107 = let
       v106 :: T_MaybeNames_v106 
       v106 = \ (T_MaybeNames_vIn106 ) -> ( let
-         _self = rule2090  ()
+         _self = rule2113  ()
          _lhsOself :: MaybeNames
-         _lhsOself = rule2091 _self
+         _lhsOself = rule2114 _self
          __result_ = T_MaybeNames_vOut106 _lhsOself
          in __result_ )
      in C_MaybeNames_s107 v106
-   {-# INLINE rule2090 #-}
-   rule2090 = \  (_ :: ()) ->
+   {-# INLINE rule2113 #-}
+   rule2113 = \  (_ :: ()) ->
      MaybeNames_Nothing
-   {-# INLINE rule2091 #-}
-   rule2091 = \ _self ->
+   {-# INLINE rule2114 #-}
+   rule2114 = \ _self ->
      _self
 {-# NOINLINE sem_MaybeNames_Just #-}
 sem_MaybeNames_Just :: T_Names  -> T_MaybeNames 
@@ -12502,17 +12617,17 @@ sem_MaybeNames_Just arg_names_ = T_MaybeNames (return st107) where
       v106 = \ (T_MaybeNames_vIn106 ) -> ( let
          _namesX116 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_names_))
          (T_Names_vOut115 _namesIself) = inv_Names_s116 _namesX116 (T_Names_vIn115 )
-         _self = rule2092 _namesIself
+         _self = rule2115 _namesIself
          _lhsOself :: MaybeNames
-         _lhsOself = rule2093 _self
+         _lhsOself = rule2116 _self
          __result_ = T_MaybeNames_vOut106 _lhsOself
          in __result_ )
      in C_MaybeNames_s107 v106
-   {-# INLINE rule2092 #-}
-   rule2092 = \ ((_namesIself) :: Names) ->
+   {-# INLINE rule2115 #-}
+   rule2115 = \ ((_namesIself) :: Names) ->
      MaybeNames_Just _namesIself
-   {-# INLINE rule2093 #-}
-   rule2093 = \ _self ->
+   {-# INLINE rule2116 #-}
+   rule2116 = \ _self ->
      _self
 
 -- Module ------------------------------------------------------
@@ -12560,134 +12675,134 @@ sem_Module_Module arg_range_ arg_name_ arg_exports_ arg_body_ = T_Module (return
          (T_MaybeName_vOut103 _nameIself) = inv_MaybeName_s104 _nameX104 (T_MaybeName_vIn103 )
          (T_MaybeExports_vOut91 _exportsIexportErrors _exportsIself) = inv_MaybeExports_s92 _exportsX92 (T_MaybeExports_vIn91 _exportsOconsInScope _exportsOmodulesInScope _exportsOnamesInScop _exportsOtyconsInScope)
          (T_Body_vOut13 _bodyIclassEnv _bodyIcollectClassMemberEnv _bodyIcollectInstances _bodyIcollectScopeInfos _bodyIcollectTypeConstructors _bodyIcollectTypeSynonyms _bodyIcollectValueConstructors _bodyIcounter _bodyIdeclVarNames _bodyIimportedModules _bodyIinstances _bodyIkindErrors _bodyImiscerrors _bodyIoperatorFixities _bodyIself _bodyItypeSignatures _bodyIunboundNames _bodyIwarnings) = inv_Body_s14 _bodyX14 (T_Body_vIn13 _bodyOallTypeConstructors _bodyOallValueConstructors _bodyOclassEnvironment _bodyOclassMemberEnv _bodyOcollectScopeInfos _bodyOcollectTypeConstructors _bodyOcollectTypeSynonyms _bodyOcollectValueConstructors _bodyOcounter _bodyOimportedClassEnv _bodyOkindErrors _bodyOmiscerrors _bodyOnamesInScope _bodyOoperatorFixities _bodyOoptions _bodyOorderedTypeSynonyms _bodyOtypeConstructors _bodyOvalueConstructors _bodyOwarnings)
-         _bodyOcollectScopeInfos = rule2094  ()
-         _scopeErrors = rule2095 _collectScopeInfos
-         _scopeWarnings = rule2096 _collectScopeInfos
-         _collectScopeInfos = rule2097 _bodyIcollectScopeInfos _scopeInfo
-         _exportsOnamesInScop = rule2098 _bodyIdeclVarNames _derivedFunctions _lhsIimportEnvironments
-         _exportsOmodulesInScope = rule2099 _bodyIimportedModules _fileName _moduleName
-         _exportsOtyconsInScope = rule2100 _allTypeConstructors
-         _exportsOconsInScope = rule2101 _allValueConstructors
-         _exportErrors = rule2102 _exportsIexportErrors
-         _bodyOmiscerrors = rule2103  ()
-         _miscerrors = rule2104 _bodyImiscerrors _instanceErrors _overlappingInstances _typeSynonymErrors
-         _imports = rule2105 _collectEnvironment _lhsIimportEnvironments
-         _typeSynonyms = rule2106 _imports
-         _typeSynonymErrors = rule2107 _bodyIinstances _typeSynonyms
-         _instanceErrors = rule2108 _bodyIclassEnv _bodyIinstances _typeSynonyms
-         _overlappingInstances = rule2109 _bodyIclassEnv _bodyIinstances
-         _topLevelErrors = rule2110 _fixityButNoFunDefErrors _fixityErrors _recursiveTypeSynonymErrors _typeConstructorErrors _valueConstructorErrors _wrongFileNameErrors _wrongFlagErrors
-         _typeConstructorErrors = rule2111 _duplicatedTypeConstructors
-         _valueConstructorErrors = rule2112 _duplicatedValueConstructors
-         _fixityErrors = rule2113 _duplicatedFixities
-         (_duplicatedFixities,_correctFixities) = rule2114 _bodyIoperatorFixities
-         _fixityButNoFunDefErrors = rule2115 _allValueConstructors _bodyIdeclVarNames _correctFixities
-         _wrongFlagErrors = rule2116 _lhsIimportEnvironments _lhsIoptions
-         _recursiveTypeSynonymErrors = rule2117 _bodyIcollectTypeSynonyms
-         _wrongFileNameErrors = rule2118 _lhsIbaseName _moduleName
-         _moduleName = rule2119 _nameIself
-         _fileName = rule2120 _lhsIbaseName
-         _bodyOwarnings = rule2121  ()
-         _warnings = rule2122 _bodyIwarnings
-         _bodyOkindErrors = rule2123  ()
-         _kindErrors = rule2124 _bodyIkindErrors
-         (_namesInScope,_unboundNames,_scopeInfo) = rule2125 _bodyIdeclVarNames _bodyIunboundNames _initialScope
-         _bodyOcounter = rule2126  ()
-         _collectEnvironment = rule2127 _bodyIclassEnv _bodyIcollectClassMemberEnv _bodyIcollectTypeConstructors _bodyIcollectTypeSynonyms _bodyIcollectValueConstructors _bodyIoperatorFixities _derivedFunctions
-         _derivedFunctions = rule2128 _bodyIcollectTypeConstructors _bodyIcollectTypeSynonyms
-         _bodyOcollectTypeConstructors = rule2129  ()
-         _bodyOcollectValueConstructors = rule2130  ()
-         _bodyOcollectTypeSynonyms = rule2131  ()
-         _bodyOoperatorFixities = rule2132  ()
-         (_uniqueValueConstructors,_duplicatedValueConstructors) = rule2133 _bodyIcollectValueConstructors _lhsIimportEnvironments
-         _allValueConstructors = rule2134 _duplicatedValueConstructors _uniqueValueConstructors
-         _valueConstructors = rule2135 _uniqueValueConstructors
-         (_uniqueTypeConstructors,_duplicatedTypeConstructors) = rule2136 _bodyIcollectTypeConstructors _bodyIcollectTypeSynonyms _lhsIimportEnvironments
-         _allTypeConstructors = rule2137 _duplicatedTypeConstructors _uniqueTypeConstructors
-         _typeConstructors = rule2138 _uniqueTypeConstructors
-         _bodyOorderedTypeSynonyms = rule2139 _bodyIcollectTypeSynonyms _lhsIimportEnvironments
-         _bodyOclassEnvironment = rule2140 _bodyIcollectInstances _lhsIimportEnvironments
-         _bodyOclassMemberEnv = rule2141 _bodyIcollectClassMemberEnv _lhsIimportEnvironments
-         _bodyOimportedClassEnv = rule2142 _lhsIimportEnvironments
+         _bodyOcollectScopeInfos = rule2117  ()
+         _scopeErrors = rule2118 _collectScopeInfos
+         _scopeWarnings = rule2119 _collectScopeInfos
+         _collectScopeInfos = rule2120 _bodyIcollectScopeInfos _scopeInfo
+         _exportsOnamesInScop = rule2121 _bodyIdeclVarNames _derivedFunctions _lhsIimportEnvironments
+         _exportsOmodulesInScope = rule2122 _bodyIimportedModules _fileName _moduleName
+         _exportsOtyconsInScope = rule2123 _allTypeConstructors
+         _exportsOconsInScope = rule2124 _allValueConstructors
+         _exportErrors = rule2125 _exportsIexportErrors
+         _bodyOmiscerrors = rule2126  ()
+         _miscerrors = rule2127 _bodyImiscerrors _instanceErrors _overlappingInstances _typeSynonymErrors
+         _imports = rule2128 _collectEnvironment _lhsIimportEnvironments
+         _typeSynonyms = rule2129 _imports
+         _typeSynonymErrors = rule2130 _bodyIinstances _typeSynonyms
+         _instanceErrors = rule2131 _bodyIclassEnv _bodyIinstances _typeSynonyms
+         _overlappingInstances = rule2132 _bodyIclassEnv _bodyIinstances
+         _topLevelErrors = rule2133 _fixityButNoFunDefErrors _fixityErrors _recursiveTypeSynonymErrors _typeConstructorErrors _valueConstructorErrors _wrongFileNameErrors _wrongFlagErrors
+         _typeConstructorErrors = rule2134 _duplicatedTypeConstructors
+         _valueConstructorErrors = rule2135 _duplicatedValueConstructors
+         _fixityErrors = rule2136 _duplicatedFixities
+         (_duplicatedFixities,_correctFixities) = rule2137 _bodyIoperatorFixities
+         _fixityButNoFunDefErrors = rule2138 _allValueConstructors _bodyIdeclVarNames _correctFixities
+         _wrongFlagErrors = rule2139 _lhsIimportEnvironments _lhsIoptions
+         _recursiveTypeSynonymErrors = rule2140 _bodyIcollectTypeSynonyms
+         _wrongFileNameErrors = rule2141 _lhsIbaseName _moduleName
+         _moduleName = rule2142 _nameIself
+         _fileName = rule2143 _lhsIbaseName
+         _bodyOwarnings = rule2144  ()
+         _warnings = rule2145 _bodyIwarnings
+         _bodyOkindErrors = rule2146  ()
+         _kindErrors = rule2147 _bodyIkindErrors
+         (_namesInScope,_unboundNames,_scopeInfo) = rule2148 _bodyIdeclVarNames _bodyIunboundNames _initialScope
+         _bodyOcounter = rule2149  ()
+         _collectEnvironment = rule2150 _bodyIclassEnv _bodyIcollectClassMemberEnv _bodyIcollectTypeConstructors _bodyIcollectTypeSynonyms _bodyIcollectValueConstructors _bodyIoperatorFixities _derivedFunctions
+         _derivedFunctions = rule2151 _bodyIcollectTypeConstructors _bodyIcollectTypeSynonyms
+         _bodyOcollectTypeConstructors = rule2152  ()
+         _bodyOcollectValueConstructors = rule2153  ()
+         _bodyOcollectTypeSynonyms = rule2154  ()
+         _bodyOoperatorFixities = rule2155  ()
+         (_uniqueValueConstructors,_duplicatedValueConstructors) = rule2156 _bodyIcollectValueConstructors _lhsIimportEnvironments
+         _allValueConstructors = rule2157 _duplicatedValueConstructors _uniqueValueConstructors
+         _valueConstructors = rule2158 _uniqueValueConstructors
+         (_uniqueTypeConstructors,_duplicatedTypeConstructors) = rule2159 _bodyIcollectTypeConstructors _bodyIcollectTypeSynonyms _lhsIimportEnvironments
+         _allTypeConstructors = rule2160 _duplicatedTypeConstructors _uniqueTypeConstructors
+         _typeConstructors = rule2161 _uniqueTypeConstructors
+         _bodyOorderedTypeSynonyms = rule2162 _bodyIcollectTypeSynonyms _lhsIimportEnvironments
+         _bodyOclassEnvironment = rule2163 _bodyIcollectInstances _lhsIimportEnvironments
+         _bodyOclassMemberEnv = rule2164 _bodyIcollectClassMemberEnv _lhsIimportEnvironments
+         _bodyOimportedClassEnv = rule2165 _lhsIimportEnvironments
          _lhsOerrors :: Errors
-         _lhsOerrors = rule2143 _allErrors _derivedRanges _removedEntities
+         _lhsOerrors = rule2166 _allErrors _derivedRanges _removedEntities
          _lhsOwarnings :: Warnings
-         _lhsOwarnings = rule2144 _scopeWarnings _warnings
-         _allErrors = rule2145 _exportErrors _kindErrors _lhsIoptions _miscerrors _scopeErrors _topLevelErrors
-         _removedEntities = rule2146 _duplicatedTypeConstructors _duplicatedValueConstructors
-         _derivedRanges = rule2147 _derivedFunctions
-         _initialScope = rule2148 _derivedFunctions _lhsIimportEnvironments
-         _self = rule2149 _bodyIself _exportsIself _nameIself _rangeIself
+         _lhsOwarnings = rule2167 _scopeWarnings _warnings
+         _allErrors = rule2168 _exportErrors _kindErrors _lhsIoptions _miscerrors _scopeErrors _topLevelErrors
+         _removedEntities = rule2169 _duplicatedTypeConstructors _duplicatedValueConstructors
+         _derivedRanges = rule2170 _derivedFunctions
+         _initialScope = rule2171 _derivedFunctions _lhsIimportEnvironments
+         _self = rule2172 _bodyIself _exportsIself _nameIself _rangeIself
          _lhsOself :: Module
-         _lhsOself = rule2150 _self
+         _lhsOself = rule2173 _self
          _lhsOcollectEnvironment :: ImportEnvironment
-         _lhsOcollectEnvironment = rule2151 _collectEnvironment
+         _lhsOcollectEnvironment = rule2174 _collectEnvironment
          _lhsOtypeSignatures :: [(Name,TpScheme)]
-         _lhsOtypeSignatures = rule2152 _bodyItypeSignatures
-         _bodyOallTypeConstructors = rule2153 _allTypeConstructors
-         _bodyOallValueConstructors = rule2154 _allValueConstructors
-         _bodyOnamesInScope = rule2155 _namesInScope
-         _bodyOoptions = rule2156 _lhsIoptions
-         _bodyOtypeConstructors = rule2157 _typeConstructors
-         _bodyOvalueConstructors = rule2158 _valueConstructors
+         _lhsOtypeSignatures = rule2175 _bodyItypeSignatures
+         _bodyOallTypeConstructors = rule2176 _allTypeConstructors
+         _bodyOallValueConstructors = rule2177 _allValueConstructors
+         _bodyOnamesInScope = rule2178 _namesInScope
+         _bodyOoptions = rule2179 _lhsIoptions
+         _bodyOtypeConstructors = rule2180 _typeConstructors
+         _bodyOvalueConstructors = rule2181 _valueConstructors
          __result_ = T_Module_vOut109 _lhsOcollectEnvironment _lhsOerrors _lhsOself _lhsOtypeSignatures _lhsOwarnings
          in __result_ )
      in C_Module_s110 v109
-   {-# INLINE rule2094 #-}
-   rule2094 = \  (_ :: ()) ->
+   {-# INLINE rule2117 #-}
+   rule2117 = \  (_ :: ()) ->
                                          []
-   {-# INLINE rule2095 #-}
-   rule2095 = \ _collectScopeInfos ->
+   {-# INLINE rule2118 #-}
+   rule2118 = \ _collectScopeInfos ->
                                          makeErrors   _collectScopeInfos
-   {-# INLINE rule2096 #-}
-   rule2096 = \ _collectScopeInfos ->
+   {-# INLINE rule2119 #-}
+   rule2119 = \ _collectScopeInfos ->
                                          makeWarnings _collectScopeInfos
-   {-# INLINE rule2097 #-}
-   rule2097 = \ ((_bodyIcollectScopeInfos) :: [(ScopeInfo, Entity)]) _scopeInfo ->
+   {-# INLINE rule2120 #-}
+   rule2120 = \ ((_bodyIcollectScopeInfos) :: [(ScopeInfo, Entity)]) _scopeInfo ->
                                        (topLevelScopeInfo _scopeInfo, Definition) : _bodyIcollectScopeInfos
-   {-# INLINE rule2098 #-}
-   rule2098 = \ ((_bodyIdeclVarNames) :: Names) _derivedFunctions ((_lhsIimportEnvironments) :: ImportEnvironments) ->
+   {-# INLINE rule2121 #-}
+   rule2121 = \ ((_bodyIdeclVarNames) :: Names) _derivedFunctions ((_lhsIimportEnvironments) :: ImportEnvironments) ->
                                         concat [ _bodyIdeclVarNames
                                                 , concatMap (M.keys . typeEnvironment) _lhsIimportEnvironments
                                                 , map fst _derivedFunctions
                                                 ]
-   {-# INLINE rule2099 #-}
-   rule2099 = \ ((_bodyIimportedModules) :: Names) _fileName _moduleName ->
+   {-# INLINE rule2122 #-}
+   rule2122 = \ ((_bodyIimportedModules) :: Names) _fileName _moduleName ->
                                          (_moduleName : _fileName : _bodyIimportedModules)
-   {-# INLINE rule2100 #-}
-   rule2100 = \ _allTypeConstructors ->
+   {-# INLINE rule2123 #-}
+   rule2123 = \ _allTypeConstructors ->
                                          _allTypeConstructors
-   {-# INLINE rule2101 #-}
-   rule2101 = \ _allValueConstructors ->
+   {-# INLINE rule2124 #-}
+   rule2124 = \ _allValueConstructors ->
                                          _allValueConstructors
-   {-# INLINE rule2102 #-}
-   rule2102 = \ ((_exportsIexportErrors) :: [Error]) ->
+   {-# INLINE rule2125 #-}
+   rule2125 = \ ((_exportsIexportErrors) :: [Error]) ->
                                      _exportsIexportErrors
-   {-# INLINE rule2103 #-}
-   rule2103 = \  (_ :: ()) ->
+   {-# INLINE rule2126 #-}
+   rule2126 = \  (_ :: ()) ->
                                   []
-   {-# INLINE rule2104 #-}
-   rule2104 = \ ((_bodyImiscerrors) :: [Error]) _instanceErrors _overlappingInstances _typeSynonymErrors ->
+   {-# INLINE rule2127 #-}
+   rule2127 = \ ((_bodyImiscerrors) :: [Error]) _instanceErrors _overlappingInstances _typeSynonymErrors ->
                                   if length (_bodyImiscerrors ++ _typeSynonymErrors     ++ _overlappingInstances    ) == 0
                                    then _instanceErrors
                                    else _bodyImiscerrors ++ _typeSynonymErrors     ++ _overlappingInstances
-   {-# INLINE rule2105 #-}
-   rule2105 = \ _collectEnvironment ((_lhsIimportEnvironments) :: ImportEnvironments) ->
+   {-# INLINE rule2128 #-}
+   rule2128 = \ _collectEnvironment ((_lhsIimportEnvironments) :: ImportEnvironments) ->
                                foldr combineImportEnvironments emptyEnvironment ( _collectEnvironment     : _lhsIimportEnvironments)
-   {-# INLINE rule2106 #-}
-   rule2106 = \ _imports ->
+   {-# INLINE rule2129 #-}
+   rule2129 = \ _imports ->
                                     getOrderedTypeSynonyms _imports
-   {-# INLINE rule2107 #-}
-   rule2107 = \ ((_bodyIinstances) :: [(Range, Instance)]) _typeSynonyms ->
+   {-# INLINE rule2130 #-}
+   rule2130 = \ ((_bodyIinstances) :: [(Range, Instance)]) _typeSynonyms ->
                                          noTypeSynonymsInInstance _typeSynonyms     _bodyIinstances
-   {-# INLINE rule2108 #-}
-   rule2108 = \ ((_bodyIclassEnv) :: ClassEnvironment) ((_bodyIinstances) :: [(Range, Instance)]) _typeSynonyms ->
+   {-# INLINE rule2131 #-}
+   rule2131 = \ ((_bodyIclassEnv) :: ClassEnvironment) ((_bodyIinstances) :: [(Range, Instance)]) _typeSynonyms ->
                                       makeClassEnvironmentErrors $ checkClassEnvironment _typeSynonyms     _bodyIclassEnv _bodyIinstances
-   {-# INLINE rule2109 #-}
-   rule2109 = \ ((_bodyIclassEnv) :: ClassEnvironment) ((_bodyIinstances) :: [(Range, Instance)]) ->
+   {-# INLINE rule2132 #-}
+   rule2132 = \ ((_bodyIclassEnv) :: ClassEnvironment) ((_bodyIinstances) :: [(Range, Instance)]) ->
                                             overlappingInstances $ foldr insertInst _bodyIclassEnv _bodyIinstances
-   {-# INLINE rule2110 #-}
-   rule2110 = \ _fixityButNoFunDefErrors _fixityErrors _recursiveTypeSynonymErrors _typeConstructorErrors _valueConstructorErrors _wrongFileNameErrors _wrongFlagErrors ->
+   {-# INLINE rule2133 #-}
+   rule2133 = \ _fixityButNoFunDefErrors _fixityErrors _recursiveTypeSynonymErrors _typeConstructorErrors _valueConstructorErrors _wrongFileNameErrors _wrongFlagErrors ->
                                       concat [ _typeConstructorErrors
                                              , _valueConstructorErrors
                                              , _fixityErrors
@@ -12696,32 +12811,32 @@ sem_Module_Module arg_range_ arg_name_ arg_exports_ arg_body_ = T_Module (return
                                              , _recursiveTypeSynonymErrors
                                              , _wrongFileNameErrors
                                              ]
-   {-# INLINE rule2111 #-}
-   rule2111 = \ _duplicatedTypeConstructors ->
+   {-# INLINE rule2134 #-}
+   rule2134 = \ _duplicatedTypeConstructors ->
                                              makeDuplicated TypeConstructor _duplicatedTypeConstructors
-   {-# INLINE rule2112 #-}
-   rule2112 = \ _duplicatedValueConstructors ->
+   {-# INLINE rule2135 #-}
+   rule2135 = \ _duplicatedValueConstructors ->
                                               makeDuplicated Constructor _duplicatedValueConstructors
-   {-# INLINE rule2113 #-}
-   rule2113 = \ _duplicatedFixities ->
+   {-# INLINE rule2136 #-}
+   rule2136 = \ _duplicatedFixities ->
                                     makeDuplicated Fixity _duplicatedFixities
-   {-# INLINE rule2114 #-}
-   rule2114 = \ ((_bodyIoperatorFixities) :: [(Name,(Int,Assoc))]) ->
+   {-# INLINE rule2137 #-}
+   rule2137 = \ ((_bodyIoperatorFixities) :: [(Name,(Int,Assoc))]) ->
                                                             let (xs,ys) = partition ((>1) . length) . group . sort $ (map fst _bodyIoperatorFixities)
                                                             in (xs,map head ys)
-   {-# INLINE rule2115 #-}
-   rule2115 = \ _allValueConstructors ((_bodyIdeclVarNames) :: Names) _correctFixities ->
+   {-# INLINE rule2138 #-}
+   rule2138 = \ _allValueConstructors ((_bodyIdeclVarNames) :: Names) _correctFixities ->
                                                let list = nub (_bodyIdeclVarNames ++ _allValueConstructors)
                                                in makeNoFunDef Fixity (filter (`notElem` list) _correctFixities) list
-   {-# INLINE rule2116 #-}
-   rule2116 = \ ((_lhsIimportEnvironments) :: ImportEnvironments) ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule2139 #-}
+   rule2139 = \ ((_lhsIimportEnvironments) :: ImportEnvironments) ((_lhsIoptions) :: [Option]) ->
          [ WrongOverloadingFlag flag
          | let flag = Overloading `elem` _lhsIoptions
                imp  = any isOverloaded (concatMap (M.elems . typeEnvironment) _lhsIimportEnvironments)
          , flag /= imp
          ]
-   {-# INLINE rule2117 #-}
-   rule2117 = \ ((_bodyIcollectTypeSynonyms) :: [(Name,(Int,Tps -> Tp))]) ->
+   {-# INLINE rule2140 #-}
+   rule2140 = \ ((_bodyIcollectTypeSynonyms) :: [(Name,(Int,Tps -> Tp))]) ->
                         let converted  = map (\(name, tuple) -> (show name, tuple)) _bodyIcollectTypeSynonyms
                             recursives = snd . getTypeSynonymOrdering . M.fromList $ converted
                             makeError = let f = foldr add (Just [])
@@ -12731,41 +12846,41 @@ sem_Module_Module arg_range_ arg_name_ arg_exports_ arg_body_ = T_Module (return
                                             g s = [ n | n <- map fst _bodyIcollectTypeSynonyms, show n == s ]
                                         in maybe [] (\x -> [RecursiveTypeSynonyms x]) . f
                         in concatMap makeError recursives
-   {-# INLINE rule2118 #-}
-   rule2118 = \ ((_lhsIbaseName) :: String) _moduleName ->
+   {-# INLINE rule2141 #-}
+   rule2141 = \ ((_lhsIbaseName) :: String) _moduleName ->
                                           let moduleString = getNameName  _moduleName
                                               moduleRange  = getNameRange _moduleName
                                           in if moduleString == "" || _lhsIbaseName == moduleString
                                             then []
                                             else [ WrongFileName _lhsIbaseName moduleString moduleRange ]
-   {-# INLINE rule2119 #-}
-   rule2119 = \ ((_nameIself) :: MaybeName) ->
+   {-# INLINE rule2142 #-}
+   rule2142 = \ ((_nameIself) :: MaybeName) ->
                                      case _nameIself of
                                         MaybeName_Just name -> name
                                         MaybeName_Nothing   -> Name_Identifier noRange [] ""
-   {-# INLINE rule2120 #-}
-   rule2120 = \ ((_lhsIbaseName) :: String) ->
+   {-# INLINE rule2143 #-}
+   rule2143 = \ ((_lhsIbaseName) :: String) ->
                                      Name_Identifier noRange [] _lhsIbaseName
-   {-# INLINE rule2121 #-}
-   rule2121 = \  (_ :: ()) ->
+   {-# INLINE rule2144 #-}
+   rule2144 = \  (_ :: ()) ->
                                   []
-   {-# INLINE rule2122 #-}
-   rule2122 = \ ((_bodyIwarnings) :: [Warning]) ->
+   {-# INLINE rule2145 #-}
+   rule2145 = \ ((_bodyIwarnings) :: [Warning]) ->
                                   _bodyIwarnings
-   {-# INLINE rule2123 #-}
-   rule2123 = \  (_ :: ()) ->
+   {-# INLINE rule2146 #-}
+   rule2146 = \  (_ :: ()) ->
                                          []
-   {-# INLINE rule2124 #-}
-   rule2124 = \ ((_bodyIkindErrors) :: [Error]) ->
+   {-# INLINE rule2147 #-}
+   rule2147 = \ ((_bodyIkindErrors) :: [Error]) ->
                                          _bodyIkindErrors
-   {-# INLINE rule2125 #-}
-   rule2125 = \ ((_bodyIdeclVarNames) :: Names) ((_bodyIunboundNames) :: Names) _initialScope ->
+   {-# INLINE rule2148 #-}
+   rule2148 = \ ((_bodyIdeclVarNames) :: Names) ((_bodyIunboundNames) :: Names) _initialScope ->
                                                                changeOfScope (_initialScope ++ _bodyIdeclVarNames) _bodyIunboundNames []
-   {-# INLINE rule2126 #-}
-   rule2126 = \  (_ :: ()) ->
+   {-# INLINE rule2149 #-}
+   rule2149 = \  (_ :: ()) ->
                                 0
-   {-# INLINE rule2127 #-}
-   rule2127 = \ ((_bodyIclassEnv) :: ClassEnvironment) ((_bodyIcollectClassMemberEnv) :: ClassMemberEnvironment) ((_bodyIcollectTypeConstructors) :: [(Name,Int)]) ((_bodyIcollectTypeSynonyms) :: [(Name,(Int,Tps -> Tp))]) ((_bodyIcollectValueConstructors) :: [(Name,TpScheme)]) ((_bodyIoperatorFixities) :: [(Name,(Int,Assoc))]) _derivedFunctions ->
+   {-# INLINE rule2150 #-}
+   rule2150 = \ ((_bodyIclassEnv) :: ClassEnvironment) ((_bodyIcollectClassMemberEnv) :: ClassMemberEnvironment) ((_bodyIcollectTypeConstructors) :: [(Name,Int)]) ((_bodyIcollectTypeSynonyms) :: [(Name,(Int,Tps -> Tp))]) ((_bodyIcollectValueConstructors) :: [(Name,TpScheme)]) ((_bodyIoperatorFixities) :: [(Name,(Int,Assoc))]) _derivedFunctions ->
                                           setValueConstructors   (M.fromList _bodyIcollectValueConstructors)
                                           . setTypeConstructors  (M.fromList _bodyIcollectTypeConstructors)
                                           . setTypeSynonyms      (M.fromList _bodyIcollectTypeSynonyms)
@@ -12774,123 +12889,123 @@ sem_Module_Module arg_range_ arg_name_ arg_exports_ arg_body_ = T_Module (return
                                           . setClassEnvironment  _bodyIclassEnv
                                           . setClassMemberEnvironment _bodyIcollectClassMemberEnv
                                           $ emptyEnvironment
-   {-# INLINE rule2128 #-}
-   rule2128 = \ ((_bodyIcollectTypeConstructors) :: [(Name,Int)]) ((_bodyIcollectTypeSynonyms) :: [(Name,(Int,Tps -> Tp))]) ->
+   {-# INLINE rule2151 #-}
+   rule2151 = \ ((_bodyIcollectTypeConstructors) :: [(Name,Int)]) ((_bodyIcollectTypeSynonyms) :: [(Name,(Int,Tps -> Tp))]) ->
                                         let f (n,i) = ( nameOfShowFunction n
                                                       , typeOfShowFunction n (take i [ nameFromString s | s <- variableList])
                                                       )
                                             g (n,(i,_)) = f (n,i)
                                         in map f _bodyIcollectTypeConstructors ++
                                            map g _bodyIcollectTypeSynonyms
-   {-# INLINE rule2129 #-}
-   rule2129 = \  (_ :: ()) ->
+   {-# INLINE rule2152 #-}
+   rule2152 = \  (_ :: ()) ->
                                                          []
-   {-# INLINE rule2130 #-}
-   rule2130 = \  (_ :: ()) ->
+   {-# INLINE rule2153 #-}
+   rule2153 = \  (_ :: ()) ->
                                                           []
-   {-# INLINE rule2131 #-}
-   rule2131 = \  (_ :: ()) ->
+   {-# INLINE rule2154 #-}
+   rule2154 = \  (_ :: ()) ->
                                                      []
-   {-# INLINE rule2132 #-}
-   rule2132 = \  (_ :: ()) ->
+   {-# INLINE rule2155 #-}
+   rule2155 = \  (_ :: ()) ->
                                                   []
-   {-# INLINE rule2133 #-}
-   rule2133 = \ ((_bodyIcollectValueConstructors) :: [(Name,TpScheme)]) ((_lhsIimportEnvironments) :: ImportEnvironments) ->
+   {-# INLINE rule2156 #-}
+   rule2156 = \ ((_bodyIcollectValueConstructors) :: [(Name,TpScheme)]) ((_lhsIimportEnvironments) :: ImportEnvironments) ->
                         uniqueKeys (  _bodyIcollectValueConstructors
                                    ++ concatMap (M.assocs . valueConstructors) _lhsIimportEnvironments
                                    )
-   {-# INLINE rule2134 #-}
-   rule2134 = \ _duplicatedValueConstructors _uniqueValueConstructors ->
+   {-# INLINE rule2157 #-}
+   rule2157 = \ _duplicatedValueConstructors _uniqueValueConstructors ->
                                             map fst _uniqueValueConstructors ++ map head _duplicatedValueConstructors
-   {-# INLINE rule2135 #-}
-   rule2135 = \ _uniqueValueConstructors ->
+   {-# INLINE rule2158 #-}
+   rule2158 = \ _uniqueValueConstructors ->
                                             M.fromList _uniqueValueConstructors
-   {-# INLINE rule2136 #-}
-   rule2136 = \ ((_bodyIcollectTypeConstructors) :: [(Name,Int)]) ((_bodyIcollectTypeSynonyms) :: [(Name,(Int,Tps -> Tp))]) ((_lhsIimportEnvironments) :: ImportEnvironments) ->
+   {-# INLINE rule2159 #-}
+   rule2159 = \ ((_bodyIcollectTypeConstructors) :: [(Name,Int)]) ((_bodyIcollectTypeSynonyms) :: [(Name,(Int,Tps -> Tp))]) ((_lhsIimportEnvironments) :: ImportEnvironments) ->
                       uniqueKeys (  _bodyIcollectTypeConstructors
                                  ++ concatMap (M.assocs . typeConstructors) _lhsIimportEnvironments
                                  ++ [ (n,i) | (n,(i,_)) <- _bodyIcollectTypeSynonyms ]
                                  )
-   {-# INLINE rule2137 #-}
-   rule2137 = \ _duplicatedTypeConstructors _uniqueTypeConstructors ->
+   {-# INLINE rule2160 #-}
+   rule2160 = \ _duplicatedTypeConstructors _uniqueTypeConstructors ->
                                          map fst _uniqueTypeConstructors ++ map head _duplicatedTypeConstructors
-   {-# INLINE rule2138 #-}
-   rule2138 = \ _uniqueTypeConstructors ->
+   {-# INLINE rule2161 #-}
+   rule2161 = \ _uniqueTypeConstructors ->
                                          M.fromList _uniqueTypeConstructors
-   {-# INLINE rule2139 #-}
-   rule2139 = \ ((_bodyIcollectTypeSynonyms) :: [(Name,(Int,Tps -> Tp))]) ((_lhsIimportEnvironments) :: ImportEnvironments) ->
+   {-# INLINE rule2162 #-}
+   rule2162 = \ ((_bodyIcollectTypeSynonyms) :: [(Name,(Int,Tps -> Tp))]) ((_lhsIimportEnvironments) :: ImportEnvironments) ->
                         let list     = concatMap (M.assocs . typeSynonyms) _lhsIimportEnvironments ++
                                        _bodyIcollectTypeSynonyms
                             newmap   = M.fromList [ (show name, t) | (name, t) <- list ]
                             ordering = fst (getTypeSynonymOrdering newmap)
                         in (ordering, newmap)
-   {-# INLINE rule2140 #-}
-   rule2140 = \ ((_bodyIcollectInstances) :: [(Name, Instance)]) ((_lhsIimportEnvironments) :: ImportEnvironments) ->
+   {-# INLINE rule2163 #-}
+   rule2163 = \ ((_bodyIcollectInstances) :: [(Name, Instance)]) ((_lhsIimportEnvironments) :: ImportEnvironments) ->
             let importEnv = foldr combineImportEnvironments emptyEnvironment _lhsIimportEnvironments
             in foldr (\(n, i) -> insertInstance (show n) i)
                      (createClassEnvironment importEnv)
                      _bodyIcollectInstances
-   {-# INLINE rule2141 #-}
-   rule2141 = \ ((_bodyIcollectClassMemberEnv) :: ClassMemberEnvironment) ((_lhsIimportEnvironments) :: ImportEnvironments) ->
+   {-# INLINE rule2164 #-}
+   rule2164 = \ ((_bodyIcollectClassMemberEnv) :: ClassMemberEnvironment) ((_lhsIimportEnvironments) :: ImportEnvironments) ->
                                        foldr exclusiveUnion _bodyIcollectClassMemberEnv (map classMemberEnvironment _lhsIimportEnvironments)
-   {-# INLINE rule2142 #-}
-   rule2142 = \ ((_lhsIimportEnvironments) :: ImportEnvironments) ->
+   {-# INLINE rule2165 #-}
+   rule2165 = \ ((_lhsIimportEnvironments) :: ImportEnvironments) ->
                                        classEnvironment $ combineImportEnvironmentList _lhsIimportEnvironments
-   {-# INLINE rule2143 #-}
-   rule2143 = \ _allErrors _derivedRanges _removedEntities ->
+   {-# INLINE rule2166 #-}
+   rule2166 = \ _allErrors _derivedRanges _removedEntities ->
                               filter (\err -> filterRemovedNames _removedEntities err
                                            && filterDerivedNames _derivedRanges err) _allErrors
-   {-# INLINE rule2144 #-}
-   rule2144 = \ _scopeWarnings _warnings ->
+   {-# INLINE rule2167 #-}
+   rule2167 = \ _scopeWarnings _warnings ->
                                  _scopeWarnings ++ _warnings
-   {-# INLINE rule2145 #-}
-   rule2145 = \ _exportErrors _kindErrors ((_lhsIoptions) :: [Option]) _miscerrors _scopeErrors _topLevelErrors ->
+   {-# INLINE rule2168 #-}
+   rule2168 = \ _exportErrors _kindErrors ((_lhsIoptions) :: [Option]) _miscerrors _scopeErrors _topLevelErrors ->
                                  concat [ _exportErrors
                                         , _scopeErrors
                                         , _miscerrors
                                         , if KindInferencing `elem` _lhsIoptions then [] else _kindErrors
                                         , _topLevelErrors
                                         ]
-   {-# INLINE rule2146 #-}
-   rule2146 = \ _duplicatedTypeConstructors _duplicatedValueConstructors ->
+   {-# INLINE rule2169 #-}
+   rule2169 = \ _duplicatedTypeConstructors _duplicatedValueConstructors ->
                                        [ (name,TypeConstructor) | name:_ <- _duplicatedTypeConstructors  ] ++
                                        [ (name,Constructor    ) | name:_ <- _duplicatedValueConstructors ]
-   {-# INLINE rule2147 #-}
-   rule2147 = \ _derivedFunctions ->
+   {-# INLINE rule2170 #-}
+   rule2170 = \ _derivedFunctions ->
                                        map getNameRange (map fst _derivedFunctions)
-   {-# INLINE rule2148 #-}
-   rule2148 = \ _derivedFunctions ((_lhsIimportEnvironments) :: ImportEnvironments) ->
+   {-# INLINE rule2171 #-}
+   rule2171 = \ _derivedFunctions ((_lhsIimportEnvironments) :: ImportEnvironments) ->
                                        map fst _derivedFunctions ++
                                        concatMap (M.keys . typeEnvironment) _lhsIimportEnvironments
-   {-# INLINE rule2149 #-}
-   rule2149 = \ ((_bodyIself) :: Body) ((_exportsIself) :: MaybeExports) ((_nameIself) :: MaybeName) ((_rangeIself) :: Range) ->
+   {-# INLINE rule2172 #-}
+   rule2172 = \ ((_bodyIself) :: Body) ((_exportsIself) :: MaybeExports) ((_nameIself) :: MaybeName) ((_rangeIself) :: Range) ->
      Module_Module _rangeIself _nameIself _exportsIself _bodyIself
-   {-# INLINE rule2150 #-}
-   rule2150 = \ _self ->
+   {-# INLINE rule2173 #-}
+   rule2173 = \ _self ->
      _self
-   {-# INLINE rule2151 #-}
-   rule2151 = \ _collectEnvironment ->
+   {-# INLINE rule2174 #-}
+   rule2174 = \ _collectEnvironment ->
      _collectEnvironment
-   {-# INLINE rule2152 #-}
-   rule2152 = \ ((_bodyItypeSignatures) :: [(Name,TpScheme)]) ->
+   {-# INLINE rule2175 #-}
+   rule2175 = \ ((_bodyItypeSignatures) :: [(Name,TpScheme)]) ->
      _bodyItypeSignatures
-   {-# INLINE rule2153 #-}
-   rule2153 = \ _allTypeConstructors ->
+   {-# INLINE rule2176 #-}
+   rule2176 = \ _allTypeConstructors ->
      _allTypeConstructors
-   {-# INLINE rule2154 #-}
-   rule2154 = \ _allValueConstructors ->
+   {-# INLINE rule2177 #-}
+   rule2177 = \ _allValueConstructors ->
      _allValueConstructors
-   {-# INLINE rule2155 #-}
-   rule2155 = \ _namesInScope ->
+   {-# INLINE rule2178 #-}
+   rule2178 = \ _namesInScope ->
      _namesInScope
-   {-# INLINE rule2156 #-}
-   rule2156 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule2179 #-}
+   rule2179 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule2157 #-}
-   rule2157 = \ _typeConstructors ->
+   {-# INLINE rule2180 #-}
+   rule2180 = \ _typeConstructors ->
      _typeConstructors
-   {-# INLINE rule2158 #-}
-   rule2158 = \ _valueConstructors ->
+   {-# INLINE rule2181 #-}
+   rule2181 = \ _valueConstructors ->
      _valueConstructors
 
 -- Name --------------------------------------------------------
@@ -12936,17 +13051,17 @@ sem_Name_Identifier arg_range_ arg_module_ arg_name_ = T_Name (return st113) whe
          _moduleX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_module_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Strings_vOut160 _moduleIself) = inv_Strings_s161 _moduleX161 (T_Strings_vIn160 )
-         _self = rule2159 _moduleIself _rangeIself arg_name_
+         _self = rule2182 _moduleIself _rangeIself arg_name_
          _lhsOself :: Name
-         _lhsOself = rule2160 _self
+         _lhsOself = rule2183 _self
          __result_ = T_Name_vOut112 _lhsOself
          in __result_ )
      in C_Name_s113 v112
-   {-# INLINE rule2159 #-}
-   rule2159 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ ->
+   {-# INLINE rule2182 #-}
+   rule2182 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ ->
      Name_Identifier _rangeIself _moduleIself name_
-   {-# INLINE rule2160 #-}
-   rule2160 = \ _self ->
+   {-# INLINE rule2183 #-}
+   rule2183 = \ _self ->
      _self
 {-# NOINLINE sem_Name_Operator #-}
 sem_Name_Operator :: T_Range  -> T_Strings  -> (String) -> T_Name 
@@ -12959,17 +13074,17 @@ sem_Name_Operator arg_range_ arg_module_ arg_name_ = T_Name (return st113) where
          _moduleX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_module_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Strings_vOut160 _moduleIself) = inv_Strings_s161 _moduleX161 (T_Strings_vIn160 )
-         _self = rule2161 _moduleIself _rangeIself arg_name_
+         _self = rule2184 _moduleIself _rangeIself arg_name_
          _lhsOself :: Name
-         _lhsOself = rule2162 _self
+         _lhsOself = rule2185 _self
          __result_ = T_Name_vOut112 _lhsOself
          in __result_ )
      in C_Name_s113 v112
-   {-# INLINE rule2161 #-}
-   rule2161 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ ->
+   {-# INLINE rule2184 #-}
+   rule2184 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ ->
      Name_Operator _rangeIself _moduleIself name_
-   {-# INLINE rule2162 #-}
-   rule2162 = \ _self ->
+   {-# INLINE rule2185 #-}
+   rule2185 = \ _self ->
      _self
 {-# NOINLINE sem_Name_Special #-}
 sem_Name_Special :: T_Range  -> T_Strings  -> (String) -> T_Name 
@@ -12982,17 +13097,17 @@ sem_Name_Special arg_range_ arg_module_ arg_name_ = T_Name (return st113) where
          _moduleX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_module_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Strings_vOut160 _moduleIself) = inv_Strings_s161 _moduleX161 (T_Strings_vIn160 )
-         _self = rule2163 _moduleIself _rangeIself arg_name_
+         _self = rule2186 _moduleIself _rangeIself arg_name_
          _lhsOself :: Name
-         _lhsOself = rule2164 _self
+         _lhsOself = rule2187 _self
          __result_ = T_Name_vOut112 _lhsOself
          in __result_ )
      in C_Name_s113 v112
-   {-# INLINE rule2163 #-}
-   rule2163 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ ->
+   {-# INLINE rule2186 #-}
+   rule2186 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ ->
      Name_Special _rangeIself _moduleIself name_
-   {-# INLINE rule2164 #-}
-   rule2164 = \ _self ->
+   {-# INLINE rule2187 #-}
+   rule2187 = \ _self ->
      _self
 
 -- Names -------------------------------------------------------
@@ -13036,17 +13151,17 @@ sem_Names_Cons arg_hd_ arg_tl_ = T_Names (return st116) where
          _tlX116 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_tl_))
          (T_Name_vOut112 _hdIself) = inv_Name_s113 _hdX113 (T_Name_vIn112 )
          (T_Names_vOut115 _tlIself) = inv_Names_s116 _tlX116 (T_Names_vIn115 )
-         _self = rule2165 _hdIself _tlIself
+         _self = rule2188 _hdIself _tlIself
          _lhsOself :: Names
-         _lhsOself = rule2166 _self
+         _lhsOself = rule2189 _self
          __result_ = T_Names_vOut115 _lhsOself
          in __result_ )
      in C_Names_s116 v115
-   {-# INLINE rule2165 #-}
-   rule2165 = \ ((_hdIself) :: Name) ((_tlIself) :: Names) ->
+   {-# INLINE rule2188 #-}
+   rule2188 = \ ((_hdIself) :: Name) ((_tlIself) :: Names) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule2166 #-}
-   rule2166 = \ _self ->
+   {-# INLINE rule2189 #-}
+   rule2189 = \ _self ->
      _self
 {-# NOINLINE sem_Names_Nil #-}
 sem_Names_Nil ::  T_Names 
@@ -13055,17 +13170,17 @@ sem_Names_Nil  = T_Names (return st116) where
    st116 = let
       v115 :: T_Names_v115 
       v115 = \ (T_Names_vIn115 ) -> ( let
-         _self = rule2167  ()
+         _self = rule2190  ()
          _lhsOself :: Names
-         _lhsOself = rule2168 _self
+         _lhsOself = rule2191 _self
          __result_ = T_Names_vOut115 _lhsOself
          in __result_ )
      in C_Names_s116 v115
-   {-# INLINE rule2167 #-}
-   rule2167 = \  (_ :: ()) ->
+   {-# INLINE rule2190 #-}
+   rule2190 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2168 #-}
-   rule2168 = \ _self ->
+   {-# INLINE rule2191 #-}
+   rule2191 = \ _self ->
      _self
 
 -- Pattern -----------------------------------------------------
@@ -13113,7 +13228,7 @@ type T_Pattern_v118  = (T_Pattern_vIn118 ) -> (T_Pattern_vOut118 )
 data T_Pattern_vIn118  = T_Pattern_vIn118 (Names) (Names) ([(ScopeInfo, Entity)]) (Int) (Bool) ([Error]) (Names) (M.Map Name Int) (M.Map Name TpScheme) ([Warning])
 data T_Pattern_vOut118  = T_Pattern_vOut118 ([(ScopeInfo, Entity)]) (Int) ([Error]) (Names) (Pattern) (Names) ([Warning])
 {-# NOINLINE sem_Pattern_Hole #-}
-sem_Pattern_Hole :: T_Range  -> (Integer) -> T_Pattern 
+sem_Pattern_Hole :: T_Range  -> (String) -> T_Pattern 
 sem_Pattern_Hole arg_range_ arg_id_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
    st119 = let
@@ -13122,47 +13237,47 @@ sem_Pattern_Hole arg_range_ arg_id_ = T_Pattern (return st119) where
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule2169 _i
+         _lhsOpatVarNames = rule2192 _i
          _lhsOcounter :: Int
          _i :: Int
-         (_lhsOcounter,_i) = rule2170 _lhsIcounter
+         (_lhsOcounter,_i) = rule2193 _lhsIcounter
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2171  ()
-         _self = rule2172 _rangeIself arg_id_
+         _lhsOunboundNames = rule2194  ()
+         _self = rule2195 _rangeIself arg_id_
          _lhsOself :: Pattern
-         _lhsOself = rule2173 _self
+         _lhsOself = rule2196 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2174 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2197 _lhsIcollectScopeInfos
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2175 _lhsImiscerrors
+         _lhsOmiscerrors = rule2198 _lhsImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2176 _lhsIwarnings
+         _lhsOwarnings = rule2199 _lhsIwarnings
          __result_ = T_Pattern_vOut118 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule2169 #-}
-   rule2169 = \ ((_i) :: Int) ->
+   {-# INLINE rule2192 #-}
+   rule2192 = \ ((_i) :: Int) ->
                                      [ Name_Special noRange [] ("hole" ++ show _i    ) ]
-   {-# INLINE rule2170 #-}
-   rule2170 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2193 #-}
+   rule2193 = \ ((_lhsIcounter) :: Int) ->
      let __cont = _lhsIcounter in seq __cont ( case nextUnique __cont of { (__cont, i) -> (__cont,i)} )
-   {-# INLINE rule2171 #-}
-   rule2171 = \  (_ :: ()) ->
+   {-# INLINE rule2194 #-}
+   rule2194 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2172 #-}
-   rule2172 = \ ((_rangeIself) :: Range) id_ ->
+   {-# INLINE rule2195 #-}
+   rule2195 = \ ((_rangeIself) :: Range) id_ ->
      Pattern_Hole _rangeIself id_
-   {-# INLINE rule2173 #-}
-   rule2173 = \ _self ->
+   {-# INLINE rule2196 #-}
+   rule2196 = \ _self ->
      _self
-   {-# INLINE rule2174 #-}
-   rule2174 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2197 #-}
+   rule2197 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2175 #-}
-   rule2175 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2198 #-}
+   rule2198 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2176 #-}
-   rule2176 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2199 #-}
+   rule2199 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_Pattern_Literal #-}
 sem_Pattern_Literal :: T_Range  -> T_Literal  -> T_Pattern 
@@ -13176,54 +13291,54 @@ sem_Pattern_Literal arg_range_ arg_literal_ = T_Pattern (return st119) where
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Literal_vOut85 _literalIcollectScopeInfos _literalImiscerrors _literalIself) = inv_Literal_s86 _literalX86 (T_Literal_vIn85 _literalOcollectScopeInfos _literalOmiscerrors)
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule2177  ()
+         _lhsOpatVarNames = rule2200  ()
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2178  ()
-         _self = rule2179 _literalIself _rangeIself
+         _lhsOunboundNames = rule2201  ()
+         _self = rule2202 _literalIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule2180 _self
+         _lhsOself = rule2203 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2181 _literalIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2204 _literalIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2182 _lhsIcounter
+         _lhsOcounter = rule2205 _lhsIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2183 _literalImiscerrors
+         _lhsOmiscerrors = rule2206 _literalImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2184 _lhsIwarnings
-         _literalOcollectScopeInfos = rule2185 _lhsIcollectScopeInfos
-         _literalOmiscerrors = rule2186 _lhsImiscerrors
+         _lhsOwarnings = rule2207 _lhsIwarnings
+         _literalOcollectScopeInfos = rule2208 _lhsIcollectScopeInfos
+         _literalOmiscerrors = rule2209 _lhsImiscerrors
          __result_ = T_Pattern_vOut118 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule2177 #-}
-   rule2177 = \  (_ :: ()) ->
+   {-# INLINE rule2200 #-}
+   rule2200 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2178 #-}
-   rule2178 = \  (_ :: ()) ->
+   {-# INLINE rule2201 #-}
+   rule2201 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2179 #-}
-   rule2179 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
+   {-# INLINE rule2202 #-}
+   rule2202 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
      Pattern_Literal _rangeIself _literalIself
-   {-# INLINE rule2180 #-}
-   rule2180 = \ _self ->
+   {-# INLINE rule2203 #-}
+   rule2203 = \ _self ->
      _self
-   {-# INLINE rule2181 #-}
-   rule2181 = \ ((_literalIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2204 #-}
+   rule2204 = \ ((_literalIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _literalIcollectScopeInfos
-   {-# INLINE rule2182 #-}
-   rule2182 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2205 #-}
+   rule2205 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2183 #-}
-   rule2183 = \ ((_literalImiscerrors) :: [Error]) ->
+   {-# INLINE rule2206 #-}
+   rule2206 = \ ((_literalImiscerrors) :: [Error]) ->
      _literalImiscerrors
-   {-# INLINE rule2184 #-}
-   rule2184 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2207 #-}
+   rule2207 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
-   {-# INLINE rule2185 #-}
-   rule2185 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2208 #-}
+   rule2208 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2186 #-}
-   rule2186 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2209 #-}
+   rule2209 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
 {-# NOINLINE sem_Pattern_Variable #-}
 sem_Pattern_Variable :: T_Range  -> T_Name  -> T_Pattern 
@@ -13237,46 +13352,46 @@ sem_Pattern_Variable arg_range_ arg_name_ = T_Pattern (return st119) where
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule2187 _nameIself
+         _lhsOpatVarNames = rule2210 _nameIself
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2188  ()
-         _self = rule2189 _nameIself _rangeIself
+         _lhsOunboundNames = rule2211  ()
+         _self = rule2212 _nameIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule2190 _self
+         _lhsOself = rule2213 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2191 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2214 _lhsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2192 _lhsIcounter
+         _lhsOcounter = rule2215 _lhsIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2193 _lhsImiscerrors
+         _lhsOmiscerrors = rule2216 _lhsImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2194 _lhsIwarnings
+         _lhsOwarnings = rule2217 _lhsIwarnings
          __result_ = T_Pattern_vOut118 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule2187 #-}
-   rule2187 = \ ((_nameIself) :: Name) ->
+   {-# INLINE rule2210 #-}
+   rule2210 = \ ((_nameIself) :: Name) ->
                                      [ _nameIself ]
-   {-# INLINE rule2188 #-}
-   rule2188 = \  (_ :: ()) ->
+   {-# INLINE rule2211 #-}
+   rule2211 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2189 #-}
-   rule2189 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule2212 #-}
+   rule2212 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Pattern_Variable _rangeIself _nameIself
-   {-# INLINE rule2190 #-}
-   rule2190 = \ _self ->
+   {-# INLINE rule2213 #-}
+   rule2213 = \ _self ->
      _self
-   {-# INLINE rule2191 #-}
-   rule2191 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2214 #-}
+   rule2214 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2192 #-}
-   rule2192 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2215 #-}
+   rule2215 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2193 #-}
-   rule2193 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2216 #-}
+   rule2216 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2194 #-}
-   rule2194 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2217 #-}
+   rule2217 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_Pattern_Constructor #-}
 sem_Pattern_Constructor :: T_Range  -> T_Name  -> T_Patterns  -> T_Pattern 
@@ -13292,94 +13407,94 @@ sem_Pattern_Constructor arg_range_ arg_name_ arg_patterns_ = T_Pattern (return s
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Patterns_vOut121 _patternsIcollectScopeInfos _patternsIcounter _patternsImiscerrors _patternsInumberOfPatterns _patternsIpatVarNames _patternsIself _patternsIunboundNames _patternsIwarnings) = inv_Patterns_s122 _patternsX122 (T_Patterns_vIn121 _patternsOallTypeConstructors _patternsOallValueConstructors _patternsOcollectScopeInfos _patternsOcounter _patternsOlhsPattern _patternsOmiscerrors _patternsOnamesInScope _patternsOtypeConstructors _patternsOvalueConstructors _patternsOwarnings)
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2195 _patConstructorErrors _patternsImiscerrors
-         _patConstructorErrors = rule2196 _lhsIallTypeConstructors _lhsIallValueConstructors _lhsIlhsPattern _maybetp _nameIself _patternsInumberOfPatterns
-         _maybetp = rule2197 _lhsIvalueConstructors _nameIself
-         _patternsOlhsPattern = rule2198  ()
+         _lhsOmiscerrors = rule2218 _patConstructorErrors _patternsImiscerrors
+         _patConstructorErrors = rule2219 _lhsIallTypeConstructors _lhsIallValueConstructors _lhsIlhsPattern _maybetp _nameIself _patternsInumberOfPatterns
+         _maybetp = rule2220 _lhsIvalueConstructors _nameIself
+         _patternsOlhsPattern = rule2221  ()
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule2199 _patternsIpatVarNames
+         _lhsOpatVarNames = rule2222 _patternsIpatVarNames
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2200 _patternsIunboundNames
-         _self = rule2201 _nameIself _patternsIself _rangeIself
+         _lhsOunboundNames = rule2223 _patternsIunboundNames
+         _self = rule2224 _nameIself _patternsIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule2202 _self
+         _lhsOself = rule2225 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2203 _patternsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2226 _patternsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2204 _patternsIcounter
+         _lhsOcounter = rule2227 _patternsIcounter
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2205 _patternsIwarnings
-         _patternsOallTypeConstructors = rule2206 _lhsIallTypeConstructors
-         _patternsOallValueConstructors = rule2207 _lhsIallValueConstructors
-         _patternsOcollectScopeInfos = rule2208 _lhsIcollectScopeInfos
-         _patternsOcounter = rule2209 _lhsIcounter
-         _patternsOmiscerrors = rule2210 _lhsImiscerrors
-         _patternsOnamesInScope = rule2211 _lhsInamesInScope
-         _patternsOtypeConstructors = rule2212 _lhsItypeConstructors
-         _patternsOvalueConstructors = rule2213 _lhsIvalueConstructors
-         _patternsOwarnings = rule2214 _lhsIwarnings
+         _lhsOwarnings = rule2228 _patternsIwarnings
+         _patternsOallTypeConstructors = rule2229 _lhsIallTypeConstructors
+         _patternsOallValueConstructors = rule2230 _lhsIallValueConstructors
+         _patternsOcollectScopeInfos = rule2231 _lhsIcollectScopeInfos
+         _patternsOcounter = rule2232 _lhsIcounter
+         _patternsOmiscerrors = rule2233 _lhsImiscerrors
+         _patternsOnamesInScope = rule2234 _lhsInamesInScope
+         _patternsOtypeConstructors = rule2235 _lhsItypeConstructors
+         _patternsOvalueConstructors = rule2236 _lhsIvalueConstructors
+         _patternsOwarnings = rule2237 _lhsIwarnings
          __result_ = T_Pattern_vOut118 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule2195 #-}
-   rule2195 = \ _patConstructorErrors ((_patternsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2218 #-}
+   rule2218 = \ _patConstructorErrors ((_patternsImiscerrors) :: [Error]) ->
                                               _patConstructorErrors ++ _patternsImiscerrors
-   {-# INLINE rule2196 #-}
-   rule2196 = \ ((_lhsIallTypeConstructors) :: Names) ((_lhsIallValueConstructors) :: Names) ((_lhsIlhsPattern) :: Bool) _maybetp ((_nameIself) :: Name) ((_patternsInumberOfPatterns) :: Int) ->
+   {-# INLINE rule2219 #-}
+   rule2219 = \ ((_lhsIallTypeConstructors) :: Names) ((_lhsIallValueConstructors) :: Names) ((_lhsIlhsPattern) :: Bool) _maybetp ((_nameIself) :: Name) ((_patternsInumberOfPatterns) :: Int) ->
                                                         patternConstructorErrors _maybetp _nameIself _lhsIallValueConstructors _patternsInumberOfPatterns _lhsIlhsPattern _lhsIallTypeConstructors
-   {-# INLINE rule2197 #-}
-   rule2197 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ((_nameIself) :: Name) ->
+   {-# INLINE rule2220 #-}
+   rule2220 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ((_nameIself) :: Name) ->
                                               M.lookup _nameIself _lhsIvalueConstructors
-   {-# INLINE rule2198 #-}
-   rule2198 = \  (_ :: ()) ->
+   {-# INLINE rule2221 #-}
+   rule2221 = \  (_ :: ()) ->
                                                                 False
-   {-# INLINE rule2199 #-}
-   rule2199 = \ ((_patternsIpatVarNames) :: Names) ->
+   {-# INLINE rule2222 #-}
+   rule2222 = \ ((_patternsIpatVarNames) :: Names) ->
      _patternsIpatVarNames
-   {-# INLINE rule2200 #-}
-   rule2200 = \ ((_patternsIunboundNames) :: Names) ->
+   {-# INLINE rule2223 #-}
+   rule2223 = \ ((_patternsIunboundNames) :: Names) ->
      _patternsIunboundNames
-   {-# INLINE rule2201 #-}
-   rule2201 = \ ((_nameIself) :: Name) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
+   {-# INLINE rule2224 #-}
+   rule2224 = \ ((_nameIself) :: Name) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
      Pattern_Constructor _rangeIself _nameIself _patternsIself
-   {-# INLINE rule2202 #-}
-   rule2202 = \ _self ->
+   {-# INLINE rule2225 #-}
+   rule2225 = \ _self ->
      _self
-   {-# INLINE rule2203 #-}
-   rule2203 = \ ((_patternsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2226 #-}
+   rule2226 = \ ((_patternsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _patternsIcollectScopeInfos
-   {-# INLINE rule2204 #-}
-   rule2204 = \ ((_patternsIcounter) :: Int) ->
+   {-# INLINE rule2227 #-}
+   rule2227 = \ ((_patternsIcounter) :: Int) ->
      _patternsIcounter
-   {-# INLINE rule2205 #-}
-   rule2205 = \ ((_patternsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2228 #-}
+   rule2228 = \ ((_patternsIwarnings) :: [Warning]) ->
      _patternsIwarnings
-   {-# INLINE rule2206 #-}
-   rule2206 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   {-# INLINE rule2229 #-}
+   rule2229 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule2207 #-}
-   rule2207 = \ ((_lhsIallValueConstructors) :: Names) ->
+   {-# INLINE rule2230 #-}
+   rule2230 = \ ((_lhsIallValueConstructors) :: Names) ->
      _lhsIallValueConstructors
-   {-# INLINE rule2208 #-}
-   rule2208 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2231 #-}
+   rule2231 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2209 #-}
-   rule2209 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2232 #-}
+   rule2232 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2210 #-}
-   rule2210 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2233 #-}
+   rule2233 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2211 #-}
-   rule2211 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule2234 #-}
+   rule2234 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule2212 #-}
-   rule2212 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule2235 #-}
+   rule2235 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule2213 #-}
-   rule2213 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+   {-# INLINE rule2236 #-}
+   rule2236 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
      _lhsIvalueConstructors
-   {-# INLINE rule2214 #-}
-   rule2214 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2237 #-}
+   rule2237 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_Pattern_Parenthesized #-}
 sem_Pattern_Parenthesized :: T_Range  -> T_Pattern  -> T_Pattern 
@@ -13393,86 +13508,86 @@ sem_Pattern_Parenthesized arg_range_ arg_pattern_ = T_Pattern (return st119) whe
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Pattern_vOut118 _patternIcollectScopeInfos _patternIcounter _patternImiscerrors _patternIpatVarNames _patternIself _patternIunboundNames _patternIwarnings) = inv_Pattern_s119 _patternX119 (T_Pattern_vIn118 _patternOallTypeConstructors _patternOallValueConstructors _patternOcollectScopeInfos _patternOcounter _patternOlhsPattern _patternOmiscerrors _patternOnamesInScope _patternOtypeConstructors _patternOvalueConstructors _patternOwarnings)
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule2215 _patternIpatVarNames
+         _lhsOpatVarNames = rule2238 _patternIpatVarNames
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2216 _patternIunboundNames
-         _self = rule2217 _patternIself _rangeIself
+         _lhsOunboundNames = rule2239 _patternIunboundNames
+         _self = rule2240 _patternIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule2218 _self
+         _lhsOself = rule2241 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2219 _patternIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2242 _patternIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2220 _patternIcounter
+         _lhsOcounter = rule2243 _patternIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2221 _patternImiscerrors
+         _lhsOmiscerrors = rule2244 _patternImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2222 _patternIwarnings
-         _patternOallTypeConstructors = rule2223 _lhsIallTypeConstructors
-         _patternOallValueConstructors = rule2224 _lhsIallValueConstructors
-         _patternOcollectScopeInfos = rule2225 _lhsIcollectScopeInfos
-         _patternOcounter = rule2226 _lhsIcounter
-         _patternOlhsPattern = rule2227 _lhsIlhsPattern
-         _patternOmiscerrors = rule2228 _lhsImiscerrors
-         _patternOnamesInScope = rule2229 _lhsInamesInScope
-         _patternOtypeConstructors = rule2230 _lhsItypeConstructors
-         _patternOvalueConstructors = rule2231 _lhsIvalueConstructors
-         _patternOwarnings = rule2232 _lhsIwarnings
+         _lhsOwarnings = rule2245 _patternIwarnings
+         _patternOallTypeConstructors = rule2246 _lhsIallTypeConstructors
+         _patternOallValueConstructors = rule2247 _lhsIallValueConstructors
+         _patternOcollectScopeInfos = rule2248 _lhsIcollectScopeInfos
+         _patternOcounter = rule2249 _lhsIcounter
+         _patternOlhsPattern = rule2250 _lhsIlhsPattern
+         _patternOmiscerrors = rule2251 _lhsImiscerrors
+         _patternOnamesInScope = rule2252 _lhsInamesInScope
+         _patternOtypeConstructors = rule2253 _lhsItypeConstructors
+         _patternOvalueConstructors = rule2254 _lhsIvalueConstructors
+         _patternOwarnings = rule2255 _lhsIwarnings
          __result_ = T_Pattern_vOut118 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule2215 #-}
-   rule2215 = \ ((_patternIpatVarNames) :: Names) ->
+   {-# INLINE rule2238 #-}
+   rule2238 = \ ((_patternIpatVarNames) :: Names) ->
      _patternIpatVarNames
-   {-# INLINE rule2216 #-}
-   rule2216 = \ ((_patternIunboundNames) :: Names) ->
+   {-# INLINE rule2239 #-}
+   rule2239 = \ ((_patternIunboundNames) :: Names) ->
      _patternIunboundNames
-   {-# INLINE rule2217 #-}
-   rule2217 = \ ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
+   {-# INLINE rule2240 #-}
+   rule2240 = \ ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
      Pattern_Parenthesized _rangeIself _patternIself
-   {-# INLINE rule2218 #-}
-   rule2218 = \ _self ->
+   {-# INLINE rule2241 #-}
+   rule2241 = \ _self ->
      _self
-   {-# INLINE rule2219 #-}
-   rule2219 = \ ((_patternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2242 #-}
+   rule2242 = \ ((_patternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _patternIcollectScopeInfos
-   {-# INLINE rule2220 #-}
-   rule2220 = \ ((_patternIcounter) :: Int) ->
+   {-# INLINE rule2243 #-}
+   rule2243 = \ ((_patternIcounter) :: Int) ->
      _patternIcounter
-   {-# INLINE rule2221 #-}
-   rule2221 = \ ((_patternImiscerrors) :: [Error]) ->
+   {-# INLINE rule2244 #-}
+   rule2244 = \ ((_patternImiscerrors) :: [Error]) ->
      _patternImiscerrors
-   {-# INLINE rule2222 #-}
-   rule2222 = \ ((_patternIwarnings) :: [Warning]) ->
+   {-# INLINE rule2245 #-}
+   rule2245 = \ ((_patternIwarnings) :: [Warning]) ->
      _patternIwarnings
-   {-# INLINE rule2223 #-}
-   rule2223 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   {-# INLINE rule2246 #-}
+   rule2246 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule2224 #-}
-   rule2224 = \ ((_lhsIallValueConstructors) :: Names) ->
+   {-# INLINE rule2247 #-}
+   rule2247 = \ ((_lhsIallValueConstructors) :: Names) ->
      _lhsIallValueConstructors
-   {-# INLINE rule2225 #-}
-   rule2225 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2248 #-}
+   rule2248 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2226 #-}
-   rule2226 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2249 #-}
+   rule2249 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2227 #-}
-   rule2227 = \ ((_lhsIlhsPattern) :: Bool) ->
+   {-# INLINE rule2250 #-}
+   rule2250 = \ ((_lhsIlhsPattern) :: Bool) ->
      _lhsIlhsPattern
-   {-# INLINE rule2228 #-}
-   rule2228 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2251 #-}
+   rule2251 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2229 #-}
-   rule2229 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule2252 #-}
+   rule2252 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule2230 #-}
-   rule2230 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule2253 #-}
+   rule2253 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule2231 #-}
-   rule2231 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+   {-# INLINE rule2254 #-}
+   rule2254 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
      _lhsIvalueConstructors
-   {-# INLINE rule2232 #-}
-   rule2232 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2255 #-}
+   rule2255 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_Pattern_InfixConstructor #-}
 sem_Pattern_InfixConstructor :: T_Range  -> T_Pattern  -> T_Name  -> T_Pattern  -> T_Pattern 
@@ -13490,134 +13605,134 @@ sem_Pattern_InfixConstructor arg_range_ arg_leftPattern_ arg_constructorOperator
          (T_Name_vOut112 _constructorOperatorIself) = inv_Name_s113 _constructorOperatorX113 (T_Name_vIn112 )
          (T_Pattern_vOut118 _rightPatternIcollectScopeInfos _rightPatternIcounter _rightPatternImiscerrors _rightPatternIpatVarNames _rightPatternIself _rightPatternIunboundNames _rightPatternIwarnings) = inv_Pattern_s119 _rightPatternX119 (T_Pattern_vIn118 _rightPatternOallTypeConstructors _rightPatternOallValueConstructors _rightPatternOcollectScopeInfos _rightPatternOcounter _rightPatternOlhsPattern _rightPatternOmiscerrors _rightPatternOnamesInScope _rightPatternOtypeConstructors _rightPatternOvalueConstructors _rightPatternOwarnings)
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2233 _patConstructorErrors _rightPatternImiscerrors
-         _patConstructorErrors = rule2234 _constructorOperatorIself _lhsIallTypeConstructors _lhsIallValueConstructors _maybetp
-         _maybetp = rule2235 _constructorOperatorIself _lhsIvalueConstructors
+         _lhsOmiscerrors = rule2256 _patConstructorErrors _rightPatternImiscerrors
+         _patConstructorErrors = rule2257 _constructorOperatorIself _lhsIallTypeConstructors _lhsIallValueConstructors _maybetp
+         _maybetp = rule2258 _constructorOperatorIself _lhsIvalueConstructors
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule2236 _leftPatternIpatVarNames _rightPatternIpatVarNames
+         _lhsOpatVarNames = rule2259 _leftPatternIpatVarNames _rightPatternIpatVarNames
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2237 _leftPatternIunboundNames _rightPatternIunboundNames
-         _self = rule2238 _constructorOperatorIself _leftPatternIself _rangeIself _rightPatternIself
+         _lhsOunboundNames = rule2260 _leftPatternIunboundNames _rightPatternIunboundNames
+         _self = rule2261 _constructorOperatorIself _leftPatternIself _rangeIself _rightPatternIself
          _lhsOself :: Pattern
-         _lhsOself = rule2239 _self
+         _lhsOself = rule2262 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2240 _rightPatternIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2263 _rightPatternIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2241 _rightPatternIcounter
+         _lhsOcounter = rule2264 _rightPatternIcounter
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2242 _rightPatternIwarnings
-         _leftPatternOallTypeConstructors = rule2243 _lhsIallTypeConstructors
-         _leftPatternOallValueConstructors = rule2244 _lhsIallValueConstructors
-         _leftPatternOcollectScopeInfos = rule2245 _lhsIcollectScopeInfos
-         _leftPatternOcounter = rule2246 _lhsIcounter
-         _leftPatternOlhsPattern = rule2247 _lhsIlhsPattern
-         _leftPatternOmiscerrors = rule2248 _lhsImiscerrors
-         _leftPatternOnamesInScope = rule2249 _lhsInamesInScope
-         _leftPatternOtypeConstructors = rule2250 _lhsItypeConstructors
-         _leftPatternOvalueConstructors = rule2251 _lhsIvalueConstructors
-         _leftPatternOwarnings = rule2252 _lhsIwarnings
-         _rightPatternOallTypeConstructors = rule2253 _lhsIallTypeConstructors
-         _rightPatternOallValueConstructors = rule2254 _lhsIallValueConstructors
-         _rightPatternOcollectScopeInfos = rule2255 _leftPatternIcollectScopeInfos
-         _rightPatternOcounter = rule2256 _leftPatternIcounter
-         _rightPatternOlhsPattern = rule2257 _lhsIlhsPattern
-         _rightPatternOmiscerrors = rule2258 _leftPatternImiscerrors
-         _rightPatternOnamesInScope = rule2259 _lhsInamesInScope
-         _rightPatternOtypeConstructors = rule2260 _lhsItypeConstructors
-         _rightPatternOvalueConstructors = rule2261 _lhsIvalueConstructors
-         _rightPatternOwarnings = rule2262 _leftPatternIwarnings
+         _lhsOwarnings = rule2265 _rightPatternIwarnings
+         _leftPatternOallTypeConstructors = rule2266 _lhsIallTypeConstructors
+         _leftPatternOallValueConstructors = rule2267 _lhsIallValueConstructors
+         _leftPatternOcollectScopeInfos = rule2268 _lhsIcollectScopeInfos
+         _leftPatternOcounter = rule2269 _lhsIcounter
+         _leftPatternOlhsPattern = rule2270 _lhsIlhsPattern
+         _leftPatternOmiscerrors = rule2271 _lhsImiscerrors
+         _leftPatternOnamesInScope = rule2272 _lhsInamesInScope
+         _leftPatternOtypeConstructors = rule2273 _lhsItypeConstructors
+         _leftPatternOvalueConstructors = rule2274 _lhsIvalueConstructors
+         _leftPatternOwarnings = rule2275 _lhsIwarnings
+         _rightPatternOallTypeConstructors = rule2276 _lhsIallTypeConstructors
+         _rightPatternOallValueConstructors = rule2277 _lhsIallValueConstructors
+         _rightPatternOcollectScopeInfos = rule2278 _leftPatternIcollectScopeInfos
+         _rightPatternOcounter = rule2279 _leftPatternIcounter
+         _rightPatternOlhsPattern = rule2280 _lhsIlhsPattern
+         _rightPatternOmiscerrors = rule2281 _leftPatternImiscerrors
+         _rightPatternOnamesInScope = rule2282 _lhsInamesInScope
+         _rightPatternOtypeConstructors = rule2283 _lhsItypeConstructors
+         _rightPatternOvalueConstructors = rule2284 _lhsIvalueConstructors
+         _rightPatternOwarnings = rule2285 _leftPatternIwarnings
          __result_ = T_Pattern_vOut118 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule2233 #-}
-   rule2233 = \ _patConstructorErrors ((_rightPatternImiscerrors) :: [Error]) ->
-                                              _patConstructorErrors ++ _rightPatternImiscerrors
-   {-# INLINE rule2234 #-}
-   rule2234 = \ ((_constructorOperatorIself) :: Name) ((_lhsIallTypeConstructors) :: Names) ((_lhsIallValueConstructors) :: Names) _maybetp ->
-                                                        patternConstructorErrors _maybetp _constructorOperatorIself _lhsIallValueConstructors 2 False _lhsIallTypeConstructors
-   {-# INLINE rule2235 #-}
-   rule2235 = \ ((_constructorOperatorIself) :: Name) ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-                                              M.lookup _constructorOperatorIself _lhsIvalueConstructors
-   {-# INLINE rule2236 #-}
-   rule2236 = \ ((_leftPatternIpatVarNames) :: Names) ((_rightPatternIpatVarNames) :: Names) ->
-     _leftPatternIpatVarNames ++ _rightPatternIpatVarNames
-   {-# INLINE rule2237 #-}
-   rule2237 = \ ((_leftPatternIunboundNames) :: Names) ((_rightPatternIunboundNames) :: Names) ->
-     _leftPatternIunboundNames ++ _rightPatternIunboundNames
-   {-# INLINE rule2238 #-}
-   rule2238 = \ ((_constructorOperatorIself) :: Name) ((_leftPatternIself) :: Pattern) ((_rangeIself) :: Range) ((_rightPatternIself) :: Pattern) ->
-     Pattern_InfixConstructor _rangeIself _leftPatternIself _constructorOperatorIself _rightPatternIself
-   {-# INLINE rule2239 #-}
-   rule2239 = \ _self ->
-     _self
-   {-# INLINE rule2240 #-}
-   rule2240 = \ ((_rightPatternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _rightPatternIcollectScopeInfos
-   {-# INLINE rule2241 #-}
-   rule2241 = \ ((_rightPatternIcounter) :: Int) ->
-     _rightPatternIcounter
-   {-# INLINE rule2242 #-}
-   rule2242 = \ ((_rightPatternIwarnings) :: [Warning]) ->
-     _rightPatternIwarnings
-   {-# INLINE rule2243 #-}
-   rule2243 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule2244 #-}
-   rule2244 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule2245 #-}
-   rule2245 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule2246 #-}
-   rule2246 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule2247 #-}
-   rule2247 = \ ((_lhsIlhsPattern) :: Bool) ->
-     _lhsIlhsPattern
-   {-# INLINE rule2248 #-}
-   rule2248 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule2249 #-}
-   rule2249 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule2250 #-}
-   rule2250 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule2251 #-}
-   rule2251 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule2252 #-}
-   rule2252 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
-   {-# INLINE rule2253 #-}
-   rule2253 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule2254 #-}
-   rule2254 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule2255 #-}
-   rule2255 = \ ((_leftPatternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _leftPatternIcollectScopeInfos
    {-# INLINE rule2256 #-}
-   rule2256 = \ ((_leftPatternIcounter) :: Int) ->
-     _leftPatternIcounter
+   rule2256 = \ _patConstructorErrors ((_rightPatternImiscerrors) :: [Error]) ->
+                                              _patConstructorErrors ++ _rightPatternImiscerrors
    {-# INLINE rule2257 #-}
-   rule2257 = \ ((_lhsIlhsPattern) :: Bool) ->
-     _lhsIlhsPattern
+   rule2257 = \ ((_constructorOperatorIself) :: Name) ((_lhsIallTypeConstructors) :: Names) ((_lhsIallValueConstructors) :: Names) _maybetp ->
+                                                        patternConstructorErrors _maybetp _constructorOperatorIself _lhsIallValueConstructors 2 False _lhsIallTypeConstructors
    {-# INLINE rule2258 #-}
-   rule2258 = \ ((_leftPatternImiscerrors) :: [Error]) ->
-     _leftPatternImiscerrors
+   rule2258 = \ ((_constructorOperatorIself) :: Name) ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+                                              M.lookup _constructorOperatorIself _lhsIvalueConstructors
    {-# INLINE rule2259 #-}
-   rule2259 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
+   rule2259 = \ ((_leftPatternIpatVarNames) :: Names) ((_rightPatternIpatVarNames) :: Names) ->
+     _leftPatternIpatVarNames ++ _rightPatternIpatVarNames
    {-# INLINE rule2260 #-}
-   rule2260 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule2260 = \ ((_leftPatternIunboundNames) :: Names) ((_rightPatternIunboundNames) :: Names) ->
+     _leftPatternIunboundNames ++ _rightPatternIunboundNames
    {-# INLINE rule2261 #-}
-   rule2261 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule2261 = \ ((_constructorOperatorIself) :: Name) ((_leftPatternIself) :: Pattern) ((_rangeIself) :: Range) ((_rightPatternIself) :: Pattern) ->
+     Pattern_InfixConstructor _rangeIself _leftPatternIself _constructorOperatorIself _rightPatternIself
    {-# INLINE rule2262 #-}
-   rule2262 = \ ((_leftPatternIwarnings) :: [Warning]) ->
+   rule2262 = \ _self ->
+     _self
+   {-# INLINE rule2263 #-}
+   rule2263 = \ ((_rightPatternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _rightPatternIcollectScopeInfos
+   {-# INLINE rule2264 #-}
+   rule2264 = \ ((_rightPatternIcounter) :: Int) ->
+     _rightPatternIcounter
+   {-# INLINE rule2265 #-}
+   rule2265 = \ ((_rightPatternIwarnings) :: [Warning]) ->
+     _rightPatternIwarnings
+   {-# INLINE rule2266 #-}
+   rule2266 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule2267 #-}
+   rule2267 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule2268 #-}
+   rule2268 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule2269 #-}
+   rule2269 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule2270 #-}
+   rule2270 = \ ((_lhsIlhsPattern) :: Bool) ->
+     _lhsIlhsPattern
+   {-# INLINE rule2271 #-}
+   rule2271 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule2272 #-}
+   rule2272 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule2273 #-}
+   rule2273 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2274 #-}
+   rule2274 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2275 #-}
+   rule2275 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule2276 #-}
+   rule2276 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule2277 #-}
+   rule2277 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule2278 #-}
+   rule2278 = \ ((_leftPatternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _leftPatternIcollectScopeInfos
+   {-# INLINE rule2279 #-}
+   rule2279 = \ ((_leftPatternIcounter) :: Int) ->
+     _leftPatternIcounter
+   {-# INLINE rule2280 #-}
+   rule2280 = \ ((_lhsIlhsPattern) :: Bool) ->
+     _lhsIlhsPattern
+   {-# INLINE rule2281 #-}
+   rule2281 = \ ((_leftPatternImiscerrors) :: [Error]) ->
+     _leftPatternImiscerrors
+   {-# INLINE rule2282 #-}
+   rule2282 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule2283 #-}
+   rule2283 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2284 #-}
+   rule2284 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2285 #-}
+   rule2285 = \ ((_leftPatternIwarnings) :: [Warning]) ->
      _leftPatternIwarnings
 {-# NOINLINE sem_Pattern_List #-}
 sem_Pattern_List :: T_Range  -> T_Patterns  -> T_Pattern 
@@ -13631,86 +13746,86 @@ sem_Pattern_List arg_range_ arg_patterns_ = T_Pattern (return st119) where
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Patterns_vOut121 _patternsIcollectScopeInfos _patternsIcounter _patternsImiscerrors _patternsInumberOfPatterns _patternsIpatVarNames _patternsIself _patternsIunboundNames _patternsIwarnings) = inv_Patterns_s122 _patternsX122 (T_Patterns_vIn121 _patternsOallTypeConstructors _patternsOallValueConstructors _patternsOcollectScopeInfos _patternsOcounter _patternsOlhsPattern _patternsOmiscerrors _patternsOnamesInScope _patternsOtypeConstructors _patternsOvalueConstructors _patternsOwarnings)
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule2263 _patternsIpatVarNames
+         _lhsOpatVarNames = rule2286 _patternsIpatVarNames
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2264 _patternsIunboundNames
-         _self = rule2265 _patternsIself _rangeIself
+         _lhsOunboundNames = rule2287 _patternsIunboundNames
+         _self = rule2288 _patternsIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule2266 _self
+         _lhsOself = rule2289 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2267 _patternsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2290 _patternsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2268 _patternsIcounter
+         _lhsOcounter = rule2291 _patternsIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2269 _patternsImiscerrors
+         _lhsOmiscerrors = rule2292 _patternsImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2270 _patternsIwarnings
-         _patternsOallTypeConstructors = rule2271 _lhsIallTypeConstructors
-         _patternsOallValueConstructors = rule2272 _lhsIallValueConstructors
-         _patternsOcollectScopeInfos = rule2273 _lhsIcollectScopeInfos
-         _patternsOcounter = rule2274 _lhsIcounter
-         _patternsOlhsPattern = rule2275 _lhsIlhsPattern
-         _patternsOmiscerrors = rule2276 _lhsImiscerrors
-         _patternsOnamesInScope = rule2277 _lhsInamesInScope
-         _patternsOtypeConstructors = rule2278 _lhsItypeConstructors
-         _patternsOvalueConstructors = rule2279 _lhsIvalueConstructors
-         _patternsOwarnings = rule2280 _lhsIwarnings
+         _lhsOwarnings = rule2293 _patternsIwarnings
+         _patternsOallTypeConstructors = rule2294 _lhsIallTypeConstructors
+         _patternsOallValueConstructors = rule2295 _lhsIallValueConstructors
+         _patternsOcollectScopeInfos = rule2296 _lhsIcollectScopeInfos
+         _patternsOcounter = rule2297 _lhsIcounter
+         _patternsOlhsPattern = rule2298 _lhsIlhsPattern
+         _patternsOmiscerrors = rule2299 _lhsImiscerrors
+         _patternsOnamesInScope = rule2300 _lhsInamesInScope
+         _patternsOtypeConstructors = rule2301 _lhsItypeConstructors
+         _patternsOvalueConstructors = rule2302 _lhsIvalueConstructors
+         _patternsOwarnings = rule2303 _lhsIwarnings
          __result_ = T_Pattern_vOut118 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule2263 #-}
-   rule2263 = \ ((_patternsIpatVarNames) :: Names) ->
+   {-# INLINE rule2286 #-}
+   rule2286 = \ ((_patternsIpatVarNames) :: Names) ->
      _patternsIpatVarNames
-   {-# INLINE rule2264 #-}
-   rule2264 = \ ((_patternsIunboundNames) :: Names) ->
+   {-# INLINE rule2287 #-}
+   rule2287 = \ ((_patternsIunboundNames) :: Names) ->
      _patternsIunboundNames
-   {-# INLINE rule2265 #-}
-   rule2265 = \ ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
+   {-# INLINE rule2288 #-}
+   rule2288 = \ ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
      Pattern_List _rangeIself _patternsIself
-   {-# INLINE rule2266 #-}
-   rule2266 = \ _self ->
+   {-# INLINE rule2289 #-}
+   rule2289 = \ _self ->
      _self
-   {-# INLINE rule2267 #-}
-   rule2267 = \ ((_patternsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2290 #-}
+   rule2290 = \ ((_patternsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _patternsIcollectScopeInfos
-   {-# INLINE rule2268 #-}
-   rule2268 = \ ((_patternsIcounter) :: Int) ->
+   {-# INLINE rule2291 #-}
+   rule2291 = \ ((_patternsIcounter) :: Int) ->
      _patternsIcounter
-   {-# INLINE rule2269 #-}
-   rule2269 = \ ((_patternsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2292 #-}
+   rule2292 = \ ((_patternsImiscerrors) :: [Error]) ->
      _patternsImiscerrors
-   {-# INLINE rule2270 #-}
-   rule2270 = \ ((_patternsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2293 #-}
+   rule2293 = \ ((_patternsIwarnings) :: [Warning]) ->
      _patternsIwarnings
-   {-# INLINE rule2271 #-}
-   rule2271 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   {-# INLINE rule2294 #-}
+   rule2294 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule2272 #-}
-   rule2272 = \ ((_lhsIallValueConstructors) :: Names) ->
+   {-# INLINE rule2295 #-}
+   rule2295 = \ ((_lhsIallValueConstructors) :: Names) ->
      _lhsIallValueConstructors
-   {-# INLINE rule2273 #-}
-   rule2273 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2296 #-}
+   rule2296 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2274 #-}
-   rule2274 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2297 #-}
+   rule2297 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2275 #-}
-   rule2275 = \ ((_lhsIlhsPattern) :: Bool) ->
+   {-# INLINE rule2298 #-}
+   rule2298 = \ ((_lhsIlhsPattern) :: Bool) ->
      _lhsIlhsPattern
-   {-# INLINE rule2276 #-}
-   rule2276 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2299 #-}
+   rule2299 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2277 #-}
-   rule2277 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule2300 #-}
+   rule2300 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule2278 #-}
-   rule2278 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule2301 #-}
+   rule2301 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule2279 #-}
-   rule2279 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+   {-# INLINE rule2302 #-}
+   rule2302 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
      _lhsIvalueConstructors
-   {-# INLINE rule2280 #-}
-   rule2280 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2303 #-}
+   rule2303 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_Pattern_Tuple #-}
 sem_Pattern_Tuple :: T_Range  -> T_Patterns  -> T_Pattern 
@@ -13724,86 +13839,86 @@ sem_Pattern_Tuple arg_range_ arg_patterns_ = T_Pattern (return st119) where
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Patterns_vOut121 _patternsIcollectScopeInfos _patternsIcounter _patternsImiscerrors _patternsInumberOfPatterns _patternsIpatVarNames _patternsIself _patternsIunboundNames _patternsIwarnings) = inv_Patterns_s122 _patternsX122 (T_Patterns_vIn121 _patternsOallTypeConstructors _patternsOallValueConstructors _patternsOcollectScopeInfos _patternsOcounter _patternsOlhsPattern _patternsOmiscerrors _patternsOnamesInScope _patternsOtypeConstructors _patternsOvalueConstructors _patternsOwarnings)
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule2281 _patternsIpatVarNames
+         _lhsOpatVarNames = rule2304 _patternsIpatVarNames
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2282 _patternsIunboundNames
-         _self = rule2283 _patternsIself _rangeIself
+         _lhsOunboundNames = rule2305 _patternsIunboundNames
+         _self = rule2306 _patternsIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule2284 _self
+         _lhsOself = rule2307 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2285 _patternsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2308 _patternsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2286 _patternsIcounter
+         _lhsOcounter = rule2309 _patternsIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2287 _patternsImiscerrors
+         _lhsOmiscerrors = rule2310 _patternsImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2288 _patternsIwarnings
-         _patternsOallTypeConstructors = rule2289 _lhsIallTypeConstructors
-         _patternsOallValueConstructors = rule2290 _lhsIallValueConstructors
-         _patternsOcollectScopeInfos = rule2291 _lhsIcollectScopeInfos
-         _patternsOcounter = rule2292 _lhsIcounter
-         _patternsOlhsPattern = rule2293 _lhsIlhsPattern
-         _patternsOmiscerrors = rule2294 _lhsImiscerrors
-         _patternsOnamesInScope = rule2295 _lhsInamesInScope
-         _patternsOtypeConstructors = rule2296 _lhsItypeConstructors
-         _patternsOvalueConstructors = rule2297 _lhsIvalueConstructors
-         _patternsOwarnings = rule2298 _lhsIwarnings
+         _lhsOwarnings = rule2311 _patternsIwarnings
+         _patternsOallTypeConstructors = rule2312 _lhsIallTypeConstructors
+         _patternsOallValueConstructors = rule2313 _lhsIallValueConstructors
+         _patternsOcollectScopeInfos = rule2314 _lhsIcollectScopeInfos
+         _patternsOcounter = rule2315 _lhsIcounter
+         _patternsOlhsPattern = rule2316 _lhsIlhsPattern
+         _patternsOmiscerrors = rule2317 _lhsImiscerrors
+         _patternsOnamesInScope = rule2318 _lhsInamesInScope
+         _patternsOtypeConstructors = rule2319 _lhsItypeConstructors
+         _patternsOvalueConstructors = rule2320 _lhsIvalueConstructors
+         _patternsOwarnings = rule2321 _lhsIwarnings
          __result_ = T_Pattern_vOut118 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule2281 #-}
-   rule2281 = \ ((_patternsIpatVarNames) :: Names) ->
+   {-# INLINE rule2304 #-}
+   rule2304 = \ ((_patternsIpatVarNames) :: Names) ->
      _patternsIpatVarNames
-   {-# INLINE rule2282 #-}
-   rule2282 = \ ((_patternsIunboundNames) :: Names) ->
+   {-# INLINE rule2305 #-}
+   rule2305 = \ ((_patternsIunboundNames) :: Names) ->
      _patternsIunboundNames
-   {-# INLINE rule2283 #-}
-   rule2283 = \ ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
+   {-# INLINE rule2306 #-}
+   rule2306 = \ ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
      Pattern_Tuple _rangeIself _patternsIself
-   {-# INLINE rule2284 #-}
-   rule2284 = \ _self ->
+   {-# INLINE rule2307 #-}
+   rule2307 = \ _self ->
      _self
-   {-# INLINE rule2285 #-}
-   rule2285 = \ ((_patternsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2308 #-}
+   rule2308 = \ ((_patternsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _patternsIcollectScopeInfos
-   {-# INLINE rule2286 #-}
-   rule2286 = \ ((_patternsIcounter) :: Int) ->
+   {-# INLINE rule2309 #-}
+   rule2309 = \ ((_patternsIcounter) :: Int) ->
      _patternsIcounter
-   {-# INLINE rule2287 #-}
-   rule2287 = \ ((_patternsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2310 #-}
+   rule2310 = \ ((_patternsImiscerrors) :: [Error]) ->
      _patternsImiscerrors
-   {-# INLINE rule2288 #-}
-   rule2288 = \ ((_patternsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2311 #-}
+   rule2311 = \ ((_patternsIwarnings) :: [Warning]) ->
      _patternsIwarnings
-   {-# INLINE rule2289 #-}
-   rule2289 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   {-# INLINE rule2312 #-}
+   rule2312 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule2290 #-}
-   rule2290 = \ ((_lhsIallValueConstructors) :: Names) ->
+   {-# INLINE rule2313 #-}
+   rule2313 = \ ((_lhsIallValueConstructors) :: Names) ->
      _lhsIallValueConstructors
-   {-# INLINE rule2291 #-}
-   rule2291 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2314 #-}
+   rule2314 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2292 #-}
-   rule2292 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2315 #-}
+   rule2315 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2293 #-}
-   rule2293 = \ ((_lhsIlhsPattern) :: Bool) ->
+   {-# INLINE rule2316 #-}
+   rule2316 = \ ((_lhsIlhsPattern) :: Bool) ->
      _lhsIlhsPattern
-   {-# INLINE rule2294 #-}
-   rule2294 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2317 #-}
+   rule2317 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2295 #-}
-   rule2295 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule2318 #-}
+   rule2318 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule2296 #-}
-   rule2296 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule2319 #-}
+   rule2319 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule2297 #-}
-   rule2297 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+   {-# INLINE rule2320 #-}
+   rule2320 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
      _lhsIvalueConstructors
-   {-# INLINE rule2298 #-}
-   rule2298 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2321 #-}
+   rule2321 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_Pattern_Record #-}
 sem_Pattern_Record :: T_Range  -> T_Name  -> T_RecordPatternBindings  -> T_Pattern 
@@ -13818,63 +13933,63 @@ sem_Pattern_Record arg_range_ arg_name_ arg_recordPatternBindings_ = T_Pattern (
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_RecordPatternBindings_vOut145 _recordPatternBindingsIcollectScopeInfos _recordPatternBindingsIcounter _recordPatternBindingsIself _recordPatternBindingsIunboundNames) = inv_RecordPatternBindings_s146 _recordPatternBindingsX146 (T_RecordPatternBindings_vIn145 _recordPatternBindingsOcollectScopeInfos _recordPatternBindingsOcounter _recordPatternBindingsOnamesInScope)
-         (_beta,_constraints,_environment) = rule2299  ()
+         (_beta,_constraints,_environment) = rule2322  ()
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule2300  ()
+         _lhsOpatVarNames = rule2323  ()
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2301 _recordPatternBindingsIunboundNames
-         _self = rule2302 _nameIself _rangeIself _recordPatternBindingsIself
+         _lhsOunboundNames = rule2324 _recordPatternBindingsIunboundNames
+         _self = rule2325 _nameIself _rangeIself _recordPatternBindingsIself
          _lhsOself :: Pattern
-         _lhsOself = rule2303 _self
+         _lhsOself = rule2326 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2304 _recordPatternBindingsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2327 _recordPatternBindingsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2305 _recordPatternBindingsIcounter
+         _lhsOcounter = rule2328 _recordPatternBindingsIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2306 _lhsImiscerrors
+         _lhsOmiscerrors = rule2329 _lhsImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2307 _lhsIwarnings
-         _recordPatternBindingsOcollectScopeInfos = rule2308 _lhsIcollectScopeInfos
-         _recordPatternBindingsOcounter = rule2309 _lhsIcounter
-         _recordPatternBindingsOnamesInScope = rule2310 _lhsInamesInScope
+         _lhsOwarnings = rule2330 _lhsIwarnings
+         _recordPatternBindingsOcollectScopeInfos = rule2331 _lhsIcollectScopeInfos
+         _recordPatternBindingsOcounter = rule2332 _lhsIcounter
+         _recordPatternBindingsOnamesInScope = rule2333 _lhsInamesInScope
          __result_ = T_Pattern_vOut118 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule2299 #-}
-   rule2299 = \  (_ :: ()) ->
+   {-# INLINE rule2322 #-}
+   rule2322 = \  (_ :: ()) ->
                                                        internalError "PartialSyntax.ag" "n/a" "Pattern.Record"
-   {-# INLINE rule2300 #-}
-   rule2300 = \  (_ :: ()) ->
+   {-# INLINE rule2323 #-}
+   rule2323 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2301 #-}
-   rule2301 = \ ((_recordPatternBindingsIunboundNames) :: Names) ->
+   {-# INLINE rule2324 #-}
+   rule2324 = \ ((_recordPatternBindingsIunboundNames) :: Names) ->
      _recordPatternBindingsIunboundNames
-   {-# INLINE rule2302 #-}
-   rule2302 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_recordPatternBindingsIself) :: RecordPatternBindings) ->
+   {-# INLINE rule2325 #-}
+   rule2325 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_recordPatternBindingsIself) :: RecordPatternBindings) ->
      Pattern_Record _rangeIself _nameIself _recordPatternBindingsIself
-   {-# INLINE rule2303 #-}
-   rule2303 = \ _self ->
+   {-# INLINE rule2326 #-}
+   rule2326 = \ _self ->
      _self
-   {-# INLINE rule2304 #-}
-   rule2304 = \ ((_recordPatternBindingsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2327 #-}
+   rule2327 = \ ((_recordPatternBindingsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _recordPatternBindingsIcollectScopeInfos
-   {-# INLINE rule2305 #-}
-   rule2305 = \ ((_recordPatternBindingsIcounter) :: Int) ->
+   {-# INLINE rule2328 #-}
+   rule2328 = \ ((_recordPatternBindingsIcounter) :: Int) ->
      _recordPatternBindingsIcounter
-   {-# INLINE rule2306 #-}
-   rule2306 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2329 #-}
+   rule2329 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2307 #-}
-   rule2307 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2330 #-}
+   rule2330 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
-   {-# INLINE rule2308 #-}
-   rule2308 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2331 #-}
+   rule2331 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2309 #-}
-   rule2309 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2332 #-}
+   rule2332 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2310 #-}
-   rule2310 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule2333 #-}
+   rule2333 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
 {-# NOINLINE sem_Pattern_Negate #-}
 sem_Pattern_Negate :: T_Range  -> T_Literal  -> T_Pattern 
@@ -13888,54 +14003,54 @@ sem_Pattern_Negate arg_range_ arg_literal_ = T_Pattern (return st119) where
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Literal_vOut85 _literalIcollectScopeInfos _literalImiscerrors _literalIself) = inv_Literal_s86 _literalX86 (T_Literal_vIn85 _literalOcollectScopeInfos _literalOmiscerrors)
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule2311  ()
+         _lhsOpatVarNames = rule2334  ()
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2312  ()
-         _self = rule2313 _literalIself _rangeIself
+         _lhsOunboundNames = rule2335  ()
+         _self = rule2336 _literalIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule2314 _self
+         _lhsOself = rule2337 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2315 _literalIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2338 _literalIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2316 _lhsIcounter
+         _lhsOcounter = rule2339 _lhsIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2317 _literalImiscerrors
+         _lhsOmiscerrors = rule2340 _literalImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2318 _lhsIwarnings
-         _literalOcollectScopeInfos = rule2319 _lhsIcollectScopeInfos
-         _literalOmiscerrors = rule2320 _lhsImiscerrors
+         _lhsOwarnings = rule2341 _lhsIwarnings
+         _literalOcollectScopeInfos = rule2342 _lhsIcollectScopeInfos
+         _literalOmiscerrors = rule2343 _lhsImiscerrors
          __result_ = T_Pattern_vOut118 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule2311 #-}
-   rule2311 = \  (_ :: ()) ->
+   {-# INLINE rule2334 #-}
+   rule2334 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2312 #-}
-   rule2312 = \  (_ :: ()) ->
+   {-# INLINE rule2335 #-}
+   rule2335 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2313 #-}
-   rule2313 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
+   {-# INLINE rule2336 #-}
+   rule2336 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
      Pattern_Negate _rangeIself _literalIself
-   {-# INLINE rule2314 #-}
-   rule2314 = \ _self ->
+   {-# INLINE rule2337 #-}
+   rule2337 = \ _self ->
      _self
-   {-# INLINE rule2315 #-}
-   rule2315 = \ ((_literalIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2338 #-}
+   rule2338 = \ ((_literalIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _literalIcollectScopeInfos
-   {-# INLINE rule2316 #-}
-   rule2316 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2339 #-}
+   rule2339 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2317 #-}
-   rule2317 = \ ((_literalImiscerrors) :: [Error]) ->
+   {-# INLINE rule2340 #-}
+   rule2340 = \ ((_literalImiscerrors) :: [Error]) ->
      _literalImiscerrors
-   {-# INLINE rule2318 #-}
-   rule2318 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2341 #-}
+   rule2341 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
-   {-# INLINE rule2319 #-}
-   rule2319 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2342 #-}
+   rule2342 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2320 #-}
-   rule2320 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2343 #-}
+   rule2343 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
 {-# NOINLINE sem_Pattern_As #-}
 sem_Pattern_As :: T_Range  -> T_Name  -> T_Pattern  -> T_Pattern 
@@ -13951,86 +14066,86 @@ sem_Pattern_As arg_range_ arg_name_ arg_pattern_ = T_Pattern (return st119) wher
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Pattern_vOut118 _patternIcollectScopeInfos _patternIcounter _patternImiscerrors _patternIpatVarNames _patternIself _patternIunboundNames _patternIwarnings) = inv_Pattern_s119 _patternX119 (T_Pattern_vIn118 _patternOallTypeConstructors _patternOallValueConstructors _patternOcollectScopeInfos _patternOcounter _patternOlhsPattern _patternOmiscerrors _patternOnamesInScope _patternOtypeConstructors _patternOvalueConstructors _patternOwarnings)
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule2321 _nameIself _patternIpatVarNames
+         _lhsOpatVarNames = rule2344 _nameIself _patternIpatVarNames
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2322 _patternIunboundNames
-         _self = rule2323 _nameIself _patternIself _rangeIself
+         _lhsOunboundNames = rule2345 _patternIunboundNames
+         _self = rule2346 _nameIself _patternIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule2324 _self
+         _lhsOself = rule2347 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2325 _patternIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2348 _patternIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2326 _patternIcounter
+         _lhsOcounter = rule2349 _patternIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2327 _patternImiscerrors
+         _lhsOmiscerrors = rule2350 _patternImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2328 _patternIwarnings
-         _patternOallTypeConstructors = rule2329 _lhsIallTypeConstructors
-         _patternOallValueConstructors = rule2330 _lhsIallValueConstructors
-         _patternOcollectScopeInfos = rule2331 _lhsIcollectScopeInfos
-         _patternOcounter = rule2332 _lhsIcounter
-         _patternOlhsPattern = rule2333 _lhsIlhsPattern
-         _patternOmiscerrors = rule2334 _lhsImiscerrors
-         _patternOnamesInScope = rule2335 _lhsInamesInScope
-         _patternOtypeConstructors = rule2336 _lhsItypeConstructors
-         _patternOvalueConstructors = rule2337 _lhsIvalueConstructors
-         _patternOwarnings = rule2338 _lhsIwarnings
+         _lhsOwarnings = rule2351 _patternIwarnings
+         _patternOallTypeConstructors = rule2352 _lhsIallTypeConstructors
+         _patternOallValueConstructors = rule2353 _lhsIallValueConstructors
+         _patternOcollectScopeInfos = rule2354 _lhsIcollectScopeInfos
+         _patternOcounter = rule2355 _lhsIcounter
+         _patternOlhsPattern = rule2356 _lhsIlhsPattern
+         _patternOmiscerrors = rule2357 _lhsImiscerrors
+         _patternOnamesInScope = rule2358 _lhsInamesInScope
+         _patternOtypeConstructors = rule2359 _lhsItypeConstructors
+         _patternOvalueConstructors = rule2360 _lhsIvalueConstructors
+         _patternOwarnings = rule2361 _lhsIwarnings
          __result_ = T_Pattern_vOut118 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule2321 #-}
-   rule2321 = \ ((_nameIself) :: Name) ((_patternIpatVarNames) :: Names) ->
+   {-# INLINE rule2344 #-}
+   rule2344 = \ ((_nameIself) :: Name) ((_patternIpatVarNames) :: Names) ->
                                      _nameIself : _patternIpatVarNames
-   {-# INLINE rule2322 #-}
-   rule2322 = \ ((_patternIunboundNames) :: Names) ->
+   {-# INLINE rule2345 #-}
+   rule2345 = \ ((_patternIunboundNames) :: Names) ->
      _patternIunboundNames
-   {-# INLINE rule2323 #-}
-   rule2323 = \ ((_nameIself) :: Name) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
+   {-# INLINE rule2346 #-}
+   rule2346 = \ ((_nameIself) :: Name) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
      Pattern_As _rangeIself _nameIself _patternIself
-   {-# INLINE rule2324 #-}
-   rule2324 = \ _self ->
+   {-# INLINE rule2347 #-}
+   rule2347 = \ _self ->
      _self
-   {-# INLINE rule2325 #-}
-   rule2325 = \ ((_patternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2348 #-}
+   rule2348 = \ ((_patternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _patternIcollectScopeInfos
-   {-# INLINE rule2326 #-}
-   rule2326 = \ ((_patternIcounter) :: Int) ->
+   {-# INLINE rule2349 #-}
+   rule2349 = \ ((_patternIcounter) :: Int) ->
      _patternIcounter
-   {-# INLINE rule2327 #-}
-   rule2327 = \ ((_patternImiscerrors) :: [Error]) ->
+   {-# INLINE rule2350 #-}
+   rule2350 = \ ((_patternImiscerrors) :: [Error]) ->
      _patternImiscerrors
-   {-# INLINE rule2328 #-}
-   rule2328 = \ ((_patternIwarnings) :: [Warning]) ->
+   {-# INLINE rule2351 #-}
+   rule2351 = \ ((_patternIwarnings) :: [Warning]) ->
      _patternIwarnings
-   {-# INLINE rule2329 #-}
-   rule2329 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   {-# INLINE rule2352 #-}
+   rule2352 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule2330 #-}
-   rule2330 = \ ((_lhsIallValueConstructors) :: Names) ->
+   {-# INLINE rule2353 #-}
+   rule2353 = \ ((_lhsIallValueConstructors) :: Names) ->
      _lhsIallValueConstructors
-   {-# INLINE rule2331 #-}
-   rule2331 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2354 #-}
+   rule2354 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2332 #-}
-   rule2332 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2355 #-}
+   rule2355 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2333 #-}
-   rule2333 = \ ((_lhsIlhsPattern) :: Bool) ->
+   {-# INLINE rule2356 #-}
+   rule2356 = \ ((_lhsIlhsPattern) :: Bool) ->
      _lhsIlhsPattern
-   {-# INLINE rule2334 #-}
-   rule2334 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2357 #-}
+   rule2357 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2335 #-}
-   rule2335 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule2358 #-}
+   rule2358 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule2336 #-}
-   rule2336 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule2359 #-}
+   rule2359 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule2337 #-}
-   rule2337 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+   {-# INLINE rule2360 #-}
+   rule2360 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
      _lhsIvalueConstructors
-   {-# INLINE rule2338 #-}
-   rule2338 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2361 #-}
+   rule2361 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_Pattern_Wildcard #-}
 sem_Pattern_Wildcard :: T_Range  -> T_Pattern 
@@ -14042,46 +14157,46 @@ sem_Pattern_Wildcard arg_range_ = T_Pattern (return st119) where
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule2339  ()
+         _lhsOpatVarNames = rule2362  ()
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2340  ()
-         _self = rule2341 _rangeIself
+         _lhsOunboundNames = rule2363  ()
+         _self = rule2364 _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule2342 _self
+         _lhsOself = rule2365 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2343 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2366 _lhsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2344 _lhsIcounter
+         _lhsOcounter = rule2367 _lhsIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2345 _lhsImiscerrors
+         _lhsOmiscerrors = rule2368 _lhsImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2346 _lhsIwarnings
+         _lhsOwarnings = rule2369 _lhsIwarnings
          __result_ = T_Pattern_vOut118 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule2339 #-}
-   rule2339 = \  (_ :: ()) ->
+   {-# INLINE rule2362 #-}
+   rule2362 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2340 #-}
-   rule2340 = \  (_ :: ()) ->
+   {-# INLINE rule2363 #-}
+   rule2363 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2341 #-}
-   rule2341 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule2364 #-}
+   rule2364 = \ ((_rangeIself) :: Range) ->
      Pattern_Wildcard _rangeIself
-   {-# INLINE rule2342 #-}
-   rule2342 = \ _self ->
+   {-# INLINE rule2365 #-}
+   rule2365 = \ _self ->
      _self
-   {-# INLINE rule2343 #-}
-   rule2343 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2366 #-}
+   rule2366 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2344 #-}
-   rule2344 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2367 #-}
+   rule2367 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2345 #-}
-   rule2345 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2368 #-}
+   rule2368 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2346 #-}
-   rule2346 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2369 #-}
+   rule2369 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_Pattern_Irrefutable #-}
 sem_Pattern_Irrefutable :: T_Range  -> T_Pattern  -> T_Pattern 
@@ -14095,86 +14210,86 @@ sem_Pattern_Irrefutable arg_range_ arg_pattern_ = T_Pattern (return st119) where
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Pattern_vOut118 _patternIcollectScopeInfos _patternIcounter _patternImiscerrors _patternIpatVarNames _patternIself _patternIunboundNames _patternIwarnings) = inv_Pattern_s119 _patternX119 (T_Pattern_vIn118 _patternOallTypeConstructors _patternOallValueConstructors _patternOcollectScopeInfos _patternOcounter _patternOlhsPattern _patternOmiscerrors _patternOnamesInScope _patternOtypeConstructors _patternOvalueConstructors _patternOwarnings)
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule2347 _patternIpatVarNames
+         _lhsOpatVarNames = rule2370 _patternIpatVarNames
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2348 _patternIunboundNames
-         _self = rule2349 _patternIself _rangeIself
+         _lhsOunboundNames = rule2371 _patternIunboundNames
+         _self = rule2372 _patternIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule2350 _self
+         _lhsOself = rule2373 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2351 _patternIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2374 _patternIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2352 _patternIcounter
+         _lhsOcounter = rule2375 _patternIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2353 _patternImiscerrors
+         _lhsOmiscerrors = rule2376 _patternImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2354 _patternIwarnings
-         _patternOallTypeConstructors = rule2355 _lhsIallTypeConstructors
-         _patternOallValueConstructors = rule2356 _lhsIallValueConstructors
-         _patternOcollectScopeInfos = rule2357 _lhsIcollectScopeInfos
-         _patternOcounter = rule2358 _lhsIcounter
-         _patternOlhsPattern = rule2359 _lhsIlhsPattern
-         _patternOmiscerrors = rule2360 _lhsImiscerrors
-         _patternOnamesInScope = rule2361 _lhsInamesInScope
-         _patternOtypeConstructors = rule2362 _lhsItypeConstructors
-         _patternOvalueConstructors = rule2363 _lhsIvalueConstructors
-         _patternOwarnings = rule2364 _lhsIwarnings
+         _lhsOwarnings = rule2377 _patternIwarnings
+         _patternOallTypeConstructors = rule2378 _lhsIallTypeConstructors
+         _patternOallValueConstructors = rule2379 _lhsIallValueConstructors
+         _patternOcollectScopeInfos = rule2380 _lhsIcollectScopeInfos
+         _patternOcounter = rule2381 _lhsIcounter
+         _patternOlhsPattern = rule2382 _lhsIlhsPattern
+         _patternOmiscerrors = rule2383 _lhsImiscerrors
+         _patternOnamesInScope = rule2384 _lhsInamesInScope
+         _patternOtypeConstructors = rule2385 _lhsItypeConstructors
+         _patternOvalueConstructors = rule2386 _lhsIvalueConstructors
+         _patternOwarnings = rule2387 _lhsIwarnings
          __result_ = T_Pattern_vOut118 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule2347 #-}
-   rule2347 = \ ((_patternIpatVarNames) :: Names) ->
+   {-# INLINE rule2370 #-}
+   rule2370 = \ ((_patternIpatVarNames) :: Names) ->
      _patternIpatVarNames
-   {-# INLINE rule2348 #-}
-   rule2348 = \ ((_patternIunboundNames) :: Names) ->
+   {-# INLINE rule2371 #-}
+   rule2371 = \ ((_patternIunboundNames) :: Names) ->
      _patternIunboundNames
-   {-# INLINE rule2349 #-}
-   rule2349 = \ ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
+   {-# INLINE rule2372 #-}
+   rule2372 = \ ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
      Pattern_Irrefutable _rangeIself _patternIself
-   {-# INLINE rule2350 #-}
-   rule2350 = \ _self ->
+   {-# INLINE rule2373 #-}
+   rule2373 = \ _self ->
      _self
-   {-# INLINE rule2351 #-}
-   rule2351 = \ ((_patternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2374 #-}
+   rule2374 = \ ((_patternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _patternIcollectScopeInfos
-   {-# INLINE rule2352 #-}
-   rule2352 = \ ((_patternIcounter) :: Int) ->
+   {-# INLINE rule2375 #-}
+   rule2375 = \ ((_patternIcounter) :: Int) ->
      _patternIcounter
-   {-# INLINE rule2353 #-}
-   rule2353 = \ ((_patternImiscerrors) :: [Error]) ->
+   {-# INLINE rule2376 #-}
+   rule2376 = \ ((_patternImiscerrors) :: [Error]) ->
      _patternImiscerrors
-   {-# INLINE rule2354 #-}
-   rule2354 = \ ((_patternIwarnings) :: [Warning]) ->
+   {-# INLINE rule2377 #-}
+   rule2377 = \ ((_patternIwarnings) :: [Warning]) ->
      _patternIwarnings
-   {-# INLINE rule2355 #-}
-   rule2355 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   {-# INLINE rule2378 #-}
+   rule2378 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule2356 #-}
-   rule2356 = \ ((_lhsIallValueConstructors) :: Names) ->
+   {-# INLINE rule2379 #-}
+   rule2379 = \ ((_lhsIallValueConstructors) :: Names) ->
      _lhsIallValueConstructors
-   {-# INLINE rule2357 #-}
-   rule2357 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2380 #-}
+   rule2380 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2358 #-}
-   rule2358 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2381 #-}
+   rule2381 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2359 #-}
-   rule2359 = \ ((_lhsIlhsPattern) :: Bool) ->
+   {-# INLINE rule2382 #-}
+   rule2382 = \ ((_lhsIlhsPattern) :: Bool) ->
      _lhsIlhsPattern
-   {-# INLINE rule2360 #-}
-   rule2360 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2383 #-}
+   rule2383 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2361 #-}
-   rule2361 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule2384 #-}
+   rule2384 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule2362 #-}
-   rule2362 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule2385 #-}
+   rule2385 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule2363 #-}
-   rule2363 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+   {-# INLINE rule2386 #-}
+   rule2386 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
      _lhsIvalueConstructors
-   {-# INLINE rule2364 #-}
-   rule2364 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2387 #-}
+   rule2387 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_Pattern_Successor #-}
 sem_Pattern_Successor :: T_Range  -> T_Name  -> T_Literal  -> T_Pattern 
@@ -14189,59 +14304,59 @@ sem_Pattern_Successor arg_range_ arg_name_ arg_literal_ = T_Pattern (return st11
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Literal_vOut85 _literalIcollectScopeInfos _literalImiscerrors _literalIself) = inv_Literal_s86 _literalX86 (T_Literal_vIn85 _literalOcollectScopeInfos _literalOmiscerrors)
-         (_beta,_constraints,_environment) = rule2365  ()
+         (_beta,_constraints,_environment) = rule2388  ()
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule2366  ()
+         _lhsOpatVarNames = rule2389  ()
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2367  ()
-         _self = rule2368 _literalIself _nameIself _rangeIself
+         _lhsOunboundNames = rule2390  ()
+         _self = rule2391 _literalIself _nameIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule2369 _self
+         _lhsOself = rule2392 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2370 _literalIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2393 _literalIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2371 _lhsIcounter
+         _lhsOcounter = rule2394 _lhsIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2372 _literalImiscerrors
+         _lhsOmiscerrors = rule2395 _literalImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2373 _lhsIwarnings
-         _literalOcollectScopeInfos = rule2374 _lhsIcollectScopeInfos
-         _literalOmiscerrors = rule2375 _lhsImiscerrors
+         _lhsOwarnings = rule2396 _lhsIwarnings
+         _literalOcollectScopeInfos = rule2397 _lhsIcollectScopeInfos
+         _literalOmiscerrors = rule2398 _lhsImiscerrors
          __result_ = T_Pattern_vOut118 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule2365 #-}
-   rule2365 = \  (_ :: ()) ->
+   {-# INLINE rule2388 #-}
+   rule2388 = \  (_ :: ()) ->
                                                        internalError "PartialSyntax.ag" "n/a" "Pattern.Successor"
-   {-# INLINE rule2366 #-}
-   rule2366 = \  (_ :: ()) ->
+   {-# INLINE rule2389 #-}
+   rule2389 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2367 #-}
-   rule2367 = \  (_ :: ()) ->
+   {-# INLINE rule2390 #-}
+   rule2390 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2368 #-}
-   rule2368 = \ ((_literalIself) :: Literal) ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule2391 #-}
+   rule2391 = \ ((_literalIself) :: Literal) ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Pattern_Successor _rangeIself _nameIself _literalIself
-   {-# INLINE rule2369 #-}
-   rule2369 = \ _self ->
+   {-# INLINE rule2392 #-}
+   rule2392 = \ _self ->
      _self
-   {-# INLINE rule2370 #-}
-   rule2370 = \ ((_literalIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2393 #-}
+   rule2393 = \ ((_literalIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _literalIcollectScopeInfos
-   {-# INLINE rule2371 #-}
-   rule2371 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2394 #-}
+   rule2394 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2372 #-}
-   rule2372 = \ ((_literalImiscerrors) :: [Error]) ->
+   {-# INLINE rule2395 #-}
+   rule2395 = \ ((_literalImiscerrors) :: [Error]) ->
      _literalImiscerrors
-   {-# INLINE rule2373 #-}
-   rule2373 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2396 #-}
+   rule2396 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
-   {-# INLINE rule2374 #-}
-   rule2374 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2397 #-}
+   rule2397 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2375 #-}
-   rule2375 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2398 #-}
+   rule2398 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
 {-# NOINLINE sem_Pattern_NegateFloat #-}
 sem_Pattern_NegateFloat :: T_Range  -> T_Literal  -> T_Pattern 
@@ -14255,54 +14370,54 @@ sem_Pattern_NegateFloat arg_range_ arg_literal_ = T_Pattern (return st119) where
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Literal_vOut85 _literalIcollectScopeInfos _literalImiscerrors _literalIself) = inv_Literal_s86 _literalX86 (T_Literal_vIn85 _literalOcollectScopeInfos _literalOmiscerrors)
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule2376  ()
+         _lhsOpatVarNames = rule2399  ()
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2377  ()
-         _self = rule2378 _literalIself _rangeIself
+         _lhsOunboundNames = rule2400  ()
+         _self = rule2401 _literalIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule2379 _self
+         _lhsOself = rule2402 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2380 _literalIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2403 _literalIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2381 _lhsIcounter
+         _lhsOcounter = rule2404 _lhsIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2382 _literalImiscerrors
+         _lhsOmiscerrors = rule2405 _literalImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2383 _lhsIwarnings
-         _literalOcollectScopeInfos = rule2384 _lhsIcollectScopeInfos
-         _literalOmiscerrors = rule2385 _lhsImiscerrors
+         _lhsOwarnings = rule2406 _lhsIwarnings
+         _literalOcollectScopeInfos = rule2407 _lhsIcollectScopeInfos
+         _literalOmiscerrors = rule2408 _lhsImiscerrors
          __result_ = T_Pattern_vOut118 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Pattern_s119 v118
-   {-# INLINE rule2376 #-}
-   rule2376 = \  (_ :: ()) ->
+   {-# INLINE rule2399 #-}
+   rule2399 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2377 #-}
-   rule2377 = \  (_ :: ()) ->
+   {-# INLINE rule2400 #-}
+   rule2400 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2378 #-}
-   rule2378 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
+   {-# INLINE rule2401 #-}
+   rule2401 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
      Pattern_NegateFloat _rangeIself _literalIself
-   {-# INLINE rule2379 #-}
-   rule2379 = \ _self ->
+   {-# INLINE rule2402 #-}
+   rule2402 = \ _self ->
      _self
-   {-# INLINE rule2380 #-}
-   rule2380 = \ ((_literalIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2403 #-}
+   rule2403 = \ ((_literalIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _literalIcollectScopeInfos
-   {-# INLINE rule2381 #-}
-   rule2381 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2404 #-}
+   rule2404 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2382 #-}
-   rule2382 = \ ((_literalImiscerrors) :: [Error]) ->
+   {-# INLINE rule2405 #-}
+   rule2405 = \ ((_literalImiscerrors) :: [Error]) ->
      _literalImiscerrors
-   {-# INLINE rule2383 #-}
-   rule2383 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2406 #-}
+   rule2406 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
-   {-# INLINE rule2384 #-}
-   rule2384 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2407 #-}
+   rule2407 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2385 #-}
-   rule2385 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2408 #-}
+   rule2408 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
 
 -- Patterns ----------------------------------------------------
@@ -14347,131 +14462,131 @@ sem_Patterns_Cons arg_hd_ arg_tl_ = T_Patterns (return st122) where
          (T_Pattern_vOut118 _hdIcollectScopeInfos _hdIcounter _hdImiscerrors _hdIpatVarNames _hdIself _hdIunboundNames _hdIwarnings) = inv_Pattern_s119 _hdX119 (T_Pattern_vIn118 _hdOallTypeConstructors _hdOallValueConstructors _hdOcollectScopeInfos _hdOcounter _hdOlhsPattern _hdOmiscerrors _hdOnamesInScope _hdOtypeConstructors _hdOvalueConstructors _hdOwarnings)
          (T_Patterns_vOut121 _tlIcollectScopeInfos _tlIcounter _tlImiscerrors _tlInumberOfPatterns _tlIpatVarNames _tlIself _tlIunboundNames _tlIwarnings) = inv_Patterns_s122 _tlX122 (T_Patterns_vIn121 _tlOallTypeConstructors _tlOallValueConstructors _tlOcollectScopeInfos _tlOcounter _tlOlhsPattern _tlOmiscerrors _tlOnamesInScope _tlOtypeConstructors _tlOvalueConstructors _tlOwarnings)
          _lhsOnumberOfPatterns :: Int
-         _lhsOnumberOfPatterns = rule2386 _tlInumberOfPatterns
+         _lhsOnumberOfPatterns = rule2409 _tlInumberOfPatterns
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule2387 _hdIpatVarNames _tlIpatVarNames
+         _lhsOpatVarNames = rule2410 _hdIpatVarNames _tlIpatVarNames
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2388 _hdIunboundNames _tlIunboundNames
-         _self = rule2389 _hdIself _tlIself
+         _lhsOunboundNames = rule2411 _hdIunboundNames _tlIunboundNames
+         _self = rule2412 _hdIself _tlIself
          _lhsOself :: Patterns
-         _lhsOself = rule2390 _self
+         _lhsOself = rule2413 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2391 _tlIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2414 _tlIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2392 _tlIcounter
+         _lhsOcounter = rule2415 _tlIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2393 _tlImiscerrors
+         _lhsOmiscerrors = rule2416 _tlImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2394 _tlIwarnings
-         _hdOallTypeConstructors = rule2395 _lhsIallTypeConstructors
-         _hdOallValueConstructors = rule2396 _lhsIallValueConstructors
-         _hdOcollectScopeInfos = rule2397 _lhsIcollectScopeInfos
-         _hdOcounter = rule2398 _lhsIcounter
-         _hdOlhsPattern = rule2399 _lhsIlhsPattern
-         _hdOmiscerrors = rule2400 _lhsImiscerrors
-         _hdOnamesInScope = rule2401 _lhsInamesInScope
-         _hdOtypeConstructors = rule2402 _lhsItypeConstructors
-         _hdOvalueConstructors = rule2403 _lhsIvalueConstructors
-         _hdOwarnings = rule2404 _lhsIwarnings
-         _tlOallTypeConstructors = rule2405 _lhsIallTypeConstructors
-         _tlOallValueConstructors = rule2406 _lhsIallValueConstructors
-         _tlOcollectScopeInfos = rule2407 _hdIcollectScopeInfos
-         _tlOcounter = rule2408 _hdIcounter
-         _tlOlhsPattern = rule2409 _lhsIlhsPattern
-         _tlOmiscerrors = rule2410 _hdImiscerrors
-         _tlOnamesInScope = rule2411 _lhsInamesInScope
-         _tlOtypeConstructors = rule2412 _lhsItypeConstructors
-         _tlOvalueConstructors = rule2413 _lhsIvalueConstructors
-         _tlOwarnings = rule2414 _hdIwarnings
+         _lhsOwarnings = rule2417 _tlIwarnings
+         _hdOallTypeConstructors = rule2418 _lhsIallTypeConstructors
+         _hdOallValueConstructors = rule2419 _lhsIallValueConstructors
+         _hdOcollectScopeInfos = rule2420 _lhsIcollectScopeInfos
+         _hdOcounter = rule2421 _lhsIcounter
+         _hdOlhsPattern = rule2422 _lhsIlhsPattern
+         _hdOmiscerrors = rule2423 _lhsImiscerrors
+         _hdOnamesInScope = rule2424 _lhsInamesInScope
+         _hdOtypeConstructors = rule2425 _lhsItypeConstructors
+         _hdOvalueConstructors = rule2426 _lhsIvalueConstructors
+         _hdOwarnings = rule2427 _lhsIwarnings
+         _tlOallTypeConstructors = rule2428 _lhsIallTypeConstructors
+         _tlOallValueConstructors = rule2429 _lhsIallValueConstructors
+         _tlOcollectScopeInfos = rule2430 _hdIcollectScopeInfos
+         _tlOcounter = rule2431 _hdIcounter
+         _tlOlhsPattern = rule2432 _lhsIlhsPattern
+         _tlOmiscerrors = rule2433 _hdImiscerrors
+         _tlOnamesInScope = rule2434 _lhsInamesInScope
+         _tlOtypeConstructors = rule2435 _lhsItypeConstructors
+         _tlOvalueConstructors = rule2436 _lhsIvalueConstructors
+         _tlOwarnings = rule2437 _hdIwarnings
          __result_ = T_Patterns_vOut121 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOnumberOfPatterns _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Patterns_s122 v121
-   {-# INLINE rule2386 #-}
-   rule2386 = \ ((_tlInumberOfPatterns) :: Int) ->
-                                     1 + _tlInumberOfPatterns
-   {-# INLINE rule2387 #-}
-   rule2387 = \ ((_hdIpatVarNames) :: Names) ((_tlIpatVarNames) :: Names) ->
-     _hdIpatVarNames ++ _tlIpatVarNames
-   {-# INLINE rule2388 #-}
-   rule2388 = \ ((_hdIunboundNames) :: Names) ((_tlIunboundNames) :: Names) ->
-     _hdIunboundNames ++ _tlIunboundNames
-   {-# INLINE rule2389 #-}
-   rule2389 = \ ((_hdIself) :: Pattern) ((_tlIself) :: Patterns) ->
-     (:) _hdIself _tlIself
-   {-# INLINE rule2390 #-}
-   rule2390 = \ _self ->
-     _self
-   {-# INLINE rule2391 #-}
-   rule2391 = \ ((_tlIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _tlIcollectScopeInfos
-   {-# INLINE rule2392 #-}
-   rule2392 = \ ((_tlIcounter) :: Int) ->
-     _tlIcounter
-   {-# INLINE rule2393 #-}
-   rule2393 = \ ((_tlImiscerrors) :: [Error]) ->
-     _tlImiscerrors
-   {-# INLINE rule2394 #-}
-   rule2394 = \ ((_tlIwarnings) :: [Warning]) ->
-     _tlIwarnings
-   {-# INLINE rule2395 #-}
-   rule2395 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule2396 #-}
-   rule2396 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule2397 #-}
-   rule2397 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule2398 #-}
-   rule2398 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule2399 #-}
-   rule2399 = \ ((_lhsIlhsPattern) :: Bool) ->
-     _lhsIlhsPattern
-   {-# INLINE rule2400 #-}
-   rule2400 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule2401 #-}
-   rule2401 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule2402 #-}
-   rule2402 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule2403 #-}
-   rule2403 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule2404 #-}
-   rule2404 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
-   {-# INLINE rule2405 #-}
-   rule2405 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule2406 #-}
-   rule2406 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule2407 #-}
-   rule2407 = \ ((_hdIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _hdIcollectScopeInfos
-   {-# INLINE rule2408 #-}
-   rule2408 = \ ((_hdIcounter) :: Int) ->
-     _hdIcounter
    {-# INLINE rule2409 #-}
-   rule2409 = \ ((_lhsIlhsPattern) :: Bool) ->
-     _lhsIlhsPattern
+   rule2409 = \ ((_tlInumberOfPatterns) :: Int) ->
+                                     1 + _tlInumberOfPatterns
    {-# INLINE rule2410 #-}
-   rule2410 = \ ((_hdImiscerrors) :: [Error]) ->
-     _hdImiscerrors
+   rule2410 = \ ((_hdIpatVarNames) :: Names) ((_tlIpatVarNames) :: Names) ->
+     _hdIpatVarNames ++ _tlIpatVarNames
    {-# INLINE rule2411 #-}
-   rule2411 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
+   rule2411 = \ ((_hdIunboundNames) :: Names) ((_tlIunboundNames) :: Names) ->
+     _hdIunboundNames ++ _tlIunboundNames
    {-# INLINE rule2412 #-}
-   rule2412 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule2412 = \ ((_hdIself) :: Pattern) ((_tlIself) :: Patterns) ->
+     (:) _hdIself _tlIself
    {-# INLINE rule2413 #-}
-   rule2413 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule2413 = \ _self ->
+     _self
    {-# INLINE rule2414 #-}
-   rule2414 = \ ((_hdIwarnings) :: [Warning]) ->
+   rule2414 = \ ((_tlIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _tlIcollectScopeInfos
+   {-# INLINE rule2415 #-}
+   rule2415 = \ ((_tlIcounter) :: Int) ->
+     _tlIcounter
+   {-# INLINE rule2416 #-}
+   rule2416 = \ ((_tlImiscerrors) :: [Error]) ->
+     _tlImiscerrors
+   {-# INLINE rule2417 #-}
+   rule2417 = \ ((_tlIwarnings) :: [Warning]) ->
+     _tlIwarnings
+   {-# INLINE rule2418 #-}
+   rule2418 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule2419 #-}
+   rule2419 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule2420 #-}
+   rule2420 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule2421 #-}
+   rule2421 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule2422 #-}
+   rule2422 = \ ((_lhsIlhsPattern) :: Bool) ->
+     _lhsIlhsPattern
+   {-# INLINE rule2423 #-}
+   rule2423 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule2424 #-}
+   rule2424 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule2425 #-}
+   rule2425 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2426 #-}
+   rule2426 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2427 #-}
+   rule2427 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule2428 #-}
+   rule2428 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule2429 #-}
+   rule2429 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule2430 #-}
+   rule2430 = \ ((_hdIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _hdIcollectScopeInfos
+   {-# INLINE rule2431 #-}
+   rule2431 = \ ((_hdIcounter) :: Int) ->
+     _hdIcounter
+   {-# INLINE rule2432 #-}
+   rule2432 = \ ((_lhsIlhsPattern) :: Bool) ->
+     _lhsIlhsPattern
+   {-# INLINE rule2433 #-}
+   rule2433 = \ ((_hdImiscerrors) :: [Error]) ->
+     _hdImiscerrors
+   {-# INLINE rule2434 #-}
+   rule2434 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule2435 #-}
+   rule2435 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2436 #-}
+   rule2436 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2437 #-}
+   rule2437 = \ ((_hdIwarnings) :: [Warning]) ->
      _hdIwarnings
 {-# NOINLINE sem_Patterns_Nil #-}
 sem_Patterns_Nil ::  T_Patterns 
@@ -14481,51 +14596,51 @@ sem_Patterns_Nil  = T_Patterns (return st122) where
       v121 :: T_Patterns_v121 
       v121 = \ (T_Patterns_vIn121 _lhsIallTypeConstructors _lhsIallValueConstructors _lhsIcollectScopeInfos _lhsIcounter _lhsIlhsPattern _lhsImiscerrors _lhsInamesInScope _lhsItypeConstructors _lhsIvalueConstructors _lhsIwarnings) -> ( let
          _lhsOnumberOfPatterns :: Int
-         _lhsOnumberOfPatterns = rule2415  ()
+         _lhsOnumberOfPatterns = rule2438  ()
          _lhsOpatVarNames :: Names
-         _lhsOpatVarNames = rule2416  ()
+         _lhsOpatVarNames = rule2439  ()
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2417  ()
-         _self = rule2418  ()
+         _lhsOunboundNames = rule2440  ()
+         _self = rule2441  ()
          _lhsOself :: Patterns
-         _lhsOself = rule2419 _self
+         _lhsOself = rule2442 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2420 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2443 _lhsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2421 _lhsIcounter
+         _lhsOcounter = rule2444 _lhsIcounter
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2422 _lhsImiscerrors
+         _lhsOmiscerrors = rule2445 _lhsImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2423 _lhsIwarnings
+         _lhsOwarnings = rule2446 _lhsIwarnings
          __result_ = T_Patterns_vOut121 _lhsOcollectScopeInfos _lhsOcounter _lhsOmiscerrors _lhsOnumberOfPatterns _lhsOpatVarNames _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Patterns_s122 v121
-   {-# INLINE rule2415 #-}
-   rule2415 = \  (_ :: ()) ->
+   {-# INLINE rule2438 #-}
+   rule2438 = \  (_ :: ()) ->
                                      0
-   {-# INLINE rule2416 #-}
-   rule2416 = \  (_ :: ()) ->
+   {-# INLINE rule2439 #-}
+   rule2439 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2417 #-}
-   rule2417 = \  (_ :: ()) ->
+   {-# INLINE rule2440 #-}
+   rule2440 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2418 #-}
-   rule2418 = \  (_ :: ()) ->
+   {-# INLINE rule2441 #-}
+   rule2441 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2419 #-}
-   rule2419 = \ _self ->
+   {-# INLINE rule2442 #-}
+   rule2442 = \ _self ->
      _self
-   {-# INLINE rule2420 #-}
-   rule2420 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2443 #-}
+   rule2443 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2421 #-}
-   rule2421 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2444 #-}
+   rule2444 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2422 #-}
-   rule2422 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2445 #-}
+   rule2445 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2423 #-}
-   rule2423 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2446 #-}
+   rule2446 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 
 -- Position ----------------------------------------------------
@@ -14566,17 +14681,17 @@ sem_Position_Position arg_filename_ arg_line_ arg_column_ = T_Position (return s
    st125 = let
       v124 :: T_Position_v124 
       v124 = \ (T_Position_vIn124 ) -> ( let
-         _self = rule2424 arg_column_ arg_filename_ arg_line_
+         _self = rule2447 arg_column_ arg_filename_ arg_line_
          _lhsOself :: Position
-         _lhsOself = rule2425 _self
+         _lhsOself = rule2448 _self
          __result_ = T_Position_vOut124 _lhsOself
          in __result_ )
      in C_Position_s125 v124
-   {-# INLINE rule2424 #-}
-   rule2424 = \ column_ filename_ line_ ->
+   {-# INLINE rule2447 #-}
+   rule2447 = \ column_ filename_ line_ ->
      Position_Position filename_ line_ column_
-   {-# INLINE rule2425 #-}
-   rule2425 = \ _self ->
+   {-# INLINE rule2448 #-}
+   rule2448 = \ _self ->
      _self
 {-# NOINLINE sem_Position_Unknown #-}
 sem_Position_Unknown ::  T_Position 
@@ -14585,17 +14700,17 @@ sem_Position_Unknown  = T_Position (return st125) where
    st125 = let
       v124 :: T_Position_v124 
       v124 = \ (T_Position_vIn124 ) -> ( let
-         _self = rule2426  ()
+         _self = rule2449  ()
          _lhsOself :: Position
-         _lhsOself = rule2427 _self
+         _lhsOself = rule2450 _self
          __result_ = T_Position_vOut124 _lhsOself
          in __result_ )
      in C_Position_s125 v124
-   {-# INLINE rule2426 #-}
-   rule2426 = \  (_ :: ()) ->
+   {-# INLINE rule2449 #-}
+   rule2449 = \  (_ :: ()) ->
      Position_Unknown
-   {-# INLINE rule2427 #-}
-   rule2427 = \ _self ->
+   {-# INLINE rule2450 #-}
+   rule2450 = \ _self ->
      _self
 
 -- Qualifier ---------------------------------------------------
@@ -14643,112 +14758,112 @@ sem_Qualifier_Guard arg_range_ arg_guard_ = T_Qualifier (return st128) where
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _guardIcollectInstances _guardIcollectScopeInfos _guardIcounter _guardIkindErrors _guardImiscerrors _guardIself _guardIunboundNames _guardIwarnings) = inv_Expression_s41 _guardX41 (T_Expression_vIn40 _guardOallTypeConstructors _guardOallValueConstructors _guardOclassEnvironment _guardOclassMemberEnv _guardOcollectScopeInfos _guardOcounter _guardOkindErrors _guardOmiscerrors _guardOnamesInScope _guardOoptions _guardOorderedTypeSynonyms _guardOtypeConstructors _guardOvalueConstructors _guardOwarnings)
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2428 _guardIunboundNames _lhsIunboundNames
+         _lhsOunboundNames = rule2451 _guardIunboundNames _lhsIunboundNames
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2429 _guardIcollectInstances
-         _self = rule2430 _guardIself _rangeIself
+         _lhsOcollectInstances = rule2452 _guardIcollectInstances
+         _self = rule2453 _guardIself _rangeIself
          _lhsOself :: Qualifier
-         _lhsOself = rule2431 _self
+         _lhsOself = rule2454 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2432 _guardIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2455 _guardIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2433 _guardIcounter
+         _lhsOcounter = rule2456 _guardIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule2434 _guardIkindErrors
+         _lhsOkindErrors = rule2457 _guardIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2435 _guardImiscerrors
+         _lhsOmiscerrors = rule2458 _guardImiscerrors
          _lhsOnamesInScope :: Names
-         _lhsOnamesInScope = rule2436 _lhsInamesInScope
+         _lhsOnamesInScope = rule2459 _lhsInamesInScope
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2437 _guardIwarnings
-         _guardOallTypeConstructors = rule2438 _lhsIallTypeConstructors
-         _guardOallValueConstructors = rule2439 _lhsIallValueConstructors
-         _guardOclassEnvironment = rule2440 _lhsIclassEnvironment
-         _guardOclassMemberEnv = rule2441 _lhsIclassMemberEnv
-         _guardOcollectScopeInfos = rule2442 _lhsIcollectScopeInfos
-         _guardOcounter = rule2443 _lhsIcounter
-         _guardOkindErrors = rule2444 _lhsIkindErrors
-         _guardOmiscerrors = rule2445 _lhsImiscerrors
-         _guardOnamesInScope = rule2446 _lhsInamesInScope
-         _guardOoptions = rule2447 _lhsIoptions
-         _guardOorderedTypeSynonyms = rule2448 _lhsIorderedTypeSynonyms
-         _guardOtypeConstructors = rule2449 _lhsItypeConstructors
-         _guardOvalueConstructors = rule2450 _lhsIvalueConstructors
-         _guardOwarnings = rule2451 _lhsIwarnings
+         _lhsOwarnings = rule2460 _guardIwarnings
+         _guardOallTypeConstructors = rule2461 _lhsIallTypeConstructors
+         _guardOallValueConstructors = rule2462 _lhsIallValueConstructors
+         _guardOclassEnvironment = rule2463 _lhsIclassEnvironment
+         _guardOclassMemberEnv = rule2464 _lhsIclassMemberEnv
+         _guardOcollectScopeInfos = rule2465 _lhsIcollectScopeInfos
+         _guardOcounter = rule2466 _lhsIcounter
+         _guardOkindErrors = rule2467 _lhsIkindErrors
+         _guardOmiscerrors = rule2468 _lhsImiscerrors
+         _guardOnamesInScope = rule2469 _lhsInamesInScope
+         _guardOoptions = rule2470 _lhsIoptions
+         _guardOorderedTypeSynonyms = rule2471 _lhsIorderedTypeSynonyms
+         _guardOtypeConstructors = rule2472 _lhsItypeConstructors
+         _guardOvalueConstructors = rule2473 _lhsIvalueConstructors
+         _guardOwarnings = rule2474 _lhsIwarnings
          __result_ = T_Qualifier_vOut127 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOnamesInScope _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Qualifier_s128 v127
-   {-# INLINE rule2428 #-}
-   rule2428 = \ ((_guardIunboundNames) :: Names) ((_lhsIunboundNames) :: Names) ->
-                                              _guardIunboundNames ++ _lhsIunboundNames
-   {-# INLINE rule2429 #-}
-   rule2429 = \ ((_guardIcollectInstances) :: [(Name, Instance)]) ->
-     _guardIcollectInstances
-   {-# INLINE rule2430 #-}
-   rule2430 = \ ((_guardIself) :: Expression) ((_rangeIself) :: Range) ->
-     Qualifier_Guard _rangeIself _guardIself
-   {-# INLINE rule2431 #-}
-   rule2431 = \ _self ->
-     _self
-   {-# INLINE rule2432 #-}
-   rule2432 = \ ((_guardIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _guardIcollectScopeInfos
-   {-# INLINE rule2433 #-}
-   rule2433 = \ ((_guardIcounter) :: Int) ->
-     _guardIcounter
-   {-# INLINE rule2434 #-}
-   rule2434 = \ ((_guardIkindErrors) :: [Error]) ->
-     _guardIkindErrors
-   {-# INLINE rule2435 #-}
-   rule2435 = \ ((_guardImiscerrors) :: [Error]) ->
-     _guardImiscerrors
-   {-# INLINE rule2436 #-}
-   rule2436 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule2437 #-}
-   rule2437 = \ ((_guardIwarnings) :: [Warning]) ->
-     _guardIwarnings
-   {-# INLINE rule2438 #-}
-   rule2438 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule2439 #-}
-   rule2439 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule2440 #-}
-   rule2440 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule2441 #-}
-   rule2441 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule2442 #-}
-   rule2442 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule2443 #-}
-   rule2443 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule2444 #-}
-   rule2444 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule2445 #-}
-   rule2445 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule2446 #-}
-   rule2446 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule2447 #-}
-   rule2447 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule2448 #-}
-   rule2448 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule2449 #-}
-   rule2449 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule2450 #-}
-   rule2450 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
    {-# INLINE rule2451 #-}
-   rule2451 = \ ((_lhsIwarnings) :: [Warning]) ->
+   rule2451 = \ ((_guardIunboundNames) :: Names) ((_lhsIunboundNames) :: Names) ->
+                                              _guardIunboundNames ++ _lhsIunboundNames
+   {-# INLINE rule2452 #-}
+   rule2452 = \ ((_guardIcollectInstances) :: [(Name, Instance)]) ->
+     _guardIcollectInstances
+   {-# INLINE rule2453 #-}
+   rule2453 = \ ((_guardIself) :: Expression) ((_rangeIself) :: Range) ->
+     Qualifier_Guard _rangeIself _guardIself
+   {-# INLINE rule2454 #-}
+   rule2454 = \ _self ->
+     _self
+   {-# INLINE rule2455 #-}
+   rule2455 = \ ((_guardIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _guardIcollectScopeInfos
+   {-# INLINE rule2456 #-}
+   rule2456 = \ ((_guardIcounter) :: Int) ->
+     _guardIcounter
+   {-# INLINE rule2457 #-}
+   rule2457 = \ ((_guardIkindErrors) :: [Error]) ->
+     _guardIkindErrors
+   {-# INLINE rule2458 #-}
+   rule2458 = \ ((_guardImiscerrors) :: [Error]) ->
+     _guardImiscerrors
+   {-# INLINE rule2459 #-}
+   rule2459 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule2460 #-}
+   rule2460 = \ ((_guardIwarnings) :: [Warning]) ->
+     _guardIwarnings
+   {-# INLINE rule2461 #-}
+   rule2461 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule2462 #-}
+   rule2462 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule2463 #-}
+   rule2463 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule2464 #-}
+   rule2464 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule2465 #-}
+   rule2465 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule2466 #-}
+   rule2466 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule2467 #-}
+   rule2467 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule2468 #-}
+   rule2468 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule2469 #-}
+   rule2469 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule2470 #-}
+   rule2470 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule2471 #-}
+   rule2471 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule2472 #-}
+   rule2472 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2473 #-}
+   rule2473 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2474 #-}
+   rule2474 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_Qualifier_Let #-}
 sem_Qualifier_Let :: T_Range  -> T_Declarations  -> T_Qualifier 
@@ -14762,161 +14877,161 @@ sem_Qualifier_Let arg_range_ arg_declarations_ = T_Qualifier (return st128) wher
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Declarations_vOut31 _declarationsIclassEnv _declarationsIcollectClassMemberEnv _declarationsIcollectInstances _declarationsIcollectScopeInfos _declarationsIcollectTypeClasses _declarationsIcollectTypeConstructors _declarationsIcollectTypeSynonyms _declarationsIcollectValueConstructors _declarationsIcounter _declarationsIdeclVarNames _declarationsIinstances _declarationsIkindErrors _declarationsImiscerrors _declarationsIoperatorFixities _declarationsIpreviousWasAlsoFB _declarationsIrestrictedNames _declarationsIself _declarationsIsuspiciousFBs _declarationsItypeSignatures _declarationsIunboundNames _declarationsIwarnings) = inv_Declarations_s32 _declarationsX32 (T_Declarations_vIn31 _declarationsOallTypeConstructors _declarationsOallValueConstructors _declarationsOclassEnvironment _declarationsOclassMemberEnv _declarationsOcollectScopeInfos _declarationsOcollectTypeConstructors _declarationsOcollectTypeSynonyms _declarationsOcollectValueConstructors _declarationsOcounter _declarationsOkindErrors _declarationsOmiscerrors _declarationsOnamesInScope _declarationsOoperatorFixities _declarationsOoptions _declarationsOorderedTypeSynonyms _declarationsOpreviousWasAlsoFB _declarationsOsuspiciousFBs _declarationsOtypeConstructors _declarationsOtypeSignatures _declarationsOvalueConstructors _declarationsOwarnings)
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2452 _declarationsIcollectScopeInfos _scopeInfo
-         (_collectTypeConstructors,_collectValueConstructors,_collectTypeSynonyms,_collectConstructorEnv,_derivedFunctions,_operatorFixities) = rule2453  ()
+         _lhsOcollectScopeInfos = rule2475 _declarationsIcollectScopeInfos _scopeInfo
+         (_collectTypeConstructors,_collectValueConstructors,_collectTypeSynonyms,_collectConstructorEnv,_derivedFunctions,_operatorFixities) = rule2476  ()
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2454 _declarationsImiscerrors _typeSignatureErrors
-         (_,_doubles) = rule2455 _declarationsItypeSignatures
-         _typeSignatureErrors = rule2456 _declarationsIdeclVarNames _declarationsIrestrictedNames _declarationsItypeSignatures
+         _lhsOmiscerrors = rule2477 _declarationsImiscerrors _typeSignatureErrors
+         (_,_doubles) = rule2478 _declarationsItypeSignatures
+         _typeSignatureErrors = rule2479 _declarationsIdeclVarNames _declarationsIrestrictedNames _declarationsItypeSignatures
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2457 _declarationsIwarnings _suspiciousErrors
-         _declarationsOpreviousWasAlsoFB = rule2458  ()
-         _declarationsOsuspiciousFBs = rule2459  ()
-         _suspiciousErrors = rule2460 _declarationsIsuspiciousFBs _declarationsItypeSignatures
-         (_namesInScope,_unboundNames,_scopeInfo) = rule2461 _declarationsIdeclVarNames _declarationsIunboundNames _lhsInamesInScope _lhsIunboundNames
+         _lhsOwarnings = rule2480 _declarationsIwarnings _suspiciousErrors
+         _declarationsOpreviousWasAlsoFB = rule2481  ()
+         _declarationsOsuspiciousFBs = rule2482  ()
+         _suspiciousErrors = rule2483 _declarationsIsuspiciousFBs _declarationsItypeSignatures
+         (_namesInScope,_unboundNames,_scopeInfo) = rule2484 _declarationsIdeclVarNames _declarationsIunboundNames _lhsInamesInScope _lhsIunboundNames
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2462 _unboundNames
-         _declarationsOtypeSignatures = rule2463  ()
+         _lhsOunboundNames = rule2485 _unboundNames
+         _declarationsOtypeSignatures = rule2486  ()
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2464 _declarationsIcollectInstances
-         _self = rule2465 _declarationsIself _rangeIself
+         _lhsOcollectInstances = rule2487 _declarationsIcollectInstances
+         _self = rule2488 _declarationsIself _rangeIself
          _lhsOself :: Qualifier
-         _lhsOself = rule2466 _self
+         _lhsOself = rule2489 _self
          _lhsOcounter :: Int
-         _lhsOcounter = rule2467 _declarationsIcounter
+         _lhsOcounter = rule2490 _declarationsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule2468 _declarationsIkindErrors
+         _lhsOkindErrors = rule2491 _declarationsIkindErrors
          _lhsOnamesInScope :: Names
-         _lhsOnamesInScope = rule2469 _namesInScope
-         _declarationsOallTypeConstructors = rule2470 _lhsIallTypeConstructors
-         _declarationsOallValueConstructors = rule2471 _lhsIallValueConstructors
-         _declarationsOclassEnvironment = rule2472 _lhsIclassEnvironment
-         _declarationsOclassMemberEnv = rule2473 _lhsIclassMemberEnv
-         _declarationsOcollectScopeInfos = rule2474 _lhsIcollectScopeInfos
-         _declarationsOcollectTypeConstructors = rule2475 _collectTypeConstructors
-         _declarationsOcollectTypeSynonyms = rule2476 _collectTypeSynonyms
-         _declarationsOcollectValueConstructors = rule2477 _collectValueConstructors
-         _declarationsOcounter = rule2478 _lhsIcounter
-         _declarationsOkindErrors = rule2479 _lhsIkindErrors
-         _declarationsOmiscerrors = rule2480 _lhsImiscerrors
-         _declarationsOnamesInScope = rule2481 _namesInScope
-         _declarationsOoperatorFixities = rule2482 _operatorFixities
-         _declarationsOoptions = rule2483 _lhsIoptions
-         _declarationsOorderedTypeSynonyms = rule2484 _lhsIorderedTypeSynonyms
-         _declarationsOtypeConstructors = rule2485 _lhsItypeConstructors
-         _declarationsOvalueConstructors = rule2486 _lhsIvalueConstructors
-         _declarationsOwarnings = rule2487 _lhsIwarnings
+         _lhsOnamesInScope = rule2492 _namesInScope
+         _declarationsOallTypeConstructors = rule2493 _lhsIallTypeConstructors
+         _declarationsOallValueConstructors = rule2494 _lhsIallValueConstructors
+         _declarationsOclassEnvironment = rule2495 _lhsIclassEnvironment
+         _declarationsOclassMemberEnv = rule2496 _lhsIclassMemberEnv
+         _declarationsOcollectScopeInfos = rule2497 _lhsIcollectScopeInfos
+         _declarationsOcollectTypeConstructors = rule2498 _collectTypeConstructors
+         _declarationsOcollectTypeSynonyms = rule2499 _collectTypeSynonyms
+         _declarationsOcollectValueConstructors = rule2500 _collectValueConstructors
+         _declarationsOcounter = rule2501 _lhsIcounter
+         _declarationsOkindErrors = rule2502 _lhsIkindErrors
+         _declarationsOmiscerrors = rule2503 _lhsImiscerrors
+         _declarationsOnamesInScope = rule2504 _namesInScope
+         _declarationsOoperatorFixities = rule2505 _operatorFixities
+         _declarationsOoptions = rule2506 _lhsIoptions
+         _declarationsOorderedTypeSynonyms = rule2507 _lhsIorderedTypeSynonyms
+         _declarationsOtypeConstructors = rule2508 _lhsItypeConstructors
+         _declarationsOvalueConstructors = rule2509 _lhsIvalueConstructors
+         _declarationsOwarnings = rule2510 _lhsIwarnings
          __result_ = T_Qualifier_vOut127 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOnamesInScope _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Qualifier_s128 v127
-   {-# INLINE rule2452 #-}
-   rule2452 = \ ((_declarationsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) _scopeInfo ->
+   {-# INLINE rule2475 #-}
+   rule2475 = \ ((_declarationsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) _scopeInfo ->
                                                  (_scopeInfo, Definition) : _declarationsIcollectScopeInfos
-   {-# INLINE rule2453 #-}
-   rule2453 = \  (_ :: ()) ->
+   {-# INLINE rule2476 #-}
+   rule2476 = \  (_ :: ()) ->
                                                                                                                                                    internalError "PartialSyntax.ag" "n/a" "toplevel Qualifier"
-   {-# INLINE rule2454 #-}
-   rule2454 = \ ((_declarationsImiscerrors) :: [Error]) _typeSignatureErrors ->
+   {-# INLINE rule2477 #-}
+   rule2477 = \ ((_declarationsImiscerrors) :: [Error]) _typeSignatureErrors ->
                                    _typeSignatureErrors ++ _declarationsImiscerrors
-   {-# INLINE rule2455 #-}
-   rule2455 = \ ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
+   {-# INLINE rule2478 #-}
+   rule2478 = \ ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
                                     uniqueAppearance (map fst _declarationsItypeSignatures)
-   {-# INLINE rule2456 #-}
-   rule2456 = \ ((_declarationsIdeclVarNames) :: Names) ((_declarationsIrestrictedNames) :: Names) ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
+   {-# INLINE rule2479 #-}
+   rule2479 = \ ((_declarationsIdeclVarNames) :: Names) ((_declarationsIrestrictedNames) :: Names) ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
                                             checkTypeSignatures _declarationsIdeclVarNames _declarationsIrestrictedNames _declarationsItypeSignatures
-   {-# INLINE rule2457 #-}
-   rule2457 = \ ((_declarationsIwarnings) :: [Warning]) _suspiciousErrors ->
+   {-# INLINE rule2480 #-}
+   rule2480 = \ ((_declarationsIwarnings) :: [Warning]) _suspiciousErrors ->
                             _declarationsIwarnings ++
                             _suspiciousErrors
-   {-# INLINE rule2458 #-}
-   rule2458 = \  (_ :: ()) ->
-                                                Nothing
-   {-# INLINE rule2459 #-}
-   rule2459 = \  (_ :: ()) ->
-                                                []
-   {-# INLINE rule2460 #-}
-   rule2460 = \ ((_declarationsIsuspiciousFBs) :: [(Name,Name)]) ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
-                                                findSimilarFunctionBindings _declarationsItypeSignatures _declarationsIsuspiciousFBs
-   {-# INLINE rule2461 #-}
-   rule2461 = \ ((_declarationsIdeclVarNames) :: Names) ((_declarationsIunboundNames) :: Names) ((_lhsInamesInScope) :: Names) ((_lhsIunboundNames) :: Names) ->
-                                                             changeOfScope _declarationsIdeclVarNames (_declarationsIunboundNames ++ _lhsIunboundNames) _lhsInamesInScope
-   {-# INLINE rule2462 #-}
-   rule2462 = \ _unboundNames ->
-                                              _unboundNames
-   {-# INLINE rule2463 #-}
-   rule2463 = \  (_ :: ()) ->
-                                                                  []
-   {-# INLINE rule2464 #-}
-   rule2464 = \ ((_declarationsIcollectInstances) :: [(Name, Instance)]) ->
-     _declarationsIcollectInstances
-   {-# INLINE rule2465 #-}
-   rule2465 = \ ((_declarationsIself) :: Declarations) ((_rangeIself) :: Range) ->
-     Qualifier_Let _rangeIself _declarationsIself
-   {-# INLINE rule2466 #-}
-   rule2466 = \ _self ->
-     _self
-   {-# INLINE rule2467 #-}
-   rule2467 = \ ((_declarationsIcounter) :: Int) ->
-     _declarationsIcounter
-   {-# INLINE rule2468 #-}
-   rule2468 = \ ((_declarationsIkindErrors) :: [Error]) ->
-     _declarationsIkindErrors
-   {-# INLINE rule2469 #-}
-   rule2469 = \ _namesInScope ->
-     _namesInScope
-   {-# INLINE rule2470 #-}
-   rule2470 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule2471 #-}
-   rule2471 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule2472 #-}
-   rule2472 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule2473 #-}
-   rule2473 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule2474 #-}
-   rule2474 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule2475 #-}
-   rule2475 = \ _collectTypeConstructors ->
-     _collectTypeConstructors
-   {-# INLINE rule2476 #-}
-   rule2476 = \ _collectTypeSynonyms ->
-     _collectTypeSynonyms
-   {-# INLINE rule2477 #-}
-   rule2477 = \ _collectValueConstructors ->
-     _collectValueConstructors
-   {-# INLINE rule2478 #-}
-   rule2478 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule2479 #-}
-   rule2479 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule2480 #-}
-   rule2480 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
    {-# INLINE rule2481 #-}
-   rule2481 = \ _namesInScope ->
-     _namesInScope
+   rule2481 = \  (_ :: ()) ->
+                                                Nothing
    {-# INLINE rule2482 #-}
-   rule2482 = \ _operatorFixities ->
-     _operatorFixities
+   rule2482 = \  (_ :: ()) ->
+                                                []
    {-# INLINE rule2483 #-}
-   rule2483 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule2483 = \ ((_declarationsIsuspiciousFBs) :: [(Name,Name)]) ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
+                                                findSimilarFunctionBindings _declarationsItypeSignatures _declarationsIsuspiciousFBs
    {-# INLINE rule2484 #-}
-   rule2484 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule2484 = \ ((_declarationsIdeclVarNames) :: Names) ((_declarationsIunboundNames) :: Names) ((_lhsInamesInScope) :: Names) ((_lhsIunboundNames) :: Names) ->
+                                                             changeOfScope _declarationsIdeclVarNames (_declarationsIunboundNames ++ _lhsIunboundNames) _lhsInamesInScope
    {-# INLINE rule2485 #-}
-   rule2485 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule2485 = \ _unboundNames ->
+                                              _unboundNames
    {-# INLINE rule2486 #-}
-   rule2486 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule2486 = \  (_ :: ()) ->
+                                                                  []
    {-# INLINE rule2487 #-}
-   rule2487 = \ ((_lhsIwarnings) :: [Warning]) ->
+   rule2487 = \ ((_declarationsIcollectInstances) :: [(Name, Instance)]) ->
+     _declarationsIcollectInstances
+   {-# INLINE rule2488 #-}
+   rule2488 = \ ((_declarationsIself) :: Declarations) ((_rangeIself) :: Range) ->
+     Qualifier_Let _rangeIself _declarationsIself
+   {-# INLINE rule2489 #-}
+   rule2489 = \ _self ->
+     _self
+   {-# INLINE rule2490 #-}
+   rule2490 = \ ((_declarationsIcounter) :: Int) ->
+     _declarationsIcounter
+   {-# INLINE rule2491 #-}
+   rule2491 = \ ((_declarationsIkindErrors) :: [Error]) ->
+     _declarationsIkindErrors
+   {-# INLINE rule2492 #-}
+   rule2492 = \ _namesInScope ->
+     _namesInScope
+   {-# INLINE rule2493 #-}
+   rule2493 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule2494 #-}
+   rule2494 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule2495 #-}
+   rule2495 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule2496 #-}
+   rule2496 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule2497 #-}
+   rule2497 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule2498 #-}
+   rule2498 = \ _collectTypeConstructors ->
+     _collectTypeConstructors
+   {-# INLINE rule2499 #-}
+   rule2499 = \ _collectTypeSynonyms ->
+     _collectTypeSynonyms
+   {-# INLINE rule2500 #-}
+   rule2500 = \ _collectValueConstructors ->
+     _collectValueConstructors
+   {-# INLINE rule2501 #-}
+   rule2501 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule2502 #-}
+   rule2502 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule2503 #-}
+   rule2503 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule2504 #-}
+   rule2504 = \ _namesInScope ->
+     _namesInScope
+   {-# INLINE rule2505 #-}
+   rule2505 = \ _operatorFixities ->
+     _operatorFixities
+   {-# INLINE rule2506 #-}
+   rule2506 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule2507 #-}
+   rule2507 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule2508 #-}
+   rule2508 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2509 #-}
+   rule2509 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2510 #-}
+   rule2510 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_Qualifier_Generator #-}
 sem_Qualifier_Generator :: T_Range  -> T_Pattern  -> T_Expression  -> T_Qualifier 
@@ -14932,156 +15047,156 @@ sem_Qualifier_Generator arg_range_ arg_pattern_ arg_expression_ = T_Qualifier (r
          (T_Pattern_vOut118 _patternIcollectScopeInfos _patternIcounter _patternImiscerrors _patternIpatVarNames _patternIself _patternIunboundNames _patternIwarnings) = inv_Pattern_s119 _patternX119 (T_Pattern_vIn118 _patternOallTypeConstructors _patternOallValueConstructors _patternOcollectScopeInfos _patternOcounter _patternOlhsPattern _patternOmiscerrors _patternOnamesInScope _patternOtypeConstructors _patternOvalueConstructors _patternOwarnings)
          (T_Expression_vOut40 _expressionIcollectInstances _expressionIcollectScopeInfos _expressionIcounter _expressionIkindErrors _expressionImiscerrors _expressionIself _expressionIunboundNames _expressionIwarnings) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionOallTypeConstructors _expressionOallValueConstructors _expressionOclassEnvironment _expressionOclassMemberEnv _expressionOcollectScopeInfos _expressionOcounter _expressionOkindErrors _expressionOmiscerrors _expressionOnamesInScope _expressionOoptions _expressionOorderedTypeSynonyms _expressionOtypeConstructors _expressionOvalueConstructors _expressionOwarnings)
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2488 _expressionIcollectScopeInfos _scopeInfo
-         _patternOlhsPattern = rule2489  ()
-         (_namesInScope,_unboundNames,_scopeInfo) = rule2490 _expressionIunboundNames _lhsInamesInScope _lhsIunboundNames _patternIpatVarNames
+         _lhsOcollectScopeInfos = rule2511 _expressionIcollectScopeInfos _scopeInfo
+         _patternOlhsPattern = rule2512  ()
+         (_namesInScope,_unboundNames,_scopeInfo) = rule2513 _expressionIunboundNames _lhsInamesInScope _lhsIunboundNames _patternIpatVarNames
          _lhsOnamesInScope :: Names
-         _lhsOnamesInScope = rule2491 _namesInScope
+         _lhsOnamesInScope = rule2514 _namesInScope
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2492 _unboundNames
-         _expressionOnamesInScope = rule2493 _lhsInamesInScope
+         _lhsOunboundNames = rule2515 _unboundNames
+         _expressionOnamesInScope = rule2516 _lhsInamesInScope
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2494 _expressionIcollectInstances
-         _self = rule2495 _expressionIself _patternIself _rangeIself
+         _lhsOcollectInstances = rule2517 _expressionIcollectInstances
+         _self = rule2518 _expressionIself _patternIself _rangeIself
          _lhsOself :: Qualifier
-         _lhsOself = rule2496 _self
+         _lhsOself = rule2519 _self
          _lhsOcounter :: Int
-         _lhsOcounter = rule2497 _expressionIcounter
+         _lhsOcounter = rule2520 _expressionIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule2498 _expressionIkindErrors
+         _lhsOkindErrors = rule2521 _expressionIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2499 _expressionImiscerrors
+         _lhsOmiscerrors = rule2522 _expressionImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2500 _expressionIwarnings
-         _patternOallTypeConstructors = rule2501 _lhsIallTypeConstructors
-         _patternOallValueConstructors = rule2502 _lhsIallValueConstructors
-         _patternOcollectScopeInfos = rule2503 _lhsIcollectScopeInfos
-         _patternOcounter = rule2504 _lhsIcounter
-         _patternOmiscerrors = rule2505 _lhsImiscerrors
-         _patternOnamesInScope = rule2506 _namesInScope
-         _patternOtypeConstructors = rule2507 _lhsItypeConstructors
-         _patternOvalueConstructors = rule2508 _lhsIvalueConstructors
-         _patternOwarnings = rule2509 _lhsIwarnings
-         _expressionOallTypeConstructors = rule2510 _lhsIallTypeConstructors
-         _expressionOallValueConstructors = rule2511 _lhsIallValueConstructors
-         _expressionOclassEnvironment = rule2512 _lhsIclassEnvironment
-         _expressionOclassMemberEnv = rule2513 _lhsIclassMemberEnv
-         _expressionOcollectScopeInfos = rule2514 _patternIcollectScopeInfos
-         _expressionOcounter = rule2515 _patternIcounter
-         _expressionOkindErrors = rule2516 _lhsIkindErrors
-         _expressionOmiscerrors = rule2517 _patternImiscerrors
-         _expressionOoptions = rule2518 _lhsIoptions
-         _expressionOorderedTypeSynonyms = rule2519 _lhsIorderedTypeSynonyms
-         _expressionOtypeConstructors = rule2520 _lhsItypeConstructors
-         _expressionOvalueConstructors = rule2521 _lhsIvalueConstructors
-         _expressionOwarnings = rule2522 _patternIwarnings
+         _lhsOwarnings = rule2523 _expressionIwarnings
+         _patternOallTypeConstructors = rule2524 _lhsIallTypeConstructors
+         _patternOallValueConstructors = rule2525 _lhsIallValueConstructors
+         _patternOcollectScopeInfos = rule2526 _lhsIcollectScopeInfos
+         _patternOcounter = rule2527 _lhsIcounter
+         _patternOmiscerrors = rule2528 _lhsImiscerrors
+         _patternOnamesInScope = rule2529 _namesInScope
+         _patternOtypeConstructors = rule2530 _lhsItypeConstructors
+         _patternOvalueConstructors = rule2531 _lhsIvalueConstructors
+         _patternOwarnings = rule2532 _lhsIwarnings
+         _expressionOallTypeConstructors = rule2533 _lhsIallTypeConstructors
+         _expressionOallValueConstructors = rule2534 _lhsIallValueConstructors
+         _expressionOclassEnvironment = rule2535 _lhsIclassEnvironment
+         _expressionOclassMemberEnv = rule2536 _lhsIclassMemberEnv
+         _expressionOcollectScopeInfos = rule2537 _patternIcollectScopeInfos
+         _expressionOcounter = rule2538 _patternIcounter
+         _expressionOkindErrors = rule2539 _lhsIkindErrors
+         _expressionOmiscerrors = rule2540 _patternImiscerrors
+         _expressionOoptions = rule2541 _lhsIoptions
+         _expressionOorderedTypeSynonyms = rule2542 _lhsIorderedTypeSynonyms
+         _expressionOtypeConstructors = rule2543 _lhsItypeConstructors
+         _expressionOvalueConstructors = rule2544 _lhsIvalueConstructors
+         _expressionOwarnings = rule2545 _patternIwarnings
          __result_ = T_Qualifier_vOut127 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOnamesInScope _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Qualifier_s128 v127
-   {-# INLINE rule2488 #-}
-   rule2488 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) _scopeInfo ->
-                                                 (_scopeInfo, Variable)   : _expressionIcollectScopeInfos
-   {-# INLINE rule2489 #-}
-   rule2489 = \  (_ :: ()) ->
-                                                                False
-   {-# INLINE rule2490 #-}
-   rule2490 = \ ((_expressionIunboundNames) :: Names) ((_lhsInamesInScope) :: Names) ((_lhsIunboundNames) :: Names) ((_patternIpatVarNames) :: Names) ->
-                                                                        changeOfScope _patternIpatVarNames (_expressionIunboundNames  ++ _lhsIunboundNames)  _lhsInamesInScope
-   {-# INLINE rule2491 #-}
-   rule2491 = \ _namesInScope ->
-                                              _namesInScope
-   {-# INLINE rule2492 #-}
-   rule2492 = \ _unboundNames ->
-                                              _unboundNames
-   {-# INLINE rule2493 #-}
-   rule2493 = \ ((_lhsInamesInScope) :: Names) ->
-                                              _lhsInamesInScope
-   {-# INLINE rule2494 #-}
-   rule2494 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
-     _expressionIcollectInstances
-   {-# INLINE rule2495 #-}
-   rule2495 = \ ((_expressionIself) :: Expression) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
-     Qualifier_Generator _rangeIself _patternIself _expressionIself
-   {-# INLINE rule2496 #-}
-   rule2496 = \ _self ->
-     _self
-   {-# INLINE rule2497 #-}
-   rule2497 = \ ((_expressionIcounter) :: Int) ->
-     _expressionIcounter
-   {-# INLINE rule2498 #-}
-   rule2498 = \ ((_expressionIkindErrors) :: [Error]) ->
-     _expressionIkindErrors
-   {-# INLINE rule2499 #-}
-   rule2499 = \ ((_expressionImiscerrors) :: [Error]) ->
-     _expressionImiscerrors
-   {-# INLINE rule2500 #-}
-   rule2500 = \ ((_expressionIwarnings) :: [Warning]) ->
-     _expressionIwarnings
-   {-# INLINE rule2501 #-}
-   rule2501 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule2502 #-}
-   rule2502 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule2503 #-}
-   rule2503 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule2504 #-}
-   rule2504 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule2505 #-}
-   rule2505 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule2506 #-}
-   rule2506 = \ _namesInScope ->
-     _namesInScope
-   {-# INLINE rule2507 #-}
-   rule2507 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule2508 #-}
-   rule2508 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule2509 #-}
-   rule2509 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
-   {-# INLINE rule2510 #-}
-   rule2510 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
    {-# INLINE rule2511 #-}
-   rule2511 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
+   rule2511 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) _scopeInfo ->
+                                                 (_scopeInfo, Variable)   : _expressionIcollectScopeInfos
    {-# INLINE rule2512 #-}
-   rule2512 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
+   rule2512 = \  (_ :: ()) ->
+                                                                False
    {-# INLINE rule2513 #-}
-   rule2513 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
+   rule2513 = \ ((_expressionIunboundNames) :: Names) ((_lhsInamesInScope) :: Names) ((_lhsIunboundNames) :: Names) ((_patternIpatVarNames) :: Names) ->
+                                                                        changeOfScope _patternIpatVarNames (_expressionIunboundNames  ++ _lhsIunboundNames)  _lhsInamesInScope
    {-# INLINE rule2514 #-}
-   rule2514 = \ ((_patternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _patternIcollectScopeInfos
+   rule2514 = \ _namesInScope ->
+                                              _namesInScope
    {-# INLINE rule2515 #-}
-   rule2515 = \ ((_patternIcounter) :: Int) ->
-     _patternIcounter
+   rule2515 = \ _unboundNames ->
+                                              _unboundNames
    {-# INLINE rule2516 #-}
-   rule2516 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
+   rule2516 = \ ((_lhsInamesInScope) :: Names) ->
+                                              _lhsInamesInScope
    {-# INLINE rule2517 #-}
-   rule2517 = \ ((_patternImiscerrors) :: [Error]) ->
-     _patternImiscerrors
+   rule2517 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
+     _expressionIcollectInstances
    {-# INLINE rule2518 #-}
-   rule2518 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule2518 = \ ((_expressionIself) :: Expression) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
+     Qualifier_Generator _rangeIself _patternIself _expressionIself
    {-# INLINE rule2519 #-}
-   rule2519 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule2519 = \ _self ->
+     _self
    {-# INLINE rule2520 #-}
-   rule2520 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule2520 = \ ((_expressionIcounter) :: Int) ->
+     _expressionIcounter
    {-# INLINE rule2521 #-}
-   rule2521 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule2521 = \ ((_expressionIkindErrors) :: [Error]) ->
+     _expressionIkindErrors
    {-# INLINE rule2522 #-}
-   rule2522 = \ ((_patternIwarnings) :: [Warning]) ->
+   rule2522 = \ ((_expressionImiscerrors) :: [Error]) ->
+     _expressionImiscerrors
+   {-# INLINE rule2523 #-}
+   rule2523 = \ ((_expressionIwarnings) :: [Warning]) ->
+     _expressionIwarnings
+   {-# INLINE rule2524 #-}
+   rule2524 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule2525 #-}
+   rule2525 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule2526 #-}
+   rule2526 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule2527 #-}
+   rule2527 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule2528 #-}
+   rule2528 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule2529 #-}
+   rule2529 = \ _namesInScope ->
+     _namesInScope
+   {-# INLINE rule2530 #-}
+   rule2530 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2531 #-}
+   rule2531 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2532 #-}
+   rule2532 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule2533 #-}
+   rule2533 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule2534 #-}
+   rule2534 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule2535 #-}
+   rule2535 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule2536 #-}
+   rule2536 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule2537 #-}
+   rule2537 = \ ((_patternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _patternIcollectScopeInfos
+   {-# INLINE rule2538 #-}
+   rule2538 = \ ((_patternIcounter) :: Int) ->
+     _patternIcounter
+   {-# INLINE rule2539 #-}
+   rule2539 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule2540 #-}
+   rule2540 = \ ((_patternImiscerrors) :: [Error]) ->
+     _patternImiscerrors
+   {-# INLINE rule2541 #-}
+   rule2541 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule2542 #-}
+   rule2542 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule2543 #-}
+   rule2543 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2544 #-}
+   rule2544 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2545 #-}
+   rule2545 = \ ((_patternIwarnings) :: [Warning]) ->
      _patternIwarnings
 {-# NOINLINE sem_Qualifier_Empty #-}
 sem_Qualifier_Empty :: T_Range  -> T_Qualifier 
@@ -15093,56 +15208,56 @@ sem_Qualifier_Empty arg_range_ = T_Qualifier (return st128) where
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2523  ()
-         _self = rule2524 _rangeIself
+         _lhsOcollectInstances = rule2546  ()
+         _self = rule2547 _rangeIself
          _lhsOself :: Qualifier
-         _lhsOself = rule2525 _self
+         _lhsOself = rule2548 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2526 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2549 _lhsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2527 _lhsIcounter
+         _lhsOcounter = rule2550 _lhsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule2528 _lhsIkindErrors
+         _lhsOkindErrors = rule2551 _lhsIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2529 _lhsImiscerrors
+         _lhsOmiscerrors = rule2552 _lhsImiscerrors
          _lhsOnamesInScope :: Names
-         _lhsOnamesInScope = rule2530 _lhsInamesInScope
+         _lhsOnamesInScope = rule2553 _lhsInamesInScope
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2531 _lhsIunboundNames
+         _lhsOunboundNames = rule2554 _lhsIunboundNames
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2532 _lhsIwarnings
+         _lhsOwarnings = rule2555 _lhsIwarnings
          __result_ = T_Qualifier_vOut127 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOnamesInScope _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Qualifier_s128 v127
-   {-# INLINE rule2523 #-}
-   rule2523 = \  (_ :: ()) ->
+   {-# INLINE rule2546 #-}
+   rule2546 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2524 #-}
-   rule2524 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule2547 #-}
+   rule2547 = \ ((_rangeIself) :: Range) ->
      Qualifier_Empty _rangeIself
-   {-# INLINE rule2525 #-}
-   rule2525 = \ _self ->
+   {-# INLINE rule2548 #-}
+   rule2548 = \ _self ->
      _self
-   {-# INLINE rule2526 #-}
-   rule2526 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2549 #-}
+   rule2549 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2527 #-}
-   rule2527 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2550 #-}
+   rule2550 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2528 #-}
-   rule2528 = \ ((_lhsIkindErrors) :: [Error]) ->
+   {-# INLINE rule2551 #-}
+   rule2551 = \ ((_lhsIkindErrors) :: [Error]) ->
      _lhsIkindErrors
-   {-# INLINE rule2529 #-}
-   rule2529 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2552 #-}
+   rule2552 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2530 #-}
-   rule2530 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule2553 #-}
+   rule2553 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule2531 #-}
-   rule2531 = \ ((_lhsIunboundNames) :: Names) ->
+   {-# INLINE rule2554 #-}
+   rule2554 = \ ((_lhsIunboundNames) :: Names) ->
      _lhsIunboundNames
-   {-# INLINE rule2532 #-}
-   rule2532 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2555 #-}
+   rule2555 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 
 -- Qualifiers --------------------------------------------------
@@ -15187,176 +15302,176 @@ sem_Qualifiers_Cons arg_hd_ arg_tl_ = T_Qualifiers (return st131) where
          (T_Qualifier_vOut127 _hdIcollectInstances _hdIcollectScopeInfos _hdIcounter _hdIkindErrors _hdImiscerrors _hdInamesInScope _hdIself _hdIunboundNames _hdIwarnings) = inv_Qualifier_s128 _hdX128 (T_Qualifier_vIn127 _hdOallTypeConstructors _hdOallValueConstructors _hdOclassEnvironment _hdOclassMemberEnv _hdOcollectScopeInfos _hdOcounter _hdOkindErrors _hdOmiscerrors _hdOnamesInScope _hdOoptions _hdOorderedTypeSynonyms _hdOtypeConstructors _hdOunboundNames _hdOvalueConstructors _hdOwarnings)
          (T_Qualifiers_vOut130 _tlIcollectInstances _tlIcollectScopeInfos _tlIcounter _tlIkindErrors _tlImiscerrors _tlInamesInScope _tlIself _tlIunboundNames _tlIwarnings) = inv_Qualifiers_s131 _tlX131 (T_Qualifiers_vIn130 _tlOallTypeConstructors _tlOallValueConstructors _tlOclassEnvironment _tlOclassMemberEnv _tlOcollectScopeInfos _tlOcounter _tlOkindErrors _tlOmiscerrors _tlOnamesInScope _tlOoptions _tlOorderedTypeSynonyms _tlOtypeConstructors _tlOunboundNames _tlOvalueConstructors _tlOwarnings)
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2533 _hdIunboundNames
-         _tlOunboundNames = rule2534 _lhsIunboundNames
-         _hdOunboundNames = rule2535 _tlIunboundNames
+         _lhsOunboundNames = rule2556 _hdIunboundNames
+         _tlOunboundNames = rule2557 _lhsIunboundNames
+         _hdOunboundNames = rule2558 _tlIunboundNames
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2536 _hdIcollectInstances _tlIcollectInstances
-         _self = rule2537 _hdIself _tlIself
+         _lhsOcollectInstances = rule2559 _hdIcollectInstances _tlIcollectInstances
+         _self = rule2560 _hdIself _tlIself
          _lhsOself :: Qualifiers
-         _lhsOself = rule2538 _self
+         _lhsOself = rule2561 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2539 _tlIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2562 _tlIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2540 _tlIcounter
+         _lhsOcounter = rule2563 _tlIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule2541 _tlIkindErrors
+         _lhsOkindErrors = rule2564 _tlIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2542 _tlImiscerrors
+         _lhsOmiscerrors = rule2565 _tlImiscerrors
          _lhsOnamesInScope :: Names
-         _lhsOnamesInScope = rule2543 _tlInamesInScope
+         _lhsOnamesInScope = rule2566 _tlInamesInScope
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2544 _tlIwarnings
-         _hdOallTypeConstructors = rule2545 _lhsIallTypeConstructors
-         _hdOallValueConstructors = rule2546 _lhsIallValueConstructors
-         _hdOclassEnvironment = rule2547 _lhsIclassEnvironment
-         _hdOclassMemberEnv = rule2548 _lhsIclassMemberEnv
-         _hdOcollectScopeInfos = rule2549 _lhsIcollectScopeInfos
-         _hdOcounter = rule2550 _lhsIcounter
-         _hdOkindErrors = rule2551 _lhsIkindErrors
-         _hdOmiscerrors = rule2552 _lhsImiscerrors
-         _hdOnamesInScope = rule2553 _lhsInamesInScope
-         _hdOoptions = rule2554 _lhsIoptions
-         _hdOorderedTypeSynonyms = rule2555 _lhsIorderedTypeSynonyms
-         _hdOtypeConstructors = rule2556 _lhsItypeConstructors
-         _hdOvalueConstructors = rule2557 _lhsIvalueConstructors
-         _hdOwarnings = rule2558 _lhsIwarnings
-         _tlOallTypeConstructors = rule2559 _lhsIallTypeConstructors
-         _tlOallValueConstructors = rule2560 _lhsIallValueConstructors
-         _tlOclassEnvironment = rule2561 _lhsIclassEnvironment
-         _tlOclassMemberEnv = rule2562 _lhsIclassMemberEnv
-         _tlOcollectScopeInfos = rule2563 _hdIcollectScopeInfos
-         _tlOcounter = rule2564 _hdIcounter
-         _tlOkindErrors = rule2565 _hdIkindErrors
-         _tlOmiscerrors = rule2566 _hdImiscerrors
-         _tlOnamesInScope = rule2567 _hdInamesInScope
-         _tlOoptions = rule2568 _lhsIoptions
-         _tlOorderedTypeSynonyms = rule2569 _lhsIorderedTypeSynonyms
-         _tlOtypeConstructors = rule2570 _lhsItypeConstructors
-         _tlOvalueConstructors = rule2571 _lhsIvalueConstructors
-         _tlOwarnings = rule2572 _hdIwarnings
+         _lhsOwarnings = rule2567 _tlIwarnings
+         _hdOallTypeConstructors = rule2568 _lhsIallTypeConstructors
+         _hdOallValueConstructors = rule2569 _lhsIallValueConstructors
+         _hdOclassEnvironment = rule2570 _lhsIclassEnvironment
+         _hdOclassMemberEnv = rule2571 _lhsIclassMemberEnv
+         _hdOcollectScopeInfos = rule2572 _lhsIcollectScopeInfos
+         _hdOcounter = rule2573 _lhsIcounter
+         _hdOkindErrors = rule2574 _lhsIkindErrors
+         _hdOmiscerrors = rule2575 _lhsImiscerrors
+         _hdOnamesInScope = rule2576 _lhsInamesInScope
+         _hdOoptions = rule2577 _lhsIoptions
+         _hdOorderedTypeSynonyms = rule2578 _lhsIorderedTypeSynonyms
+         _hdOtypeConstructors = rule2579 _lhsItypeConstructors
+         _hdOvalueConstructors = rule2580 _lhsIvalueConstructors
+         _hdOwarnings = rule2581 _lhsIwarnings
+         _tlOallTypeConstructors = rule2582 _lhsIallTypeConstructors
+         _tlOallValueConstructors = rule2583 _lhsIallValueConstructors
+         _tlOclassEnvironment = rule2584 _lhsIclassEnvironment
+         _tlOclassMemberEnv = rule2585 _lhsIclassMemberEnv
+         _tlOcollectScopeInfos = rule2586 _hdIcollectScopeInfos
+         _tlOcounter = rule2587 _hdIcounter
+         _tlOkindErrors = rule2588 _hdIkindErrors
+         _tlOmiscerrors = rule2589 _hdImiscerrors
+         _tlOnamesInScope = rule2590 _hdInamesInScope
+         _tlOoptions = rule2591 _lhsIoptions
+         _tlOorderedTypeSynonyms = rule2592 _lhsIorderedTypeSynonyms
+         _tlOtypeConstructors = rule2593 _lhsItypeConstructors
+         _tlOvalueConstructors = rule2594 _lhsIvalueConstructors
+         _tlOwarnings = rule2595 _hdIwarnings
          __result_ = T_Qualifiers_vOut130 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOnamesInScope _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Qualifiers_s131 v130
-   {-# INLINE rule2533 #-}
-   rule2533 = \ ((_hdIunboundNames) :: Names) ->
-                                  _hdIunboundNames
-   {-# INLINE rule2534 #-}
-   rule2534 = \ ((_lhsIunboundNames) :: Names) ->
-                                  _lhsIunboundNames
-   {-# INLINE rule2535 #-}
-   rule2535 = \ ((_tlIunboundNames) :: Names) ->
-                                  _tlIunboundNames
-   {-# INLINE rule2536 #-}
-   rule2536 = \ ((_hdIcollectInstances) :: [(Name, Instance)]) ((_tlIcollectInstances) :: [(Name, Instance)]) ->
-     _hdIcollectInstances  ++  _tlIcollectInstances
-   {-# INLINE rule2537 #-}
-   rule2537 = \ ((_hdIself) :: Qualifier) ((_tlIself) :: Qualifiers) ->
-     (:) _hdIself _tlIself
-   {-# INLINE rule2538 #-}
-   rule2538 = \ _self ->
-     _self
-   {-# INLINE rule2539 #-}
-   rule2539 = \ ((_tlIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _tlIcollectScopeInfos
-   {-# INLINE rule2540 #-}
-   rule2540 = \ ((_tlIcounter) :: Int) ->
-     _tlIcounter
-   {-# INLINE rule2541 #-}
-   rule2541 = \ ((_tlIkindErrors) :: [Error]) ->
-     _tlIkindErrors
-   {-# INLINE rule2542 #-}
-   rule2542 = \ ((_tlImiscerrors) :: [Error]) ->
-     _tlImiscerrors
-   {-# INLINE rule2543 #-}
-   rule2543 = \ ((_tlInamesInScope) :: Names) ->
-     _tlInamesInScope
-   {-# INLINE rule2544 #-}
-   rule2544 = \ ((_tlIwarnings) :: [Warning]) ->
-     _tlIwarnings
-   {-# INLINE rule2545 #-}
-   rule2545 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule2546 #-}
-   rule2546 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule2547 #-}
-   rule2547 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule2548 #-}
-   rule2548 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule2549 #-}
-   rule2549 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule2550 #-}
-   rule2550 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule2551 #-}
-   rule2551 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule2552 #-}
-   rule2552 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule2553 #-}
-   rule2553 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule2554 #-}
-   rule2554 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule2555 #-}
-   rule2555 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
    {-# INLINE rule2556 #-}
-   rule2556 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule2556 = \ ((_hdIunboundNames) :: Names) ->
+                                  _hdIunboundNames
    {-# INLINE rule2557 #-}
-   rule2557 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule2557 = \ ((_lhsIunboundNames) :: Names) ->
+                                  _lhsIunboundNames
    {-# INLINE rule2558 #-}
-   rule2558 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
+   rule2558 = \ ((_tlIunboundNames) :: Names) ->
+                                  _tlIunboundNames
    {-# INLINE rule2559 #-}
-   rule2559 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
+   rule2559 = \ ((_hdIcollectInstances) :: [(Name, Instance)]) ((_tlIcollectInstances) :: [(Name, Instance)]) ->
+     _hdIcollectInstances  ++  _tlIcollectInstances
    {-# INLINE rule2560 #-}
-   rule2560 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
+   rule2560 = \ ((_hdIself) :: Qualifier) ((_tlIself) :: Qualifiers) ->
+     (:) _hdIself _tlIself
    {-# INLINE rule2561 #-}
-   rule2561 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
+   rule2561 = \ _self ->
+     _self
    {-# INLINE rule2562 #-}
-   rule2562 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
+   rule2562 = \ ((_tlIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _tlIcollectScopeInfos
    {-# INLINE rule2563 #-}
-   rule2563 = \ ((_hdIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _hdIcollectScopeInfos
+   rule2563 = \ ((_tlIcounter) :: Int) ->
+     _tlIcounter
    {-# INLINE rule2564 #-}
-   rule2564 = \ ((_hdIcounter) :: Int) ->
-     _hdIcounter
+   rule2564 = \ ((_tlIkindErrors) :: [Error]) ->
+     _tlIkindErrors
    {-# INLINE rule2565 #-}
-   rule2565 = \ ((_hdIkindErrors) :: [Error]) ->
-     _hdIkindErrors
+   rule2565 = \ ((_tlImiscerrors) :: [Error]) ->
+     _tlImiscerrors
    {-# INLINE rule2566 #-}
-   rule2566 = \ ((_hdImiscerrors) :: [Error]) ->
-     _hdImiscerrors
+   rule2566 = \ ((_tlInamesInScope) :: Names) ->
+     _tlInamesInScope
    {-# INLINE rule2567 #-}
-   rule2567 = \ ((_hdInamesInScope) :: Names) ->
-     _hdInamesInScope
+   rule2567 = \ ((_tlIwarnings) :: [Warning]) ->
+     _tlIwarnings
    {-# INLINE rule2568 #-}
-   rule2568 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule2568 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
    {-# INLINE rule2569 #-}
-   rule2569 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule2569 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
    {-# INLINE rule2570 #-}
-   rule2570 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule2570 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
    {-# INLINE rule2571 #-}
-   rule2571 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule2571 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
    {-# INLINE rule2572 #-}
-   rule2572 = \ ((_hdIwarnings) :: [Warning]) ->
+   rule2572 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule2573 #-}
+   rule2573 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule2574 #-}
+   rule2574 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule2575 #-}
+   rule2575 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule2576 #-}
+   rule2576 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule2577 #-}
+   rule2577 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule2578 #-}
+   rule2578 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule2579 #-}
+   rule2579 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2580 #-}
+   rule2580 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2581 #-}
+   rule2581 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule2582 #-}
+   rule2582 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule2583 #-}
+   rule2583 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule2584 #-}
+   rule2584 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule2585 #-}
+   rule2585 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule2586 #-}
+   rule2586 = \ ((_hdIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _hdIcollectScopeInfos
+   {-# INLINE rule2587 #-}
+   rule2587 = \ ((_hdIcounter) :: Int) ->
+     _hdIcounter
+   {-# INLINE rule2588 #-}
+   rule2588 = \ ((_hdIkindErrors) :: [Error]) ->
+     _hdIkindErrors
+   {-# INLINE rule2589 #-}
+   rule2589 = \ ((_hdImiscerrors) :: [Error]) ->
+     _hdImiscerrors
+   {-# INLINE rule2590 #-}
+   rule2590 = \ ((_hdInamesInScope) :: Names) ->
+     _hdInamesInScope
+   {-# INLINE rule2591 #-}
+   rule2591 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule2592 #-}
+   rule2592 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule2593 #-}
+   rule2593 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2594 #-}
+   rule2594 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2595 #-}
+   rule2595 = \ ((_hdIwarnings) :: [Warning]) ->
      _hdIwarnings
 {-# NOINLINE sem_Qualifiers_Nil #-}
 sem_Qualifiers_Nil ::  T_Qualifiers 
@@ -15366,56 +15481,56 @@ sem_Qualifiers_Nil  = T_Qualifiers (return st131) where
       v130 :: T_Qualifiers_v130 
       v130 = \ (T_Qualifiers_vIn130 _lhsIallTypeConstructors _lhsIallValueConstructors _lhsIclassEnvironment _lhsIclassMemberEnv _lhsIcollectScopeInfos _lhsIcounter _lhsIkindErrors _lhsImiscerrors _lhsInamesInScope _lhsIoptions _lhsIorderedTypeSynonyms _lhsItypeConstructors _lhsIunboundNames _lhsIvalueConstructors _lhsIwarnings) -> ( let
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2573 _lhsIunboundNames
+         _lhsOunboundNames = rule2596 _lhsIunboundNames
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2574  ()
-         _self = rule2575  ()
+         _lhsOcollectInstances = rule2597  ()
+         _self = rule2598  ()
          _lhsOself :: Qualifiers
-         _lhsOself = rule2576 _self
+         _lhsOself = rule2599 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2577 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2600 _lhsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2578 _lhsIcounter
+         _lhsOcounter = rule2601 _lhsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule2579 _lhsIkindErrors
+         _lhsOkindErrors = rule2602 _lhsIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2580 _lhsImiscerrors
+         _lhsOmiscerrors = rule2603 _lhsImiscerrors
          _lhsOnamesInScope :: Names
-         _lhsOnamesInScope = rule2581 _lhsInamesInScope
+         _lhsOnamesInScope = rule2604 _lhsInamesInScope
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2582 _lhsIwarnings
+         _lhsOwarnings = rule2605 _lhsIwarnings
          __result_ = T_Qualifiers_vOut130 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOnamesInScope _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Qualifiers_s131 v130
-   {-# INLINE rule2573 #-}
-   rule2573 = \ ((_lhsIunboundNames) :: Names) ->
+   {-# INLINE rule2596 #-}
+   rule2596 = \ ((_lhsIunboundNames) :: Names) ->
                                   _lhsIunboundNames
-   {-# INLINE rule2574 #-}
-   rule2574 = \  (_ :: ()) ->
+   {-# INLINE rule2597 #-}
+   rule2597 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2575 #-}
-   rule2575 = \  (_ :: ()) ->
+   {-# INLINE rule2598 #-}
+   rule2598 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2576 #-}
-   rule2576 = \ _self ->
+   {-# INLINE rule2599 #-}
+   rule2599 = \ _self ->
      _self
-   {-# INLINE rule2577 #-}
-   rule2577 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2600 #-}
+   rule2600 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2578 #-}
-   rule2578 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2601 #-}
+   rule2601 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2579 #-}
-   rule2579 = \ ((_lhsIkindErrors) :: [Error]) ->
+   {-# INLINE rule2602 #-}
+   rule2602 = \ ((_lhsIkindErrors) :: [Error]) ->
      _lhsIkindErrors
-   {-# INLINE rule2580 #-}
-   rule2580 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2603 #-}
+   rule2603 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2581 #-}
-   rule2581 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule2604 #-}
+   rule2604 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule2582 #-}
-   rule2582 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2605 #-}
+   rule2605 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 
 -- Range -------------------------------------------------------
@@ -15459,17 +15574,17 @@ sem_Range_Range arg_start_ arg_stop_ = T_Range (return st134) where
          _stopX125 = Control.Monad.Identity.runIdentity (attach_T_Position (arg_stop_))
          (T_Position_vOut124 _startIself) = inv_Position_s125 _startX125 (T_Position_vIn124 )
          (T_Position_vOut124 _stopIself) = inv_Position_s125 _stopX125 (T_Position_vIn124 )
-         _self = rule2583 _startIself _stopIself
+         _self = rule2606 _startIself _stopIself
          _lhsOself :: Range
-         _lhsOself = rule2584 _self
+         _lhsOself = rule2607 _self
          __result_ = T_Range_vOut133 _lhsOself
          in __result_ )
      in C_Range_s134 v133
-   {-# INLINE rule2583 #-}
-   rule2583 = \ ((_startIself) :: Position) ((_stopIself) :: Position) ->
+   {-# INLINE rule2606 #-}
+   rule2606 = \ ((_startIself) :: Position) ((_stopIself) :: Position) ->
      Range_Range _startIself _stopIself
-   {-# INLINE rule2584 #-}
-   rule2584 = \ _self ->
+   {-# INLINE rule2607 #-}
+   rule2607 = \ _self ->
      _self
 
 -- RecordExpressionBinding -------------------------------------
@@ -15515,97 +15630,97 @@ sem_RecordExpressionBinding_RecordExpressionBinding arg_range_ arg_name_ arg_exp
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Expression_vOut40 _expressionIcollectInstances _expressionIcollectScopeInfos _expressionIcounter _expressionIkindErrors _expressionImiscerrors _expressionIself _expressionIunboundNames _expressionIwarnings) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionOallTypeConstructors _expressionOallValueConstructors _expressionOclassEnvironment _expressionOclassMemberEnv _expressionOcollectScopeInfos _expressionOcounter _expressionOkindErrors _expressionOmiscerrors _expressionOnamesInScope _expressionOoptions _expressionOorderedTypeSynonyms _expressionOtypeConstructors _expressionOvalueConstructors _expressionOwarnings)
-         (_monos,_constructorenv,_betaUnique,_miscerrors,_warnings,_kindErrors,_valueConstructors,_allValueConstructors,_typeConstructors,_allTypeConstructors,_importEnvironment) = rule2585  ()
+         (_monos,_constructorenv,_betaUnique,_miscerrors,_warnings,_kindErrors,_valueConstructors,_allValueConstructors,_typeConstructors,_allTypeConstructors,_importEnvironment) = rule2608  ()
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2586 _expressionIcollectInstances
+         _lhsOcollectInstances = rule2609 _expressionIcollectInstances
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2587 _expressionIunboundNames
-         _self = rule2588 _expressionIself _nameIself _rangeIself
+         _lhsOunboundNames = rule2610 _expressionIunboundNames
+         _self = rule2611 _expressionIself _nameIself _rangeIself
          _lhsOself :: RecordExpressionBinding
-         _lhsOself = rule2589 _self
+         _lhsOself = rule2612 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2590 _expressionIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2613 _expressionIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2591 _expressionIcounter
-         _expressionOallTypeConstructors = rule2592 _allTypeConstructors
-         _expressionOallValueConstructors = rule2593 _allValueConstructors
-         _expressionOclassEnvironment = rule2594 _lhsIclassEnvironment
-         _expressionOclassMemberEnv = rule2595 _lhsIclassMemberEnv
-         _expressionOcollectScopeInfos = rule2596 _lhsIcollectScopeInfos
-         _expressionOcounter = rule2597 _lhsIcounter
-         _expressionOkindErrors = rule2598 _kindErrors
-         _expressionOmiscerrors = rule2599 _miscerrors
-         _expressionOnamesInScope = rule2600 _lhsInamesInScope
-         _expressionOoptions = rule2601 _lhsIoptions
-         _expressionOorderedTypeSynonyms = rule2602 _lhsIorderedTypeSynonyms
-         _expressionOtypeConstructors = rule2603 _typeConstructors
-         _expressionOvalueConstructors = rule2604 _valueConstructors
-         _expressionOwarnings = rule2605 _warnings
+         _lhsOcounter = rule2614 _expressionIcounter
+         _expressionOallTypeConstructors = rule2615 _allTypeConstructors
+         _expressionOallValueConstructors = rule2616 _allValueConstructors
+         _expressionOclassEnvironment = rule2617 _lhsIclassEnvironment
+         _expressionOclassMemberEnv = rule2618 _lhsIclassMemberEnv
+         _expressionOcollectScopeInfos = rule2619 _lhsIcollectScopeInfos
+         _expressionOcounter = rule2620 _lhsIcounter
+         _expressionOkindErrors = rule2621 _kindErrors
+         _expressionOmiscerrors = rule2622 _miscerrors
+         _expressionOnamesInScope = rule2623 _lhsInamesInScope
+         _expressionOoptions = rule2624 _lhsIoptions
+         _expressionOorderedTypeSynonyms = rule2625 _lhsIorderedTypeSynonyms
+         _expressionOtypeConstructors = rule2626 _typeConstructors
+         _expressionOvalueConstructors = rule2627 _valueConstructors
+         _expressionOwarnings = rule2628 _warnings
          __result_ = T_RecordExpressionBinding_vOut136 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOself _lhsOunboundNames
          in __result_ )
      in C_RecordExpressionBinding_s137 v136
-   {-# INLINE rule2585 #-}
-   rule2585 = \  (_ :: ()) ->
+   {-# INLINE rule2608 #-}
+   rule2608 = \  (_ :: ()) ->
                                                                                                                                                                                                       internalError "PartialSyntax.ag" "n/a" "RecordExpressionBinding.RecordExpressionBinding"
-   {-# INLINE rule2586 #-}
-   rule2586 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
+   {-# INLINE rule2609 #-}
+   rule2609 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
      _expressionIcollectInstances
-   {-# INLINE rule2587 #-}
-   rule2587 = \ ((_expressionIunboundNames) :: Names) ->
+   {-# INLINE rule2610 #-}
+   rule2610 = \ ((_expressionIunboundNames) :: Names) ->
      _expressionIunboundNames
-   {-# INLINE rule2588 #-}
-   rule2588 = \ ((_expressionIself) :: Expression) ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule2611 #-}
+   rule2611 = \ ((_expressionIself) :: Expression) ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      RecordExpressionBinding_RecordExpressionBinding _rangeIself _nameIself _expressionIself
-   {-# INLINE rule2589 #-}
-   rule2589 = \ _self ->
+   {-# INLINE rule2612 #-}
+   rule2612 = \ _self ->
      _self
-   {-# INLINE rule2590 #-}
-   rule2590 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2613 #-}
+   rule2613 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _expressionIcollectScopeInfos
-   {-# INLINE rule2591 #-}
-   rule2591 = \ ((_expressionIcounter) :: Int) ->
+   {-# INLINE rule2614 #-}
+   rule2614 = \ ((_expressionIcounter) :: Int) ->
      _expressionIcounter
-   {-# INLINE rule2592 #-}
-   rule2592 = \ _allTypeConstructors ->
+   {-# INLINE rule2615 #-}
+   rule2615 = \ _allTypeConstructors ->
      _allTypeConstructors
-   {-# INLINE rule2593 #-}
-   rule2593 = \ _allValueConstructors ->
+   {-# INLINE rule2616 #-}
+   rule2616 = \ _allValueConstructors ->
      _allValueConstructors
-   {-# INLINE rule2594 #-}
-   rule2594 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+   {-# INLINE rule2617 #-}
+   rule2617 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
      _lhsIclassEnvironment
-   {-# INLINE rule2595 #-}
-   rule2595 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+   {-# INLINE rule2618 #-}
+   rule2618 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
      _lhsIclassMemberEnv
-   {-# INLINE rule2596 #-}
-   rule2596 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2619 #-}
+   rule2619 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2597 #-}
-   rule2597 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2620 #-}
+   rule2620 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2598 #-}
-   rule2598 = \ _kindErrors ->
+   {-# INLINE rule2621 #-}
+   rule2621 = \ _kindErrors ->
      _kindErrors
-   {-# INLINE rule2599 #-}
-   rule2599 = \ _miscerrors ->
+   {-# INLINE rule2622 #-}
+   rule2622 = \ _miscerrors ->
      _miscerrors
-   {-# INLINE rule2600 #-}
-   rule2600 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule2623 #-}
+   rule2623 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule2601 #-}
-   rule2601 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule2624 #-}
+   rule2624 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule2602 #-}
-   rule2602 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+   {-# INLINE rule2625 #-}
+   rule2625 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
      _lhsIorderedTypeSynonyms
-   {-# INLINE rule2603 #-}
-   rule2603 = \ _typeConstructors ->
+   {-# INLINE rule2626 #-}
+   rule2626 = \ _typeConstructors ->
      _typeConstructors
-   {-# INLINE rule2604 #-}
-   rule2604 = \ _valueConstructors ->
+   {-# INLINE rule2627 #-}
+   rule2627 = \ _valueConstructors ->
      _valueConstructors
-   {-# INLINE rule2605 #-}
-   rule2605 = \ _warnings ->
+   {-# INLINE rule2628 #-}
+   rule2628 = \ _warnings ->
      _warnings
 
 -- RecordExpressionBindings ------------------------------------
@@ -15650,92 +15765,92 @@ sem_RecordExpressionBindings_Cons arg_hd_ arg_tl_ = T_RecordExpressionBindings (
          (T_RecordExpressionBinding_vOut136 _hdIcollectInstances _hdIcollectScopeInfos _hdIcounter _hdIself _hdIunboundNames) = inv_RecordExpressionBinding_s137 _hdX137 (T_RecordExpressionBinding_vIn136 _hdOclassEnvironment _hdOclassMemberEnv _hdOcollectScopeInfos _hdOcounter _hdOnamesInScope _hdOoptions _hdOorderedTypeSynonyms)
          (T_RecordExpressionBindings_vOut139 _tlIcollectInstances _tlIcollectScopeInfos _tlIcounter _tlIself _tlIunboundNames) = inv_RecordExpressionBindings_s140 _tlX140 (T_RecordExpressionBindings_vIn139 _tlOclassEnvironment _tlOclassMemberEnv _tlOcollectScopeInfos _tlOcounter _tlOnamesInScope _tlOoptions _tlOorderedTypeSynonyms)
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2606 _hdIcollectInstances _tlIcollectInstances
+         _lhsOcollectInstances = rule2629 _hdIcollectInstances _tlIcollectInstances
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2607 _hdIunboundNames _tlIunboundNames
-         _self = rule2608 _hdIself _tlIself
+         _lhsOunboundNames = rule2630 _hdIunboundNames _tlIunboundNames
+         _self = rule2631 _hdIself _tlIself
          _lhsOself :: RecordExpressionBindings
-         _lhsOself = rule2609 _self
+         _lhsOself = rule2632 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2610 _tlIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2633 _tlIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2611 _tlIcounter
-         _hdOclassEnvironment = rule2612 _lhsIclassEnvironment
-         _hdOclassMemberEnv = rule2613 _lhsIclassMemberEnv
-         _hdOcollectScopeInfos = rule2614 _lhsIcollectScopeInfos
-         _hdOcounter = rule2615 _lhsIcounter
-         _hdOnamesInScope = rule2616 _lhsInamesInScope
-         _hdOoptions = rule2617 _lhsIoptions
-         _hdOorderedTypeSynonyms = rule2618 _lhsIorderedTypeSynonyms
-         _tlOclassEnvironment = rule2619 _lhsIclassEnvironment
-         _tlOclassMemberEnv = rule2620 _lhsIclassMemberEnv
-         _tlOcollectScopeInfos = rule2621 _hdIcollectScopeInfos
-         _tlOcounter = rule2622 _hdIcounter
-         _tlOnamesInScope = rule2623 _lhsInamesInScope
-         _tlOoptions = rule2624 _lhsIoptions
-         _tlOorderedTypeSynonyms = rule2625 _lhsIorderedTypeSynonyms
+         _lhsOcounter = rule2634 _tlIcounter
+         _hdOclassEnvironment = rule2635 _lhsIclassEnvironment
+         _hdOclassMemberEnv = rule2636 _lhsIclassMemberEnv
+         _hdOcollectScopeInfos = rule2637 _lhsIcollectScopeInfos
+         _hdOcounter = rule2638 _lhsIcounter
+         _hdOnamesInScope = rule2639 _lhsInamesInScope
+         _hdOoptions = rule2640 _lhsIoptions
+         _hdOorderedTypeSynonyms = rule2641 _lhsIorderedTypeSynonyms
+         _tlOclassEnvironment = rule2642 _lhsIclassEnvironment
+         _tlOclassMemberEnv = rule2643 _lhsIclassMemberEnv
+         _tlOcollectScopeInfos = rule2644 _hdIcollectScopeInfos
+         _tlOcounter = rule2645 _hdIcounter
+         _tlOnamesInScope = rule2646 _lhsInamesInScope
+         _tlOoptions = rule2647 _lhsIoptions
+         _tlOorderedTypeSynonyms = rule2648 _lhsIorderedTypeSynonyms
          __result_ = T_RecordExpressionBindings_vOut139 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOself _lhsOunboundNames
          in __result_ )
      in C_RecordExpressionBindings_s140 v139
-   {-# INLINE rule2606 #-}
-   rule2606 = \ ((_hdIcollectInstances) :: [(Name, Instance)]) ((_tlIcollectInstances) :: [(Name, Instance)]) ->
+   {-# INLINE rule2629 #-}
+   rule2629 = \ ((_hdIcollectInstances) :: [(Name, Instance)]) ((_tlIcollectInstances) :: [(Name, Instance)]) ->
      _hdIcollectInstances  ++  _tlIcollectInstances
-   {-# INLINE rule2607 #-}
-   rule2607 = \ ((_hdIunboundNames) :: Names) ((_tlIunboundNames) :: Names) ->
+   {-# INLINE rule2630 #-}
+   rule2630 = \ ((_hdIunboundNames) :: Names) ((_tlIunboundNames) :: Names) ->
      _hdIunboundNames ++ _tlIunboundNames
-   {-# INLINE rule2608 #-}
-   rule2608 = \ ((_hdIself) :: RecordExpressionBinding) ((_tlIself) :: RecordExpressionBindings) ->
+   {-# INLINE rule2631 #-}
+   rule2631 = \ ((_hdIself) :: RecordExpressionBinding) ((_tlIself) :: RecordExpressionBindings) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule2609 #-}
-   rule2609 = \ _self ->
+   {-# INLINE rule2632 #-}
+   rule2632 = \ _self ->
      _self
-   {-# INLINE rule2610 #-}
-   rule2610 = \ ((_tlIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2633 #-}
+   rule2633 = \ ((_tlIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _tlIcollectScopeInfos
-   {-# INLINE rule2611 #-}
-   rule2611 = \ ((_tlIcounter) :: Int) ->
+   {-# INLINE rule2634 #-}
+   rule2634 = \ ((_tlIcounter) :: Int) ->
      _tlIcounter
-   {-# INLINE rule2612 #-}
-   rule2612 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+   {-# INLINE rule2635 #-}
+   rule2635 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
      _lhsIclassEnvironment
-   {-# INLINE rule2613 #-}
-   rule2613 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+   {-# INLINE rule2636 #-}
+   rule2636 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
      _lhsIclassMemberEnv
-   {-# INLINE rule2614 #-}
-   rule2614 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2637 #-}
+   rule2637 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2615 #-}
-   rule2615 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2638 #-}
+   rule2638 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2616 #-}
-   rule2616 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule2639 #-}
+   rule2639 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule2617 #-}
-   rule2617 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule2640 #-}
+   rule2640 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule2618 #-}
-   rule2618 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+   {-# INLINE rule2641 #-}
+   rule2641 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
      _lhsIorderedTypeSynonyms
-   {-# INLINE rule2619 #-}
-   rule2619 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+   {-# INLINE rule2642 #-}
+   rule2642 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
      _lhsIclassEnvironment
-   {-# INLINE rule2620 #-}
-   rule2620 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+   {-# INLINE rule2643 #-}
+   rule2643 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
      _lhsIclassMemberEnv
-   {-# INLINE rule2621 #-}
-   rule2621 = \ ((_hdIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2644 #-}
+   rule2644 = \ ((_hdIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _hdIcollectScopeInfos
-   {-# INLINE rule2622 #-}
-   rule2622 = \ ((_hdIcounter) :: Int) ->
+   {-# INLINE rule2645 #-}
+   rule2645 = \ ((_hdIcounter) :: Int) ->
      _hdIcounter
-   {-# INLINE rule2623 #-}
-   rule2623 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule2646 #-}
+   rule2646 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule2624 #-}
-   rule2624 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule2647 #-}
+   rule2647 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule2625 #-}
-   rule2625 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+   {-# INLINE rule2648 #-}
+   rule2648 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
      _lhsIorderedTypeSynonyms
 {-# NOINLINE sem_RecordExpressionBindings_Nil #-}
 sem_RecordExpressionBindings_Nil ::  T_RecordExpressionBindings 
@@ -15745,36 +15860,36 @@ sem_RecordExpressionBindings_Nil  = T_RecordExpressionBindings (return st140) wh
       v139 :: T_RecordExpressionBindings_v139 
       v139 = \ (T_RecordExpressionBindings_vIn139 _lhsIclassEnvironment _lhsIclassMemberEnv _lhsIcollectScopeInfos _lhsIcounter _lhsInamesInScope _lhsIoptions _lhsIorderedTypeSynonyms) -> ( let
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2626  ()
+         _lhsOcollectInstances = rule2649  ()
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2627  ()
-         _self = rule2628  ()
+         _lhsOunboundNames = rule2650  ()
+         _self = rule2651  ()
          _lhsOself :: RecordExpressionBindings
-         _lhsOself = rule2629 _self
+         _lhsOself = rule2652 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2630 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2653 _lhsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2631 _lhsIcounter
+         _lhsOcounter = rule2654 _lhsIcounter
          __result_ = T_RecordExpressionBindings_vOut139 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOself _lhsOunboundNames
          in __result_ )
      in C_RecordExpressionBindings_s140 v139
-   {-# INLINE rule2626 #-}
-   rule2626 = \  (_ :: ()) ->
+   {-# INLINE rule2649 #-}
+   rule2649 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2627 #-}
-   rule2627 = \  (_ :: ()) ->
+   {-# INLINE rule2650 #-}
+   rule2650 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2628 #-}
-   rule2628 = \  (_ :: ()) ->
+   {-# INLINE rule2651 #-}
+   rule2651 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2629 #-}
-   rule2629 = \ _self ->
+   {-# INLINE rule2652 #-}
+   rule2652 = \ _self ->
      _self
-   {-# INLINE rule2630 #-}
-   rule2630 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2653 #-}
+   rule2653 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2631 #-}
-   rule2631 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2654 #-}
+   rule2654 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
 
 -- RecordPatternBinding ----------------------------------------
@@ -15820,76 +15935,76 @@ sem_RecordPatternBinding_RecordPatternBinding arg_range_ arg_name_ arg_pattern_ 
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Pattern_vOut118 _patternIcollectScopeInfos _patternIcounter _patternImiscerrors _patternIpatVarNames _patternIself _patternIunboundNames _patternIwarnings) = inv_Pattern_s119 _patternX119 (T_Pattern_vIn118 _patternOallTypeConstructors _patternOallValueConstructors _patternOcollectScopeInfos _patternOcounter _patternOlhsPattern _patternOmiscerrors _patternOnamesInScope _patternOtypeConstructors _patternOvalueConstructors _patternOwarnings)
-         (_monos,_constructorenv,_betaUnique,_miscerrors,_warnings,_valueConstructors,_allValueConstructors,_typeConstructors,_allTypeConstructors,_importEnvironment) = rule2632  ()
-         _patternOlhsPattern = rule2633  ()
+         (_monos,_constructorenv,_betaUnique,_miscerrors,_warnings,_valueConstructors,_allValueConstructors,_typeConstructors,_allTypeConstructors,_importEnvironment) = rule2655  ()
+         _patternOlhsPattern = rule2656  ()
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2634 _patternIunboundNames
-         _self = rule2635 _nameIself _patternIself _rangeIself
+         _lhsOunboundNames = rule2657 _patternIunboundNames
+         _self = rule2658 _nameIself _patternIself _rangeIself
          _lhsOself :: RecordPatternBinding
-         _lhsOself = rule2636 _self
+         _lhsOself = rule2659 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2637 _patternIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2660 _patternIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2638 _patternIcounter
-         _patternOallTypeConstructors = rule2639 _allTypeConstructors
-         _patternOallValueConstructors = rule2640 _allValueConstructors
-         _patternOcollectScopeInfos = rule2641 _lhsIcollectScopeInfos
-         _patternOcounter = rule2642 _lhsIcounter
-         _patternOmiscerrors = rule2643 _miscerrors
-         _patternOnamesInScope = rule2644 _lhsInamesInScope
-         _patternOtypeConstructors = rule2645 _typeConstructors
-         _patternOvalueConstructors = rule2646 _valueConstructors
-         _patternOwarnings = rule2647 _warnings
+         _lhsOcounter = rule2661 _patternIcounter
+         _patternOallTypeConstructors = rule2662 _allTypeConstructors
+         _patternOallValueConstructors = rule2663 _allValueConstructors
+         _patternOcollectScopeInfos = rule2664 _lhsIcollectScopeInfos
+         _patternOcounter = rule2665 _lhsIcounter
+         _patternOmiscerrors = rule2666 _miscerrors
+         _patternOnamesInScope = rule2667 _lhsInamesInScope
+         _patternOtypeConstructors = rule2668 _typeConstructors
+         _patternOvalueConstructors = rule2669 _valueConstructors
+         _patternOwarnings = rule2670 _warnings
          __result_ = T_RecordPatternBinding_vOut142 _lhsOcollectScopeInfos _lhsOcounter _lhsOself _lhsOunboundNames
          in __result_ )
      in C_RecordPatternBinding_s143 v142
-   {-# INLINE rule2632 #-}
-   rule2632 = \  (_ :: ()) ->
+   {-# INLINE rule2655 #-}
+   rule2655 = \  (_ :: ()) ->
                                                                                                                                                                                           internalError "PartialSyntax.ag" "n/a" "RecordPatternBinding.RecordPatternBinding"
-   {-# INLINE rule2633 #-}
-   rule2633 = \  (_ :: ()) ->
+   {-# INLINE rule2656 #-}
+   rule2656 = \  (_ :: ()) ->
                                                                            False
-   {-# INLINE rule2634 #-}
-   rule2634 = \ ((_patternIunboundNames) :: Names) ->
+   {-# INLINE rule2657 #-}
+   rule2657 = \ ((_patternIunboundNames) :: Names) ->
      _patternIunboundNames
-   {-# INLINE rule2635 #-}
-   rule2635 = \ ((_nameIself) :: Name) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
+   {-# INLINE rule2658 #-}
+   rule2658 = \ ((_nameIself) :: Name) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
      RecordPatternBinding_RecordPatternBinding _rangeIself _nameIself _patternIself
-   {-# INLINE rule2636 #-}
-   rule2636 = \ _self ->
+   {-# INLINE rule2659 #-}
+   rule2659 = \ _self ->
      _self
-   {-# INLINE rule2637 #-}
-   rule2637 = \ ((_patternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2660 #-}
+   rule2660 = \ ((_patternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _patternIcollectScopeInfos
-   {-# INLINE rule2638 #-}
-   rule2638 = \ ((_patternIcounter) :: Int) ->
+   {-# INLINE rule2661 #-}
+   rule2661 = \ ((_patternIcounter) :: Int) ->
      _patternIcounter
-   {-# INLINE rule2639 #-}
-   rule2639 = \ _allTypeConstructors ->
+   {-# INLINE rule2662 #-}
+   rule2662 = \ _allTypeConstructors ->
      _allTypeConstructors
-   {-# INLINE rule2640 #-}
-   rule2640 = \ _allValueConstructors ->
+   {-# INLINE rule2663 #-}
+   rule2663 = \ _allValueConstructors ->
      _allValueConstructors
-   {-# INLINE rule2641 #-}
-   rule2641 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2664 #-}
+   rule2664 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2642 #-}
-   rule2642 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2665 #-}
+   rule2665 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2643 #-}
-   rule2643 = \ _miscerrors ->
+   {-# INLINE rule2666 #-}
+   rule2666 = \ _miscerrors ->
      _miscerrors
-   {-# INLINE rule2644 #-}
-   rule2644 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule2667 #-}
+   rule2667 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule2645 #-}
-   rule2645 = \ _typeConstructors ->
+   {-# INLINE rule2668 #-}
+   rule2668 = \ _typeConstructors ->
      _typeConstructors
-   {-# INLINE rule2646 #-}
-   rule2646 = \ _valueConstructors ->
+   {-# INLINE rule2669 #-}
+   rule2669 = \ _valueConstructors ->
      _valueConstructors
-   {-# INLINE rule2647 #-}
-   rule2647 = \ _warnings ->
+   {-# INLINE rule2670 #-}
+   rule2670 = \ _warnings ->
      _warnings
 
 -- RecordPatternBindings ---------------------------------------
@@ -15934,55 +16049,55 @@ sem_RecordPatternBindings_Cons arg_hd_ arg_tl_ = T_RecordPatternBindings (return
          (T_RecordPatternBinding_vOut142 _hdIcollectScopeInfos _hdIcounter _hdIself _hdIunboundNames) = inv_RecordPatternBinding_s143 _hdX143 (T_RecordPatternBinding_vIn142 _hdOcollectScopeInfos _hdOcounter _hdOnamesInScope)
          (T_RecordPatternBindings_vOut145 _tlIcollectScopeInfos _tlIcounter _tlIself _tlIunboundNames) = inv_RecordPatternBindings_s146 _tlX146 (T_RecordPatternBindings_vIn145 _tlOcollectScopeInfos _tlOcounter _tlOnamesInScope)
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2648 _hdIunboundNames _tlIunboundNames
-         _self = rule2649 _hdIself _tlIself
+         _lhsOunboundNames = rule2671 _hdIunboundNames _tlIunboundNames
+         _self = rule2672 _hdIself _tlIself
          _lhsOself :: RecordPatternBindings
-         _lhsOself = rule2650 _self
+         _lhsOself = rule2673 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2651 _tlIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2674 _tlIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2652 _tlIcounter
-         _hdOcollectScopeInfos = rule2653 _lhsIcollectScopeInfos
-         _hdOcounter = rule2654 _lhsIcounter
-         _hdOnamesInScope = rule2655 _lhsInamesInScope
-         _tlOcollectScopeInfos = rule2656 _hdIcollectScopeInfos
-         _tlOcounter = rule2657 _hdIcounter
-         _tlOnamesInScope = rule2658 _lhsInamesInScope
+         _lhsOcounter = rule2675 _tlIcounter
+         _hdOcollectScopeInfos = rule2676 _lhsIcollectScopeInfos
+         _hdOcounter = rule2677 _lhsIcounter
+         _hdOnamesInScope = rule2678 _lhsInamesInScope
+         _tlOcollectScopeInfos = rule2679 _hdIcollectScopeInfos
+         _tlOcounter = rule2680 _hdIcounter
+         _tlOnamesInScope = rule2681 _lhsInamesInScope
          __result_ = T_RecordPatternBindings_vOut145 _lhsOcollectScopeInfos _lhsOcounter _lhsOself _lhsOunboundNames
          in __result_ )
      in C_RecordPatternBindings_s146 v145
-   {-# INLINE rule2648 #-}
-   rule2648 = \ ((_hdIunboundNames) :: Names) ((_tlIunboundNames) :: Names) ->
+   {-# INLINE rule2671 #-}
+   rule2671 = \ ((_hdIunboundNames) :: Names) ((_tlIunboundNames) :: Names) ->
      _hdIunboundNames ++ _tlIunboundNames
-   {-# INLINE rule2649 #-}
-   rule2649 = \ ((_hdIself) :: RecordPatternBinding) ((_tlIself) :: RecordPatternBindings) ->
+   {-# INLINE rule2672 #-}
+   rule2672 = \ ((_hdIself) :: RecordPatternBinding) ((_tlIself) :: RecordPatternBindings) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule2650 #-}
-   rule2650 = \ _self ->
+   {-# INLINE rule2673 #-}
+   rule2673 = \ _self ->
      _self
-   {-# INLINE rule2651 #-}
-   rule2651 = \ ((_tlIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2674 #-}
+   rule2674 = \ ((_tlIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _tlIcollectScopeInfos
-   {-# INLINE rule2652 #-}
-   rule2652 = \ ((_tlIcounter) :: Int) ->
+   {-# INLINE rule2675 #-}
+   rule2675 = \ ((_tlIcounter) :: Int) ->
      _tlIcounter
-   {-# INLINE rule2653 #-}
-   rule2653 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2676 #-}
+   rule2676 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2654 #-}
-   rule2654 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2677 #-}
+   rule2677 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2655 #-}
-   rule2655 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule2678 #-}
+   rule2678 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule2656 #-}
-   rule2656 = \ ((_hdIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2679 #-}
+   rule2679 = \ ((_hdIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _hdIcollectScopeInfos
-   {-# INLINE rule2657 #-}
-   rule2657 = \ ((_hdIcounter) :: Int) ->
+   {-# INLINE rule2680 #-}
+   rule2680 = \ ((_hdIcounter) :: Int) ->
      _hdIcounter
-   {-# INLINE rule2658 #-}
-   rule2658 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule2681 #-}
+   rule2681 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
 {-# NOINLINE sem_RecordPatternBindings_Nil #-}
 sem_RecordPatternBindings_Nil ::  T_RecordPatternBindings 
@@ -15992,31 +16107,31 @@ sem_RecordPatternBindings_Nil  = T_RecordPatternBindings (return st146) where
       v145 :: T_RecordPatternBindings_v145 
       v145 = \ (T_RecordPatternBindings_vIn145 _lhsIcollectScopeInfos _lhsIcounter _lhsInamesInScope) -> ( let
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2659  ()
-         _self = rule2660  ()
+         _lhsOunboundNames = rule2682  ()
+         _self = rule2683  ()
          _lhsOself :: RecordPatternBindings
-         _lhsOself = rule2661 _self
+         _lhsOself = rule2684 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2662 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2685 _lhsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2663 _lhsIcounter
+         _lhsOcounter = rule2686 _lhsIcounter
          __result_ = T_RecordPatternBindings_vOut145 _lhsOcollectScopeInfos _lhsOcounter _lhsOself _lhsOunboundNames
          in __result_ )
      in C_RecordPatternBindings_s146 v145
-   {-# INLINE rule2659 #-}
-   rule2659 = \  (_ :: ()) ->
+   {-# INLINE rule2682 #-}
+   rule2682 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2660 #-}
-   rule2660 = \  (_ :: ()) ->
+   {-# INLINE rule2683 #-}
+   rule2683 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2661 #-}
-   rule2661 = \ _self ->
+   {-# INLINE rule2684 #-}
+   rule2684 = \ _self ->
      _self
-   {-# INLINE rule2662 #-}
-   rule2662 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2685 #-}
+   rule2685 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2663 #-}
-   rule2663 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2686 #-}
+   rule2686 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
 
 -- RightHandSide -----------------------------------------------
@@ -16064,167 +16179,167 @@ sem_RightHandSide_Expression arg_range_ arg_expression_ arg_where_ = T_RightHand
          (T_Expression_vOut40 _expressionIcollectInstances _expressionIcollectScopeInfos _expressionIcounter _expressionIkindErrors _expressionImiscerrors _expressionIself _expressionIunboundNames _expressionIwarnings) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionOallTypeConstructors _expressionOallValueConstructors _expressionOclassEnvironment _expressionOclassMemberEnv _expressionOcollectScopeInfos _expressionOcounter _expressionOkindErrors _expressionOmiscerrors _expressionOnamesInScope _expressionOoptions _expressionOorderedTypeSynonyms _expressionOtypeConstructors _expressionOvalueConstructors _expressionOwarnings)
          (T_MaybeDeclarations_vOut88 _whereIcollectInstances _whereIcollectScopeInfos _whereIcounter _whereIdeclVarNames _whereIkindErrors _whereImiscerrors _whereInamesInScope _whereIself _whereItypeSignatures _whereIunboundNames _whereIwarnings) = inv_MaybeDeclarations_s89 _whereX89 (T_MaybeDeclarations_vIn88 _whereOallTypeConstructors _whereOallValueConstructors _whereOclassEnvironment _whereOclassMemberEnv _whereOcollectScopeInfos _whereOcounter _whereOkindErrors _whereOmiscerrors _whereOnamesInScope _whereOoptions _whereOorderedTypeSynonyms _whereOtypeConstructors _whereOunboundNames _whereOvalueConstructors _whereOwarnings)
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2664 _whereIunboundNames
-         _expressionOnamesInScope = rule2665 _whereInamesInScope
-         _whereOunboundNames = rule2666 _expressionIunboundNames
+         _lhsOunboundNames = rule2687 _whereIunboundNames
+         _expressionOnamesInScope = rule2688 _whereInamesInScope
+         _whereOunboundNames = rule2689 _expressionIunboundNames
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2667 _expressionIcollectInstances _whereIcollectInstances
-         _self = rule2668 _expressionIself _rangeIself _whereIself
+         _lhsOcollectInstances = rule2690 _expressionIcollectInstances _whereIcollectInstances
+         _self = rule2691 _expressionIself _rangeIself _whereIself
          _lhsOself :: RightHandSide
-         _lhsOself = rule2669 _self
+         _lhsOself = rule2692 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2670 _whereIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2693 _whereIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2671 _whereIcounter
+         _lhsOcounter = rule2694 _whereIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule2672 _whereIkindErrors
+         _lhsOkindErrors = rule2695 _whereIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2673 _whereImiscerrors
+         _lhsOmiscerrors = rule2696 _whereImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2674 _whereIwarnings
-         _expressionOallTypeConstructors = rule2675 _lhsIallTypeConstructors
-         _expressionOallValueConstructors = rule2676 _lhsIallValueConstructors
-         _expressionOclassEnvironment = rule2677 _lhsIclassEnvironment
-         _expressionOclassMemberEnv = rule2678 _lhsIclassMemberEnv
-         _expressionOcollectScopeInfos = rule2679 _lhsIcollectScopeInfos
-         _expressionOcounter = rule2680 _lhsIcounter
-         _expressionOkindErrors = rule2681 _lhsIkindErrors
-         _expressionOmiscerrors = rule2682 _lhsImiscerrors
-         _expressionOoptions = rule2683 _lhsIoptions
-         _expressionOorderedTypeSynonyms = rule2684 _lhsIorderedTypeSynonyms
-         _expressionOtypeConstructors = rule2685 _lhsItypeConstructors
-         _expressionOvalueConstructors = rule2686 _lhsIvalueConstructors
-         _expressionOwarnings = rule2687 _lhsIwarnings
-         _whereOallTypeConstructors = rule2688 _lhsIallTypeConstructors
-         _whereOallValueConstructors = rule2689 _lhsIallValueConstructors
-         _whereOclassEnvironment = rule2690 _lhsIclassEnvironment
-         _whereOclassMemberEnv = rule2691 _lhsIclassMemberEnv
-         _whereOcollectScopeInfos = rule2692 _expressionIcollectScopeInfos
-         _whereOcounter = rule2693 _expressionIcounter
-         _whereOkindErrors = rule2694 _expressionIkindErrors
-         _whereOmiscerrors = rule2695 _expressionImiscerrors
-         _whereOnamesInScope = rule2696 _lhsInamesInScope
-         _whereOoptions = rule2697 _lhsIoptions
-         _whereOorderedTypeSynonyms = rule2698 _lhsIorderedTypeSynonyms
-         _whereOtypeConstructors = rule2699 _lhsItypeConstructors
-         _whereOvalueConstructors = rule2700 _lhsIvalueConstructors
-         _whereOwarnings = rule2701 _expressionIwarnings
+         _lhsOwarnings = rule2697 _whereIwarnings
+         _expressionOallTypeConstructors = rule2698 _lhsIallTypeConstructors
+         _expressionOallValueConstructors = rule2699 _lhsIallValueConstructors
+         _expressionOclassEnvironment = rule2700 _lhsIclassEnvironment
+         _expressionOclassMemberEnv = rule2701 _lhsIclassMemberEnv
+         _expressionOcollectScopeInfos = rule2702 _lhsIcollectScopeInfos
+         _expressionOcounter = rule2703 _lhsIcounter
+         _expressionOkindErrors = rule2704 _lhsIkindErrors
+         _expressionOmiscerrors = rule2705 _lhsImiscerrors
+         _expressionOoptions = rule2706 _lhsIoptions
+         _expressionOorderedTypeSynonyms = rule2707 _lhsIorderedTypeSynonyms
+         _expressionOtypeConstructors = rule2708 _lhsItypeConstructors
+         _expressionOvalueConstructors = rule2709 _lhsIvalueConstructors
+         _expressionOwarnings = rule2710 _lhsIwarnings
+         _whereOallTypeConstructors = rule2711 _lhsIallTypeConstructors
+         _whereOallValueConstructors = rule2712 _lhsIallValueConstructors
+         _whereOclassEnvironment = rule2713 _lhsIclassEnvironment
+         _whereOclassMemberEnv = rule2714 _lhsIclassMemberEnv
+         _whereOcollectScopeInfos = rule2715 _expressionIcollectScopeInfos
+         _whereOcounter = rule2716 _expressionIcounter
+         _whereOkindErrors = rule2717 _expressionIkindErrors
+         _whereOmiscerrors = rule2718 _expressionImiscerrors
+         _whereOnamesInScope = rule2719 _lhsInamesInScope
+         _whereOoptions = rule2720 _lhsIoptions
+         _whereOorderedTypeSynonyms = rule2721 _lhsIorderedTypeSynonyms
+         _whereOtypeConstructors = rule2722 _lhsItypeConstructors
+         _whereOvalueConstructors = rule2723 _lhsIvalueConstructors
+         _whereOwarnings = rule2724 _expressionIwarnings
          __result_ = T_RightHandSide_vOut148 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_RightHandSide_s149 v148
-   {-# INLINE rule2664 #-}
-   rule2664 = \ ((_whereIunboundNames) :: Names) ->
-                                                       _whereIunboundNames
-   {-# INLINE rule2665 #-}
-   rule2665 = \ ((_whereInamesInScope) :: Names) ->
-                                                       _whereInamesInScope
-   {-# INLINE rule2666 #-}
-   rule2666 = \ ((_expressionIunboundNames) :: Names) ->
-                                                       _expressionIunboundNames
-   {-# INLINE rule2667 #-}
-   rule2667 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ((_whereIcollectInstances) :: [(Name, Instance)]) ->
-     _expressionIcollectInstances  ++  _whereIcollectInstances
-   {-# INLINE rule2668 #-}
-   rule2668 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ((_whereIself) :: MaybeDeclarations) ->
-     RightHandSide_Expression _rangeIself _expressionIself _whereIself
-   {-# INLINE rule2669 #-}
-   rule2669 = \ _self ->
-     _self
-   {-# INLINE rule2670 #-}
-   rule2670 = \ ((_whereIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _whereIcollectScopeInfos
-   {-# INLINE rule2671 #-}
-   rule2671 = \ ((_whereIcounter) :: Int) ->
-     _whereIcounter
-   {-# INLINE rule2672 #-}
-   rule2672 = \ ((_whereIkindErrors) :: [Error]) ->
-     _whereIkindErrors
-   {-# INLINE rule2673 #-}
-   rule2673 = \ ((_whereImiscerrors) :: [Error]) ->
-     _whereImiscerrors
-   {-# INLINE rule2674 #-}
-   rule2674 = \ ((_whereIwarnings) :: [Warning]) ->
-     _whereIwarnings
-   {-# INLINE rule2675 #-}
-   rule2675 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule2676 #-}
-   rule2676 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule2677 #-}
-   rule2677 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule2678 #-}
-   rule2678 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule2679 #-}
-   rule2679 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule2680 #-}
-   rule2680 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule2681 #-}
-   rule2681 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule2682 #-}
-   rule2682 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule2683 #-}
-   rule2683 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule2684 #-}
-   rule2684 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule2685 #-}
-   rule2685 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule2686 #-}
-   rule2686 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
    {-# INLINE rule2687 #-}
-   rule2687 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
+   rule2687 = \ ((_whereIunboundNames) :: Names) ->
+                                                       _whereIunboundNames
    {-# INLINE rule2688 #-}
-   rule2688 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
+   rule2688 = \ ((_whereInamesInScope) :: Names) ->
+                                                       _whereInamesInScope
    {-# INLINE rule2689 #-}
-   rule2689 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
+   rule2689 = \ ((_expressionIunboundNames) :: Names) ->
+                                                       _expressionIunboundNames
    {-# INLINE rule2690 #-}
-   rule2690 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
+   rule2690 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ((_whereIcollectInstances) :: [(Name, Instance)]) ->
+     _expressionIcollectInstances  ++  _whereIcollectInstances
    {-# INLINE rule2691 #-}
-   rule2691 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
+   rule2691 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ((_whereIself) :: MaybeDeclarations) ->
+     RightHandSide_Expression _rangeIself _expressionIself _whereIself
    {-# INLINE rule2692 #-}
-   rule2692 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _expressionIcollectScopeInfos
+   rule2692 = \ _self ->
+     _self
    {-# INLINE rule2693 #-}
-   rule2693 = \ ((_expressionIcounter) :: Int) ->
-     _expressionIcounter
+   rule2693 = \ ((_whereIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _whereIcollectScopeInfos
    {-# INLINE rule2694 #-}
-   rule2694 = \ ((_expressionIkindErrors) :: [Error]) ->
-     _expressionIkindErrors
+   rule2694 = \ ((_whereIcounter) :: Int) ->
+     _whereIcounter
    {-# INLINE rule2695 #-}
-   rule2695 = \ ((_expressionImiscerrors) :: [Error]) ->
-     _expressionImiscerrors
+   rule2695 = \ ((_whereIkindErrors) :: [Error]) ->
+     _whereIkindErrors
    {-# INLINE rule2696 #-}
-   rule2696 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
+   rule2696 = \ ((_whereImiscerrors) :: [Error]) ->
+     _whereImiscerrors
    {-# INLINE rule2697 #-}
-   rule2697 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule2697 = \ ((_whereIwarnings) :: [Warning]) ->
+     _whereIwarnings
    {-# INLINE rule2698 #-}
-   rule2698 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule2698 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
    {-# INLINE rule2699 #-}
-   rule2699 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule2699 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
    {-# INLINE rule2700 #-}
-   rule2700 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule2700 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
    {-# INLINE rule2701 #-}
-   rule2701 = \ ((_expressionIwarnings) :: [Warning]) ->
+   rule2701 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule2702 #-}
+   rule2702 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule2703 #-}
+   rule2703 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule2704 #-}
+   rule2704 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule2705 #-}
+   rule2705 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule2706 #-}
+   rule2706 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule2707 #-}
+   rule2707 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule2708 #-}
+   rule2708 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2709 #-}
+   rule2709 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2710 #-}
+   rule2710 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule2711 #-}
+   rule2711 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule2712 #-}
+   rule2712 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule2713 #-}
+   rule2713 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule2714 #-}
+   rule2714 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule2715 #-}
+   rule2715 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _expressionIcollectScopeInfos
+   {-# INLINE rule2716 #-}
+   rule2716 = \ ((_expressionIcounter) :: Int) ->
+     _expressionIcounter
+   {-# INLINE rule2717 #-}
+   rule2717 = \ ((_expressionIkindErrors) :: [Error]) ->
+     _expressionIkindErrors
+   {-# INLINE rule2718 #-}
+   rule2718 = \ ((_expressionImiscerrors) :: [Error]) ->
+     _expressionImiscerrors
+   {-# INLINE rule2719 #-}
+   rule2719 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule2720 #-}
+   rule2720 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule2721 #-}
+   rule2721 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule2722 #-}
+   rule2722 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2723 #-}
+   rule2723 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2724 #-}
+   rule2724 = \ ((_expressionIwarnings) :: [Warning]) ->
      _expressionIwarnings
 {-# NOINLINE sem_RightHandSide_Guarded #-}
 sem_RightHandSide_Guarded :: T_Range  -> T_GuardedExpressions  -> T_MaybeDeclarations  -> T_RightHandSide 
@@ -16240,167 +16355,167 @@ sem_RightHandSide_Guarded arg_range_ arg_guardedexpressions_ arg_where_ = T_Righ
          (T_GuardedExpressions_vOut64 _guardedexpressionsIcollectInstances _guardedexpressionsIcollectScopeInfos _guardedexpressionsIcounter _guardedexpressionsIkindErrors _guardedexpressionsImiscerrors _guardedexpressionsIself _guardedexpressionsIunboundNames _guardedexpressionsIwarnings) = inv_GuardedExpressions_s65 _guardedexpressionsX65 (T_GuardedExpressions_vIn64 _guardedexpressionsOallTypeConstructors _guardedexpressionsOallValueConstructors _guardedexpressionsOclassEnvironment _guardedexpressionsOclassMemberEnv _guardedexpressionsOcollectScopeInfos _guardedexpressionsOcounter _guardedexpressionsOkindErrors _guardedexpressionsOmiscerrors _guardedexpressionsOnamesInScope _guardedexpressionsOoptions _guardedexpressionsOorderedTypeSynonyms _guardedexpressionsOtypeConstructors _guardedexpressionsOvalueConstructors _guardedexpressionsOwarnings)
          (T_MaybeDeclarations_vOut88 _whereIcollectInstances _whereIcollectScopeInfos _whereIcounter _whereIdeclVarNames _whereIkindErrors _whereImiscerrors _whereInamesInScope _whereIself _whereItypeSignatures _whereIunboundNames _whereIwarnings) = inv_MaybeDeclarations_s89 _whereX89 (T_MaybeDeclarations_vIn88 _whereOallTypeConstructors _whereOallValueConstructors _whereOclassEnvironment _whereOclassMemberEnv _whereOcollectScopeInfos _whereOcounter _whereOkindErrors _whereOmiscerrors _whereOnamesInScope _whereOoptions _whereOorderedTypeSynonyms _whereOtypeConstructors _whereOunboundNames _whereOvalueConstructors _whereOwarnings)
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2702 _whereIunboundNames
-         _guardedexpressionsOnamesInScope = rule2703 _whereInamesInScope
-         _whereOunboundNames = rule2704 _guardedexpressionsIunboundNames
+         _lhsOunboundNames = rule2725 _whereIunboundNames
+         _guardedexpressionsOnamesInScope = rule2726 _whereInamesInScope
+         _whereOunboundNames = rule2727 _guardedexpressionsIunboundNames
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2705 _guardedexpressionsIcollectInstances _whereIcollectInstances
-         _self = rule2706 _guardedexpressionsIself _rangeIself _whereIself
+         _lhsOcollectInstances = rule2728 _guardedexpressionsIcollectInstances _whereIcollectInstances
+         _self = rule2729 _guardedexpressionsIself _rangeIself _whereIself
          _lhsOself :: RightHandSide
-         _lhsOself = rule2707 _self
+         _lhsOself = rule2730 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2708 _whereIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2731 _whereIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2709 _whereIcounter
+         _lhsOcounter = rule2732 _whereIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule2710 _whereIkindErrors
+         _lhsOkindErrors = rule2733 _whereIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2711 _whereImiscerrors
+         _lhsOmiscerrors = rule2734 _whereImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2712 _whereIwarnings
-         _guardedexpressionsOallTypeConstructors = rule2713 _lhsIallTypeConstructors
-         _guardedexpressionsOallValueConstructors = rule2714 _lhsIallValueConstructors
-         _guardedexpressionsOclassEnvironment = rule2715 _lhsIclassEnvironment
-         _guardedexpressionsOclassMemberEnv = rule2716 _lhsIclassMemberEnv
-         _guardedexpressionsOcollectScopeInfos = rule2717 _lhsIcollectScopeInfos
-         _guardedexpressionsOcounter = rule2718 _lhsIcounter
-         _guardedexpressionsOkindErrors = rule2719 _lhsIkindErrors
-         _guardedexpressionsOmiscerrors = rule2720 _lhsImiscerrors
-         _guardedexpressionsOoptions = rule2721 _lhsIoptions
-         _guardedexpressionsOorderedTypeSynonyms = rule2722 _lhsIorderedTypeSynonyms
-         _guardedexpressionsOtypeConstructors = rule2723 _lhsItypeConstructors
-         _guardedexpressionsOvalueConstructors = rule2724 _lhsIvalueConstructors
-         _guardedexpressionsOwarnings = rule2725 _lhsIwarnings
-         _whereOallTypeConstructors = rule2726 _lhsIallTypeConstructors
-         _whereOallValueConstructors = rule2727 _lhsIallValueConstructors
-         _whereOclassEnvironment = rule2728 _lhsIclassEnvironment
-         _whereOclassMemberEnv = rule2729 _lhsIclassMemberEnv
-         _whereOcollectScopeInfos = rule2730 _guardedexpressionsIcollectScopeInfos
-         _whereOcounter = rule2731 _guardedexpressionsIcounter
-         _whereOkindErrors = rule2732 _guardedexpressionsIkindErrors
-         _whereOmiscerrors = rule2733 _guardedexpressionsImiscerrors
-         _whereOnamesInScope = rule2734 _lhsInamesInScope
-         _whereOoptions = rule2735 _lhsIoptions
-         _whereOorderedTypeSynonyms = rule2736 _lhsIorderedTypeSynonyms
-         _whereOtypeConstructors = rule2737 _lhsItypeConstructors
-         _whereOvalueConstructors = rule2738 _lhsIvalueConstructors
-         _whereOwarnings = rule2739 _guardedexpressionsIwarnings
+         _lhsOwarnings = rule2735 _whereIwarnings
+         _guardedexpressionsOallTypeConstructors = rule2736 _lhsIallTypeConstructors
+         _guardedexpressionsOallValueConstructors = rule2737 _lhsIallValueConstructors
+         _guardedexpressionsOclassEnvironment = rule2738 _lhsIclassEnvironment
+         _guardedexpressionsOclassMemberEnv = rule2739 _lhsIclassMemberEnv
+         _guardedexpressionsOcollectScopeInfos = rule2740 _lhsIcollectScopeInfos
+         _guardedexpressionsOcounter = rule2741 _lhsIcounter
+         _guardedexpressionsOkindErrors = rule2742 _lhsIkindErrors
+         _guardedexpressionsOmiscerrors = rule2743 _lhsImiscerrors
+         _guardedexpressionsOoptions = rule2744 _lhsIoptions
+         _guardedexpressionsOorderedTypeSynonyms = rule2745 _lhsIorderedTypeSynonyms
+         _guardedexpressionsOtypeConstructors = rule2746 _lhsItypeConstructors
+         _guardedexpressionsOvalueConstructors = rule2747 _lhsIvalueConstructors
+         _guardedexpressionsOwarnings = rule2748 _lhsIwarnings
+         _whereOallTypeConstructors = rule2749 _lhsIallTypeConstructors
+         _whereOallValueConstructors = rule2750 _lhsIallValueConstructors
+         _whereOclassEnvironment = rule2751 _lhsIclassEnvironment
+         _whereOclassMemberEnv = rule2752 _lhsIclassMemberEnv
+         _whereOcollectScopeInfos = rule2753 _guardedexpressionsIcollectScopeInfos
+         _whereOcounter = rule2754 _guardedexpressionsIcounter
+         _whereOkindErrors = rule2755 _guardedexpressionsIkindErrors
+         _whereOmiscerrors = rule2756 _guardedexpressionsImiscerrors
+         _whereOnamesInScope = rule2757 _lhsInamesInScope
+         _whereOoptions = rule2758 _lhsIoptions
+         _whereOorderedTypeSynonyms = rule2759 _lhsIorderedTypeSynonyms
+         _whereOtypeConstructors = rule2760 _lhsItypeConstructors
+         _whereOvalueConstructors = rule2761 _lhsIvalueConstructors
+         _whereOwarnings = rule2762 _guardedexpressionsIwarnings
          __result_ = T_RightHandSide_vOut148 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOmiscerrors _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_RightHandSide_s149 v148
-   {-# INLINE rule2702 #-}
-   rule2702 = \ ((_whereIunboundNames) :: Names) ->
-                                                       _whereIunboundNames
-   {-# INLINE rule2703 #-}
-   rule2703 = \ ((_whereInamesInScope) :: Names) ->
-                                                       _whereInamesInScope
-   {-# INLINE rule2704 #-}
-   rule2704 = \ ((_guardedexpressionsIunboundNames) :: Names) ->
-                                                       _guardedexpressionsIunboundNames
-   {-# INLINE rule2705 #-}
-   rule2705 = \ ((_guardedexpressionsIcollectInstances) :: [(Name, Instance)]) ((_whereIcollectInstances) :: [(Name, Instance)]) ->
-     _guardedexpressionsIcollectInstances  ++  _whereIcollectInstances
-   {-# INLINE rule2706 #-}
-   rule2706 = \ ((_guardedexpressionsIself) :: GuardedExpressions) ((_rangeIself) :: Range) ((_whereIself) :: MaybeDeclarations) ->
-     RightHandSide_Guarded _rangeIself _guardedexpressionsIself _whereIself
-   {-# INLINE rule2707 #-}
-   rule2707 = \ _self ->
-     _self
-   {-# INLINE rule2708 #-}
-   rule2708 = \ ((_whereIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _whereIcollectScopeInfos
-   {-# INLINE rule2709 #-}
-   rule2709 = \ ((_whereIcounter) :: Int) ->
-     _whereIcounter
-   {-# INLINE rule2710 #-}
-   rule2710 = \ ((_whereIkindErrors) :: [Error]) ->
-     _whereIkindErrors
-   {-# INLINE rule2711 #-}
-   rule2711 = \ ((_whereImiscerrors) :: [Error]) ->
-     _whereImiscerrors
-   {-# INLINE rule2712 #-}
-   rule2712 = \ ((_whereIwarnings) :: [Warning]) ->
-     _whereIwarnings
-   {-# INLINE rule2713 #-}
-   rule2713 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule2714 #-}
-   rule2714 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule2715 #-}
-   rule2715 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule2716 #-}
-   rule2716 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule2717 #-}
-   rule2717 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule2718 #-}
-   rule2718 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule2719 #-}
-   rule2719 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule2720 #-}
-   rule2720 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule2721 #-}
-   rule2721 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule2722 #-}
-   rule2722 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule2723 #-}
-   rule2723 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule2724 #-}
-   rule2724 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
    {-# INLINE rule2725 #-}
-   rule2725 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
+   rule2725 = \ ((_whereIunboundNames) :: Names) ->
+                                                       _whereIunboundNames
    {-# INLINE rule2726 #-}
-   rule2726 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
+   rule2726 = \ ((_whereInamesInScope) :: Names) ->
+                                                       _whereInamesInScope
    {-# INLINE rule2727 #-}
-   rule2727 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
+   rule2727 = \ ((_guardedexpressionsIunboundNames) :: Names) ->
+                                                       _guardedexpressionsIunboundNames
    {-# INLINE rule2728 #-}
-   rule2728 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
+   rule2728 = \ ((_guardedexpressionsIcollectInstances) :: [(Name, Instance)]) ((_whereIcollectInstances) :: [(Name, Instance)]) ->
+     _guardedexpressionsIcollectInstances  ++  _whereIcollectInstances
    {-# INLINE rule2729 #-}
-   rule2729 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
+   rule2729 = \ ((_guardedexpressionsIself) :: GuardedExpressions) ((_rangeIself) :: Range) ((_whereIself) :: MaybeDeclarations) ->
+     RightHandSide_Guarded _rangeIself _guardedexpressionsIself _whereIself
    {-# INLINE rule2730 #-}
-   rule2730 = \ ((_guardedexpressionsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _guardedexpressionsIcollectScopeInfos
+   rule2730 = \ _self ->
+     _self
    {-# INLINE rule2731 #-}
-   rule2731 = \ ((_guardedexpressionsIcounter) :: Int) ->
-     _guardedexpressionsIcounter
+   rule2731 = \ ((_whereIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _whereIcollectScopeInfos
    {-# INLINE rule2732 #-}
-   rule2732 = \ ((_guardedexpressionsIkindErrors) :: [Error]) ->
-     _guardedexpressionsIkindErrors
+   rule2732 = \ ((_whereIcounter) :: Int) ->
+     _whereIcounter
    {-# INLINE rule2733 #-}
-   rule2733 = \ ((_guardedexpressionsImiscerrors) :: [Error]) ->
-     _guardedexpressionsImiscerrors
+   rule2733 = \ ((_whereIkindErrors) :: [Error]) ->
+     _whereIkindErrors
    {-# INLINE rule2734 #-}
-   rule2734 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
+   rule2734 = \ ((_whereImiscerrors) :: [Error]) ->
+     _whereImiscerrors
    {-# INLINE rule2735 #-}
-   rule2735 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule2735 = \ ((_whereIwarnings) :: [Warning]) ->
+     _whereIwarnings
    {-# INLINE rule2736 #-}
-   rule2736 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule2736 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
    {-# INLINE rule2737 #-}
-   rule2737 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule2737 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
    {-# INLINE rule2738 #-}
-   rule2738 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule2738 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
    {-# INLINE rule2739 #-}
-   rule2739 = \ ((_guardedexpressionsIwarnings) :: [Warning]) ->
+   rule2739 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule2740 #-}
+   rule2740 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule2741 #-}
+   rule2741 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule2742 #-}
+   rule2742 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule2743 #-}
+   rule2743 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule2744 #-}
+   rule2744 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule2745 #-}
+   rule2745 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule2746 #-}
+   rule2746 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2747 #-}
+   rule2747 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2748 #-}
+   rule2748 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule2749 #-}
+   rule2749 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule2750 #-}
+   rule2750 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule2751 #-}
+   rule2751 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule2752 #-}
+   rule2752 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule2753 #-}
+   rule2753 = \ ((_guardedexpressionsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _guardedexpressionsIcollectScopeInfos
+   {-# INLINE rule2754 #-}
+   rule2754 = \ ((_guardedexpressionsIcounter) :: Int) ->
+     _guardedexpressionsIcounter
+   {-# INLINE rule2755 #-}
+   rule2755 = \ ((_guardedexpressionsIkindErrors) :: [Error]) ->
+     _guardedexpressionsIkindErrors
+   {-# INLINE rule2756 #-}
+   rule2756 = \ ((_guardedexpressionsImiscerrors) :: [Error]) ->
+     _guardedexpressionsImiscerrors
+   {-# INLINE rule2757 #-}
+   rule2757 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule2758 #-}
+   rule2758 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule2759 #-}
+   rule2759 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule2760 #-}
+   rule2760 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2761 #-}
+   rule2761 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2762 #-}
+   rule2762 = \ ((_guardedexpressionsIwarnings) :: [Warning]) ->
      _guardedexpressionsIwarnings
 
 -- SimpleType --------------------------------------------------
@@ -16447,26 +16562,26 @@ sem_SimpleType_SimpleType arg_range_ arg_name_ arg_typevariables_ = T_SimpleType
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          (T_Names_vOut115 _typevariablesIself) = inv_Names_s116 _typevariablesX116 (T_Names_vIn115 )
          _lhsOname :: Name
-         _lhsOname = rule2740 _nameIself
+         _lhsOname = rule2763 _nameIself
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule2741 _typevariablesIself
-         _self = rule2742 _nameIself _rangeIself _typevariablesIself
+         _lhsOtypevariables = rule2764 _typevariablesIself
+         _self = rule2765 _nameIself _rangeIself _typevariablesIself
          _lhsOself :: SimpleType
-         _lhsOself = rule2743 _self
+         _lhsOself = rule2766 _self
          __result_ = T_SimpleType_vOut151 _lhsOname _lhsOself _lhsOtypevariables
          in __result_ )
      in C_SimpleType_s152 v151
-   {-# INLINE rule2740 #-}
-   rule2740 = \ ((_nameIself) :: Name) ->
+   {-# INLINE rule2763 #-}
+   rule2763 = \ ((_nameIself) :: Name) ->
                                         _nameIself
-   {-# INLINE rule2741 #-}
-   rule2741 = \ ((_typevariablesIself) :: Names) ->
+   {-# INLINE rule2764 #-}
+   rule2764 = \ ((_typevariablesIself) :: Names) ->
                                         _typevariablesIself
-   {-# INLINE rule2742 #-}
-   rule2742 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_typevariablesIself) :: Names) ->
+   {-# INLINE rule2765 #-}
+   rule2765 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_typevariablesIself) :: Names) ->
      SimpleType_SimpleType _rangeIself _nameIself _typevariablesIself
-   {-# INLINE rule2743 #-}
-   rule2743 = \ _self ->
+   {-# INLINE rule2766 #-}
+   rule2766 = \ _self ->
      _self
 
 -- Statement ---------------------------------------------------
@@ -16514,117 +16629,117 @@ sem_Statement_Expression arg_range_ arg_expression_ = T_Statement (return st155)
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionIcollectInstances _expressionIcollectScopeInfos _expressionIcounter _expressionIkindErrors _expressionImiscerrors _expressionIself _expressionIunboundNames _expressionIwarnings) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionOallTypeConstructors _expressionOallValueConstructors _expressionOclassEnvironment _expressionOclassMemberEnv _expressionOcollectScopeInfos _expressionOcounter _expressionOkindErrors _expressionOmiscerrors _expressionOnamesInScope _expressionOoptions _expressionOorderedTypeSynonyms _expressionOtypeConstructors _expressionOvalueConstructors _expressionOwarnings)
          _lhsOlastStatementIsExpr :: Bool
-         _lhsOlastStatementIsExpr = rule2744  ()
+         _lhsOlastStatementIsExpr = rule2767  ()
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2745 _expressionIunboundNames _lhsIunboundNames
+         _lhsOunboundNames = rule2768 _expressionIunboundNames _lhsIunboundNames
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2746 _expressionIcollectInstances
-         _self = rule2747 _expressionIself _rangeIself
+         _lhsOcollectInstances = rule2769 _expressionIcollectInstances
+         _self = rule2770 _expressionIself _rangeIself
          _lhsOself :: Statement
-         _lhsOself = rule2748 _self
+         _lhsOself = rule2771 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2749 _expressionIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2772 _expressionIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2750 _expressionIcounter
+         _lhsOcounter = rule2773 _expressionIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule2751 _expressionIkindErrors
+         _lhsOkindErrors = rule2774 _expressionIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2752 _expressionImiscerrors
+         _lhsOmiscerrors = rule2775 _expressionImiscerrors
          _lhsOnamesInScope :: Names
-         _lhsOnamesInScope = rule2753 _lhsInamesInScope
+         _lhsOnamesInScope = rule2776 _lhsInamesInScope
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2754 _expressionIwarnings
-         _expressionOallTypeConstructors = rule2755 _lhsIallTypeConstructors
-         _expressionOallValueConstructors = rule2756 _lhsIallValueConstructors
-         _expressionOclassEnvironment = rule2757 _lhsIclassEnvironment
-         _expressionOclassMemberEnv = rule2758 _lhsIclassMemberEnv
-         _expressionOcollectScopeInfos = rule2759 _lhsIcollectScopeInfos
-         _expressionOcounter = rule2760 _lhsIcounter
-         _expressionOkindErrors = rule2761 _lhsIkindErrors
-         _expressionOmiscerrors = rule2762 _lhsImiscerrors
-         _expressionOnamesInScope = rule2763 _lhsInamesInScope
-         _expressionOoptions = rule2764 _lhsIoptions
-         _expressionOorderedTypeSynonyms = rule2765 _lhsIorderedTypeSynonyms
-         _expressionOtypeConstructors = rule2766 _lhsItypeConstructors
-         _expressionOvalueConstructors = rule2767 _lhsIvalueConstructors
-         _expressionOwarnings = rule2768 _lhsIwarnings
+         _lhsOwarnings = rule2777 _expressionIwarnings
+         _expressionOallTypeConstructors = rule2778 _lhsIallTypeConstructors
+         _expressionOallValueConstructors = rule2779 _lhsIallValueConstructors
+         _expressionOclassEnvironment = rule2780 _lhsIclassEnvironment
+         _expressionOclassMemberEnv = rule2781 _lhsIclassMemberEnv
+         _expressionOcollectScopeInfos = rule2782 _lhsIcollectScopeInfos
+         _expressionOcounter = rule2783 _lhsIcounter
+         _expressionOkindErrors = rule2784 _lhsIkindErrors
+         _expressionOmiscerrors = rule2785 _lhsImiscerrors
+         _expressionOnamesInScope = rule2786 _lhsInamesInScope
+         _expressionOoptions = rule2787 _lhsIoptions
+         _expressionOorderedTypeSynonyms = rule2788 _lhsIorderedTypeSynonyms
+         _expressionOtypeConstructors = rule2789 _lhsItypeConstructors
+         _expressionOvalueConstructors = rule2790 _lhsIvalueConstructors
+         _expressionOwarnings = rule2791 _lhsIwarnings
          __result_ = T_Statement_vOut154 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOlastStatementIsExpr _lhsOmiscerrors _lhsOnamesInScope _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Statement_s155 v154
-   {-# INLINE rule2744 #-}
-   rule2744 = \  (_ :: ()) ->
-                                              True
-   {-# INLINE rule2745 #-}
-   rule2745 = \ ((_expressionIunboundNames) :: Names) ((_lhsIunboundNames) :: Names) ->
-                                              _expressionIunboundNames ++ _lhsIunboundNames
-   {-# INLINE rule2746 #-}
-   rule2746 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
-     _expressionIcollectInstances
-   {-# INLINE rule2747 #-}
-   rule2747 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
-     Statement_Expression _rangeIself _expressionIself
-   {-# INLINE rule2748 #-}
-   rule2748 = \ _self ->
-     _self
-   {-# INLINE rule2749 #-}
-   rule2749 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _expressionIcollectScopeInfos
-   {-# INLINE rule2750 #-}
-   rule2750 = \ ((_expressionIcounter) :: Int) ->
-     _expressionIcounter
-   {-# INLINE rule2751 #-}
-   rule2751 = \ ((_expressionIkindErrors) :: [Error]) ->
-     _expressionIkindErrors
-   {-# INLINE rule2752 #-}
-   rule2752 = \ ((_expressionImiscerrors) :: [Error]) ->
-     _expressionImiscerrors
-   {-# INLINE rule2753 #-}
-   rule2753 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule2754 #-}
-   rule2754 = \ ((_expressionIwarnings) :: [Warning]) ->
-     _expressionIwarnings
-   {-# INLINE rule2755 #-}
-   rule2755 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule2756 #-}
-   rule2756 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule2757 #-}
-   rule2757 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule2758 #-}
-   rule2758 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule2759 #-}
-   rule2759 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule2760 #-}
-   rule2760 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule2761 #-}
-   rule2761 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule2762 #-}
-   rule2762 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule2763 #-}
-   rule2763 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
-   {-# INLINE rule2764 #-}
-   rule2764 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
-   {-# INLINE rule2765 #-}
-   rule2765 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
-   {-# INLINE rule2766 #-}
-   rule2766 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
    {-# INLINE rule2767 #-}
-   rule2767 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule2767 = \  (_ :: ()) ->
+                                              True
    {-# INLINE rule2768 #-}
-   rule2768 = \ ((_lhsIwarnings) :: [Warning]) ->
+   rule2768 = \ ((_expressionIunboundNames) :: Names) ((_lhsIunboundNames) :: Names) ->
+                                              _expressionIunboundNames ++ _lhsIunboundNames
+   {-# INLINE rule2769 #-}
+   rule2769 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
+     _expressionIcollectInstances
+   {-# INLINE rule2770 #-}
+   rule2770 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
+     Statement_Expression _rangeIself _expressionIself
+   {-# INLINE rule2771 #-}
+   rule2771 = \ _self ->
+     _self
+   {-# INLINE rule2772 #-}
+   rule2772 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _expressionIcollectScopeInfos
+   {-# INLINE rule2773 #-}
+   rule2773 = \ ((_expressionIcounter) :: Int) ->
+     _expressionIcounter
+   {-# INLINE rule2774 #-}
+   rule2774 = \ ((_expressionIkindErrors) :: [Error]) ->
+     _expressionIkindErrors
+   {-# INLINE rule2775 #-}
+   rule2775 = \ ((_expressionImiscerrors) :: [Error]) ->
+     _expressionImiscerrors
+   {-# INLINE rule2776 #-}
+   rule2776 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule2777 #-}
+   rule2777 = \ ((_expressionIwarnings) :: [Warning]) ->
+     _expressionIwarnings
+   {-# INLINE rule2778 #-}
+   rule2778 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule2779 #-}
+   rule2779 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule2780 #-}
+   rule2780 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule2781 #-}
+   rule2781 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule2782 #-}
+   rule2782 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule2783 #-}
+   rule2783 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule2784 #-}
+   rule2784 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule2785 #-}
+   rule2785 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule2786 #-}
+   rule2786 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule2787 #-}
+   rule2787 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule2788 #-}
+   rule2788 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule2789 #-}
+   rule2789 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2790 #-}
+   rule2790 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2791 #-}
+   rule2791 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_Statement_Let #-}
 sem_Statement_Let :: T_Range  -> T_Declarations  -> T_Statement 
@@ -16638,166 +16753,166 @@ sem_Statement_Let arg_range_ arg_declarations_ = T_Statement (return st155) wher
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Declarations_vOut31 _declarationsIclassEnv _declarationsIcollectClassMemberEnv _declarationsIcollectInstances _declarationsIcollectScopeInfos _declarationsIcollectTypeClasses _declarationsIcollectTypeConstructors _declarationsIcollectTypeSynonyms _declarationsIcollectValueConstructors _declarationsIcounter _declarationsIdeclVarNames _declarationsIinstances _declarationsIkindErrors _declarationsImiscerrors _declarationsIoperatorFixities _declarationsIpreviousWasAlsoFB _declarationsIrestrictedNames _declarationsIself _declarationsIsuspiciousFBs _declarationsItypeSignatures _declarationsIunboundNames _declarationsIwarnings) = inv_Declarations_s32 _declarationsX32 (T_Declarations_vIn31 _declarationsOallTypeConstructors _declarationsOallValueConstructors _declarationsOclassEnvironment _declarationsOclassMemberEnv _declarationsOcollectScopeInfos _declarationsOcollectTypeConstructors _declarationsOcollectTypeSynonyms _declarationsOcollectValueConstructors _declarationsOcounter _declarationsOkindErrors _declarationsOmiscerrors _declarationsOnamesInScope _declarationsOoperatorFixities _declarationsOoptions _declarationsOorderedTypeSynonyms _declarationsOpreviousWasAlsoFB _declarationsOsuspiciousFBs _declarationsOtypeConstructors _declarationsOtypeSignatures _declarationsOvalueConstructors _declarationsOwarnings)
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2769 _declarationsIcollectScopeInfos _scopeInfo
-         (_collectTypeConstructors,_collectValueConstructors,_collectTypeSynonyms,_collectConstructorEnv,_derivedFunctions,_operatorFixities) = rule2770  ()
+         _lhsOcollectScopeInfos = rule2792 _declarationsIcollectScopeInfos _scopeInfo
+         (_collectTypeConstructors,_collectValueConstructors,_collectTypeSynonyms,_collectConstructorEnv,_derivedFunctions,_operatorFixities) = rule2793  ()
          _lhsOlastStatementIsExpr :: Bool
-         _lhsOlastStatementIsExpr = rule2771  ()
+         _lhsOlastStatementIsExpr = rule2794  ()
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2772 _declarationsImiscerrors _typeSignatureErrors
-         (_,_doubles) = rule2773 _declarationsItypeSignatures
-         _typeSignatureErrors = rule2774 _declarationsIdeclVarNames _declarationsIrestrictedNames _declarationsItypeSignatures
+         _lhsOmiscerrors = rule2795 _declarationsImiscerrors _typeSignatureErrors
+         (_,_doubles) = rule2796 _declarationsItypeSignatures
+         _typeSignatureErrors = rule2797 _declarationsIdeclVarNames _declarationsIrestrictedNames _declarationsItypeSignatures
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2775 _declarationsIwarnings _suspiciousErrors
-         _declarationsOpreviousWasAlsoFB = rule2776  ()
-         _declarationsOsuspiciousFBs = rule2777  ()
-         _suspiciousErrors = rule2778 _declarationsIsuspiciousFBs _declarationsItypeSignatures
-         (_namesInScope,_unboundNames,_scopeInfo) = rule2779 _declarationsIdeclVarNames _declarationsIunboundNames _lhsInamesInScope _lhsIunboundNames
+         _lhsOwarnings = rule2798 _declarationsIwarnings _suspiciousErrors
+         _declarationsOpreviousWasAlsoFB = rule2799  ()
+         _declarationsOsuspiciousFBs = rule2800  ()
+         _suspiciousErrors = rule2801 _declarationsIsuspiciousFBs _declarationsItypeSignatures
+         (_namesInScope,_unboundNames,_scopeInfo) = rule2802 _declarationsIdeclVarNames _declarationsIunboundNames _lhsInamesInScope _lhsIunboundNames
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2780 _unboundNames
-         _declarationsOtypeSignatures = rule2781  ()
+         _lhsOunboundNames = rule2803 _unboundNames
+         _declarationsOtypeSignatures = rule2804  ()
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2782 _declarationsIcollectInstances
-         _self = rule2783 _declarationsIself _rangeIself
+         _lhsOcollectInstances = rule2805 _declarationsIcollectInstances
+         _self = rule2806 _declarationsIself _rangeIself
          _lhsOself :: Statement
-         _lhsOself = rule2784 _self
+         _lhsOself = rule2807 _self
          _lhsOcounter :: Int
-         _lhsOcounter = rule2785 _declarationsIcounter
+         _lhsOcounter = rule2808 _declarationsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule2786 _declarationsIkindErrors
+         _lhsOkindErrors = rule2809 _declarationsIkindErrors
          _lhsOnamesInScope :: Names
-         _lhsOnamesInScope = rule2787 _namesInScope
-         _declarationsOallTypeConstructors = rule2788 _lhsIallTypeConstructors
-         _declarationsOallValueConstructors = rule2789 _lhsIallValueConstructors
-         _declarationsOclassEnvironment = rule2790 _lhsIclassEnvironment
-         _declarationsOclassMemberEnv = rule2791 _lhsIclassMemberEnv
-         _declarationsOcollectScopeInfos = rule2792 _lhsIcollectScopeInfos
-         _declarationsOcollectTypeConstructors = rule2793 _collectTypeConstructors
-         _declarationsOcollectTypeSynonyms = rule2794 _collectTypeSynonyms
-         _declarationsOcollectValueConstructors = rule2795 _collectValueConstructors
-         _declarationsOcounter = rule2796 _lhsIcounter
-         _declarationsOkindErrors = rule2797 _lhsIkindErrors
-         _declarationsOmiscerrors = rule2798 _lhsImiscerrors
-         _declarationsOnamesInScope = rule2799 _namesInScope
-         _declarationsOoperatorFixities = rule2800 _operatorFixities
-         _declarationsOoptions = rule2801 _lhsIoptions
-         _declarationsOorderedTypeSynonyms = rule2802 _lhsIorderedTypeSynonyms
-         _declarationsOtypeConstructors = rule2803 _lhsItypeConstructors
-         _declarationsOvalueConstructors = rule2804 _lhsIvalueConstructors
-         _declarationsOwarnings = rule2805 _lhsIwarnings
+         _lhsOnamesInScope = rule2810 _namesInScope
+         _declarationsOallTypeConstructors = rule2811 _lhsIallTypeConstructors
+         _declarationsOallValueConstructors = rule2812 _lhsIallValueConstructors
+         _declarationsOclassEnvironment = rule2813 _lhsIclassEnvironment
+         _declarationsOclassMemberEnv = rule2814 _lhsIclassMemberEnv
+         _declarationsOcollectScopeInfos = rule2815 _lhsIcollectScopeInfos
+         _declarationsOcollectTypeConstructors = rule2816 _collectTypeConstructors
+         _declarationsOcollectTypeSynonyms = rule2817 _collectTypeSynonyms
+         _declarationsOcollectValueConstructors = rule2818 _collectValueConstructors
+         _declarationsOcounter = rule2819 _lhsIcounter
+         _declarationsOkindErrors = rule2820 _lhsIkindErrors
+         _declarationsOmiscerrors = rule2821 _lhsImiscerrors
+         _declarationsOnamesInScope = rule2822 _namesInScope
+         _declarationsOoperatorFixities = rule2823 _operatorFixities
+         _declarationsOoptions = rule2824 _lhsIoptions
+         _declarationsOorderedTypeSynonyms = rule2825 _lhsIorderedTypeSynonyms
+         _declarationsOtypeConstructors = rule2826 _lhsItypeConstructors
+         _declarationsOvalueConstructors = rule2827 _lhsIvalueConstructors
+         _declarationsOwarnings = rule2828 _lhsIwarnings
          __result_ = T_Statement_vOut154 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOlastStatementIsExpr _lhsOmiscerrors _lhsOnamesInScope _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Statement_s155 v154
-   {-# INLINE rule2769 #-}
-   rule2769 = \ ((_declarationsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) _scopeInfo ->
+   {-# INLINE rule2792 #-}
+   rule2792 = \ ((_declarationsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) _scopeInfo ->
                                                  (_scopeInfo, Definition) : _declarationsIcollectScopeInfos
-   {-# INLINE rule2770 #-}
-   rule2770 = \  (_ :: ()) ->
+   {-# INLINE rule2793 #-}
+   rule2793 = \  (_ :: ()) ->
                                                                                                                                                    internalError "PartialSyntax.ag" "n/a" "toplevel Statement"
-   {-# INLINE rule2771 #-}
-   rule2771 = \  (_ :: ()) ->
+   {-# INLINE rule2794 #-}
+   rule2794 = \  (_ :: ()) ->
                                               False
-   {-# INLINE rule2772 #-}
-   rule2772 = \ ((_declarationsImiscerrors) :: [Error]) _typeSignatureErrors ->
+   {-# INLINE rule2795 #-}
+   rule2795 = \ ((_declarationsImiscerrors) :: [Error]) _typeSignatureErrors ->
                                      _typeSignatureErrors ++ _declarationsImiscerrors
-   {-# INLINE rule2773 #-}
-   rule2773 = \ ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
+   {-# INLINE rule2796 #-}
+   rule2796 = \ ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
                                       uniqueAppearance (map fst _declarationsItypeSignatures)
-   {-# INLINE rule2774 #-}
-   rule2774 = \ ((_declarationsIdeclVarNames) :: Names) ((_declarationsIrestrictedNames) :: Names) ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
+   {-# INLINE rule2797 #-}
+   rule2797 = \ ((_declarationsIdeclVarNames) :: Names) ((_declarationsIrestrictedNames) :: Names) ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
                                               checkTypeSignatures _declarationsIdeclVarNames _declarationsIrestrictedNames _declarationsItypeSignatures
-   {-# INLINE rule2775 #-}
-   rule2775 = \ ((_declarationsIwarnings) :: [Warning]) _suspiciousErrors ->
+   {-# INLINE rule2798 #-}
+   rule2798 = \ ((_declarationsIwarnings) :: [Warning]) _suspiciousErrors ->
                             _declarationsIwarnings ++
                             _suspiciousErrors
-   {-# INLINE rule2776 #-}
-   rule2776 = \  (_ :: ()) ->
-                                                Nothing
-   {-# INLINE rule2777 #-}
-   rule2777 = \  (_ :: ()) ->
-                                                []
-   {-# INLINE rule2778 #-}
-   rule2778 = \ ((_declarationsIsuspiciousFBs) :: [(Name,Name)]) ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
-                                                findSimilarFunctionBindings _declarationsItypeSignatures _declarationsIsuspiciousFBs
-   {-# INLINE rule2779 #-}
-   rule2779 = \ ((_declarationsIdeclVarNames) :: Names) ((_declarationsIunboundNames) :: Names) ((_lhsInamesInScope) :: Names) ((_lhsIunboundNames) :: Names) ->
-                                                             changeOfScope _declarationsIdeclVarNames (_declarationsIunboundNames ++ _lhsIunboundNames) _lhsInamesInScope
-   {-# INLINE rule2780 #-}
-   rule2780 = \ _unboundNames ->
-                                              _unboundNames
-   {-# INLINE rule2781 #-}
-   rule2781 = \  (_ :: ()) ->
-                                                                  []
-   {-# INLINE rule2782 #-}
-   rule2782 = \ ((_declarationsIcollectInstances) :: [(Name, Instance)]) ->
-     _declarationsIcollectInstances
-   {-# INLINE rule2783 #-}
-   rule2783 = \ ((_declarationsIself) :: Declarations) ((_rangeIself) :: Range) ->
-     Statement_Let _rangeIself _declarationsIself
-   {-# INLINE rule2784 #-}
-   rule2784 = \ _self ->
-     _self
-   {-# INLINE rule2785 #-}
-   rule2785 = \ ((_declarationsIcounter) :: Int) ->
-     _declarationsIcounter
-   {-# INLINE rule2786 #-}
-   rule2786 = \ ((_declarationsIkindErrors) :: [Error]) ->
-     _declarationsIkindErrors
-   {-# INLINE rule2787 #-}
-   rule2787 = \ _namesInScope ->
-     _namesInScope
-   {-# INLINE rule2788 #-}
-   rule2788 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule2789 #-}
-   rule2789 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule2790 #-}
-   rule2790 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule2791 #-}
-   rule2791 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule2792 #-}
-   rule2792 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule2793 #-}
-   rule2793 = \ _collectTypeConstructors ->
-     _collectTypeConstructors
-   {-# INLINE rule2794 #-}
-   rule2794 = \ _collectTypeSynonyms ->
-     _collectTypeSynonyms
-   {-# INLINE rule2795 #-}
-   rule2795 = \ _collectValueConstructors ->
-     _collectValueConstructors
-   {-# INLINE rule2796 #-}
-   rule2796 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule2797 #-}
-   rule2797 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule2798 #-}
-   rule2798 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
    {-# INLINE rule2799 #-}
-   rule2799 = \ _namesInScope ->
-     _namesInScope
+   rule2799 = \  (_ :: ()) ->
+                                                Nothing
    {-# INLINE rule2800 #-}
-   rule2800 = \ _operatorFixities ->
-     _operatorFixities
+   rule2800 = \  (_ :: ()) ->
+                                                []
    {-# INLINE rule2801 #-}
-   rule2801 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule2801 = \ ((_declarationsIsuspiciousFBs) :: [(Name,Name)]) ((_declarationsItypeSignatures) :: [(Name,TpScheme)]) ->
+                                                findSimilarFunctionBindings _declarationsItypeSignatures _declarationsIsuspiciousFBs
    {-# INLINE rule2802 #-}
-   rule2802 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule2802 = \ ((_declarationsIdeclVarNames) :: Names) ((_declarationsIunboundNames) :: Names) ((_lhsInamesInScope) :: Names) ((_lhsIunboundNames) :: Names) ->
+                                                             changeOfScope _declarationsIdeclVarNames (_declarationsIunboundNames ++ _lhsIunboundNames) _lhsInamesInScope
    {-# INLINE rule2803 #-}
-   rule2803 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule2803 = \ _unboundNames ->
+                                              _unboundNames
    {-# INLINE rule2804 #-}
-   rule2804 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule2804 = \  (_ :: ()) ->
+                                                                  []
    {-# INLINE rule2805 #-}
-   rule2805 = \ ((_lhsIwarnings) :: [Warning]) ->
+   rule2805 = \ ((_declarationsIcollectInstances) :: [(Name, Instance)]) ->
+     _declarationsIcollectInstances
+   {-# INLINE rule2806 #-}
+   rule2806 = \ ((_declarationsIself) :: Declarations) ((_rangeIself) :: Range) ->
+     Statement_Let _rangeIself _declarationsIself
+   {-# INLINE rule2807 #-}
+   rule2807 = \ _self ->
+     _self
+   {-# INLINE rule2808 #-}
+   rule2808 = \ ((_declarationsIcounter) :: Int) ->
+     _declarationsIcounter
+   {-# INLINE rule2809 #-}
+   rule2809 = \ ((_declarationsIkindErrors) :: [Error]) ->
+     _declarationsIkindErrors
+   {-# INLINE rule2810 #-}
+   rule2810 = \ _namesInScope ->
+     _namesInScope
+   {-# INLINE rule2811 #-}
+   rule2811 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule2812 #-}
+   rule2812 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule2813 #-}
+   rule2813 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule2814 #-}
+   rule2814 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule2815 #-}
+   rule2815 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule2816 #-}
+   rule2816 = \ _collectTypeConstructors ->
+     _collectTypeConstructors
+   {-# INLINE rule2817 #-}
+   rule2817 = \ _collectTypeSynonyms ->
+     _collectTypeSynonyms
+   {-# INLINE rule2818 #-}
+   rule2818 = \ _collectValueConstructors ->
+     _collectValueConstructors
+   {-# INLINE rule2819 #-}
+   rule2819 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule2820 #-}
+   rule2820 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule2821 #-}
+   rule2821 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule2822 #-}
+   rule2822 = \ _namesInScope ->
+     _namesInScope
+   {-# INLINE rule2823 #-}
+   rule2823 = \ _operatorFixities ->
+     _operatorFixities
+   {-# INLINE rule2824 #-}
+   rule2824 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule2825 #-}
+   rule2825 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule2826 #-}
+   rule2826 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2827 #-}
+   rule2827 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2828 #-}
+   rule2828 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_Statement_Generator #-}
 sem_Statement_Generator :: T_Range  -> T_Pattern  -> T_Expression  -> T_Statement 
@@ -16813,161 +16928,161 @@ sem_Statement_Generator arg_range_ arg_pattern_ arg_expression_ = T_Statement (r
          (T_Pattern_vOut118 _patternIcollectScopeInfos _patternIcounter _patternImiscerrors _patternIpatVarNames _patternIself _patternIunboundNames _patternIwarnings) = inv_Pattern_s119 _patternX119 (T_Pattern_vIn118 _patternOallTypeConstructors _patternOallValueConstructors _patternOcollectScopeInfos _patternOcounter _patternOlhsPattern _patternOmiscerrors _patternOnamesInScope _patternOtypeConstructors _patternOvalueConstructors _patternOwarnings)
          (T_Expression_vOut40 _expressionIcollectInstances _expressionIcollectScopeInfos _expressionIcounter _expressionIkindErrors _expressionImiscerrors _expressionIself _expressionIunboundNames _expressionIwarnings) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionOallTypeConstructors _expressionOallValueConstructors _expressionOclassEnvironment _expressionOclassMemberEnv _expressionOcollectScopeInfos _expressionOcounter _expressionOkindErrors _expressionOmiscerrors _expressionOnamesInScope _expressionOoptions _expressionOorderedTypeSynonyms _expressionOtypeConstructors _expressionOvalueConstructors _expressionOwarnings)
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2806 _expressionIcollectScopeInfos _scopeInfo
+         _lhsOcollectScopeInfos = rule2829 _expressionIcollectScopeInfos _scopeInfo
          _lhsOlastStatementIsExpr :: Bool
-         _lhsOlastStatementIsExpr = rule2807  ()
-         _patternOlhsPattern = rule2808  ()
-         (_namesInScope,_unboundNames,_scopeInfo) = rule2809 _expressionIunboundNames _lhsInamesInScope _lhsIunboundNames _patternIpatVarNames
+         _lhsOlastStatementIsExpr = rule2830  ()
+         _patternOlhsPattern = rule2831  ()
+         (_namesInScope,_unboundNames,_scopeInfo) = rule2832 _expressionIunboundNames _lhsInamesInScope _lhsIunboundNames _patternIpatVarNames
          _lhsOnamesInScope :: Names
-         _lhsOnamesInScope = rule2810 _namesInScope
+         _lhsOnamesInScope = rule2833 _namesInScope
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2811 _unboundNames
-         _expressionOnamesInScope = rule2812 _lhsInamesInScope
+         _lhsOunboundNames = rule2834 _unboundNames
+         _expressionOnamesInScope = rule2835 _lhsInamesInScope
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2813 _expressionIcollectInstances
-         _self = rule2814 _expressionIself _patternIself _rangeIself
+         _lhsOcollectInstances = rule2836 _expressionIcollectInstances
+         _self = rule2837 _expressionIself _patternIself _rangeIself
          _lhsOself :: Statement
-         _lhsOself = rule2815 _self
+         _lhsOself = rule2838 _self
          _lhsOcounter :: Int
-         _lhsOcounter = rule2816 _expressionIcounter
+         _lhsOcounter = rule2839 _expressionIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule2817 _expressionIkindErrors
+         _lhsOkindErrors = rule2840 _expressionIkindErrors
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2818 _expressionImiscerrors
+         _lhsOmiscerrors = rule2841 _expressionImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2819 _expressionIwarnings
-         _patternOallTypeConstructors = rule2820 _lhsIallTypeConstructors
-         _patternOallValueConstructors = rule2821 _lhsIallValueConstructors
-         _patternOcollectScopeInfos = rule2822 _lhsIcollectScopeInfos
-         _patternOcounter = rule2823 _lhsIcounter
-         _patternOmiscerrors = rule2824 _lhsImiscerrors
-         _patternOnamesInScope = rule2825 _namesInScope
-         _patternOtypeConstructors = rule2826 _lhsItypeConstructors
-         _patternOvalueConstructors = rule2827 _lhsIvalueConstructors
-         _patternOwarnings = rule2828 _lhsIwarnings
-         _expressionOallTypeConstructors = rule2829 _lhsIallTypeConstructors
-         _expressionOallValueConstructors = rule2830 _lhsIallValueConstructors
-         _expressionOclassEnvironment = rule2831 _lhsIclassEnvironment
-         _expressionOclassMemberEnv = rule2832 _lhsIclassMemberEnv
-         _expressionOcollectScopeInfos = rule2833 _patternIcollectScopeInfos
-         _expressionOcounter = rule2834 _patternIcounter
-         _expressionOkindErrors = rule2835 _lhsIkindErrors
-         _expressionOmiscerrors = rule2836 _patternImiscerrors
-         _expressionOoptions = rule2837 _lhsIoptions
-         _expressionOorderedTypeSynonyms = rule2838 _lhsIorderedTypeSynonyms
-         _expressionOtypeConstructors = rule2839 _lhsItypeConstructors
-         _expressionOvalueConstructors = rule2840 _lhsIvalueConstructors
-         _expressionOwarnings = rule2841 _patternIwarnings
+         _lhsOwarnings = rule2842 _expressionIwarnings
+         _patternOallTypeConstructors = rule2843 _lhsIallTypeConstructors
+         _patternOallValueConstructors = rule2844 _lhsIallValueConstructors
+         _patternOcollectScopeInfos = rule2845 _lhsIcollectScopeInfos
+         _patternOcounter = rule2846 _lhsIcounter
+         _patternOmiscerrors = rule2847 _lhsImiscerrors
+         _patternOnamesInScope = rule2848 _namesInScope
+         _patternOtypeConstructors = rule2849 _lhsItypeConstructors
+         _patternOvalueConstructors = rule2850 _lhsIvalueConstructors
+         _patternOwarnings = rule2851 _lhsIwarnings
+         _expressionOallTypeConstructors = rule2852 _lhsIallTypeConstructors
+         _expressionOallValueConstructors = rule2853 _lhsIallValueConstructors
+         _expressionOclassEnvironment = rule2854 _lhsIclassEnvironment
+         _expressionOclassMemberEnv = rule2855 _lhsIclassMemberEnv
+         _expressionOcollectScopeInfos = rule2856 _patternIcollectScopeInfos
+         _expressionOcounter = rule2857 _patternIcounter
+         _expressionOkindErrors = rule2858 _lhsIkindErrors
+         _expressionOmiscerrors = rule2859 _patternImiscerrors
+         _expressionOoptions = rule2860 _lhsIoptions
+         _expressionOorderedTypeSynonyms = rule2861 _lhsIorderedTypeSynonyms
+         _expressionOtypeConstructors = rule2862 _lhsItypeConstructors
+         _expressionOvalueConstructors = rule2863 _lhsIvalueConstructors
+         _expressionOwarnings = rule2864 _patternIwarnings
          __result_ = T_Statement_vOut154 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOlastStatementIsExpr _lhsOmiscerrors _lhsOnamesInScope _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Statement_s155 v154
-   {-# INLINE rule2806 #-}
-   rule2806 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) _scopeInfo ->
-                                                 (_scopeInfo, Variable)   : _expressionIcollectScopeInfos
-   {-# INLINE rule2807 #-}
-   rule2807 = \  (_ :: ()) ->
-                                              False
-   {-# INLINE rule2808 #-}
-   rule2808 = \  (_ :: ()) ->
-                                                                False
-   {-# INLINE rule2809 #-}
-   rule2809 = \ ((_expressionIunboundNames) :: Names) ((_lhsInamesInScope) :: Names) ((_lhsIunboundNames) :: Names) ((_patternIpatVarNames) :: Names) ->
-                                                                        changeOfScope _patternIpatVarNames (_expressionIunboundNames ++ _lhsIunboundNames) _lhsInamesInScope
-   {-# INLINE rule2810 #-}
-   rule2810 = \ _namesInScope ->
-                                              _namesInScope
-   {-# INLINE rule2811 #-}
-   rule2811 = \ _unboundNames ->
-                                              _unboundNames
-   {-# INLINE rule2812 #-}
-   rule2812 = \ ((_lhsInamesInScope) :: Names) ->
-                                              _lhsInamesInScope
-   {-# INLINE rule2813 #-}
-   rule2813 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
-     _expressionIcollectInstances
-   {-# INLINE rule2814 #-}
-   rule2814 = \ ((_expressionIself) :: Expression) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
-     Statement_Generator _rangeIself _patternIself _expressionIself
-   {-# INLINE rule2815 #-}
-   rule2815 = \ _self ->
-     _self
-   {-# INLINE rule2816 #-}
-   rule2816 = \ ((_expressionIcounter) :: Int) ->
-     _expressionIcounter
-   {-# INLINE rule2817 #-}
-   rule2817 = \ ((_expressionIkindErrors) :: [Error]) ->
-     _expressionIkindErrors
-   {-# INLINE rule2818 #-}
-   rule2818 = \ ((_expressionImiscerrors) :: [Error]) ->
-     _expressionImiscerrors
-   {-# INLINE rule2819 #-}
-   rule2819 = \ ((_expressionIwarnings) :: [Warning]) ->
-     _expressionIwarnings
-   {-# INLINE rule2820 #-}
-   rule2820 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule2821 #-}
-   rule2821 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule2822 #-}
-   rule2822 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule2823 #-}
-   rule2823 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule2824 #-}
-   rule2824 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule2825 #-}
-   rule2825 = \ _namesInScope ->
-     _namesInScope
-   {-# INLINE rule2826 #-}
-   rule2826 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
-   {-# INLINE rule2827 #-}
-   rule2827 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
-   {-# INLINE rule2828 #-}
-   rule2828 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
    {-# INLINE rule2829 #-}
-   rule2829 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
+   rule2829 = \ ((_expressionIcollectScopeInfos) :: [(ScopeInfo, Entity)]) _scopeInfo ->
+                                                 (_scopeInfo, Variable)   : _expressionIcollectScopeInfos
    {-# INLINE rule2830 #-}
-   rule2830 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
+   rule2830 = \  (_ :: ()) ->
+                                              False
    {-# INLINE rule2831 #-}
-   rule2831 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
+   rule2831 = \  (_ :: ()) ->
+                                                                False
    {-# INLINE rule2832 #-}
-   rule2832 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
+   rule2832 = \ ((_expressionIunboundNames) :: Names) ((_lhsInamesInScope) :: Names) ((_lhsIunboundNames) :: Names) ((_patternIpatVarNames) :: Names) ->
+                                                                        changeOfScope _patternIpatVarNames (_expressionIunboundNames ++ _lhsIunboundNames) _lhsInamesInScope
    {-# INLINE rule2833 #-}
-   rule2833 = \ ((_patternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _patternIcollectScopeInfos
+   rule2833 = \ _namesInScope ->
+                                              _namesInScope
    {-# INLINE rule2834 #-}
-   rule2834 = \ ((_patternIcounter) :: Int) ->
-     _patternIcounter
+   rule2834 = \ _unboundNames ->
+                                              _unboundNames
    {-# INLINE rule2835 #-}
-   rule2835 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
+   rule2835 = \ ((_lhsInamesInScope) :: Names) ->
+                                              _lhsInamesInScope
    {-# INLINE rule2836 #-}
-   rule2836 = \ ((_patternImiscerrors) :: [Error]) ->
-     _patternImiscerrors
+   rule2836 = \ ((_expressionIcollectInstances) :: [(Name, Instance)]) ->
+     _expressionIcollectInstances
    {-# INLINE rule2837 #-}
-   rule2837 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule2837 = \ ((_expressionIself) :: Expression) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
+     Statement_Generator _rangeIself _patternIself _expressionIself
    {-# INLINE rule2838 #-}
-   rule2838 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule2838 = \ _self ->
+     _self
    {-# INLINE rule2839 #-}
-   rule2839 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule2839 = \ ((_expressionIcounter) :: Int) ->
+     _expressionIcounter
    {-# INLINE rule2840 #-}
-   rule2840 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule2840 = \ ((_expressionIkindErrors) :: [Error]) ->
+     _expressionIkindErrors
    {-# INLINE rule2841 #-}
-   rule2841 = \ ((_patternIwarnings) :: [Warning]) ->
+   rule2841 = \ ((_expressionImiscerrors) :: [Error]) ->
+     _expressionImiscerrors
+   {-# INLINE rule2842 #-}
+   rule2842 = \ ((_expressionIwarnings) :: [Warning]) ->
+     _expressionIwarnings
+   {-# INLINE rule2843 #-}
+   rule2843 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule2844 #-}
+   rule2844 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule2845 #-}
+   rule2845 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
+   {-# INLINE rule2846 #-}
+   rule2846 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
+   {-# INLINE rule2847 #-}
+   rule2847 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule2848 #-}
+   rule2848 = \ _namesInScope ->
+     _namesInScope
+   {-# INLINE rule2849 #-}
+   rule2849 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2850 #-}
+   rule2850 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2851 #-}
+   rule2851 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule2852 #-}
+   rule2852 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule2853 #-}
+   rule2853 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule2854 #-}
+   rule2854 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule2855 #-}
+   rule2855 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule2856 #-}
+   rule2856 = \ ((_patternIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _patternIcollectScopeInfos
+   {-# INLINE rule2857 #-}
+   rule2857 = \ ((_patternIcounter) :: Int) ->
+     _patternIcounter
+   {-# INLINE rule2858 #-}
+   rule2858 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule2859 #-}
+   rule2859 = \ ((_patternImiscerrors) :: [Error]) ->
+     _patternImiscerrors
+   {-# INLINE rule2860 #-}
+   rule2860 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule2861 #-}
+   rule2861 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule2862 #-}
+   rule2862 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2863 #-}
+   rule2863 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2864 #-}
+   rule2864 = \ ((_patternIwarnings) :: [Warning]) ->
      _patternIwarnings
 {-# NOINLINE sem_Statement_Empty #-}
 sem_Statement_Empty :: T_Range  -> T_Statement 
@@ -16979,61 +17094,61 @@ sem_Statement_Empty arg_range_ = T_Statement (return st155) where
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2842  ()
-         _self = rule2843 _rangeIself
+         _lhsOcollectInstances = rule2865  ()
+         _self = rule2866 _rangeIself
          _lhsOself :: Statement
-         _lhsOself = rule2844 _self
+         _lhsOself = rule2867 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2845 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2868 _lhsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2846 _lhsIcounter
+         _lhsOcounter = rule2869 _lhsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule2847 _lhsIkindErrors
+         _lhsOkindErrors = rule2870 _lhsIkindErrors
          _lhsOlastStatementIsExpr :: Bool
-         _lhsOlastStatementIsExpr = rule2848 _lhsIlastStatementIsExpr
+         _lhsOlastStatementIsExpr = rule2871 _lhsIlastStatementIsExpr
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2849 _lhsImiscerrors
+         _lhsOmiscerrors = rule2872 _lhsImiscerrors
          _lhsOnamesInScope :: Names
-         _lhsOnamesInScope = rule2850 _lhsInamesInScope
+         _lhsOnamesInScope = rule2873 _lhsInamesInScope
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2851 _lhsIunboundNames
+         _lhsOunboundNames = rule2874 _lhsIunboundNames
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2852 _lhsIwarnings
+         _lhsOwarnings = rule2875 _lhsIwarnings
          __result_ = T_Statement_vOut154 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOlastStatementIsExpr _lhsOmiscerrors _lhsOnamesInScope _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Statement_s155 v154
-   {-# INLINE rule2842 #-}
-   rule2842 = \  (_ :: ()) ->
+   {-# INLINE rule2865 #-}
+   rule2865 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2843 #-}
-   rule2843 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule2866 #-}
+   rule2866 = \ ((_rangeIself) :: Range) ->
      Statement_Empty _rangeIself
-   {-# INLINE rule2844 #-}
-   rule2844 = \ _self ->
+   {-# INLINE rule2867 #-}
+   rule2867 = \ _self ->
      _self
-   {-# INLINE rule2845 #-}
-   rule2845 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2868 #-}
+   rule2868 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2846 #-}
-   rule2846 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2869 #-}
+   rule2869 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2847 #-}
-   rule2847 = \ ((_lhsIkindErrors) :: [Error]) ->
+   {-# INLINE rule2870 #-}
+   rule2870 = \ ((_lhsIkindErrors) :: [Error]) ->
      _lhsIkindErrors
-   {-# INLINE rule2848 #-}
-   rule2848 = \ ((_lhsIlastStatementIsExpr) :: Bool) ->
+   {-# INLINE rule2871 #-}
+   rule2871 = \ ((_lhsIlastStatementIsExpr) :: Bool) ->
      _lhsIlastStatementIsExpr
-   {-# INLINE rule2849 #-}
-   rule2849 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2872 #-}
+   rule2872 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2850 #-}
-   rule2850 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule2873 #-}
+   rule2873 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule2851 #-}
-   rule2851 = \ ((_lhsIunboundNames) :: Names) ->
+   {-# INLINE rule2874 #-}
+   rule2874 = \ ((_lhsIunboundNames) :: Names) ->
      _lhsIunboundNames
-   {-# INLINE rule2852 #-}
-   rule2852 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2875 #-}
+   rule2875 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 
 -- Statements --------------------------------------------------
@@ -17078,189 +17193,189 @@ sem_Statements_Cons arg_hd_ arg_tl_ = T_Statements (return st158) where
          (T_Statement_vOut154 _hdIcollectInstances _hdIcollectScopeInfos _hdIcounter _hdIkindErrors _hdIlastStatementIsExpr _hdImiscerrors _hdInamesInScope _hdIself _hdIunboundNames _hdIwarnings) = inv_Statement_s155 _hdX155 (T_Statement_vIn154 _hdOallTypeConstructors _hdOallValueConstructors _hdOclassEnvironment _hdOclassMemberEnv _hdOcollectScopeInfos _hdOcounter _hdOkindErrors _hdOlastStatementIsExpr _hdOmiscerrors _hdOnamesInScope _hdOoptions _hdOorderedTypeSynonyms _hdOtypeConstructors _hdOunboundNames _hdOvalueConstructors _hdOwarnings)
          (T_Statements_vOut157 _tlIcollectInstances _tlIcollectScopeInfos _tlIcounter _tlIkindErrors _tlIlastStatementIsExpr _tlImiscerrors _tlInamesInScope _tlIself _tlIunboundNames _tlIwarnings) = inv_Statements_s158 _tlX158 (T_Statements_vIn157 _tlOallTypeConstructors _tlOallValueConstructors _tlOclassEnvironment _tlOclassMemberEnv _tlOcollectScopeInfos _tlOcounter _tlOkindErrors _tlOlastStatementIsExpr _tlOmiscerrors _tlOnamesInScope _tlOoptions _tlOorderedTypeSynonyms _tlOtypeConstructors _tlOunboundNames _tlOvalueConstructors _tlOwarnings)
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2853 _hdIunboundNames
-         _tlOunboundNames = rule2854 _lhsIunboundNames
-         _hdOunboundNames = rule2855 _tlIunboundNames
+         _lhsOunboundNames = rule2876 _hdIunboundNames
+         _tlOunboundNames = rule2877 _lhsIunboundNames
+         _hdOunboundNames = rule2878 _tlIunboundNames
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2856 _hdIcollectInstances _tlIcollectInstances
-         _self = rule2857 _hdIself _tlIself
+         _lhsOcollectInstances = rule2879 _hdIcollectInstances _tlIcollectInstances
+         _self = rule2880 _hdIself _tlIself
          _lhsOself :: Statements
-         _lhsOself = rule2858 _self
+         _lhsOself = rule2881 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2859 _tlIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2882 _tlIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2860 _tlIcounter
+         _lhsOcounter = rule2883 _tlIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule2861 _tlIkindErrors
+         _lhsOkindErrors = rule2884 _tlIkindErrors
          _lhsOlastStatementIsExpr :: Bool
-         _lhsOlastStatementIsExpr = rule2862 _tlIlastStatementIsExpr
+         _lhsOlastStatementIsExpr = rule2885 _tlIlastStatementIsExpr
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2863 _tlImiscerrors
+         _lhsOmiscerrors = rule2886 _tlImiscerrors
          _lhsOnamesInScope :: Names
-         _lhsOnamesInScope = rule2864 _tlInamesInScope
+         _lhsOnamesInScope = rule2887 _tlInamesInScope
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2865 _tlIwarnings
-         _hdOallTypeConstructors = rule2866 _lhsIallTypeConstructors
-         _hdOallValueConstructors = rule2867 _lhsIallValueConstructors
-         _hdOclassEnvironment = rule2868 _lhsIclassEnvironment
-         _hdOclassMemberEnv = rule2869 _lhsIclassMemberEnv
-         _hdOcollectScopeInfos = rule2870 _lhsIcollectScopeInfos
-         _hdOcounter = rule2871 _lhsIcounter
-         _hdOkindErrors = rule2872 _lhsIkindErrors
-         _hdOlastStatementIsExpr = rule2873 _lhsIlastStatementIsExpr
-         _hdOmiscerrors = rule2874 _lhsImiscerrors
-         _hdOnamesInScope = rule2875 _lhsInamesInScope
-         _hdOoptions = rule2876 _lhsIoptions
-         _hdOorderedTypeSynonyms = rule2877 _lhsIorderedTypeSynonyms
-         _hdOtypeConstructors = rule2878 _lhsItypeConstructors
-         _hdOvalueConstructors = rule2879 _lhsIvalueConstructors
-         _hdOwarnings = rule2880 _lhsIwarnings
-         _tlOallTypeConstructors = rule2881 _lhsIallTypeConstructors
-         _tlOallValueConstructors = rule2882 _lhsIallValueConstructors
-         _tlOclassEnvironment = rule2883 _lhsIclassEnvironment
-         _tlOclassMemberEnv = rule2884 _lhsIclassMemberEnv
-         _tlOcollectScopeInfos = rule2885 _hdIcollectScopeInfos
-         _tlOcounter = rule2886 _hdIcounter
-         _tlOkindErrors = rule2887 _hdIkindErrors
-         _tlOlastStatementIsExpr = rule2888 _hdIlastStatementIsExpr
-         _tlOmiscerrors = rule2889 _hdImiscerrors
-         _tlOnamesInScope = rule2890 _hdInamesInScope
-         _tlOoptions = rule2891 _lhsIoptions
-         _tlOorderedTypeSynonyms = rule2892 _lhsIorderedTypeSynonyms
-         _tlOtypeConstructors = rule2893 _lhsItypeConstructors
-         _tlOvalueConstructors = rule2894 _lhsIvalueConstructors
-         _tlOwarnings = rule2895 _hdIwarnings
+         _lhsOwarnings = rule2888 _tlIwarnings
+         _hdOallTypeConstructors = rule2889 _lhsIallTypeConstructors
+         _hdOallValueConstructors = rule2890 _lhsIallValueConstructors
+         _hdOclassEnvironment = rule2891 _lhsIclassEnvironment
+         _hdOclassMemberEnv = rule2892 _lhsIclassMemberEnv
+         _hdOcollectScopeInfos = rule2893 _lhsIcollectScopeInfos
+         _hdOcounter = rule2894 _lhsIcounter
+         _hdOkindErrors = rule2895 _lhsIkindErrors
+         _hdOlastStatementIsExpr = rule2896 _lhsIlastStatementIsExpr
+         _hdOmiscerrors = rule2897 _lhsImiscerrors
+         _hdOnamesInScope = rule2898 _lhsInamesInScope
+         _hdOoptions = rule2899 _lhsIoptions
+         _hdOorderedTypeSynonyms = rule2900 _lhsIorderedTypeSynonyms
+         _hdOtypeConstructors = rule2901 _lhsItypeConstructors
+         _hdOvalueConstructors = rule2902 _lhsIvalueConstructors
+         _hdOwarnings = rule2903 _lhsIwarnings
+         _tlOallTypeConstructors = rule2904 _lhsIallTypeConstructors
+         _tlOallValueConstructors = rule2905 _lhsIallValueConstructors
+         _tlOclassEnvironment = rule2906 _lhsIclassEnvironment
+         _tlOclassMemberEnv = rule2907 _lhsIclassMemberEnv
+         _tlOcollectScopeInfos = rule2908 _hdIcollectScopeInfos
+         _tlOcounter = rule2909 _hdIcounter
+         _tlOkindErrors = rule2910 _hdIkindErrors
+         _tlOlastStatementIsExpr = rule2911 _hdIlastStatementIsExpr
+         _tlOmiscerrors = rule2912 _hdImiscerrors
+         _tlOnamesInScope = rule2913 _hdInamesInScope
+         _tlOoptions = rule2914 _lhsIoptions
+         _tlOorderedTypeSynonyms = rule2915 _lhsIorderedTypeSynonyms
+         _tlOtypeConstructors = rule2916 _lhsItypeConstructors
+         _tlOvalueConstructors = rule2917 _lhsIvalueConstructors
+         _tlOwarnings = rule2918 _hdIwarnings
          __result_ = T_Statements_vOut157 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOlastStatementIsExpr _lhsOmiscerrors _lhsOnamesInScope _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Statements_s158 v157
-   {-# INLINE rule2853 #-}
-   rule2853 = \ ((_hdIunboundNames) :: Names) ->
-                                  _hdIunboundNames
-   {-# INLINE rule2854 #-}
-   rule2854 = \ ((_lhsIunboundNames) :: Names) ->
-                                  _lhsIunboundNames
-   {-# INLINE rule2855 #-}
-   rule2855 = \ ((_tlIunboundNames) :: Names) ->
-                                  _tlIunboundNames
-   {-# INLINE rule2856 #-}
-   rule2856 = \ ((_hdIcollectInstances) :: [(Name, Instance)]) ((_tlIcollectInstances) :: [(Name, Instance)]) ->
-     _hdIcollectInstances  ++  _tlIcollectInstances
-   {-# INLINE rule2857 #-}
-   rule2857 = \ ((_hdIself) :: Statement) ((_tlIself) :: Statements) ->
-     (:) _hdIself _tlIself
-   {-# INLINE rule2858 #-}
-   rule2858 = \ _self ->
-     _self
-   {-# INLINE rule2859 #-}
-   rule2859 = \ ((_tlIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _tlIcollectScopeInfos
-   {-# INLINE rule2860 #-}
-   rule2860 = \ ((_tlIcounter) :: Int) ->
-     _tlIcounter
-   {-# INLINE rule2861 #-}
-   rule2861 = \ ((_tlIkindErrors) :: [Error]) ->
-     _tlIkindErrors
-   {-# INLINE rule2862 #-}
-   rule2862 = \ ((_tlIlastStatementIsExpr) :: Bool) ->
-     _tlIlastStatementIsExpr
-   {-# INLINE rule2863 #-}
-   rule2863 = \ ((_tlImiscerrors) :: [Error]) ->
-     _tlImiscerrors
-   {-# INLINE rule2864 #-}
-   rule2864 = \ ((_tlInamesInScope) :: Names) ->
-     _tlInamesInScope
-   {-# INLINE rule2865 #-}
-   rule2865 = \ ((_tlIwarnings) :: [Warning]) ->
-     _tlIwarnings
-   {-# INLINE rule2866 #-}
-   rule2866 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
-   {-# INLINE rule2867 #-}
-   rule2867 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
-   {-# INLINE rule2868 #-}
-   rule2868 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
-   {-# INLINE rule2869 #-}
-   rule2869 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
-   {-# INLINE rule2870 #-}
-   rule2870 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _lhsIcollectScopeInfos
-   {-# INLINE rule2871 #-}
-   rule2871 = \ ((_lhsIcounter) :: Int) ->
-     _lhsIcounter
-   {-# INLINE rule2872 #-}
-   rule2872 = \ ((_lhsIkindErrors) :: [Error]) ->
-     _lhsIkindErrors
-   {-# INLINE rule2873 #-}
-   rule2873 = \ ((_lhsIlastStatementIsExpr) :: Bool) ->
-     _lhsIlastStatementIsExpr
-   {-# INLINE rule2874 #-}
-   rule2874 = \ ((_lhsImiscerrors) :: [Error]) ->
-     _lhsImiscerrors
-   {-# INLINE rule2875 #-}
-   rule2875 = \ ((_lhsInamesInScope) :: Names) ->
-     _lhsInamesInScope
    {-# INLINE rule2876 #-}
-   rule2876 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule2876 = \ ((_hdIunboundNames) :: Names) ->
+                                  _hdIunboundNames
    {-# INLINE rule2877 #-}
-   rule2877 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule2877 = \ ((_lhsIunboundNames) :: Names) ->
+                                  _lhsIunboundNames
    {-# INLINE rule2878 #-}
-   rule2878 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule2878 = \ ((_tlIunboundNames) :: Names) ->
+                                  _tlIunboundNames
    {-# INLINE rule2879 #-}
-   rule2879 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule2879 = \ ((_hdIcollectInstances) :: [(Name, Instance)]) ((_tlIcollectInstances) :: [(Name, Instance)]) ->
+     _hdIcollectInstances  ++  _tlIcollectInstances
    {-# INLINE rule2880 #-}
-   rule2880 = \ ((_lhsIwarnings) :: [Warning]) ->
-     _lhsIwarnings
+   rule2880 = \ ((_hdIself) :: Statement) ((_tlIself) :: Statements) ->
+     (:) _hdIself _tlIself
    {-# INLINE rule2881 #-}
-   rule2881 = \ ((_lhsIallTypeConstructors) :: Names) ->
-     _lhsIallTypeConstructors
+   rule2881 = \ _self ->
+     _self
    {-# INLINE rule2882 #-}
-   rule2882 = \ ((_lhsIallValueConstructors) :: Names) ->
-     _lhsIallValueConstructors
+   rule2882 = \ ((_tlIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _tlIcollectScopeInfos
    {-# INLINE rule2883 #-}
-   rule2883 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
-     _lhsIclassEnvironment
+   rule2883 = \ ((_tlIcounter) :: Int) ->
+     _tlIcounter
    {-# INLINE rule2884 #-}
-   rule2884 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
-     _lhsIclassMemberEnv
+   rule2884 = \ ((_tlIkindErrors) :: [Error]) ->
+     _tlIkindErrors
    {-# INLINE rule2885 #-}
-   rule2885 = \ ((_hdIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
-     _hdIcollectScopeInfos
+   rule2885 = \ ((_tlIlastStatementIsExpr) :: Bool) ->
+     _tlIlastStatementIsExpr
    {-# INLINE rule2886 #-}
-   rule2886 = \ ((_hdIcounter) :: Int) ->
-     _hdIcounter
+   rule2886 = \ ((_tlImiscerrors) :: [Error]) ->
+     _tlImiscerrors
    {-# INLINE rule2887 #-}
-   rule2887 = \ ((_hdIkindErrors) :: [Error]) ->
-     _hdIkindErrors
+   rule2887 = \ ((_tlInamesInScope) :: Names) ->
+     _tlInamesInScope
    {-# INLINE rule2888 #-}
-   rule2888 = \ ((_hdIlastStatementIsExpr) :: Bool) ->
-     _hdIlastStatementIsExpr
+   rule2888 = \ ((_tlIwarnings) :: [Warning]) ->
+     _tlIwarnings
    {-# INLINE rule2889 #-}
-   rule2889 = \ ((_hdImiscerrors) :: [Error]) ->
-     _hdImiscerrors
+   rule2889 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
    {-# INLINE rule2890 #-}
-   rule2890 = \ ((_hdInamesInScope) :: Names) ->
-     _hdInamesInScope
+   rule2890 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
    {-# INLINE rule2891 #-}
-   rule2891 = \ ((_lhsIoptions) :: [Option]) ->
-     _lhsIoptions
+   rule2891 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
    {-# INLINE rule2892 #-}
-   rule2892 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
-     _lhsIorderedTypeSynonyms
+   rule2892 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
    {-# INLINE rule2893 #-}
-   rule2893 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
-     _lhsItypeConstructors
+   rule2893 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _lhsIcollectScopeInfos
    {-# INLINE rule2894 #-}
-   rule2894 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
-     _lhsIvalueConstructors
+   rule2894 = \ ((_lhsIcounter) :: Int) ->
+     _lhsIcounter
    {-# INLINE rule2895 #-}
-   rule2895 = \ ((_hdIwarnings) :: [Warning]) ->
+   rule2895 = \ ((_lhsIkindErrors) :: [Error]) ->
+     _lhsIkindErrors
+   {-# INLINE rule2896 #-}
+   rule2896 = \ ((_lhsIlastStatementIsExpr) :: Bool) ->
+     _lhsIlastStatementIsExpr
+   {-# INLINE rule2897 #-}
+   rule2897 = \ ((_lhsImiscerrors) :: [Error]) ->
+     _lhsImiscerrors
+   {-# INLINE rule2898 #-}
+   rule2898 = \ ((_lhsInamesInScope) :: Names) ->
+     _lhsInamesInScope
+   {-# INLINE rule2899 #-}
+   rule2899 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule2900 #-}
+   rule2900 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule2901 #-}
+   rule2901 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2902 #-}
+   rule2902 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2903 #-}
+   rule2903 = \ ((_lhsIwarnings) :: [Warning]) ->
+     _lhsIwarnings
+   {-# INLINE rule2904 #-}
+   rule2904 = \ ((_lhsIallTypeConstructors) :: Names) ->
+     _lhsIallTypeConstructors
+   {-# INLINE rule2905 #-}
+   rule2905 = \ ((_lhsIallValueConstructors) :: Names) ->
+     _lhsIallValueConstructors
+   {-# INLINE rule2906 #-}
+   rule2906 = \ ((_lhsIclassEnvironment) :: ClassEnvironment) ->
+     _lhsIclassEnvironment
+   {-# INLINE rule2907 #-}
+   rule2907 = \ ((_lhsIclassMemberEnv) :: ClassMemberEnvironment) ->
+     _lhsIclassMemberEnv
+   {-# INLINE rule2908 #-}
+   rule2908 = \ ((_hdIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+     _hdIcollectScopeInfos
+   {-# INLINE rule2909 #-}
+   rule2909 = \ ((_hdIcounter) :: Int) ->
+     _hdIcounter
+   {-# INLINE rule2910 #-}
+   rule2910 = \ ((_hdIkindErrors) :: [Error]) ->
+     _hdIkindErrors
+   {-# INLINE rule2911 #-}
+   rule2911 = \ ((_hdIlastStatementIsExpr) :: Bool) ->
+     _hdIlastStatementIsExpr
+   {-# INLINE rule2912 #-}
+   rule2912 = \ ((_hdImiscerrors) :: [Error]) ->
+     _hdImiscerrors
+   {-# INLINE rule2913 #-}
+   rule2913 = \ ((_hdInamesInScope) :: Names) ->
+     _hdInamesInScope
+   {-# INLINE rule2914 #-}
+   rule2914 = \ ((_lhsIoptions) :: [Option]) ->
+     _lhsIoptions
+   {-# INLINE rule2915 #-}
+   rule2915 = \ ((_lhsIorderedTypeSynonyms) :: OrderedTypeSynonyms) ->
+     _lhsIorderedTypeSynonyms
+   {-# INLINE rule2916 #-}
+   rule2916 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+     _lhsItypeConstructors
+   {-# INLINE rule2917 #-}
+   rule2917 = \ ((_lhsIvalueConstructors) :: M.Map Name TpScheme) ->
+     _lhsIvalueConstructors
+   {-# INLINE rule2918 #-}
+   rule2918 = \ ((_hdIwarnings) :: [Warning]) ->
      _hdIwarnings
 {-# NOINLINE sem_Statements_Nil #-}
 sem_Statements_Nil ::  T_Statements 
@@ -17270,61 +17385,61 @@ sem_Statements_Nil  = T_Statements (return st158) where
       v157 :: T_Statements_v157 
       v157 = \ (T_Statements_vIn157 _lhsIallTypeConstructors _lhsIallValueConstructors _lhsIclassEnvironment _lhsIclassMemberEnv _lhsIcollectScopeInfos _lhsIcounter _lhsIkindErrors _lhsIlastStatementIsExpr _lhsImiscerrors _lhsInamesInScope _lhsIoptions _lhsIorderedTypeSynonyms _lhsItypeConstructors _lhsIunboundNames _lhsIvalueConstructors _lhsIwarnings) -> ( let
          _lhsOunboundNames :: Names
-         _lhsOunboundNames = rule2896 _lhsIunboundNames
+         _lhsOunboundNames = rule2919 _lhsIunboundNames
          _lhsOcollectInstances :: [(Name, Instance)]
-         _lhsOcollectInstances = rule2897  ()
-         _self = rule2898  ()
+         _lhsOcollectInstances = rule2920  ()
+         _self = rule2921  ()
          _lhsOself :: Statements
-         _lhsOself = rule2899 _self
+         _lhsOself = rule2922 _self
          _lhsOcollectScopeInfos :: [(ScopeInfo, Entity)]
-         _lhsOcollectScopeInfos = rule2900 _lhsIcollectScopeInfos
+         _lhsOcollectScopeInfos = rule2923 _lhsIcollectScopeInfos
          _lhsOcounter :: Int
-         _lhsOcounter = rule2901 _lhsIcounter
+         _lhsOcounter = rule2924 _lhsIcounter
          _lhsOkindErrors :: [Error]
-         _lhsOkindErrors = rule2902 _lhsIkindErrors
+         _lhsOkindErrors = rule2925 _lhsIkindErrors
          _lhsOlastStatementIsExpr :: Bool
-         _lhsOlastStatementIsExpr = rule2903 _lhsIlastStatementIsExpr
+         _lhsOlastStatementIsExpr = rule2926 _lhsIlastStatementIsExpr
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2904 _lhsImiscerrors
+         _lhsOmiscerrors = rule2927 _lhsImiscerrors
          _lhsOnamesInScope :: Names
-         _lhsOnamesInScope = rule2905 _lhsInamesInScope
+         _lhsOnamesInScope = rule2928 _lhsInamesInScope
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2906 _lhsIwarnings
+         _lhsOwarnings = rule2929 _lhsIwarnings
          __result_ = T_Statements_vOut157 _lhsOcollectInstances _lhsOcollectScopeInfos _lhsOcounter _lhsOkindErrors _lhsOlastStatementIsExpr _lhsOmiscerrors _lhsOnamesInScope _lhsOself _lhsOunboundNames _lhsOwarnings
          in __result_ )
      in C_Statements_s158 v157
-   {-# INLINE rule2896 #-}
-   rule2896 = \ ((_lhsIunboundNames) :: Names) ->
+   {-# INLINE rule2919 #-}
+   rule2919 = \ ((_lhsIunboundNames) :: Names) ->
                                   _lhsIunboundNames
-   {-# INLINE rule2897 #-}
-   rule2897 = \  (_ :: ()) ->
+   {-# INLINE rule2920 #-}
+   rule2920 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2898 #-}
-   rule2898 = \  (_ :: ()) ->
+   {-# INLINE rule2921 #-}
+   rule2921 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2899 #-}
-   rule2899 = \ _self ->
+   {-# INLINE rule2922 #-}
+   rule2922 = \ _self ->
      _self
-   {-# INLINE rule2900 #-}
-   rule2900 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
+   {-# INLINE rule2923 #-}
+   rule2923 = \ ((_lhsIcollectScopeInfos) :: [(ScopeInfo, Entity)]) ->
      _lhsIcollectScopeInfos
-   {-# INLINE rule2901 #-}
-   rule2901 = \ ((_lhsIcounter) :: Int) ->
+   {-# INLINE rule2924 #-}
+   rule2924 = \ ((_lhsIcounter) :: Int) ->
      _lhsIcounter
-   {-# INLINE rule2902 #-}
-   rule2902 = \ ((_lhsIkindErrors) :: [Error]) ->
+   {-# INLINE rule2925 #-}
+   rule2925 = \ ((_lhsIkindErrors) :: [Error]) ->
      _lhsIkindErrors
-   {-# INLINE rule2903 #-}
-   rule2903 = \ ((_lhsIlastStatementIsExpr) :: Bool) ->
+   {-# INLINE rule2926 #-}
+   rule2926 = \ ((_lhsIlastStatementIsExpr) :: Bool) ->
      _lhsIlastStatementIsExpr
-   {-# INLINE rule2904 #-}
-   rule2904 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2927 #-}
+   rule2927 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2905 #-}
-   rule2905 = \ ((_lhsInamesInScope) :: Names) ->
+   {-# INLINE rule2928 #-}
+   rule2928 = \ ((_lhsInamesInScope) :: Names) ->
      _lhsInamesInScope
-   {-# INLINE rule2906 #-}
-   rule2906 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2929 #-}
+   rule2929 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 
 -- Strings -----------------------------------------------------
@@ -17366,17 +17481,17 @@ sem_Strings_Cons arg_hd_ arg_tl_ = T_Strings (return st161) where
       v160 = \ (T_Strings_vIn160 ) -> ( let
          _tlX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_tl_))
          (T_Strings_vOut160 _tlIself) = inv_Strings_s161 _tlX161 (T_Strings_vIn160 )
-         _self = rule2907 _tlIself arg_hd_
+         _self = rule2930 _tlIself arg_hd_
          _lhsOself :: Strings
-         _lhsOself = rule2908 _self
+         _lhsOself = rule2931 _self
          __result_ = T_Strings_vOut160 _lhsOself
          in __result_ )
      in C_Strings_s161 v160
-   {-# INLINE rule2907 #-}
-   rule2907 = \ ((_tlIself) :: Strings) hd_ ->
+   {-# INLINE rule2930 #-}
+   rule2930 = \ ((_tlIself) :: Strings) hd_ ->
      (:) hd_ _tlIself
-   {-# INLINE rule2908 #-}
-   rule2908 = \ _self ->
+   {-# INLINE rule2931 #-}
+   rule2931 = \ _self ->
      _self
 {-# NOINLINE sem_Strings_Nil #-}
 sem_Strings_Nil ::  T_Strings 
@@ -17385,17 +17500,17 @@ sem_Strings_Nil  = T_Strings (return st161) where
    st161 = let
       v160 :: T_Strings_v160 
       v160 = \ (T_Strings_vIn160 ) -> ( let
-         _self = rule2909  ()
+         _self = rule2932  ()
          _lhsOself :: Strings
-         _lhsOself = rule2910 _self
+         _lhsOself = rule2933 _self
          __result_ = T_Strings_vOut160 _lhsOself
          in __result_ )
      in C_Strings_s161 v160
-   {-# INLINE rule2909 #-}
-   rule2909 = \  (_ :: ()) ->
+   {-# INLINE rule2932 #-}
+   rule2932 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2910 #-}
-   rule2910 = \ _self ->
+   {-# INLINE rule2933 #-}
+   rule2933 = \ _self ->
      _self
 
 -- Type --------------------------------------------------------
@@ -17448,76 +17563,76 @@ sem_Type_Application arg_range_ arg_prefix_ arg_function_ arg_arguments_ = T_Typ
          (T_Type_vOut163 _functionIcontextRange _functionImiscerrors _functionIself _functionItypevariables _functionIwarnings) = inv_Type_s164 _functionX164 (T_Type_vIn163 _functionOallTypeConstructors _functionOmiscerrors _functionOoptions _functionOtypeConstructors _functionOwarnings)
          (T_Types_vOut166 _argumentsImiscerrors _argumentsIself _argumentsItypevariables _argumentsIwarnings) = inv_Types_s167 _argumentsX167 (T_Types_vIn166 _argumentsOallTypeConstructors _argumentsOmiscerrors _argumentsOoptions _argumentsOtypeConstructors _argumentsOwarnings)
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule2911 _argumentsItypevariables _functionItypevariables
-         _self = rule2912 _argumentsIself _functionIself _rangeIself arg_prefix_
+         _lhsOtypevariables = rule2934 _argumentsItypevariables _functionItypevariables
+         _self = rule2935 _argumentsIself _functionIself _rangeIself arg_prefix_
          _lhsOself :: Type
-         _lhsOself = rule2913 _self
+         _lhsOself = rule2936 _self
          _lhsOcontextRange :: Range
-         _lhsOcontextRange = rule2914 _functionIcontextRange
+         _lhsOcontextRange = rule2937 _functionIcontextRange
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2915 _argumentsImiscerrors
+         _lhsOmiscerrors = rule2938 _argumentsImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2916 _argumentsIwarnings
-         _functionOallTypeConstructors = rule2917 _lhsIallTypeConstructors
-         _functionOmiscerrors = rule2918 _lhsImiscerrors
-         _functionOoptions = rule2919 _lhsIoptions
-         _functionOtypeConstructors = rule2920 _lhsItypeConstructors
-         _functionOwarnings = rule2921 _lhsIwarnings
-         _argumentsOallTypeConstructors = rule2922 _lhsIallTypeConstructors
-         _argumentsOmiscerrors = rule2923 _functionImiscerrors
-         _argumentsOoptions = rule2924 _lhsIoptions
-         _argumentsOtypeConstructors = rule2925 _lhsItypeConstructors
-         _argumentsOwarnings = rule2926 _functionIwarnings
+         _lhsOwarnings = rule2939 _argumentsIwarnings
+         _functionOallTypeConstructors = rule2940 _lhsIallTypeConstructors
+         _functionOmiscerrors = rule2941 _lhsImiscerrors
+         _functionOoptions = rule2942 _lhsIoptions
+         _functionOtypeConstructors = rule2943 _lhsItypeConstructors
+         _functionOwarnings = rule2944 _lhsIwarnings
+         _argumentsOallTypeConstructors = rule2945 _lhsIallTypeConstructors
+         _argumentsOmiscerrors = rule2946 _functionImiscerrors
+         _argumentsOoptions = rule2947 _lhsIoptions
+         _argumentsOtypeConstructors = rule2948 _lhsItypeConstructors
+         _argumentsOwarnings = rule2949 _functionIwarnings
          __result_ = T_Type_vOut163 _lhsOcontextRange _lhsOmiscerrors _lhsOself _lhsOtypevariables _lhsOwarnings
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule2911 #-}
-   rule2911 = \ ((_argumentsItypevariables) :: Names) ((_functionItypevariables) :: Names) ->
+   {-# INLINE rule2934 #-}
+   rule2934 = \ ((_argumentsItypevariables) :: Names) ((_functionItypevariables) :: Names) ->
      _functionItypevariables  ++  _argumentsItypevariables
-   {-# INLINE rule2912 #-}
-   rule2912 = \ ((_argumentsIself) :: Types) ((_functionIself) :: Type) ((_rangeIself) :: Range) prefix_ ->
+   {-# INLINE rule2935 #-}
+   rule2935 = \ ((_argumentsIself) :: Types) ((_functionIself) :: Type) ((_rangeIself) :: Range) prefix_ ->
      Type_Application _rangeIself prefix_ _functionIself _argumentsIself
-   {-# INLINE rule2913 #-}
-   rule2913 = \ _self ->
+   {-# INLINE rule2936 #-}
+   rule2936 = \ _self ->
      _self
-   {-# INLINE rule2914 #-}
-   rule2914 = \ ((_functionIcontextRange) :: Range) ->
+   {-# INLINE rule2937 #-}
+   rule2937 = \ ((_functionIcontextRange) :: Range) ->
      _functionIcontextRange
-   {-# INLINE rule2915 #-}
-   rule2915 = \ ((_argumentsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2938 #-}
+   rule2938 = \ ((_argumentsImiscerrors) :: [Error]) ->
      _argumentsImiscerrors
-   {-# INLINE rule2916 #-}
-   rule2916 = \ ((_argumentsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2939 #-}
+   rule2939 = \ ((_argumentsIwarnings) :: [Warning]) ->
      _argumentsIwarnings
-   {-# INLINE rule2917 #-}
-   rule2917 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   {-# INLINE rule2940 #-}
+   rule2940 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule2918 #-}
-   rule2918 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2941 #-}
+   rule2941 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2919 #-}
-   rule2919 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule2942 #-}
+   rule2942 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule2920 #-}
-   rule2920 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule2943 #-}
+   rule2943 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule2921 #-}
-   rule2921 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2944 #-}
+   rule2944 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
-   {-# INLINE rule2922 #-}
-   rule2922 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   {-# INLINE rule2945 #-}
+   rule2945 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule2923 #-}
-   rule2923 = \ ((_functionImiscerrors) :: [Error]) ->
+   {-# INLINE rule2946 #-}
+   rule2946 = \ ((_functionImiscerrors) :: [Error]) ->
      _functionImiscerrors
-   {-# INLINE rule2924 #-}
-   rule2924 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule2947 #-}
+   rule2947 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule2925 #-}
-   rule2925 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule2948 #-}
+   rule2948 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule2926 #-}
-   rule2926 = \ ((_functionIwarnings) :: [Warning]) ->
+   {-# INLINE rule2949 #-}
+   rule2949 = \ ((_functionIwarnings) :: [Warning]) ->
      _functionIwarnings
 {-# NOINLINE sem_Type_Variable #-}
 sem_Type_Variable :: T_Range  -> T_Name  -> T_Type 
@@ -17531,41 +17646,41 @@ sem_Type_Variable arg_range_ arg_name_ = T_Type (return st164) where
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2927 _lhsIallTypeConstructors _lhsIwarnings _nameIself
+         _lhsOwarnings = rule2950 _lhsIallTypeConstructors _lhsIwarnings _nameIself
          _lhsOcontextRange :: Range
-         _lhsOcontextRange = rule2928  ()
+         _lhsOcontextRange = rule2951  ()
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule2929 _nameIself
-         _self = rule2930 _nameIself _rangeIself
+         _lhsOtypevariables = rule2952 _nameIself
+         _self = rule2953 _nameIself _rangeIself
          _lhsOself :: Type
-         _lhsOself = rule2931 _self
+         _lhsOself = rule2954 _self
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2932 _lhsImiscerrors
+         _lhsOmiscerrors = rule2955 _lhsImiscerrors
          __result_ = T_Type_vOut163 _lhsOcontextRange _lhsOmiscerrors _lhsOself _lhsOtypevariables _lhsOwarnings
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule2927 #-}
-   rule2927 = \ ((_lhsIallTypeConstructors) :: Names) ((_lhsIwarnings) :: [Warning]) ((_nameIself) :: Name) ->
+   {-# INLINE rule2950 #-}
+   rule2950 = \ ((_lhsIallTypeConstructors) :: Names) ((_lhsIwarnings) :: [Warning]) ((_nameIself) :: Name) ->
                                   let xs = [ SuspiciousTypeVariable _nameIself tc
                                            | length (show _nameIself) > 1
                                            , tc <- _lhsIallTypeConstructors
                                            , capitalize (show _nameIself) == (show tc)
                                            ]
                                   in xs ++ _lhsIwarnings
-   {-# INLINE rule2928 #-}
-   rule2928 = \  (_ :: ()) ->
+   {-# INLINE rule2951 #-}
+   rule2951 = \  (_ :: ()) ->
                                       noRange
-   {-# INLINE rule2929 #-}
-   rule2929 = \ ((_nameIself) :: Name) ->
+   {-# INLINE rule2952 #-}
+   rule2952 = \ ((_nameIself) :: Name) ->
                                       [ _nameIself ]
-   {-# INLINE rule2930 #-}
-   rule2930 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule2953 #-}
+   rule2953 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Type_Variable _rangeIself _nameIself
-   {-# INLINE rule2931 #-}
-   rule2931 = \ _self ->
+   {-# INLINE rule2954 #-}
+   rule2954 = \ _self ->
      _self
-   {-# INLINE rule2932 #-}
-   rule2932 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2955 #-}
+   rule2955 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
 {-# NOINLINE sem_Type_Constructor #-}
 sem_Type_Constructor :: T_Range  -> T_Name  -> T_Type 
@@ -17579,36 +17694,36 @@ sem_Type_Constructor arg_range_ arg_name_ = T_Type (return st164) where
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          _lhsOcontextRange :: Range
-         _lhsOcontextRange = rule2933  ()
+         _lhsOcontextRange = rule2956  ()
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule2934  ()
-         _self = rule2935 _nameIself _rangeIself
+         _lhsOtypevariables = rule2957  ()
+         _self = rule2958 _nameIself _rangeIself
          _lhsOself :: Type
-         _lhsOself = rule2936 _self
+         _lhsOself = rule2959 _self
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2937 _lhsImiscerrors
+         _lhsOmiscerrors = rule2960 _lhsImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2938 _lhsIwarnings
+         _lhsOwarnings = rule2961 _lhsIwarnings
          __result_ = T_Type_vOut163 _lhsOcontextRange _lhsOmiscerrors _lhsOself _lhsOtypevariables _lhsOwarnings
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule2933 #-}
-   rule2933 = \  (_ :: ()) ->
+   {-# INLINE rule2956 #-}
+   rule2956 = \  (_ :: ()) ->
                                       noRange
-   {-# INLINE rule2934 #-}
-   rule2934 = \  (_ :: ()) ->
+   {-# INLINE rule2957 #-}
+   rule2957 = \  (_ :: ()) ->
      []
-   {-# INLINE rule2935 #-}
-   rule2935 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule2958 #-}
+   rule2958 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Type_Constructor _rangeIself _nameIself
-   {-# INLINE rule2936 #-}
-   rule2936 = \ _self ->
+   {-# INLINE rule2959 #-}
+   rule2959 = \ _self ->
      _self
-   {-# INLINE rule2937 #-}
-   rule2937 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2960 #-}
+   rule2960 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2938 #-}
-   rule2938 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2961 #-}
+   rule2961 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_Type_Qualified #-}
 sem_Type_Qualified :: T_Range  -> T_ContextItems  -> T_Type  -> T_Type 
@@ -17624,31 +17739,31 @@ sem_Type_Qualified arg_range_ arg_context_ arg_type_ = T_Type (return st164) whe
          (T_ContextItems_vOut25 _contextIcontextRanges _contextIcontextVars _contextImiscerrors _contextIself _contextItypeVariables _contextIwarnings) = inv_ContextItems_s26 _contextX26 (T_ContextItems_vIn25 _contextOallTypeConstructors _contextOmiscerrors _contextOoptions _contextOtypeConstructors _contextOwarnings)
          (T_Type_vOut163 _typeIcontextRange _typeImiscerrors _typeIself _typeItypevariables _typeIwarnings) = inv_Type_s164 _typeX164 (T_Type_vIn163 _typeOallTypeConstructors _typeOmiscerrors _typeOoptions _typeOtypeConstructors _typeOwarnings)
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2939 _contextIcontextVars _lhsIoptions _rangeIself _typeImiscerrors _typeItypevariables
+         _lhsOmiscerrors = rule2962 _contextIcontextVars _lhsIoptions _rangeIself _typeImiscerrors _typeItypevariables
          _lhsOcontextRange :: Range
-         _lhsOcontextRange = rule2940 _contextIcontextRanges
+         _lhsOcontextRange = rule2963 _contextIcontextRanges
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule2941 _typeItypevariables
-         _self = rule2942 _contextIself _rangeIself _typeIself
+         _lhsOtypevariables = rule2964 _typeItypevariables
+         _self = rule2965 _contextIself _rangeIself _typeIself
          _lhsOself :: Type
-         _lhsOself = rule2943 _self
+         _lhsOself = rule2966 _self
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2944 _typeIwarnings
-         _contextOallTypeConstructors = rule2945 _lhsIallTypeConstructors
-         _contextOmiscerrors = rule2946 _lhsImiscerrors
-         _contextOoptions = rule2947 _lhsIoptions
-         _contextOtypeConstructors = rule2948 _lhsItypeConstructors
-         _contextOwarnings = rule2949 _lhsIwarnings
-         _typeOallTypeConstructors = rule2950 _lhsIallTypeConstructors
-         _typeOmiscerrors = rule2951 _contextImiscerrors
-         _typeOoptions = rule2952 _lhsIoptions
-         _typeOtypeConstructors = rule2953 _lhsItypeConstructors
-         _typeOwarnings = rule2954 _contextIwarnings
+         _lhsOwarnings = rule2967 _typeIwarnings
+         _contextOallTypeConstructors = rule2968 _lhsIallTypeConstructors
+         _contextOmiscerrors = rule2969 _lhsImiscerrors
+         _contextOoptions = rule2970 _lhsIoptions
+         _contextOtypeConstructors = rule2971 _lhsItypeConstructors
+         _contextOwarnings = rule2972 _lhsIwarnings
+         _typeOallTypeConstructors = rule2973 _lhsIallTypeConstructors
+         _typeOmiscerrors = rule2974 _contextImiscerrors
+         _typeOoptions = rule2975 _lhsIoptions
+         _typeOtypeConstructors = rule2976 _lhsItypeConstructors
+         _typeOwarnings = rule2977 _contextIwarnings
          __result_ = T_Type_vOut163 _lhsOcontextRange _lhsOmiscerrors _lhsOself _lhsOtypevariables _lhsOwarnings
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule2939 #-}
-   rule2939 = \ ((_contextIcontextVars) :: [Name]) ((_lhsIoptions) :: [Option]) ((_rangeIself) :: Range) ((_typeImiscerrors) :: [Error]) ((_typeItypevariables) :: Names) ->
+   {-# INLINE rule2962 #-}
+   rule2962 = \ ((_contextIcontextVars) :: [Name]) ((_lhsIoptions) :: [Option]) ((_rangeIself) :: Range) ((_typeImiscerrors) :: [Error]) ((_typeItypevariables) :: Names) ->
           ( if Overloading `elem` _lhsIoptions then
               [ AmbiguousContext v | v <-  _contextIcontextVars, v `notElem` _typeItypevariables ]
             else
@@ -17656,52 +17771,52 @@ sem_Type_Qualified arg_range_ arg_context_ arg_type_ = T_Type (return st164) whe
           )
           ++
           _typeImiscerrors
-   {-# INLINE rule2940 #-}
-   rule2940 = \ ((_contextIcontextRanges) :: [Range]) ->
+   {-# INLINE rule2963 #-}
+   rule2963 = \ ((_contextIcontextRanges) :: [Range]) ->
                                       if null _contextIcontextRanges
                                         then noRange
                                         else foldr1 mergeRanges _contextIcontextRanges
-   {-# INLINE rule2941 #-}
-   rule2941 = \ ((_typeItypevariables) :: Names) ->
+   {-# INLINE rule2964 #-}
+   rule2964 = \ ((_typeItypevariables) :: Names) ->
      _typeItypevariables
-   {-# INLINE rule2942 #-}
-   rule2942 = \ ((_contextIself) :: ContextItems) ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
+   {-# INLINE rule2965 #-}
+   rule2965 = \ ((_contextIself) :: ContextItems) ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
      Type_Qualified _rangeIself _contextIself _typeIself
-   {-# INLINE rule2943 #-}
-   rule2943 = \ _self ->
+   {-# INLINE rule2966 #-}
+   rule2966 = \ _self ->
      _self
-   {-# INLINE rule2944 #-}
-   rule2944 = \ ((_typeIwarnings) :: [Warning]) ->
+   {-# INLINE rule2967 #-}
+   rule2967 = \ ((_typeIwarnings) :: [Warning]) ->
      _typeIwarnings
-   {-# INLINE rule2945 #-}
-   rule2945 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   {-# INLINE rule2968 #-}
+   rule2968 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule2946 #-}
-   rule2946 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2969 #-}
+   rule2969 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2947 #-}
-   rule2947 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule2970 #-}
+   rule2970 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule2948 #-}
-   rule2948 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule2971 #-}
+   rule2971 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule2949 #-}
-   rule2949 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2972 #-}
+   rule2972 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
-   {-# INLINE rule2950 #-}
-   rule2950 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   {-# INLINE rule2973 #-}
+   rule2973 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule2951 #-}
-   rule2951 = \ ((_contextImiscerrors) :: [Error]) ->
+   {-# INLINE rule2974 #-}
+   rule2974 = \ ((_contextImiscerrors) :: [Error]) ->
      _contextImiscerrors
-   {-# INLINE rule2952 #-}
-   rule2952 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule2975 #-}
+   rule2975 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule2953 #-}
-   rule2953 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule2976 #-}
+   rule2976 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule2954 #-}
-   rule2954 = \ ((_contextIwarnings) :: [Warning]) ->
+   {-# INLINE rule2977 #-}
+   rule2977 = \ ((_contextIwarnings) :: [Warning]) ->
      _contextIwarnings
 {-# NOINLINE sem_Type_Forall #-}
 sem_Type_Forall :: T_Range  -> T_Names  -> T_Type  -> T_Type 
@@ -17717,56 +17832,56 @@ sem_Type_Forall arg_range_ arg_typevariables_ arg_type_ = T_Type (return st164) 
          (T_Names_vOut115 _typevariablesIself) = inv_Names_s116 _typevariablesX116 (T_Names_vIn115 )
          (T_Type_vOut163 _typeIcontextRange _typeImiscerrors _typeIself _typeItypevariables _typeIwarnings) = inv_Type_s164 _typeX164 (T_Type_vIn163 _typeOallTypeConstructors _typeOmiscerrors _typeOoptions _typeOtypeConstructors _typeOwarnings)
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule2955 _typeItypevariables
-         _self = rule2956 _rangeIself _typeIself _typevariablesIself
+         _lhsOtypevariables = rule2978 _typeItypevariables
+         _self = rule2979 _rangeIself _typeIself _typevariablesIself
          _lhsOself :: Type
-         _lhsOself = rule2957 _self
+         _lhsOself = rule2980 _self
          _lhsOcontextRange :: Range
-         _lhsOcontextRange = rule2958 _typeIcontextRange
+         _lhsOcontextRange = rule2981 _typeIcontextRange
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2959 _typeImiscerrors
+         _lhsOmiscerrors = rule2982 _typeImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2960 _typeIwarnings
-         _typeOallTypeConstructors = rule2961 _lhsIallTypeConstructors
-         _typeOmiscerrors = rule2962 _lhsImiscerrors
-         _typeOoptions = rule2963 _lhsIoptions
-         _typeOtypeConstructors = rule2964 _lhsItypeConstructors
-         _typeOwarnings = rule2965 _lhsIwarnings
+         _lhsOwarnings = rule2983 _typeIwarnings
+         _typeOallTypeConstructors = rule2984 _lhsIallTypeConstructors
+         _typeOmiscerrors = rule2985 _lhsImiscerrors
+         _typeOoptions = rule2986 _lhsIoptions
+         _typeOtypeConstructors = rule2987 _lhsItypeConstructors
+         _typeOwarnings = rule2988 _lhsIwarnings
          __result_ = T_Type_vOut163 _lhsOcontextRange _lhsOmiscerrors _lhsOself _lhsOtypevariables _lhsOwarnings
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule2955 #-}
-   rule2955 = \ ((_typeItypevariables) :: Names) ->
+   {-# INLINE rule2978 #-}
+   rule2978 = \ ((_typeItypevariables) :: Names) ->
      _typeItypevariables
-   {-# INLINE rule2956 #-}
-   rule2956 = \ ((_rangeIself) :: Range) ((_typeIself) :: Type) ((_typevariablesIself) :: Names) ->
+   {-# INLINE rule2979 #-}
+   rule2979 = \ ((_rangeIself) :: Range) ((_typeIself) :: Type) ((_typevariablesIself) :: Names) ->
      Type_Forall _rangeIself _typevariablesIself _typeIself
-   {-# INLINE rule2957 #-}
-   rule2957 = \ _self ->
+   {-# INLINE rule2980 #-}
+   rule2980 = \ _self ->
      _self
-   {-# INLINE rule2958 #-}
-   rule2958 = \ ((_typeIcontextRange) :: Range) ->
+   {-# INLINE rule2981 #-}
+   rule2981 = \ ((_typeIcontextRange) :: Range) ->
      _typeIcontextRange
-   {-# INLINE rule2959 #-}
-   rule2959 = \ ((_typeImiscerrors) :: [Error]) ->
+   {-# INLINE rule2982 #-}
+   rule2982 = \ ((_typeImiscerrors) :: [Error]) ->
      _typeImiscerrors
-   {-# INLINE rule2960 #-}
-   rule2960 = \ ((_typeIwarnings) :: [Warning]) ->
+   {-# INLINE rule2983 #-}
+   rule2983 = \ ((_typeIwarnings) :: [Warning]) ->
      _typeIwarnings
-   {-# INLINE rule2961 #-}
-   rule2961 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   {-# INLINE rule2984 #-}
+   rule2984 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule2962 #-}
-   rule2962 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2985 #-}
+   rule2985 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2963 #-}
-   rule2963 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule2986 #-}
+   rule2986 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule2964 #-}
-   rule2964 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule2987 #-}
+   rule2987 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule2965 #-}
-   rule2965 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2988 #-}
+   rule2988 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_Type_Exists #-}
 sem_Type_Exists :: T_Range  -> T_Names  -> T_Type  -> T_Type 
@@ -17782,56 +17897,56 @@ sem_Type_Exists arg_range_ arg_typevariables_ arg_type_ = T_Type (return st164) 
          (T_Names_vOut115 _typevariablesIself) = inv_Names_s116 _typevariablesX116 (T_Names_vIn115 )
          (T_Type_vOut163 _typeIcontextRange _typeImiscerrors _typeIself _typeItypevariables _typeIwarnings) = inv_Type_s164 _typeX164 (T_Type_vIn163 _typeOallTypeConstructors _typeOmiscerrors _typeOoptions _typeOtypeConstructors _typeOwarnings)
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule2966 _typeItypevariables
-         _self = rule2967 _rangeIself _typeIself _typevariablesIself
+         _lhsOtypevariables = rule2989 _typeItypevariables
+         _self = rule2990 _rangeIself _typeIself _typevariablesIself
          _lhsOself :: Type
-         _lhsOself = rule2968 _self
+         _lhsOself = rule2991 _self
          _lhsOcontextRange :: Range
-         _lhsOcontextRange = rule2969 _typeIcontextRange
+         _lhsOcontextRange = rule2992 _typeIcontextRange
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2970 _typeImiscerrors
+         _lhsOmiscerrors = rule2993 _typeImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2971 _typeIwarnings
-         _typeOallTypeConstructors = rule2972 _lhsIallTypeConstructors
-         _typeOmiscerrors = rule2973 _lhsImiscerrors
-         _typeOoptions = rule2974 _lhsIoptions
-         _typeOtypeConstructors = rule2975 _lhsItypeConstructors
-         _typeOwarnings = rule2976 _lhsIwarnings
+         _lhsOwarnings = rule2994 _typeIwarnings
+         _typeOallTypeConstructors = rule2995 _lhsIallTypeConstructors
+         _typeOmiscerrors = rule2996 _lhsImiscerrors
+         _typeOoptions = rule2997 _lhsIoptions
+         _typeOtypeConstructors = rule2998 _lhsItypeConstructors
+         _typeOwarnings = rule2999 _lhsIwarnings
          __result_ = T_Type_vOut163 _lhsOcontextRange _lhsOmiscerrors _lhsOself _lhsOtypevariables _lhsOwarnings
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule2966 #-}
-   rule2966 = \ ((_typeItypevariables) :: Names) ->
+   {-# INLINE rule2989 #-}
+   rule2989 = \ ((_typeItypevariables) :: Names) ->
      _typeItypevariables
-   {-# INLINE rule2967 #-}
-   rule2967 = \ ((_rangeIself) :: Range) ((_typeIself) :: Type) ((_typevariablesIself) :: Names) ->
+   {-# INLINE rule2990 #-}
+   rule2990 = \ ((_rangeIself) :: Range) ((_typeIself) :: Type) ((_typevariablesIself) :: Names) ->
      Type_Exists _rangeIself _typevariablesIself _typeIself
-   {-# INLINE rule2968 #-}
-   rule2968 = \ _self ->
+   {-# INLINE rule2991 #-}
+   rule2991 = \ _self ->
      _self
-   {-# INLINE rule2969 #-}
-   rule2969 = \ ((_typeIcontextRange) :: Range) ->
+   {-# INLINE rule2992 #-}
+   rule2992 = \ ((_typeIcontextRange) :: Range) ->
      _typeIcontextRange
-   {-# INLINE rule2970 #-}
-   rule2970 = \ ((_typeImiscerrors) :: [Error]) ->
+   {-# INLINE rule2993 #-}
+   rule2993 = \ ((_typeImiscerrors) :: [Error]) ->
      _typeImiscerrors
-   {-# INLINE rule2971 #-}
-   rule2971 = \ ((_typeIwarnings) :: [Warning]) ->
+   {-# INLINE rule2994 #-}
+   rule2994 = \ ((_typeIwarnings) :: [Warning]) ->
      _typeIwarnings
-   {-# INLINE rule2972 #-}
-   rule2972 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   {-# INLINE rule2995 #-}
+   rule2995 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule2973 #-}
-   rule2973 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule2996 #-}
+   rule2996 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2974 #-}
-   rule2974 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule2997 #-}
+   rule2997 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule2975 #-}
-   rule2975 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule2998 #-}
+   rule2998 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule2976 #-}
-   rule2976 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule2999 #-}
+   rule2999 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 {-# NOINLINE sem_Type_Parenthesized #-}
 sem_Type_Parenthesized :: T_Range  -> T_Type  -> T_Type 
@@ -17845,56 +17960,56 @@ sem_Type_Parenthesized arg_range_ arg_type_ = T_Type (return st164) where
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Type_vOut163 _typeIcontextRange _typeImiscerrors _typeIself _typeItypevariables _typeIwarnings) = inv_Type_s164 _typeX164 (T_Type_vIn163 _typeOallTypeConstructors _typeOmiscerrors _typeOoptions _typeOtypeConstructors _typeOwarnings)
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule2977 _typeItypevariables
-         _self = rule2978 _rangeIself _typeIself
+         _lhsOtypevariables = rule3000 _typeItypevariables
+         _self = rule3001 _rangeIself _typeIself
          _lhsOself :: Type
-         _lhsOself = rule2979 _self
+         _lhsOself = rule3002 _self
          _lhsOcontextRange :: Range
-         _lhsOcontextRange = rule2980 _typeIcontextRange
+         _lhsOcontextRange = rule3003 _typeIcontextRange
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2981 _typeImiscerrors
+         _lhsOmiscerrors = rule3004 _typeImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2982 _typeIwarnings
-         _typeOallTypeConstructors = rule2983 _lhsIallTypeConstructors
-         _typeOmiscerrors = rule2984 _lhsImiscerrors
-         _typeOoptions = rule2985 _lhsIoptions
-         _typeOtypeConstructors = rule2986 _lhsItypeConstructors
-         _typeOwarnings = rule2987 _lhsIwarnings
+         _lhsOwarnings = rule3005 _typeIwarnings
+         _typeOallTypeConstructors = rule3006 _lhsIallTypeConstructors
+         _typeOmiscerrors = rule3007 _lhsImiscerrors
+         _typeOoptions = rule3008 _lhsIoptions
+         _typeOtypeConstructors = rule3009 _lhsItypeConstructors
+         _typeOwarnings = rule3010 _lhsIwarnings
          __result_ = T_Type_vOut163 _lhsOcontextRange _lhsOmiscerrors _lhsOself _lhsOtypevariables _lhsOwarnings
          in __result_ )
      in C_Type_s164 v163
-   {-# INLINE rule2977 #-}
-   rule2977 = \ ((_typeItypevariables) :: Names) ->
+   {-# INLINE rule3000 #-}
+   rule3000 = \ ((_typeItypevariables) :: Names) ->
      _typeItypevariables
-   {-# INLINE rule2978 #-}
-   rule2978 = \ ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
+   {-# INLINE rule3001 #-}
+   rule3001 = \ ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
      Type_Parenthesized _rangeIself _typeIself
-   {-# INLINE rule2979 #-}
-   rule2979 = \ _self ->
+   {-# INLINE rule3002 #-}
+   rule3002 = \ _self ->
      _self
-   {-# INLINE rule2980 #-}
-   rule2980 = \ ((_typeIcontextRange) :: Range) ->
+   {-# INLINE rule3003 #-}
+   rule3003 = \ ((_typeIcontextRange) :: Range) ->
      _typeIcontextRange
-   {-# INLINE rule2981 #-}
-   rule2981 = \ ((_typeImiscerrors) :: [Error]) ->
+   {-# INLINE rule3004 #-}
+   rule3004 = \ ((_typeImiscerrors) :: [Error]) ->
      _typeImiscerrors
-   {-# INLINE rule2982 #-}
-   rule2982 = \ ((_typeIwarnings) :: [Warning]) ->
+   {-# INLINE rule3005 #-}
+   rule3005 = \ ((_typeIwarnings) :: [Warning]) ->
      _typeIwarnings
-   {-# INLINE rule2983 #-}
-   rule2983 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   {-# INLINE rule3006 #-}
+   rule3006 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule2984 #-}
-   rule2984 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule3007 #-}
+   rule3007 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2985 #-}
-   rule2985 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule3008 #-}
+   rule3008 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule2986 #-}
-   rule2986 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule3009 #-}
+   rule3009 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule2987 #-}
-   rule2987 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule3010 #-}
+   rule3010 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
 
 -- Types -------------------------------------------------------
@@ -17939,71 +18054,71 @@ sem_Types_Cons arg_hd_ arg_tl_ = T_Types (return st167) where
          (T_Type_vOut163 _hdIcontextRange _hdImiscerrors _hdIself _hdItypevariables _hdIwarnings) = inv_Type_s164 _hdX164 (T_Type_vIn163 _hdOallTypeConstructors _hdOmiscerrors _hdOoptions _hdOtypeConstructors _hdOwarnings)
          (T_Types_vOut166 _tlImiscerrors _tlIself _tlItypevariables _tlIwarnings) = inv_Types_s167 _tlX167 (T_Types_vIn166 _tlOallTypeConstructors _tlOmiscerrors _tlOoptions _tlOtypeConstructors _tlOwarnings)
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule2988 _hdItypevariables _tlItypevariables
-         _self = rule2989 _hdIself _tlIself
+         _lhsOtypevariables = rule3011 _hdItypevariables _tlItypevariables
+         _self = rule3012 _hdIself _tlIself
          _lhsOself :: Types
-         _lhsOself = rule2990 _self
+         _lhsOself = rule3013 _self
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule2991 _tlImiscerrors
+         _lhsOmiscerrors = rule3014 _tlImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule2992 _tlIwarnings
-         _hdOallTypeConstructors = rule2993 _lhsIallTypeConstructors
-         _hdOmiscerrors = rule2994 _lhsImiscerrors
-         _hdOoptions = rule2995 _lhsIoptions
-         _hdOtypeConstructors = rule2996 _lhsItypeConstructors
-         _hdOwarnings = rule2997 _lhsIwarnings
-         _tlOallTypeConstructors = rule2998 _lhsIallTypeConstructors
-         _tlOmiscerrors = rule2999 _hdImiscerrors
-         _tlOoptions = rule3000 _lhsIoptions
-         _tlOtypeConstructors = rule3001 _lhsItypeConstructors
-         _tlOwarnings = rule3002 _hdIwarnings
+         _lhsOwarnings = rule3015 _tlIwarnings
+         _hdOallTypeConstructors = rule3016 _lhsIallTypeConstructors
+         _hdOmiscerrors = rule3017 _lhsImiscerrors
+         _hdOoptions = rule3018 _lhsIoptions
+         _hdOtypeConstructors = rule3019 _lhsItypeConstructors
+         _hdOwarnings = rule3020 _lhsIwarnings
+         _tlOallTypeConstructors = rule3021 _lhsIallTypeConstructors
+         _tlOmiscerrors = rule3022 _hdImiscerrors
+         _tlOoptions = rule3023 _lhsIoptions
+         _tlOtypeConstructors = rule3024 _lhsItypeConstructors
+         _tlOwarnings = rule3025 _hdIwarnings
          __result_ = T_Types_vOut166 _lhsOmiscerrors _lhsOself _lhsOtypevariables _lhsOwarnings
          in __result_ )
      in C_Types_s167 v166
-   {-# INLINE rule2988 #-}
-   rule2988 = \ ((_hdItypevariables) :: Names) ((_tlItypevariables) :: Names) ->
+   {-# INLINE rule3011 #-}
+   rule3011 = \ ((_hdItypevariables) :: Names) ((_tlItypevariables) :: Names) ->
      _hdItypevariables  ++  _tlItypevariables
-   {-# INLINE rule2989 #-}
-   rule2989 = \ ((_hdIself) :: Type) ((_tlIself) :: Types) ->
+   {-# INLINE rule3012 #-}
+   rule3012 = \ ((_hdIself) :: Type) ((_tlIself) :: Types) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule2990 #-}
-   rule2990 = \ _self ->
+   {-# INLINE rule3013 #-}
+   rule3013 = \ _self ->
      _self
-   {-# INLINE rule2991 #-}
-   rule2991 = \ ((_tlImiscerrors) :: [Error]) ->
+   {-# INLINE rule3014 #-}
+   rule3014 = \ ((_tlImiscerrors) :: [Error]) ->
      _tlImiscerrors
-   {-# INLINE rule2992 #-}
-   rule2992 = \ ((_tlIwarnings) :: [Warning]) ->
+   {-# INLINE rule3015 #-}
+   rule3015 = \ ((_tlIwarnings) :: [Warning]) ->
      _tlIwarnings
-   {-# INLINE rule2993 #-}
-   rule2993 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   {-# INLINE rule3016 #-}
+   rule3016 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule2994 #-}
-   rule2994 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule3017 #-}
+   rule3017 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule2995 #-}
-   rule2995 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule3018 #-}
+   rule3018 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule2996 #-}
-   rule2996 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule3019 #-}
+   rule3019 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule2997 #-}
-   rule2997 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule3020 #-}
+   rule3020 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
-   {-# INLINE rule2998 #-}
-   rule2998 = \ ((_lhsIallTypeConstructors) :: Names) ->
+   {-# INLINE rule3021 #-}
+   rule3021 = \ ((_lhsIallTypeConstructors) :: Names) ->
      _lhsIallTypeConstructors
-   {-# INLINE rule2999 #-}
-   rule2999 = \ ((_hdImiscerrors) :: [Error]) ->
+   {-# INLINE rule3022 #-}
+   rule3022 = \ ((_hdImiscerrors) :: [Error]) ->
      _hdImiscerrors
-   {-# INLINE rule3000 #-}
-   rule3000 = \ ((_lhsIoptions) :: [Option]) ->
+   {-# INLINE rule3023 #-}
+   rule3023 = \ ((_lhsIoptions) :: [Option]) ->
      _lhsIoptions
-   {-# INLINE rule3001 #-}
-   rule3001 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
+   {-# INLINE rule3024 #-}
+   rule3024 = \ ((_lhsItypeConstructors) :: M.Map Name Int) ->
      _lhsItypeConstructors
-   {-# INLINE rule3002 #-}
-   rule3002 = \ ((_hdIwarnings) :: [Warning]) ->
+   {-# INLINE rule3025 #-}
+   rule3025 = \ ((_hdIwarnings) :: [Warning]) ->
      _hdIwarnings
 {-# NOINLINE sem_Types_Nil #-}
 sem_Types_Nil ::  T_Types 
@@ -18013,29 +18128,29 @@ sem_Types_Nil  = T_Types (return st167) where
       v166 :: T_Types_v166 
       v166 = \ (T_Types_vIn166 _lhsIallTypeConstructors _lhsImiscerrors _lhsIoptions _lhsItypeConstructors _lhsIwarnings) -> ( let
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule3003  ()
-         _self = rule3004  ()
+         _lhsOtypevariables = rule3026  ()
+         _self = rule3027  ()
          _lhsOself :: Types
-         _lhsOself = rule3005 _self
+         _lhsOself = rule3028 _self
          _lhsOmiscerrors :: [Error]
-         _lhsOmiscerrors = rule3006 _lhsImiscerrors
+         _lhsOmiscerrors = rule3029 _lhsImiscerrors
          _lhsOwarnings :: [Warning]
-         _lhsOwarnings = rule3007 _lhsIwarnings
+         _lhsOwarnings = rule3030 _lhsIwarnings
          __result_ = T_Types_vOut166 _lhsOmiscerrors _lhsOself _lhsOtypevariables _lhsOwarnings
          in __result_ )
      in C_Types_s167 v166
-   {-# INLINE rule3003 #-}
-   rule3003 = \  (_ :: ()) ->
+   {-# INLINE rule3026 #-}
+   rule3026 = \  (_ :: ()) ->
      []
-   {-# INLINE rule3004 #-}
-   rule3004 = \  (_ :: ()) ->
+   {-# INLINE rule3027 #-}
+   rule3027 = \  (_ :: ()) ->
      []
-   {-# INLINE rule3005 #-}
-   rule3005 = \ _self ->
+   {-# INLINE rule3028 #-}
+   rule3028 = \ _self ->
      _self
-   {-# INLINE rule3006 #-}
-   rule3006 = \ ((_lhsImiscerrors) :: [Error]) ->
+   {-# INLINE rule3029 #-}
+   rule3029 = \ ((_lhsImiscerrors) :: [Error]) ->
      _lhsImiscerrors
-   {-# INLINE rule3007 #-}
-   rule3007 = \ ((_lhsIwarnings) :: [Warning]) ->
+   {-# INLINE rule3030 #-}
+   rule3030 = \ ((_lhsIwarnings) :: [Warning]) ->
      _lhsIwarnings
