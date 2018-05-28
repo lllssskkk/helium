@@ -8,7 +8,7 @@
 
 module Helium.Parser.Parser
     ( module_, exp_, exp0, type_, atype, contextAndType
-    , parseOnlyImports
+    , parseOnlyImports, decls
     ) where
 
 {-
