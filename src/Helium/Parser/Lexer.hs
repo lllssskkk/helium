@@ -1,3 +1,4 @@
+{-# LANGUAGE PatternGuards #-}
 {-| Module      :  Lexer
     License     :  GPL
 
@@ -21,6 +22,8 @@ import Helium.Parser.LexerMessage
 import Helium.Parser.LexerToken
 import Helium.StaticAnalysis.Messages.StaticErrors
 import Text.ParserCombinators.Parsec.Pos
+import Text.ParserCombinators.Parsec.Prim(Parser)
+import Text.Parsec
 import Helium.Utils.Utils(internalError, hole)
 
 import Control.Monad(when, liftM)
@@ -34,7 +37,7 @@ strategiesLexer :: [Option] -> String -> [Char] -> Either LexerError ([Token], [
 strategiesLexer opts fileName input = 
     case lexer opts fileName input of
         Left err -> Left err
-        Right (tokens, warnings) -> Right (reserveStrategyNames tokens, warnings)
+        Right (thetokens, warnings) -> Right (reserveStrategyNames thetokens, warnings)
         
 type Lexer = [Char] -> LexerMonad [Token]
 
@@ -100,11 +103,11 @@ mainLexer' useTutor input@(c:cs)
         nextPos c 
         mainLexer cs        
     | myIsUpper c = -- constructor
-        lexName isLetter LexCon (internalError "Lexer" "mainLexer'" "constructor") [] input
+            lexQualOrCon input
     | c == ':' = -- constructor operator
         lexName isSymbol LexConSym LexResConSym reservedConSyms input
     | useTutor, c == '?' = -- named hole
-        lexName (\c -> isLetter c || c == '?') LexNamedHole
+        lexName (\c1 -> isLetter c1 || c1 == '?') LexNamedHole
                 (internalError "Lexer" "mainLexer'" "constructor") [] input
     | isSymbol c = -- variable operator
         lexName isSymbol LexVarSym LexResVarSym (if useTutor then hole : reservedVarSyms else reservedVarSyms) input
@@ -133,6 +136,40 @@ lexName predicate normal reserved reserveds cs = do
         pos <- getPos
         lexerWarning CommentOperator pos
     returnToken lexeme (length name) mainLexer rest
+
+
+-- Parses any number of commas enclosed by parentheses
+tupleParser :: Parser String
+tupleParser = do
+    x <- char '('
+    y <- many (char ',')
+    z <- char ')'
+    return $ x : y ++ [z]
+
+-- Parses any number of letters, '$' signs or tuples using tupleParser
+qualOrConParser :: Parser String
+qualOrConParser = p
+    where p = fmap concat $ many (try tupleParser <|> many1 (satisfy isLetter <|> char '$'))
+
+parserParsedRest :: Parser String -> Parser (String, String)
+parserParsedRest p = do
+    x <- p
+    rest <- many anyChar
+    return (x, rest)
+
+lexQualOrCon :: Lexer
+lexQualOrCon input = let
+    firstLex = parse (parserParsedRest qualOrConParser) "" input
+    in do
+    let (name@(first:_), rest) = either (const ("",input)) id firstLex
+    when ((isSymbol first || first == ':') && name `contains` "--") $ do
+        pos <- getPos
+        lexerWarning CommentOperator pos
+    case rest of
+        '.':x:rest' -> if myIsSpace x 
+            then returnToken (LexCon name) (length name) mainLexer rest
+            else returnToken (LexQual name) (length name + 1) mainLexer (x:rest')
+        _ -> returnToken (LexCon name) (length name) mainLexer rest
 
 contains :: Eq a => [a] -> [a] -> Bool
 [] `contains` _ = False
@@ -256,9 +293,9 @@ returnToken :: Lexeme -> Int -> Lexer -> Lexer
 returnToken lexeme width continue input = do
     pos <- getPos
     incPos width
-    let token = (pos, lexeme) 
-    tokens <- continue input
-    return (token:tokens)
+    let theToken = (pos, lexeme) 
+    theTokens <- continue input
+    return (theToken:theTokens)
        
 -----------------------------------------------------------
 -- Comment
@@ -364,7 +401,7 @@ symbols = "!#$%&*+./<=>?@^|-~:\\"
 keywords :: [String]
 keywords = 
     [ "let", "in", "do", "where", "case", "of", "if"
-    , "then", "else", "data", "type", "module", "import", "hiding"
+    , "then", "else", "data", "type", "module", "import"
     , "infix", "infixl", "infixr", "_", "deriving"
     , "class", "instance", "default"
     , "newtype" -- not supported
@@ -384,19 +421,19 @@ specialsWithoutBrackets =
 
 reserveStrategyNames :: [Token] -> [Token]
 reserveStrategyNames = 
-  map (\token@(pos, lexeme) -> case lexeme of 
+  map (\theToken@(pos, lexeme) -> case lexeme of 
                    LexVar s    | s `elem` strategiesKeywords -> (pos, LexKeyword s)
                    LexVarSym s | s == "=="                   -> (pos, LexResVarSym s)
                    LexConSym s | s == ":"                    -> (pos, LexResConSym s)
-                   _ -> token
+                   _ -> theToken
       )
 
 strategiesKeywords :: [String]
-strategiesKeywords = [ "phase", "constraints", "siblings" ]
+strategiesKeywords = [ "phase", "constraints", "siblings", "never", "close", "disjoint" ]
 
  
 checkTokenStreamForClassOrInstance :: [Token] -> Errors          
-checkTokenStreamForClassOrInstance tokens = concatMap f tokens  
+checkTokenStreamForClassOrInstance theTokens = concatMap f theTokens  
   where f (pos, LexKeyword "class")    = [ClassesAndInstancesNotAllowed (sourcePosToRange pos)] 
         f (pos, LexKeyword "instance") = [ClassesAndInstancesNotAllowed (sourcePosToRange pos)]
         f _ = []
