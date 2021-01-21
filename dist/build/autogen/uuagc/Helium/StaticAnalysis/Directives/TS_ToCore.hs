@@ -1,6 +1,6 @@
 
 
--- UUAGC 0.9.52.1 (Helium/StaticAnalysis/Directives/TS_ToCore.ag)
+-- UUAGC 0.9.52.2 (Helium/StaticAnalysis/Directives/TS_ToCore.ag)
 module Helium.StaticAnalysis.Directives.TS_ToCore where
 
 import Helium.StaticAnalysis.Inferencers.ExpressionTypeInferencer (expressionTypeInferencer)
@@ -8,6 +8,7 @@ import qualified Data.Map as M
 
 
 import Helium.Syntax.UHA_Syntax
+import Top.Types.Classes()
 
 
 import Helium.StaticAnalysis.Directives.TS_Syntax
@@ -20,12 +21,11 @@ import Helium.StaticAnalysis.Miscellaneous.ConstraintInfo
 import Helium.Syntax.UHA_Utils (getNameName, nameFromString)
 import qualified Helium.Syntax.UHA_OneLine as UHA_OneLine
 import Helium.StaticAnalysis.Miscellaneous.TypeConversion
-import Helium.Utils.Utils (internalError)
 import Data.List
 import Helium.Utils.OneLiner
+import Helium.Utils.QualifiedTypes
 import Helium.StaticAnalysis.Directives.TS_Attributes
 import Helium.StaticAnalysis.Miscellaneous.TypeConstraints
-
 
 typingStrategyToCore :: ImportEnvironment -> TypingStrategy -> Core_TypingStrategy
 typingStrategyToCore importEnv strategy = 
@@ -187,6 +187,7 @@ sem_AnnotatedType_AnnotatedType :: T_Range ->
                                    T_AnnotatedType
 sem_AnnotatedType_AnnotatedType range_ strict_ type_ =
     (let _lhsOself :: AnnotatedType
+         _typeOqualifier :: (Tp -> Tp)
          _rangeIself :: Range
          _typeIself :: Type
          _typeItypevariables :: Names
@@ -194,10 +195,12 @@ sem_AnnotatedType_AnnotatedType range_ strict_ type_ =
              AnnotatedType_AnnotatedType _rangeIself strict_ _typeIself
          _lhsOself =
              _self
+         _typeOqualifier =
+             error "missing rule: AnnotatedType.AnnotatedType.type.qualifier"
          ( _rangeIself) =
              range_
          ( _typeIself,_typeItypevariables) =
-             type_
+             type_ _typeOqualifier
      in  ( _lhsOself))
 -- AnnotatedTypes ----------------------------------------------
 -- cata
@@ -436,6 +439,7 @@ sem_ContextItem_ContextItem :: T_Range ->
                                T_ContextItem
 sem_ContextItem_ContextItem range_ name_ types_ =
     (let _lhsOself :: ContextItem
+         _typesOqualifier :: (Tp -> Tp)
          _rangeIself :: Range
          _nameIself :: Name
          _typesIself :: Types
@@ -444,12 +448,14 @@ sem_ContextItem_ContextItem range_ name_ types_ =
              ContextItem_ContextItem _rangeIself _nameIself _typesIself
          _lhsOself =
              _self
+         _typesOqualifier =
+             error "missing rule: ContextItem.ContextItem.types.qualifier"
          ( _rangeIself) =
              range_
          ( _nameIself) =
              name_
          ( _typesIself,_typesItypevariables) =
-             types_
+             types_ _typesOqualifier
      in  ( _lhsOself))
 -- ContextItems ------------------------------------------------
 -- cata
@@ -548,6 +554,7 @@ sem_Declaration_Type :: T_Range ->
                         T_Declaration
 sem_Declaration_Type range_ simpletype_ type_ =
     (let _lhsOself :: Declaration
+         _typeOqualifier :: (Tp -> Tp)
          _rangeIself :: Range
          _simpletypeIself :: SimpleType
          _typeIself :: Type
@@ -556,12 +563,14 @@ sem_Declaration_Type range_ simpletype_ type_ =
              Declaration_Type _rangeIself _simpletypeIself _typeIself
          _lhsOself =
              _self
+         _typeOqualifier =
+             error "missing rule: Declaration.Type.type.qualifier"
          ( _rangeIself) =
              range_
          ( _simpletypeIself) =
              simpletype_
          ( _typeIself,_typeItypevariables) =
-             type_
+             type_ _typeOqualifier
      in  ( _lhsOself))
 sem_Declaration_Data :: T_Range ->
                         T_ContextItems ->
@@ -651,6 +660,7 @@ sem_Declaration_Instance :: T_Range ->
                             T_Declaration
 sem_Declaration_Instance range_ context_ name_ types_ where_ =
     (let _lhsOself :: Declaration
+         _typesOqualifier :: (Tp -> Tp)
          _rangeIself :: Range
          _contextIself :: ContextItems
          _nameIself :: Name
@@ -661,6 +671,8 @@ sem_Declaration_Instance range_ context_ name_ types_ where_ =
              Declaration_Instance _rangeIself _contextIself _nameIself _typesIself _whereIself
          _lhsOself =
              _self
+         _typesOqualifier =
+             error "missing rule: Declaration.Instance.types.qualifier"
          ( _rangeIself) =
              range_
          ( _contextIself) =
@@ -668,7 +680,7 @@ sem_Declaration_Instance range_ context_ name_ types_ where_ =
          ( _nameIself) =
              name_
          ( _typesIself,_typesItypevariables) =
-             types_
+             types_ _typesOqualifier
          ( _whereIself) =
              where_
      in  ( _lhsOself))
@@ -677,6 +689,7 @@ sem_Declaration_Default :: T_Range ->
                            T_Declaration
 sem_Declaration_Default range_ types_ =
     (let _lhsOself :: Declaration
+         _typesOqualifier :: (Tp -> Tp)
          _rangeIself :: Range
          _typesIself :: Types
          _typesItypevariables :: Names
@@ -684,10 +697,12 @@ sem_Declaration_Default range_ types_ =
              Declaration_Default _rangeIself _typesIself
          _lhsOself =
              _self
+         _typesOqualifier =
+             error "missing rule: Declaration.Default.types.qualifier"
          ( _rangeIself) =
              range_
          ( _typesIself,_typesItypevariables) =
-             types_
+             types_ _typesOqualifier
      in  ( _lhsOself))
 sem_Declaration_FunctionBindings :: T_Range ->
                                     T_FunctionBindings ->
@@ -731,6 +746,7 @@ sem_Declaration_TypeSignature :: T_Range ->
                                  T_Declaration
 sem_Declaration_TypeSignature range_ names_ type_ =
     (let _lhsOself :: Declaration
+         _typeOqualifier :: (Tp -> Tp)
          _rangeIself :: Range
          _namesIself :: Names
          _typeIself :: Type
@@ -739,12 +755,14 @@ sem_Declaration_TypeSignature range_ names_ type_ =
              Declaration_TypeSignature _rangeIself _namesIself _typeIself
          _lhsOself =
              _self
+         _typeOqualifier =
+             error "missing rule: Declaration.TypeSignature.type.qualifier"
          ( _rangeIself) =
              range_
          ( _namesIself) =
              names_
          ( _typeIself,_typeItypevariables) =
-             type_
+             type_ _typeOqualifier
      in  ( _lhsOself))
 sem_Declaration_Fixity :: T_Range ->
                           T_Fixity ->
@@ -1343,6 +1361,7 @@ sem_Expression_Typed :: T_Range ->
                         T_Expression
 sem_Expression_Typed range_ expression_ type_ =
     (let _lhsOself :: Expression
+         _typeOqualifier :: (Tp -> Tp)
          _rangeIself :: Range
          _expressionIself :: Expression
          _typeIself :: Type
@@ -1351,12 +1370,14 @@ sem_Expression_Typed range_ expression_ type_ =
              Expression_Typed _rangeIself _expressionIself _typeIself
          _lhsOself =
              _self
+         _typeOqualifier =
+             error "missing rule: Expression.Typed.type.qualifier"
          ( _rangeIself) =
              range_
          ( _expressionIself) =
              expression_
          ( _typeIself,_typeItypevariables) =
-             type_
+             type_ _typeOqualifier
      in  ( _lhsOself))
 sem_Expression_RecordConstruction :: T_Range ->
                                      T_Name ->
@@ -2060,30 +2081,33 @@ sem_Judgement (Judgement_Judgement _expression _type) =
     (sem_Judgement_Judgement (sem_Expression _expression) (sem_Type _type))
 -- semantic domain
 type T_Judgement = ([(Name,Tp)]) ->
+                   (Tp -> Tp) ->
                    ( Tp,Core_Judgement,Judgement,Expression,Names)
-data Inh_Judgement = Inh_Judgement {nameMap_Inh_Judgement :: ([(Name,Tp)])}
+data Inh_Judgement = Inh_Judgement {nameMap_Inh_Judgement :: ([(Name,Tp)]),qualifier_Inh_Judgement :: (Tp -> Tp)}
 data Syn_Judgement = Syn_Judgement {conclusionType_Syn_Judgement :: Tp,core_Syn_Judgement :: Core_Judgement,self_Syn_Judgement :: Judgement,theExpression_Syn_Judgement :: Expression,typevariables_Syn_Judgement :: Names}
 wrap_Judgement :: T_Judgement ->
                   Inh_Judgement ->
                   Syn_Judgement
-wrap_Judgement sem (Inh_Judgement _lhsInameMap) =
-    (let ( _lhsOconclusionType,_lhsOcore,_lhsOself,_lhsOtheExpression,_lhsOtypevariables) = sem _lhsInameMap
+wrap_Judgement sem (Inh_Judgement _lhsInameMap _lhsIqualifier) =
+    (let ( _lhsOconclusionType,_lhsOcore,_lhsOself,_lhsOtheExpression,_lhsOtypevariables) = sem _lhsInameMap _lhsIqualifier
      in  (Syn_Judgement _lhsOconclusionType _lhsOcore _lhsOself _lhsOtheExpression _lhsOtypevariables))
 sem_Judgement_Judgement :: T_Expression ->
                            T_Type ->
                            T_Judgement
 sem_Judgement_Judgement expression_ type_ =
-    (\ _lhsInameMap ->
+    (\ _lhsInameMap
+       _lhsIqualifier ->
          (let _lhsOconclusionType :: Tp
               _lhsOtheExpression :: Expression
               _lhsOcore :: Core_Judgement
               _lhsOtypevariables :: Names
               _lhsOself :: Judgement
+              _typeOqualifier :: (Tp -> Tp)
               _expressionIself :: Expression
               _typeIself :: Type
               _typeItypevariables :: Names
               _lhsOconclusionType =
-                  makeTpFromType _lhsInameMap _typeIself
+                  _lhsIqualifier $ makeTpFromType _lhsInameMap _typeIself
               _lhsOtheExpression =
                   _expressionIself
               _lhsOcore =
@@ -2094,10 +2118,12 @@ sem_Judgement_Judgement expression_ type_ =
                   Judgement_Judgement _expressionIself _typeIself
               _lhsOself =
                   _self
+              _typeOqualifier =
+                  _lhsIqualifier
               ( _expressionIself) =
                   expression_
               ( _typeIself,_typeItypevariables) =
-                  type_
+                  type_ _typeOqualifier
           in  ( _lhsOconclusionType,_lhsOcore,_lhsOself,_lhsOtheExpression,_lhsOtypevariables)))
 -- LeftHandSide ------------------------------------------------
 -- cata
@@ -2564,12 +2590,12 @@ sem_Module_Module range_ name_ exports_ body_ =
 -- cata
 sem_Name :: Name ->
             T_Name
-sem_Name (Name_Identifier _range _module _name) =
-    (sem_Name_Identifier (sem_Range _range) (sem_Strings _module) _name)
-sem_Name (Name_Operator _range _module _name) =
-    (sem_Name_Operator (sem_Range _range) (sem_Strings _module) _name)
-sem_Name (Name_Special _range _module _name) =
-    (sem_Name_Special (sem_Range _range) (sem_Strings _module) _name)
+sem_Name (Name_Identifier _range _module _origin _name) =
+    (sem_Name_Identifier (sem_Range _range) (sem_Strings _module) _origin _name)
+sem_Name (Name_Operator _range _module _origin _name) =
+    (sem_Name_Operator (sem_Range _range) (sem_Strings _module) _origin _name)
+sem_Name (Name_Special _range _module _origin _name) =
+    (sem_Name_Special (sem_Range _range) (sem_Strings _module) _origin _name)
 -- semantic domain
 type T_Name = ( Name)
 data Inh_Name = Inh_Name {}
@@ -2583,13 +2609,14 @@ wrap_Name sem (Inh_Name) =
 sem_Name_Identifier :: T_Range ->
                        T_Strings ->
                        String ->
+                       String ->
                        T_Name
-sem_Name_Identifier range_ module_ name_ =
+sem_Name_Identifier range_ module_ origin_ name_ =
     (let _lhsOself :: Name
          _rangeIself :: Range
          _moduleIself :: Strings
          _self =
-             Name_Identifier _rangeIself _moduleIself name_
+             Name_Identifier _rangeIself _moduleIself origin_ name_
          _lhsOself =
              _self
          ( _rangeIself) =
@@ -2600,13 +2627,14 @@ sem_Name_Identifier range_ module_ name_ =
 sem_Name_Operator :: T_Range ->
                      T_Strings ->
                      String ->
+                     String ->
                      T_Name
-sem_Name_Operator range_ module_ name_ =
+sem_Name_Operator range_ module_ origin_ name_ =
     (let _lhsOself :: Name
          _rangeIself :: Range
          _moduleIself :: Strings
          _self =
-             Name_Operator _rangeIself _moduleIself name_
+             Name_Operator _rangeIself _moduleIself origin_ name_
          _lhsOself =
              _self
          ( _rangeIself) =
@@ -2617,13 +2645,14 @@ sem_Name_Operator range_ module_ name_ =
 sem_Name_Special :: T_Range ->
                     T_Strings ->
                     String ->
+                    String ->
                     T_Name
-sem_Name_Special range_ module_ name_ =
+sem_Name_Special range_ module_ origin_ name_ =
     (let _lhsOself :: Name
          _rangeIself :: Range
          _moduleIself :: Strings
          _self =
-             Name_Special _rangeIself _moduleIself name_
+             Name_Special _rangeIself _moduleIself origin_ name_
          _lhsOself =
              _self
          ( _rangeIself) =
@@ -3425,45 +3454,50 @@ sem_SimpleJudgement (SimpleJudgement_SimpleJudgement _name _type) =
     (sem_SimpleJudgement_SimpleJudgement (sem_Name _name) (sem_Type _type))
 -- semantic domain
 type T_SimpleJudgement = ([(Name,Tp)]) ->
+                         (Tp -> Tp) ->
                          ([(String,Tp)]) ->
                          ( Core_Judgement,SimpleJudgement,([(String,Tp)]),Names)
-data Inh_SimpleJudgement = Inh_SimpleJudgement {nameMap_Inh_SimpleJudgement :: ([(Name,Tp)]),simpleJudgements_Inh_SimpleJudgement :: ([(String,Tp)])}
+data Inh_SimpleJudgement = Inh_SimpleJudgement {nameMap_Inh_SimpleJudgement :: ([(Name,Tp)]),qualifier_Inh_SimpleJudgement :: (Tp -> Tp),simpleJudgements_Inh_SimpleJudgement :: ([(String,Tp)])}
 data Syn_SimpleJudgement = Syn_SimpleJudgement {core_Syn_SimpleJudgement :: Core_Judgement,self_Syn_SimpleJudgement :: SimpleJudgement,simpleJudgements_Syn_SimpleJudgement :: ([(String,Tp)]),typevariables_Syn_SimpleJudgement :: Names}
 wrap_SimpleJudgement :: T_SimpleJudgement ->
                         Inh_SimpleJudgement ->
                         Syn_SimpleJudgement
-wrap_SimpleJudgement sem (Inh_SimpleJudgement _lhsInameMap _lhsIsimpleJudgements) =
-    (let ( _lhsOcore,_lhsOself,_lhsOsimpleJudgements,_lhsOtypevariables) = sem _lhsInameMap _lhsIsimpleJudgements
+wrap_SimpleJudgement sem (Inh_SimpleJudgement _lhsInameMap _lhsIqualifier _lhsIsimpleJudgements) =
+    (let ( _lhsOcore,_lhsOself,_lhsOsimpleJudgements,_lhsOtypevariables) = sem _lhsInameMap _lhsIqualifier _lhsIsimpleJudgements
      in  (Syn_SimpleJudgement _lhsOcore _lhsOself _lhsOsimpleJudgements _lhsOtypevariables))
 sem_SimpleJudgement_SimpleJudgement :: T_Name ->
                                        T_Type ->
                                        T_SimpleJudgement
 sem_SimpleJudgement_SimpleJudgement name_ type_ =
     (\ _lhsInameMap
+       _lhsIqualifier
        _lhsIsimpleJudgements ->
          (let _lhsOsimpleJudgements :: ([(String,Tp)])
               _lhsOcore :: Core_Judgement
               _lhsOtypevariables :: Names
               _lhsOself :: SimpleJudgement
+              _typeOqualifier :: (Tp -> Tp)
               _nameIself :: Name
               _typeIself :: Type
               _typeItypevariables :: Names
               _lhsOsimpleJudgements =
                   _newJudgement : _lhsIsimpleJudgements
               _newJudgement =
-                  (show _nameIself, makeTpFromType _lhsInameMap _typeIself)
+                  (show _nameIself, _lhsIqualifier $ makeTpFromType _lhsInameMap _typeIself)
               _lhsOcore =
-                  Judgement (show _nameIself) (makeTpFromType _lhsInameMap _typeIself)
+                  Judgement (show _nameIself) (_lhsIqualifier $ makeTpFromType _lhsInameMap _typeIself)
               _lhsOtypevariables =
                   _typeItypevariables
               _self =
                   SimpleJudgement_SimpleJudgement _nameIself _typeIself
               _lhsOself =
                   _self
+              _typeOqualifier =
+                  _lhsIqualifier
               ( _nameIself) =
                   name_
               ( _typeIself,_typeItypevariables) =
-                  type_
+                  type_ _typeOqualifier
           in  ( _lhsOcore,_lhsOself,_lhsOsimpleJudgements,_lhsOtypevariables)))
 -- SimpleJudgements --------------------------------------------
 -- cata
@@ -3473,29 +3507,33 @@ sem_SimpleJudgements list =
     (Prelude.foldr sem_SimpleJudgements_Cons sem_SimpleJudgements_Nil (Prelude.map sem_SimpleJudgement list))
 -- semantic domain
 type T_SimpleJudgements = ([(Name,Tp)]) ->
+                          (Tp -> Tp) ->
                           ([(String,Tp)]) ->
                           ( Core_Judgements,SimpleJudgements,([(String,Tp)]),Names)
-data Inh_SimpleJudgements = Inh_SimpleJudgements {nameMap_Inh_SimpleJudgements :: ([(Name,Tp)]),simpleJudgements_Inh_SimpleJudgements :: ([(String,Tp)])}
+data Inh_SimpleJudgements = Inh_SimpleJudgements {nameMap_Inh_SimpleJudgements :: ([(Name,Tp)]),qualifier_Inh_SimpleJudgements :: (Tp -> Tp),simpleJudgements_Inh_SimpleJudgements :: ([(String,Tp)])}
 data Syn_SimpleJudgements = Syn_SimpleJudgements {core_Syn_SimpleJudgements :: Core_Judgements,self_Syn_SimpleJudgements :: SimpleJudgements,simpleJudgements_Syn_SimpleJudgements :: ([(String,Tp)]),typevariables_Syn_SimpleJudgements :: Names}
 wrap_SimpleJudgements :: T_SimpleJudgements ->
                          Inh_SimpleJudgements ->
                          Syn_SimpleJudgements
-wrap_SimpleJudgements sem (Inh_SimpleJudgements _lhsInameMap _lhsIsimpleJudgements) =
-    (let ( _lhsOcore,_lhsOself,_lhsOsimpleJudgements,_lhsOtypevariables) = sem _lhsInameMap _lhsIsimpleJudgements
+wrap_SimpleJudgements sem (Inh_SimpleJudgements _lhsInameMap _lhsIqualifier _lhsIsimpleJudgements) =
+    (let ( _lhsOcore,_lhsOself,_lhsOsimpleJudgements,_lhsOtypevariables) = sem _lhsInameMap _lhsIqualifier _lhsIsimpleJudgements
      in  (Syn_SimpleJudgements _lhsOcore _lhsOself _lhsOsimpleJudgements _lhsOtypevariables))
 sem_SimpleJudgements_Cons :: T_SimpleJudgement ->
                              T_SimpleJudgements ->
                              T_SimpleJudgements
 sem_SimpleJudgements_Cons hd_ tl_ =
     (\ _lhsInameMap
+       _lhsIqualifier
        _lhsIsimpleJudgements ->
          (let _lhsOcore :: Core_Judgements
               _lhsOtypevariables :: Names
               _lhsOself :: SimpleJudgements
               _lhsOsimpleJudgements :: ([(String,Tp)])
               _hdOnameMap :: ([(Name,Tp)])
+              _hdOqualifier :: (Tp -> Tp)
               _hdOsimpleJudgements :: ([(String,Tp)])
               _tlOnameMap :: ([(Name,Tp)])
+              _tlOqualifier :: (Tp -> Tp)
               _tlOsimpleJudgements :: ([(String,Tp)])
               _hdIcore :: Core_Judgement
               _hdIself :: SimpleJudgement
@@ -3517,20 +3555,25 @@ sem_SimpleJudgements_Cons hd_ tl_ =
                   _tlIsimpleJudgements
               _hdOnameMap =
                   _lhsInameMap
+              _hdOqualifier =
+                  _lhsIqualifier
               _hdOsimpleJudgements =
                   _lhsIsimpleJudgements
               _tlOnameMap =
                   _lhsInameMap
+              _tlOqualifier =
+                  _lhsIqualifier
               _tlOsimpleJudgements =
                   _hdIsimpleJudgements
               ( _hdIcore,_hdIself,_hdIsimpleJudgements,_hdItypevariables) =
-                  hd_ _hdOnameMap _hdOsimpleJudgements
+                  hd_ _hdOnameMap _hdOqualifier _hdOsimpleJudgements
               ( _tlIcore,_tlIself,_tlIsimpleJudgements,_tlItypevariables) =
-                  tl_ _tlOnameMap _tlOsimpleJudgements
+                  tl_ _tlOnameMap _tlOqualifier _tlOsimpleJudgements
           in  ( _lhsOcore,_lhsOself,_lhsOsimpleJudgements,_lhsOtypevariables)))
 sem_SimpleJudgements_Nil :: T_SimpleJudgements
 sem_SimpleJudgements_Nil =
     (\ _lhsInameMap
+       _lhsIqualifier
        _lhsIsimpleJudgements ->
          (let _lhsOcore :: Core_Judgements
               _lhsOtypevariables :: Names
@@ -3765,14 +3808,15 @@ sem_Type (Type_Exists _range _typevariables _type) =
 sem_Type (Type_Parenthesized _range _type) =
     (sem_Type_Parenthesized (sem_Range _range) (sem_Type _type))
 -- semantic domain
-type T_Type = ( Type,Names)
-data Inh_Type = Inh_Type {}
+type T_Type = (Tp -> Tp) ->
+              ( Type,Names)
+data Inh_Type = Inh_Type {qualifier_Inh_Type :: (Tp -> Tp)}
 data Syn_Type = Syn_Type {self_Syn_Type :: Type,typevariables_Syn_Type :: Names}
 wrap_Type :: T_Type ->
              Inh_Type ->
              Syn_Type
-wrap_Type sem (Inh_Type) =
-    (let ( _lhsOself,_lhsOtypevariables) = sem
+wrap_Type sem (Inh_Type _lhsIqualifier) =
+    (let ( _lhsOself,_lhsOtypevariables) = sem _lhsIqualifier
      in  (Syn_Type _lhsOself _lhsOtypevariables))
 sem_Type_Application :: T_Range ->
                         Bool ->
@@ -3780,156 +3824,181 @@ sem_Type_Application :: T_Range ->
                         T_Types ->
                         T_Type
 sem_Type_Application range_ prefix_ function_ arguments_ =
-    (let _lhsOtypevariables :: Names
-         _lhsOself :: Type
-         _rangeIself :: Range
-         _functionIself :: Type
-         _functionItypevariables :: Names
-         _argumentsIself :: Types
-         _argumentsItypevariables :: Names
-         _lhsOtypevariables =
-             _functionItypevariables  ++  _argumentsItypevariables
-         _self =
-             Type_Application _rangeIself prefix_ _functionIself _argumentsIself
-         _lhsOself =
-             _self
-         ( _rangeIself) =
-             range_
-         ( _functionIself,_functionItypevariables) =
-             function_
-         ( _argumentsIself,_argumentsItypevariables) =
-             arguments_
-     in  ( _lhsOself,_lhsOtypevariables))
+    (\ _lhsIqualifier ->
+         (let _lhsOtypevariables :: Names
+              _lhsOself :: Type
+              _functionOqualifier :: (Tp -> Tp)
+              _argumentsOqualifier :: (Tp -> Tp)
+              _rangeIself :: Range
+              _functionIself :: Type
+              _functionItypevariables :: Names
+              _argumentsIself :: Types
+              _argumentsItypevariables :: Names
+              _lhsOtypevariables =
+                  _functionItypevariables  ++  _argumentsItypevariables
+              _self =
+                  Type_Application _rangeIself prefix_ _functionIself _argumentsIself
+              _lhsOself =
+                  _self
+              _functionOqualifier =
+                  _lhsIqualifier
+              _argumentsOqualifier =
+                  _lhsIqualifier
+              ( _rangeIself) =
+                  range_
+              ( _functionIself,_functionItypevariables) =
+                  function_ _functionOqualifier
+              ( _argumentsIself,_argumentsItypevariables) =
+                  arguments_ _argumentsOqualifier
+          in  ( _lhsOself,_lhsOtypevariables)))
 sem_Type_Variable :: T_Range ->
                      T_Name ->
                      T_Type
 sem_Type_Variable range_ name_ =
-    (let _lhsOtypevariables :: Names
-         _lhsOself :: Type
-         _rangeIself :: Range
-         _nameIself :: Name
-         _lhsOtypevariables =
-             [ _nameIself ]
-         _self =
-             Type_Variable _rangeIself _nameIself
-         _lhsOself =
-             _self
-         ( _rangeIself) =
-             range_
-         ( _nameIself) =
-             name_
-     in  ( _lhsOself,_lhsOtypevariables))
+    (\ _lhsIqualifier ->
+         (let _lhsOtypevariables :: Names
+              _lhsOself :: Type
+              _rangeIself :: Range
+              _nameIself :: Name
+              _lhsOtypevariables =
+                  [ _nameIself ]
+              _self =
+                  Type_Variable _rangeIself _nameIself
+              _lhsOself =
+                  _self
+              ( _rangeIself) =
+                  range_
+              ( _nameIself) =
+                  name_
+          in  ( _lhsOself,_lhsOtypevariables)))
 sem_Type_Constructor :: T_Range ->
                         T_Name ->
                         T_Type
 sem_Type_Constructor range_ name_ =
-    (let _lhsOtypevariables :: Names
-         _lhsOself :: Type
-         _rangeIself :: Range
-         _nameIself :: Name
-         _lhsOtypevariables =
-             []
-         _self =
-             Type_Constructor _rangeIself _nameIself
-         _lhsOself =
-             _self
-         ( _rangeIself) =
-             range_
-         ( _nameIself) =
-             name_
-     in  ( _lhsOself,_lhsOtypevariables))
+    (\ _lhsIqualifier ->
+         (let _lhsOtypevariables :: Names
+              _lhsOself :: Type
+              _rangeIself :: Range
+              _nameIself :: Name
+              _lhsOtypevariables =
+                  []
+              _self =
+                  Type_Constructor _rangeIself _nameIself
+              _lhsOself =
+                  _self
+              ( _rangeIself) =
+                  range_
+              ( _nameIself) =
+                  name_
+          in  ( _lhsOself,_lhsOtypevariables)))
 sem_Type_Qualified :: T_Range ->
                       T_ContextItems ->
                       T_Type ->
                       T_Type
 sem_Type_Qualified range_ context_ type_ =
-    (let _lhsOtypevariables :: Names
-         _lhsOself :: Type
-         _rangeIself :: Range
-         _contextIself :: ContextItems
-         _typeIself :: Type
-         _typeItypevariables :: Names
-         _lhsOtypevariables =
-             _typeItypevariables
-         _self =
-             Type_Qualified _rangeIself _contextIself _typeIself
-         _lhsOself =
-             _self
-         ( _rangeIself) =
-             range_
-         ( _contextIself) =
-             context_
-         ( _typeIself,_typeItypevariables) =
-             type_
-     in  ( _lhsOself,_lhsOtypevariables))
+    (\ _lhsIqualifier ->
+         (let _lhsOtypevariables :: Names
+              _lhsOself :: Type
+              _typeOqualifier :: (Tp -> Tp)
+              _rangeIself :: Range
+              _contextIself :: ContextItems
+              _typeIself :: Type
+              _typeItypevariables :: Names
+              _lhsOtypevariables =
+                  _typeItypevariables
+              _self =
+                  Type_Qualified _rangeIself _contextIself _typeIself
+              _lhsOself =
+                  _self
+              _typeOqualifier =
+                  _lhsIqualifier
+              ( _rangeIself) =
+                  range_
+              ( _contextIself) =
+                  context_
+              ( _typeIself,_typeItypevariables) =
+                  type_ _typeOqualifier
+          in  ( _lhsOself,_lhsOtypevariables)))
 sem_Type_Forall :: T_Range ->
                    T_Names ->
                    T_Type ->
                    T_Type
 sem_Type_Forall range_ typevariables_ type_ =
-    (let _lhsOtypevariables :: Names
-         _lhsOself :: Type
-         _rangeIself :: Range
-         _typevariablesIself :: Names
-         _typeIself :: Type
-         _typeItypevariables :: Names
-         _lhsOtypevariables =
-             _typeItypevariables
-         _self =
-             Type_Forall _rangeIself _typevariablesIself _typeIself
-         _lhsOself =
-             _self
-         ( _rangeIself) =
-             range_
-         ( _typevariablesIself) =
-             typevariables_
-         ( _typeIself,_typeItypevariables) =
-             type_
-     in  ( _lhsOself,_lhsOtypevariables))
+    (\ _lhsIqualifier ->
+         (let _lhsOtypevariables :: Names
+              _lhsOself :: Type
+              _typeOqualifier :: (Tp -> Tp)
+              _rangeIself :: Range
+              _typevariablesIself :: Names
+              _typeIself :: Type
+              _typeItypevariables :: Names
+              _lhsOtypevariables =
+                  _typeItypevariables
+              _self =
+                  Type_Forall _rangeIself _typevariablesIself _typeIself
+              _lhsOself =
+                  _self
+              _typeOqualifier =
+                  _lhsIqualifier
+              ( _rangeIself) =
+                  range_
+              ( _typevariablesIself) =
+                  typevariables_
+              ( _typeIself,_typeItypevariables) =
+                  type_ _typeOqualifier
+          in  ( _lhsOself,_lhsOtypevariables)))
 sem_Type_Exists :: T_Range ->
                    T_Names ->
                    T_Type ->
                    T_Type
 sem_Type_Exists range_ typevariables_ type_ =
-    (let _lhsOtypevariables :: Names
-         _lhsOself :: Type
-         _rangeIself :: Range
-         _typevariablesIself :: Names
-         _typeIself :: Type
-         _typeItypevariables :: Names
-         _lhsOtypevariables =
-             _typeItypevariables
-         _self =
-             Type_Exists _rangeIself _typevariablesIself _typeIself
-         _lhsOself =
-             _self
-         ( _rangeIself) =
-             range_
-         ( _typevariablesIself) =
-             typevariables_
-         ( _typeIself,_typeItypevariables) =
-             type_
-     in  ( _lhsOself,_lhsOtypevariables))
+    (\ _lhsIqualifier ->
+         (let _lhsOtypevariables :: Names
+              _lhsOself :: Type
+              _typeOqualifier :: (Tp -> Tp)
+              _rangeIself :: Range
+              _typevariablesIself :: Names
+              _typeIself :: Type
+              _typeItypevariables :: Names
+              _lhsOtypevariables =
+                  _typeItypevariables
+              _self =
+                  Type_Exists _rangeIself _typevariablesIself _typeIself
+              _lhsOself =
+                  _self
+              _typeOqualifier =
+                  _lhsIqualifier
+              ( _rangeIself) =
+                  range_
+              ( _typevariablesIself) =
+                  typevariables_
+              ( _typeIself,_typeItypevariables) =
+                  type_ _typeOqualifier
+          in  ( _lhsOself,_lhsOtypevariables)))
 sem_Type_Parenthesized :: T_Range ->
                           T_Type ->
                           T_Type
 sem_Type_Parenthesized range_ type_ =
-    (let _lhsOtypevariables :: Names
-         _lhsOself :: Type
-         _rangeIself :: Range
-         _typeIself :: Type
-         _typeItypevariables :: Names
-         _lhsOtypevariables =
-             _typeItypevariables
-         _self =
-             Type_Parenthesized _rangeIself _typeIself
-         _lhsOself =
-             _self
-         ( _rangeIself) =
-             range_
-         ( _typeIself,_typeItypevariables) =
-             type_
-     in  ( _lhsOself,_lhsOtypevariables))
+    (\ _lhsIqualifier ->
+         (let _lhsOtypevariables :: Names
+              _lhsOself :: Type
+              _typeOqualifier :: (Tp -> Tp)
+              _rangeIself :: Range
+              _typeIself :: Type
+              _typeItypevariables :: Names
+              _lhsOtypevariables =
+                  _typeItypevariables
+              _self =
+                  Type_Parenthesized _rangeIself _typeIself
+              _lhsOself =
+                  _self
+              _typeOqualifier =
+                  _lhsIqualifier
+              ( _rangeIself) =
+                  range_
+              ( _typeIself,_typeItypevariables) =
+                  type_ _typeOqualifier
+          in  ( _lhsOself,_lhsOtypevariables)))
 -- TypeRule ----------------------------------------------------
 -- cata
 sem_TypeRule :: TypeRule ->
@@ -3938,21 +4007,23 @@ sem_TypeRule (TypeRule_TypeRule _premises _conclusion) =
     (sem_TypeRule_TypeRule (sem_SimpleJudgements _premises) (sem_Judgement _conclusion))
 -- semantic domain
 type T_TypeRule = ([(Name,Tp)]) ->
+                  (Tp -> Tp) ->
                   ([(String,Tp)]) ->
                   ( Expression,Tp,Core_TypeRule,TypeRule,([(String,Tp)]),Names)
-data Inh_TypeRule = Inh_TypeRule {nameMap_Inh_TypeRule :: ([(Name,Tp)]),simpleJudgements_Inh_TypeRule :: ([(String,Tp)])}
+data Inh_TypeRule = Inh_TypeRule {nameMap_Inh_TypeRule :: ([(Name,Tp)]),qualifier_Inh_TypeRule :: (Tp -> Tp),simpleJudgements_Inh_TypeRule :: ([(String,Tp)])}
 data Syn_TypeRule = Syn_TypeRule {conclusionExpression_Syn_TypeRule :: Expression,conclusionType_Syn_TypeRule :: Tp,core_Syn_TypeRule :: Core_TypeRule,self_Syn_TypeRule :: TypeRule,simpleJudgements_Syn_TypeRule :: ([(String,Tp)]),typevariables_Syn_TypeRule :: Names}
 wrap_TypeRule :: T_TypeRule ->
                  Inh_TypeRule ->
                  Syn_TypeRule
-wrap_TypeRule sem (Inh_TypeRule _lhsInameMap _lhsIsimpleJudgements) =
-    (let ( _lhsOconclusionExpression,_lhsOconclusionType,_lhsOcore,_lhsOself,_lhsOsimpleJudgements,_lhsOtypevariables) = sem _lhsInameMap _lhsIsimpleJudgements
+wrap_TypeRule sem (Inh_TypeRule _lhsInameMap _lhsIqualifier _lhsIsimpleJudgements) =
+    (let ( _lhsOconclusionExpression,_lhsOconclusionType,_lhsOcore,_lhsOself,_lhsOsimpleJudgements,_lhsOtypevariables) = sem _lhsInameMap _lhsIqualifier _lhsIsimpleJudgements
      in  (Syn_TypeRule _lhsOconclusionExpression _lhsOconclusionType _lhsOcore _lhsOself _lhsOsimpleJudgements _lhsOtypevariables))
 sem_TypeRule_TypeRule :: T_SimpleJudgements ->
                          T_Judgement ->
                          T_TypeRule
 sem_TypeRule_TypeRule premises_ conclusion_ =
     (\ _lhsInameMap
+       _lhsIqualifier
        _lhsIsimpleJudgements ->
          (let _lhsOconclusionExpression :: Expression
               _lhsOcore :: Core_TypeRule
@@ -3961,8 +4032,10 @@ sem_TypeRule_TypeRule premises_ conclusion_ =
               _lhsOconclusionType :: Tp
               _lhsOsimpleJudgements :: ([(String,Tp)])
               _premisesOnameMap :: ([(Name,Tp)])
+              _premisesOqualifier :: (Tp -> Tp)
               _premisesOsimpleJudgements :: ([(String,Tp)])
               _conclusionOnameMap :: ([(Name,Tp)])
+              _conclusionOqualifier :: (Tp -> Tp)
               _premisesIcore :: Core_Judgements
               _premisesIself :: SimpleJudgements
               _premisesIsimpleJudgements :: ([(String,Tp)])
@@ -3988,14 +4061,18 @@ sem_TypeRule_TypeRule premises_ conclusion_ =
                   _premisesIsimpleJudgements
               _premisesOnameMap =
                   _lhsInameMap
+              _premisesOqualifier =
+                  _lhsIqualifier
               _premisesOsimpleJudgements =
                   _lhsIsimpleJudgements
               _conclusionOnameMap =
                   _lhsInameMap
+              _conclusionOqualifier =
+                  _lhsIqualifier
               ( _premisesIcore,_premisesIself,_premisesIsimpleJudgements,_premisesItypevariables) =
-                  premises_ _premisesOnameMap _premisesOsimpleJudgements
+                  premises_ _premisesOnameMap _premisesOqualifier _premisesOsimpleJudgements
               ( _conclusionIconclusionType,_conclusionIcore,_conclusionIself,_conclusionItheExpression,_conclusionItypevariables) =
-                  conclusion_ _conclusionOnameMap
+                  conclusion_ _conclusionOnameMap _conclusionOqualifier
           in  ( _lhsOconclusionExpression,_lhsOconclusionType,_lhsOcore,_lhsOself,_lhsOsimpleJudgements,_lhsOtypevariables)))
 -- Types -------------------------------------------------------
 -- cata
@@ -4004,47 +4081,56 @@ sem_Types :: Types ->
 sem_Types list =
     (Prelude.foldr sem_Types_Cons sem_Types_Nil (Prelude.map sem_Type list))
 -- semantic domain
-type T_Types = ( Types,Names)
-data Inh_Types = Inh_Types {}
+type T_Types = (Tp -> Tp) ->
+               ( Types,Names)
+data Inh_Types = Inh_Types {qualifier_Inh_Types :: (Tp -> Tp)}
 data Syn_Types = Syn_Types {self_Syn_Types :: Types,typevariables_Syn_Types :: Names}
 wrap_Types :: T_Types ->
               Inh_Types ->
               Syn_Types
-wrap_Types sem (Inh_Types) =
-    (let ( _lhsOself,_lhsOtypevariables) = sem
+wrap_Types sem (Inh_Types _lhsIqualifier) =
+    (let ( _lhsOself,_lhsOtypevariables) = sem _lhsIqualifier
      in  (Syn_Types _lhsOself _lhsOtypevariables))
 sem_Types_Cons :: T_Type ->
                   T_Types ->
                   T_Types
 sem_Types_Cons hd_ tl_ =
-    (let _lhsOtypevariables :: Names
-         _lhsOself :: Types
-         _hdIself :: Type
-         _hdItypevariables :: Names
-         _tlIself :: Types
-         _tlItypevariables :: Names
-         _lhsOtypevariables =
-             _hdItypevariables  ++  _tlItypevariables
-         _self =
-             (:) _hdIself _tlIself
-         _lhsOself =
-             _self
-         ( _hdIself,_hdItypevariables) =
-             hd_
-         ( _tlIself,_tlItypevariables) =
-             tl_
-     in  ( _lhsOself,_lhsOtypevariables))
+    (\ _lhsIqualifier ->
+         (let _lhsOtypevariables :: Names
+              _lhsOself :: Types
+              _hdOqualifier :: (Tp -> Tp)
+              _tlOqualifier :: (Tp -> Tp)
+              _hdIself :: Type
+              _hdItypevariables :: Names
+              _tlIself :: Types
+              _tlItypevariables :: Names
+              _lhsOtypevariables =
+                  _hdItypevariables  ++  _tlItypevariables
+              _self =
+                  (:) _hdIself _tlIself
+              _lhsOself =
+                  _self
+              _hdOqualifier =
+                  _lhsIqualifier
+              _tlOqualifier =
+                  _lhsIqualifier
+              ( _hdIself,_hdItypevariables) =
+                  hd_ _hdOqualifier
+              ( _tlIself,_tlItypevariables) =
+                  tl_ _tlOqualifier
+          in  ( _lhsOself,_lhsOtypevariables)))
 sem_Types_Nil :: T_Types
 sem_Types_Nil =
-    (let _lhsOtypevariables :: Names
-         _lhsOself :: Types
-         _lhsOtypevariables =
-             []
-         _self =
-             []
-         _lhsOself =
-             _self
-     in  ( _lhsOself,_lhsOtypevariables))
+    (\ _lhsIqualifier ->
+         (let _lhsOtypevariables :: Names
+              _lhsOself :: Types
+              _lhsOtypevariables =
+                  []
+              _self =
+                  []
+              _lhsOself =
+                  _self
+          in  ( _lhsOself,_lhsOtypevariables)))
 -- TypingStrategies --------------------------------------------
 -- cata
 sem_TypingStrategies :: TypingStrategies ->
@@ -4101,6 +4187,14 @@ sem_TypingStrategy :: TypingStrategy ->
                       T_TypingStrategy
 sem_TypingStrategy (TypingStrategy_Siblings _names) =
     (sem_TypingStrategy_Siblings (sem_Names _names))
+sem_TypingStrategy (TypingStrategy_Never _predName _predType _message) =
+    (sem_TypingStrategy_Never (sem_Name _predName) (sem_Type _predType) _message)
+sem_TypingStrategy (TypingStrategy_Close _name _message) =
+    (sem_TypingStrategy_Close (sem_Name _name) _message)
+sem_TypingStrategy (TypingStrategy_Disjoint _names _message) =
+    (sem_TypingStrategy_Disjoint (sem_Names _names) _message)
+sem_TypingStrategy (TypingStrategy_Default _className _constructors) =
+    (sem_TypingStrategy_Default (sem_Name _className) _constructors)
 sem_TypingStrategy (TypingStrategy_TypingStrategy _typerule _statements) =
     (sem_TypingStrategy_TypingStrategy (sem_TypeRule _typerule) (sem_UserStatements _statements))
 -- semantic domain
@@ -4130,6 +4224,82 @@ sem_TypingStrategy_Siblings names_ =
               ( _namesIself) =
                   names_
           in  ( _lhsOcore,_lhsOself)))
+sem_TypingStrategy_Never :: T_Name ->
+                            T_Type ->
+                            String ->
+                            T_TypingStrategy
+sem_TypingStrategy_Never predName_ predType_ message_ =
+    (\ _lhsIimportEnvironment ->
+         (let _lhsOcore :: Core_TypingStrategy
+              _lhsOself :: TypingStrategy
+              _predTypeOqualifier :: (Tp -> Tp)
+              _predNameIself :: Name
+              _predTypeIself :: Type
+              _predTypeItypevariables :: Names
+              _lhsOcore =
+                  Never (getNameName _predNameIself) (makeTpFromType [] _predTypeIself) message_
+              _self =
+                  TypingStrategy_Never _predNameIself _predTypeIself message_
+              _lhsOself =
+                  _self
+              _predTypeOqualifier =
+                  error "missing rule: TypingStrategy.Never.predType.qualifier"
+              ( _predNameIself) =
+                  predName_
+              ( _predTypeIself,_predTypeItypevariables) =
+                  predType_ _predTypeOqualifier
+          in  ( _lhsOcore,_lhsOself)))
+sem_TypingStrategy_Close :: T_Name ->
+                            String ->
+                            T_TypingStrategy
+sem_TypingStrategy_Close name_ message_ =
+    (\ _lhsIimportEnvironment ->
+         (let _lhsOcore :: Core_TypingStrategy
+              _lhsOself :: TypingStrategy
+              _nameIself :: Name
+              _lhsOcore =
+                  Close (getNameName name_) message_
+              _self =
+                  TypingStrategy_Close _nameIself message_
+              _lhsOself =
+                  _self
+              ( _nameIself) =
+                  name_
+          in  ( _lhsOcore,_lhsOself)))
+sem_TypingStrategy_Disjoint :: T_Names ->
+                               String ->
+                               T_TypingStrategy
+sem_TypingStrategy_Disjoint names_ message_ =
+    (\ _lhsIimportEnvironment ->
+         (let _lhsOcore :: Core_TypingStrategy
+              _lhsOself :: TypingStrategy
+              _namesIself :: Names
+              _lhsOcore =
+                  Disjoint (map getNameName names_) message_
+              _self =
+                  TypingStrategy_Disjoint _namesIself message_
+              _lhsOself =
+                  _self
+              ( _namesIself) =
+                  names_
+          in  ( _lhsOcore,_lhsOself)))
+sem_TypingStrategy_Default :: T_Name ->
+                              ([Type]) ->
+                              T_TypingStrategy
+sem_TypingStrategy_Default className_ constructors_ =
+    (\ _lhsIimportEnvironment ->
+         (let _lhsOcore :: Core_TypingStrategy
+              _lhsOself :: TypingStrategy
+              _classNameIself :: Name
+              _lhsOcore =
+                  Default (getNameName className_) (map (makeTpFromType []) constructors_)
+              _self =
+                  TypingStrategy_Default _classNameIself constructors_
+              _lhsOself =
+                  _self
+              ( _classNameIself) =
+                  className_
+          in  ( _lhsOcore,_lhsOself)))
 sem_TypingStrategy_TypingStrategy :: T_TypeRule ->
                                      T_UserStatements ->
                                      T_TypingStrategy
@@ -4139,6 +4309,8 @@ sem_TypingStrategy_TypingStrategy typerule_ statements_ =
               _statementsOuserPredicates :: Predicates
               _typeruleOsimpleJudgements :: ([(String,Tp)])
               _statementsOmetaVariableConstraintNames :: Names
+              _typeruleOqualifier :: (Tp -> Tp)
+              _statementsOqualifier :: (Tp -> Tp)
               _lhsOcore :: Core_TypingStrategy
               _lhsOself :: TypingStrategy
               _typeruleOnameMap :: ([(Name,Tp)])
@@ -4175,10 +4347,16 @@ sem_TypingStrategy_TypingStrategy typerule_ statements_ =
                   standardConstraintInfo
               _attributeTable =
                   []
+              _typeruleOqualifier =
+                  _qualifier
+              _statementsOqualifier =
+                  _qualifier
               _lhsOcore =
                   TypingStrategy _typeEnv _typeruleIcore _statementsIcore
               _nameMap =
                   zip _uniqueTypevariables (map TVar [0..])
+              _qualifier =
+                  convertTpToQualified _lhsIimportEnvironment
               _typeEnv =
                   let newEnvironment =
                          let list = [ (nameFromString s, toTpScheme $ freezeVariablesInType tp)
@@ -4189,9 +4367,9 @@ sem_TypingStrategy_TypingStrategy typerule_ statements_ =
                       monoType = unqualify (unquantify inferredType)
                       synonyms = getOrderedTypeSynonyms _lhsIimportEnvironment
                       sub = case mguWithTypeSynonyms synonyms monoType (freezeVariablesInType _typeruleIconclusionType) of
-                               Left _       -> internalError "TS_ToCore.ag" "n/a" "no unification possible"
-                               Right (_, s) -> s
-                  in [ (show name, unfreezeVariablesInType (sub |-> tp))
+                               Left _       -> id
+                               Right (_, s) -> (s |->)
+                  in [ (show name, unfreezeVariablesInType (sub tp))
                      | (name, tp) <- concat (M.elems freeVariables)
                      ]
               _self =
@@ -4207,9 +4385,9 @@ sem_TypingStrategy_TypingStrategy typerule_ statements_ =
               _statementsOstandardConstraintInfo =
                   _standardConstraintInfo
               ( _typeruleIconclusionExpression,_typeruleIconclusionType,_typeruleIcore,_typeruleIself,_typeruleIsimpleJudgements,_typeruleItypevariables) =
-                  typerule_ _typeruleOnameMap _typeruleOsimpleJudgements
+                  typerule_ _typeruleOnameMap _typeruleOqualifier _typeruleOsimpleJudgements
               ( _statementsIcore,_statementsImetaVariableConstraintNames,_statementsIself,_statementsItypevariables,_statementsIuserConstraints,_statementsIuserPredicates) =
-                  statements_ _statementsOattributeTable _statementsOmetaVariableConstraintNames _statementsOnameMap _statementsOstandardConstraintInfo _statementsOuserConstraints _statementsOuserPredicates
+                  statements_ _statementsOattributeTable _statementsOmetaVariableConstraintNames _statementsOnameMap _statementsOqualifier _statementsOstandardConstraintInfo _statementsOuserConstraints _statementsOuserPredicates
           in  ( _lhsOcore,_lhsOself)))
 -- UserStatement -----------------------------------------------
 -- cata
@@ -4227,17 +4405,18 @@ sem_UserStatement (UserStatement_Phase _phase) =
 type T_UserStatement = ([((String, Maybe String), MessageBlock)]) ->
                        Names ->
                        ([(Name,Tp)]) ->
+                       (Tp -> Tp) ->
                        ConstraintInfo ->
                        (TypeConstraints ConstraintInfo) ->
                        Predicates ->
                        ( Core_UserStatement,Names,UserStatement,Names,(TypeConstraints ConstraintInfo),Predicates)
-data Inh_UserStatement = Inh_UserStatement {attributeTable_Inh_UserStatement :: ([((String, Maybe String), MessageBlock)]),metaVariableConstraintNames_Inh_UserStatement :: Names,nameMap_Inh_UserStatement :: ([(Name,Tp)]),standardConstraintInfo_Inh_UserStatement :: ConstraintInfo,userConstraints_Inh_UserStatement :: (TypeConstraints ConstraintInfo),userPredicates_Inh_UserStatement :: Predicates}
+data Inh_UserStatement = Inh_UserStatement {attributeTable_Inh_UserStatement :: ([((String, Maybe String), MessageBlock)]),metaVariableConstraintNames_Inh_UserStatement :: Names,nameMap_Inh_UserStatement :: ([(Name,Tp)]),qualifier_Inh_UserStatement :: (Tp -> Tp),standardConstraintInfo_Inh_UserStatement :: ConstraintInfo,userConstraints_Inh_UserStatement :: (TypeConstraints ConstraintInfo),userPredicates_Inh_UserStatement :: Predicates}
 data Syn_UserStatement = Syn_UserStatement {core_Syn_UserStatement :: Core_UserStatement,metaVariableConstraintNames_Syn_UserStatement :: Names,self_Syn_UserStatement :: UserStatement,typevariables_Syn_UserStatement :: Names,userConstraints_Syn_UserStatement :: (TypeConstraints ConstraintInfo),userPredicates_Syn_UserStatement :: Predicates}
 wrap_UserStatement :: T_UserStatement ->
                       Inh_UserStatement ->
                       Syn_UserStatement
-wrap_UserStatement sem (Inh_UserStatement _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) =
-    (let ( _lhsOcore,_lhsOmetaVariableConstraintNames,_lhsOself,_lhsOtypevariables,_lhsOuserConstraints,_lhsOuserPredicates) = sem _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates
+wrap_UserStatement sem (Inh_UserStatement _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIqualifier _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) =
+    (let ( _lhsOcore,_lhsOmetaVariableConstraintNames,_lhsOself,_lhsOtypevariables,_lhsOuserConstraints,_lhsOuserPredicates) = sem _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIqualifier _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates
      in  (Syn_UserStatement _lhsOcore _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates))
 sem_UserStatement_Equal :: T_Type ->
                            T_Type ->
@@ -4247,6 +4426,7 @@ sem_UserStatement_Equal leftType_ rightType_ message_ =
     (\ _lhsIattributeTable
        _lhsImetaVariableConstraintNames
        _lhsInameMap
+       _lhsIqualifier
        _lhsIstandardConstraintInfo
        _lhsIuserConstraints
        _lhsIuserPredicates ->
@@ -4256,6 +4436,8 @@ sem_UserStatement_Equal leftType_ rightType_ message_ =
               _lhsOself :: UserStatement
               _lhsOmetaVariableConstraintNames :: Names
               _lhsOuserPredicates :: Predicates
+              _leftTypeOqualifier :: (Tp -> Tp)
+              _rightTypeOqualifier :: (Tp -> Tp)
               _leftTypeIself :: Type
               _leftTypeItypevariables :: Names
               _rightTypeIself :: Type
@@ -4263,11 +4445,11 @@ sem_UserStatement_Equal leftType_ rightType_ message_ =
               _lhsOuserConstraints =
                   _newConstraint : _lhsIuserConstraints
               _newConstraint =
-                  (makeTpFromType _lhsInameMap _leftTypeIself .==. makeTpFromType _lhsInameMap _rightTypeIself) _lhsIstandardConstraintInfo
+                  (makeTpFromType _lhsInameMap _leftTypeIself .==. (_lhsIqualifier $ makeTpFromType _lhsInameMap _rightTypeIself)) _lhsIstandardConstraintInfo
               _lhsOcore =
                   Equal
-                    (makeTpFromType _lhsInameMap _leftTypeIself)
-                    (makeTpFromType _lhsInameMap _rightTypeIself)
+                    (_lhsIqualifier $ makeTpFromType _lhsInameMap _leftTypeIself)
+                    (_lhsIqualifier $ makeTpFromType _lhsInameMap _rightTypeIself)
                     (changeAttributes (useNameMap _lhsInameMap) message_)
               _lhsOtypevariables =
                   _leftTypeItypevariables  ++  _rightTypeItypevariables
@@ -4279,10 +4461,14 @@ sem_UserStatement_Equal leftType_ rightType_ message_ =
                   _lhsImetaVariableConstraintNames
               _lhsOuserPredicates =
                   _lhsIuserPredicates
+              _leftTypeOqualifier =
+                  _lhsIqualifier
+              _rightTypeOqualifier =
+                  _lhsIqualifier
               ( _leftTypeIself,_leftTypeItypevariables) =
-                  leftType_
+                  leftType_ _leftTypeOqualifier
               ( _rightTypeIself,_rightTypeItypevariables) =
-                  rightType_
+                  rightType_ _rightTypeOqualifier
           in  ( _lhsOcore,_lhsOmetaVariableConstraintNames,_lhsOself,_lhsOtypevariables,_lhsOuserConstraints,_lhsOuserPredicates)))
 sem_UserStatement_Pred :: T_Name ->
                           T_Type ->
@@ -4292,6 +4478,7 @@ sem_UserStatement_Pred predClass_ predType_ message_ =
     (\ _lhsIattributeTable
        _lhsImetaVariableConstraintNames
        _lhsInameMap
+       _lhsIqualifier
        _lhsIstandardConstraintInfo
        _lhsIuserConstraints
        _lhsIuserPredicates ->
@@ -4301,6 +4488,7 @@ sem_UserStatement_Pred predClass_ predType_ message_ =
               _lhsOself :: UserStatement
               _lhsOmetaVariableConstraintNames :: Names
               _lhsOuserConstraints :: (TypeConstraints ConstraintInfo)
+              _predTypeOqualifier :: (Tp -> Tp)
               _predClassIself :: Name
               _predTypeIself :: Type
               _predTypeItypevariables :: Names
@@ -4323,10 +4511,12 @@ sem_UserStatement_Pred predClass_ predType_ message_ =
                   _lhsImetaVariableConstraintNames
               _lhsOuserConstraints =
                   _lhsIuserConstraints
+              _predTypeOqualifier =
+                  _lhsIqualifier
               ( _predClassIself) =
                   predClass_
               ( _predTypeIself,_predTypeItypevariables) =
-                  predType_
+                  predType_ _predTypeOqualifier
           in  ( _lhsOcore,_lhsOmetaVariableConstraintNames,_lhsOself,_lhsOtypevariables,_lhsOuserConstraints,_lhsOuserPredicates)))
 sem_UserStatement_MetaVariableConstraints :: T_Name ->
                                              T_UserStatement
@@ -4334,6 +4524,7 @@ sem_UserStatement_MetaVariableConstraints name_ =
     (\ _lhsIattributeTable
        _lhsImetaVariableConstraintNames
        _lhsInameMap
+       _lhsIqualifier
        _lhsIstandardConstraintInfo
        _lhsIuserConstraints
        _lhsIuserPredicates ->
@@ -4367,6 +4558,7 @@ sem_UserStatement_Phase phase_ =
     (\ _lhsIattributeTable
        _lhsImetaVariableConstraintNames
        _lhsInameMap
+       _lhsIqualifier
        _lhsIstandardConstraintInfo
        _lhsIuserConstraints
        _lhsIuserPredicates ->
@@ -4401,17 +4593,18 @@ sem_UserStatements list =
 type T_UserStatements = ([((String, Maybe String), MessageBlock)]) ->
                         Names ->
                         ([(Name,Tp)]) ->
+                        (Tp -> Tp) ->
                         ConstraintInfo ->
                         (TypeConstraints ConstraintInfo) ->
                         Predicates ->
                         ( Core_UserStatements,Names,UserStatements,Names,(TypeConstraints ConstraintInfo),Predicates)
-data Inh_UserStatements = Inh_UserStatements {attributeTable_Inh_UserStatements :: ([((String, Maybe String), MessageBlock)]),metaVariableConstraintNames_Inh_UserStatements :: Names,nameMap_Inh_UserStatements :: ([(Name,Tp)]),standardConstraintInfo_Inh_UserStatements :: ConstraintInfo,userConstraints_Inh_UserStatements :: (TypeConstraints ConstraintInfo),userPredicates_Inh_UserStatements :: Predicates}
+data Inh_UserStatements = Inh_UserStatements {attributeTable_Inh_UserStatements :: ([((String, Maybe String), MessageBlock)]),metaVariableConstraintNames_Inh_UserStatements :: Names,nameMap_Inh_UserStatements :: ([(Name,Tp)]),qualifier_Inh_UserStatements :: (Tp -> Tp),standardConstraintInfo_Inh_UserStatements :: ConstraintInfo,userConstraints_Inh_UserStatements :: (TypeConstraints ConstraintInfo),userPredicates_Inh_UserStatements :: Predicates}
 data Syn_UserStatements = Syn_UserStatements {core_Syn_UserStatements :: Core_UserStatements,metaVariableConstraintNames_Syn_UserStatements :: Names,self_Syn_UserStatements :: UserStatements,typevariables_Syn_UserStatements :: Names,userConstraints_Syn_UserStatements :: (TypeConstraints ConstraintInfo),userPredicates_Syn_UserStatements :: Predicates}
 wrap_UserStatements :: T_UserStatements ->
                        Inh_UserStatements ->
                        Syn_UserStatements
-wrap_UserStatements sem (Inh_UserStatements _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) =
-    (let ( _lhsOcore,_lhsOmetaVariableConstraintNames,_lhsOself,_lhsOtypevariables,_lhsOuserConstraints,_lhsOuserPredicates) = sem _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates
+wrap_UserStatements sem (Inh_UserStatements _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIqualifier _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) =
+    (let ( _lhsOcore,_lhsOmetaVariableConstraintNames,_lhsOself,_lhsOtypevariables,_lhsOuserConstraints,_lhsOuserPredicates) = sem _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIqualifier _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates
      in  (Syn_UserStatements _lhsOcore _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates))
 sem_UserStatements_Cons :: T_UserStatement ->
                            T_UserStatements ->
@@ -4420,6 +4613,7 @@ sem_UserStatements_Cons hd_ tl_ =
     (\ _lhsIattributeTable
        _lhsImetaVariableConstraintNames
        _lhsInameMap
+       _lhsIqualifier
        _lhsIstandardConstraintInfo
        _lhsIuserConstraints
        _lhsIuserPredicates ->
@@ -4432,12 +4626,14 @@ sem_UserStatements_Cons hd_ tl_ =
               _hdOattributeTable :: ([((String, Maybe String), MessageBlock)])
               _hdOmetaVariableConstraintNames :: Names
               _hdOnameMap :: ([(Name,Tp)])
+              _hdOqualifier :: (Tp -> Tp)
               _hdOstandardConstraintInfo :: ConstraintInfo
               _hdOuserConstraints :: (TypeConstraints ConstraintInfo)
               _hdOuserPredicates :: Predicates
               _tlOattributeTable :: ([((String, Maybe String), MessageBlock)])
               _tlOmetaVariableConstraintNames :: Names
               _tlOnameMap :: ([(Name,Tp)])
+              _tlOqualifier :: (Tp -> Tp)
               _tlOstandardConstraintInfo :: ConstraintInfo
               _tlOuserConstraints :: (TypeConstraints ConstraintInfo)
               _tlOuserPredicates :: Predicates
@@ -4473,6 +4669,8 @@ sem_UserStatements_Cons hd_ tl_ =
                   _lhsImetaVariableConstraintNames
               _hdOnameMap =
                   _lhsInameMap
+              _hdOqualifier =
+                  _lhsIqualifier
               _hdOstandardConstraintInfo =
                   _lhsIstandardConstraintInfo
               _hdOuserConstraints =
@@ -4485,6 +4683,8 @@ sem_UserStatements_Cons hd_ tl_ =
                   _hdImetaVariableConstraintNames
               _tlOnameMap =
                   _lhsInameMap
+              _tlOqualifier =
+                  _lhsIqualifier
               _tlOstandardConstraintInfo =
                   _lhsIstandardConstraintInfo
               _tlOuserConstraints =
@@ -4492,15 +4692,16 @@ sem_UserStatements_Cons hd_ tl_ =
               _tlOuserPredicates =
                   _hdIuserPredicates
               ( _hdIcore,_hdImetaVariableConstraintNames,_hdIself,_hdItypevariables,_hdIuserConstraints,_hdIuserPredicates) =
-                  hd_ _hdOattributeTable _hdOmetaVariableConstraintNames _hdOnameMap _hdOstandardConstraintInfo _hdOuserConstraints _hdOuserPredicates
+                  hd_ _hdOattributeTable _hdOmetaVariableConstraintNames _hdOnameMap _hdOqualifier _hdOstandardConstraintInfo _hdOuserConstraints _hdOuserPredicates
               ( _tlIcore,_tlImetaVariableConstraintNames,_tlIself,_tlItypevariables,_tlIuserConstraints,_tlIuserPredicates) =
-                  tl_ _tlOattributeTable _tlOmetaVariableConstraintNames _tlOnameMap _tlOstandardConstraintInfo _tlOuserConstraints _tlOuserPredicates
+                  tl_ _tlOattributeTable _tlOmetaVariableConstraintNames _tlOnameMap _tlOqualifier _tlOstandardConstraintInfo _tlOuserConstraints _tlOuserPredicates
           in  ( _lhsOcore,_lhsOmetaVariableConstraintNames,_lhsOself,_lhsOtypevariables,_lhsOuserConstraints,_lhsOuserPredicates)))
 sem_UserStatements_Nil :: T_UserStatements
 sem_UserStatements_Nil =
     (\ _lhsIattributeTable
        _lhsImetaVariableConstraintNames
        _lhsInameMap
+       _lhsIqualifier
        _lhsIstandardConstraintInfo
        _lhsIuserConstraints
        _lhsIuserPredicates ->

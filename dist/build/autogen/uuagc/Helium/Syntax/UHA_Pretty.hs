@@ -1,4 +1,5 @@
 {-# LANGUAGE Rank2Types, GADTs #-}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Helium.Syntax.UHA_Pretty where
@@ -63,22 +64,22 @@ utrechtList start end (d:ds) =
 -- Alternative -------------------------------------------------
 -- wrapper
 data Inh_Alternative  = Inh_Alternative {  }
-data Syn_Alternative  = Syn_Alternative { text_Syn_Alternative :: (Doc) }
+data Syn_Alternative  = Syn_Alternative { text_Syn_Alternative :: !(Doc) }
 {-# INLINABLE wrap_Alternative #-}
 wrap_Alternative :: T_Alternative  -> Inh_Alternative  -> (Syn_Alternative )
-wrap_Alternative (T_Alternative act) (Inh_Alternative ) =
+wrap_Alternative !(T_Alternative act) !(Inh_Alternative ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg1 = T_Alternative_vIn1 
-        (T_Alternative_vOut1 _lhsOtext) <- return (inv_Alternative_s2 sem arg1)
+        !(T_Alternative_vOut1 _lhsOtext) <- return (inv_Alternative_s2 sem arg1)
         return (Syn_Alternative _lhsOtext)
    )
 
 -- cata
 {-# NOINLINE sem_Alternative #-}
 sem_Alternative :: Alternative  -> T_Alternative 
-sem_Alternative ( Alternative_Hole range_ id_ ) = sem_Alternative_Hole ( sem_Range range_ ) id_
-sem_Alternative ( Alternative_Feedback range_ feedback_ alternative_ ) = sem_Alternative_Feedback ( sem_Range range_ ) feedback_ ( sem_Alternative alternative_ )
+sem_Alternative ( Alternative_Hole range_ !id_ ) = sem_Alternative_Hole ( sem_Range range_ ) id_
+sem_Alternative ( Alternative_Feedback range_ !feedback_ alternative_ ) = sem_Alternative_Feedback ( sem_Range range_ ) feedback_ ( sem_Alternative alternative_ )
 sem_Alternative ( Alternative_Alternative range_ pattern_ righthandside_ ) = sem_Alternative_Alternative ( sem_Range range_ ) ( sem_Pattern pattern_ ) ( sem_RightHandSide righthandside_ )
 sem_Alternative ( Alternative_Empty range_ ) = sem_Alternative_Empty ( sem_Range range_ )
 
@@ -97,15 +98,15 @@ data T_Alternative_vOut1  = T_Alternative_vOut1 (Doc)
 sem_Alternative_Hole :: T_Range  -> (String) -> T_Alternative 
 sem_Alternative_Hole arg_range_ _ = T_Alternative (return st2) where
    {-# NOINLINE st2 #-}
-   st2 = let
+   !st2 = let
       v1 :: T_Alternative_v1 
-      v1 = \ (T_Alternative_vIn1 ) -> ( let
+      v1 = \ !(T_Alternative_vIn1 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _text = rule0  ()
          _lhsOtext :: Doc
          _lhsOtext = rule1 _text
-         __result_ = T_Alternative_vOut1 _lhsOtext
+         !__result_ = T_Alternative_vOut1 _lhsOtext
          in __result_ )
      in C_Alternative_s2 v1
    {-# INLINE rule0 #-}
@@ -118,16 +119,16 @@ sem_Alternative_Hole arg_range_ _ = T_Alternative (return st2) where
 sem_Alternative_Feedback :: T_Range  -> (String) -> T_Alternative  -> T_Alternative 
 sem_Alternative_Feedback arg_range_ _ arg_alternative_ = T_Alternative (return st2) where
    {-# NOINLINE st2 #-}
-   st2 = let
+   !st2 = let
       v1 :: T_Alternative_v1 
-      v1 = \ (T_Alternative_vIn1 ) -> ( let
+      v1 = \ !(T_Alternative_vIn1 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _alternativeX2 = Control.Monad.Identity.runIdentity (attach_T_Alternative (arg_alternative_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Alternative_vOut1 _alternativeItext) = inv_Alternative_s2 _alternativeX2 (T_Alternative_vIn1 )
          _lhsOtext :: Doc
          _lhsOtext = rule2 _alternativeItext
-         __result_ = T_Alternative_vOut1 _lhsOtext
+         !__result_ = T_Alternative_vOut1 _lhsOtext
          in __result_ )
      in C_Alternative_s2 v1
    {-# INLINE rule2 #-}
@@ -137,9 +138,9 @@ sem_Alternative_Feedback arg_range_ _ arg_alternative_ = T_Alternative (return s
 sem_Alternative_Alternative :: T_Range  -> T_Pattern  -> T_RightHandSide  -> T_Alternative 
 sem_Alternative_Alternative arg_range_ arg_pattern_ arg_righthandside_ = T_Alternative (return st2) where
    {-# NOINLINE st2 #-}
-   st2 = let
+   !st2 = let
       v1 :: T_Alternative_v1 
-      v1 = \ (T_Alternative_vIn1 ) -> ( let
+      v1 = \ !(T_Alternative_vIn1 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          _righthandsideX149 = Control.Monad.Identity.runIdentity (attach_T_RightHandSide (arg_righthandside_))
@@ -149,7 +150,7 @@ sem_Alternative_Alternative arg_range_ arg_pattern_ arg_righthandside_ = T_Alter
          _text = rule3 _patternItext _righthandsideItext
          _lhsOtext :: Doc
          _lhsOtext = rule4 _text
-         __result_ = T_Alternative_vOut1 _lhsOtext
+         !__result_ = T_Alternative_vOut1 _lhsOtext
          in __result_ )
      in C_Alternative_s2 v1
    {-# INLINE rule3 #-}
@@ -162,15 +163,15 @@ sem_Alternative_Alternative arg_range_ arg_pattern_ arg_righthandside_ = T_Alter
 sem_Alternative_Empty :: T_Range  -> T_Alternative 
 sem_Alternative_Empty arg_range_ = T_Alternative (return st2) where
    {-# NOINLINE st2 #-}
-   st2 = let
+   !st2 = let
       v1 :: T_Alternative_v1 
-      v1 = \ (T_Alternative_vIn1 ) -> ( let
+      v1 = \ !(T_Alternative_vIn1 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _text = rule5  ()
          _lhsOtext :: Doc
          _lhsOtext = rule6 _text
-         __result_ = T_Alternative_vOut1 _lhsOtext
+         !__result_ = T_Alternative_vOut1 _lhsOtext
          in __result_ )
      in C_Alternative_s2 v1
    {-# INLINE rule5 #-}
@@ -183,14 +184,14 @@ sem_Alternative_Empty arg_range_ = T_Alternative (return st2) where
 -- Alternatives ------------------------------------------------
 -- wrapper
 data Inh_Alternatives  = Inh_Alternatives {  }
-data Syn_Alternatives  = Syn_Alternatives { text_Syn_Alternatives :: ( [       Doc ] ) }
+data Syn_Alternatives  = Syn_Alternatives { text_Syn_Alternatives :: !( [       Doc ] ) }
 {-# INLINABLE wrap_Alternatives #-}
 wrap_Alternatives :: T_Alternatives  -> Inh_Alternatives  -> (Syn_Alternatives )
-wrap_Alternatives (T_Alternatives act) (Inh_Alternatives ) =
+wrap_Alternatives !(T_Alternatives act) !(Inh_Alternatives ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg4 = T_Alternatives_vIn4 
-        (T_Alternatives_vOut4 _lhsOtext) <- return (inv_Alternatives_s5 sem arg4)
+        !(T_Alternatives_vOut4 _lhsOtext) <- return (inv_Alternatives_s5 sem arg4)
         return (Syn_Alternatives _lhsOtext)
    )
 
@@ -214,16 +215,16 @@ data T_Alternatives_vOut4  = T_Alternatives_vOut4 ( [       Doc ] )
 sem_Alternatives_Cons :: T_Alternative  -> T_Alternatives  -> T_Alternatives 
 sem_Alternatives_Cons arg_hd_ arg_tl_ = T_Alternatives (return st5) where
    {-# NOINLINE st5 #-}
-   st5 = let
+   !st5 = let
       v4 :: T_Alternatives_v4 
-      v4 = \ (T_Alternatives_vIn4 ) -> ( let
+      v4 = \ !(T_Alternatives_vIn4 ) -> ( let
          _hdX2 = Control.Monad.Identity.runIdentity (attach_T_Alternative (arg_hd_))
          _tlX5 = Control.Monad.Identity.runIdentity (attach_T_Alternatives (arg_tl_))
          (T_Alternative_vOut1 _hdItext) = inv_Alternative_s2 _hdX2 (T_Alternative_vIn1 )
          (T_Alternatives_vOut4 _tlItext) = inv_Alternatives_s5 _tlX5 (T_Alternatives_vIn4 )
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule7 _hdItext _tlItext
-         __result_ = T_Alternatives_vOut4 _lhsOtext
+         !__result_ = T_Alternatives_vOut4 _lhsOtext
          in __result_ )
      in C_Alternatives_s5 v4
    {-# INLINE rule7 #-}
@@ -233,12 +234,12 @@ sem_Alternatives_Cons arg_hd_ arg_tl_ = T_Alternatives (return st5) where
 sem_Alternatives_Nil ::  T_Alternatives 
 sem_Alternatives_Nil  = T_Alternatives (return st5) where
    {-# NOINLINE st5 #-}
-   st5 = let
+   !st5 = let
       v4 :: T_Alternatives_v4 
-      v4 = \ (T_Alternatives_vIn4 ) -> ( let
+      v4 = \ !(T_Alternatives_vIn4 ) -> ( let
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule8  ()
-         __result_ = T_Alternatives_vOut4 _lhsOtext
+         !__result_ = T_Alternatives_vOut4 _lhsOtext
          in __result_ )
      in C_Alternatives_s5 v4
    {-# INLINE rule8 #-}
@@ -248,21 +249,21 @@ sem_Alternatives_Nil  = T_Alternatives (return st5) where
 -- AnnotatedType -----------------------------------------------
 -- wrapper
 data Inh_AnnotatedType  = Inh_AnnotatedType {  }
-data Syn_AnnotatedType  = Syn_AnnotatedType { text_Syn_AnnotatedType :: (Doc) }
+data Syn_AnnotatedType  = Syn_AnnotatedType { text_Syn_AnnotatedType :: !(Doc) }
 {-# INLINABLE wrap_AnnotatedType #-}
 wrap_AnnotatedType :: T_AnnotatedType  -> Inh_AnnotatedType  -> (Syn_AnnotatedType )
-wrap_AnnotatedType (T_AnnotatedType act) (Inh_AnnotatedType ) =
+wrap_AnnotatedType !(T_AnnotatedType act) !(Inh_AnnotatedType ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg7 = T_AnnotatedType_vIn7 
-        (T_AnnotatedType_vOut7 _lhsOtext) <- return (inv_AnnotatedType_s8 sem arg7)
+        !(T_AnnotatedType_vOut7 _lhsOtext) <- return (inv_AnnotatedType_s8 sem arg7)
         return (Syn_AnnotatedType _lhsOtext)
    )
 
 -- cata
 {-# INLINE sem_AnnotatedType #-}
 sem_AnnotatedType :: AnnotatedType  -> T_AnnotatedType 
-sem_AnnotatedType ( AnnotatedType_AnnotatedType range_ strict_ type_ ) = sem_AnnotatedType_AnnotatedType ( sem_Range range_ ) strict_ ( sem_Type type_ )
+sem_AnnotatedType ( AnnotatedType_AnnotatedType range_ !strict_ type_ ) = sem_AnnotatedType_AnnotatedType ( sem_Range range_ ) strict_ ( sem_Type type_ )
 
 -- semantic domain
 newtype T_AnnotatedType  = T_AnnotatedType {
@@ -277,11 +278,11 @@ data T_AnnotatedType_vIn7  = T_AnnotatedType_vIn7
 data T_AnnotatedType_vOut7  = T_AnnotatedType_vOut7 (Doc)
 {-# NOINLINE sem_AnnotatedType_AnnotatedType #-}
 sem_AnnotatedType_AnnotatedType :: T_Range  -> (Bool) -> T_Type  -> T_AnnotatedType 
-sem_AnnotatedType_AnnotatedType arg_range_ arg_strict_ arg_type_ = T_AnnotatedType (return st8) where
+sem_AnnotatedType_AnnotatedType arg_range_ !arg_strict_ arg_type_ = T_AnnotatedType (return st8) where
    {-# NOINLINE st8 #-}
-   st8 = let
+   !st8 = let
       v7 :: T_AnnotatedType_v7 
-      v7 = \ (T_AnnotatedType_vIn7 ) -> ( let
+      v7 = \ !(T_AnnotatedType_vIn7 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _typeX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -289,7 +290,7 @@ sem_AnnotatedType_AnnotatedType arg_range_ arg_strict_ arg_type_ = T_AnnotatedTy
          _text = rule9 _typeItext arg_strict_
          _lhsOtext :: Doc
          _lhsOtext = rule10 _text
-         __result_ = T_AnnotatedType_vOut7 _lhsOtext
+         !__result_ = T_AnnotatedType_vOut7 _lhsOtext
          in __result_ )
      in C_AnnotatedType_s8 v7
    {-# INLINE rule9 #-}
@@ -302,14 +303,14 @@ sem_AnnotatedType_AnnotatedType arg_range_ arg_strict_ arg_type_ = T_AnnotatedTy
 -- AnnotatedTypes ----------------------------------------------
 -- wrapper
 data Inh_AnnotatedTypes  = Inh_AnnotatedTypes {  }
-data Syn_AnnotatedTypes  = Syn_AnnotatedTypes { text_Syn_AnnotatedTypes :: ( [       Doc ] ) }
+data Syn_AnnotatedTypes  = Syn_AnnotatedTypes { text_Syn_AnnotatedTypes :: !( [       Doc ] ) }
 {-# INLINABLE wrap_AnnotatedTypes #-}
 wrap_AnnotatedTypes :: T_AnnotatedTypes  -> Inh_AnnotatedTypes  -> (Syn_AnnotatedTypes )
-wrap_AnnotatedTypes (T_AnnotatedTypes act) (Inh_AnnotatedTypes ) =
+wrap_AnnotatedTypes !(T_AnnotatedTypes act) !(Inh_AnnotatedTypes ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg10 = T_AnnotatedTypes_vIn10 
-        (T_AnnotatedTypes_vOut10 _lhsOtext) <- return (inv_AnnotatedTypes_s11 sem arg10)
+        !(T_AnnotatedTypes_vOut10 _lhsOtext) <- return (inv_AnnotatedTypes_s11 sem arg10)
         return (Syn_AnnotatedTypes _lhsOtext)
    )
 
@@ -333,16 +334,16 @@ data T_AnnotatedTypes_vOut10  = T_AnnotatedTypes_vOut10 ( [       Doc ] )
 sem_AnnotatedTypes_Cons :: T_AnnotatedType  -> T_AnnotatedTypes  -> T_AnnotatedTypes 
 sem_AnnotatedTypes_Cons arg_hd_ arg_tl_ = T_AnnotatedTypes (return st11) where
    {-# NOINLINE st11 #-}
-   st11 = let
+   !st11 = let
       v10 :: T_AnnotatedTypes_v10 
-      v10 = \ (T_AnnotatedTypes_vIn10 ) -> ( let
+      v10 = \ !(T_AnnotatedTypes_vIn10 ) -> ( let
          _hdX8 = Control.Monad.Identity.runIdentity (attach_T_AnnotatedType (arg_hd_))
          _tlX11 = Control.Monad.Identity.runIdentity (attach_T_AnnotatedTypes (arg_tl_))
          (T_AnnotatedType_vOut7 _hdItext) = inv_AnnotatedType_s8 _hdX8 (T_AnnotatedType_vIn7 )
          (T_AnnotatedTypes_vOut10 _tlItext) = inv_AnnotatedTypes_s11 _tlX11 (T_AnnotatedTypes_vIn10 )
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule11 _hdItext _tlItext
-         __result_ = T_AnnotatedTypes_vOut10 _lhsOtext
+         !__result_ = T_AnnotatedTypes_vOut10 _lhsOtext
          in __result_ )
      in C_AnnotatedTypes_s11 v10
    {-# INLINE rule11 #-}
@@ -352,12 +353,12 @@ sem_AnnotatedTypes_Cons arg_hd_ arg_tl_ = T_AnnotatedTypes (return st11) where
 sem_AnnotatedTypes_Nil ::  T_AnnotatedTypes 
 sem_AnnotatedTypes_Nil  = T_AnnotatedTypes (return st11) where
    {-# NOINLINE st11 #-}
-   st11 = let
+   !st11 = let
       v10 :: T_AnnotatedTypes_v10 
-      v10 = \ (T_AnnotatedTypes_vIn10 ) -> ( let
+      v10 = \ !(T_AnnotatedTypes_vIn10 ) -> ( let
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule12  ()
-         __result_ = T_AnnotatedTypes_vOut10 _lhsOtext
+         !__result_ = T_AnnotatedTypes_vOut10 _lhsOtext
          in __result_ )
      in C_AnnotatedTypes_s11 v10
    {-# INLINE rule12 #-}
@@ -367,21 +368,21 @@ sem_AnnotatedTypes_Nil  = T_AnnotatedTypes (return st11) where
 -- Body --------------------------------------------------------
 -- wrapper
 data Inh_Body  = Inh_Body {  }
-data Syn_Body  = Syn_Body { text_Syn_Body :: (Doc) }
+data Syn_Body  = Syn_Body { text_Syn_Body :: !(Doc) }
 {-# INLINABLE wrap_Body #-}
 wrap_Body :: T_Body  -> Inh_Body  -> (Syn_Body )
-wrap_Body (T_Body act) (Inh_Body ) =
+wrap_Body !(T_Body act) !(Inh_Body ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg13 = T_Body_vIn13 
-        (T_Body_vOut13 _lhsOtext) <- return (inv_Body_s14 sem arg13)
+        !(T_Body_vOut13 _lhsOtext) <- return (inv_Body_s14 sem arg13)
         return (Syn_Body _lhsOtext)
    )
 
 -- cata
 {-# NOINLINE sem_Body #-}
 sem_Body :: Body  -> T_Body 
-sem_Body ( Body_Hole range_ id_ ) = sem_Body_Hole ( sem_Range range_ ) id_
+sem_Body ( Body_Hole range_ !id_ ) = sem_Body_Hole ( sem_Range range_ ) id_
 sem_Body ( Body_Body range_ importdeclarations_ declarations_ ) = sem_Body_Body ( sem_Range range_ ) ( sem_ImportDeclarations importdeclarations_ ) ( sem_Declarations declarations_ )
 
 -- semantic domain
@@ -399,15 +400,15 @@ data T_Body_vOut13  = T_Body_vOut13 (Doc)
 sem_Body_Hole :: T_Range  -> (String) -> T_Body 
 sem_Body_Hole arg_range_ _ = T_Body (return st14) where
    {-# NOINLINE st14 #-}
-   st14 = let
+   !st14 = let
       v13 :: T_Body_v13 
-      v13 = \ (T_Body_vIn13 ) -> ( let
+      v13 = \ !(T_Body_vIn13 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _text = rule13  ()
          _lhsOtext :: Doc
          _lhsOtext = rule14 _text
-         __result_ = T_Body_vOut13 _lhsOtext
+         !__result_ = T_Body_vOut13 _lhsOtext
          in __result_ )
      in C_Body_s14 v13
    {-# INLINE rule13 #-}
@@ -420,9 +421,9 @@ sem_Body_Hole arg_range_ _ = T_Body (return st14) where
 sem_Body_Body :: T_Range  -> T_ImportDeclarations  -> T_Declarations  -> T_Body 
 sem_Body_Body arg_range_ arg_importdeclarations_ arg_declarations_ = T_Body (return st14) where
    {-# NOINLINE st14 #-}
-   st14 = let
+   !st14 = let
       v13 :: T_Body_v13 
-      v13 = \ (T_Body_vIn13 ) -> ( let
+      v13 = \ !(T_Body_vIn13 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _importdeclarationsX74 = Control.Monad.Identity.runIdentity (attach_T_ImportDeclarations (arg_importdeclarations_))
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
@@ -432,7 +433,7 @@ sem_Body_Body arg_range_ arg_importdeclarations_ arg_declarations_ = T_Body (ret
          _text = rule15 _declarationsItext _importdeclarationsItext
          _lhsOtext :: Doc
          _lhsOtext = rule16 _text
-         __result_ = T_Body_vOut13 _lhsOtext
+         !__result_ = T_Body_vOut13 _lhsOtext
          in __result_ )
      in C_Body_s14 v13
    {-# INLINE rule15 #-}
@@ -448,14 +449,14 @@ sem_Body_Body arg_range_ arg_importdeclarations_ arg_declarations_ = T_Body (ret
 -- Constructor -------------------------------------------------
 -- wrapper
 data Inh_Constructor  = Inh_Constructor {  }
-data Syn_Constructor  = Syn_Constructor { text_Syn_Constructor :: (Doc) }
+data Syn_Constructor  = Syn_Constructor { text_Syn_Constructor :: !(Doc) }
 {-# INLINABLE wrap_Constructor #-}
 wrap_Constructor :: T_Constructor  -> Inh_Constructor  -> (Syn_Constructor )
-wrap_Constructor (T_Constructor act) (Inh_Constructor ) =
+wrap_Constructor !(T_Constructor act) !(Inh_Constructor ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg16 = T_Constructor_vIn16 
-        (T_Constructor_vOut16 _lhsOtext) <- return (inv_Constructor_s17 sem arg16)
+        !(T_Constructor_vOut16 _lhsOtext) <- return (inv_Constructor_s17 sem arg16)
         return (Syn_Constructor _lhsOtext)
    )
 
@@ -481,9 +482,9 @@ data T_Constructor_vOut16  = T_Constructor_vOut16 (Doc)
 sem_Constructor_Constructor :: T_Range  -> T_Name  -> T_AnnotatedTypes  -> T_Constructor 
 sem_Constructor_Constructor arg_range_ arg_constructor_ arg_types_ = T_Constructor (return st17) where
    {-# NOINLINE st17 #-}
-   st17 = let
+   !st17 = let
       v16 :: T_Constructor_v16 
-      v16 = \ (T_Constructor_vIn16 ) -> ( let
+      v16 = \ !(T_Constructor_vIn16 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _constructorX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_constructor_))
          _typesX11 = Control.Monad.Identity.runIdentity (attach_T_AnnotatedTypes (arg_types_))
@@ -493,7 +494,7 @@ sem_Constructor_Constructor arg_range_ arg_constructor_ arg_types_ = T_Construct
          _text = rule17 _constructorIisOperator _constructorItext _typesItext
          _lhsOtext :: Doc
          _lhsOtext = rule18 _text
-         __result_ = T_Constructor_vOut16 _lhsOtext
+         !__result_ = T_Constructor_vOut16 _lhsOtext
          in __result_ )
      in C_Constructor_s17 v16
    {-# INLINE rule17 #-}
@@ -506,9 +507,9 @@ sem_Constructor_Constructor arg_range_ arg_constructor_ arg_types_ = T_Construct
 sem_Constructor_Infix :: T_Range  -> T_AnnotatedType  -> T_Name  -> T_AnnotatedType  -> T_Constructor 
 sem_Constructor_Infix arg_range_ arg_leftType_ arg_constructorOperator_ arg_rightType_ = T_Constructor (return st17) where
    {-# NOINLINE st17 #-}
-   st17 = let
+   !st17 = let
       v16 :: T_Constructor_v16 
-      v16 = \ (T_Constructor_vIn16 ) -> ( let
+      v16 = \ !(T_Constructor_vIn16 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _leftTypeX8 = Control.Monad.Identity.runIdentity (attach_T_AnnotatedType (arg_leftType_))
          _constructorOperatorX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_constructorOperator_))
@@ -520,7 +521,7 @@ sem_Constructor_Infix arg_range_ arg_leftType_ arg_constructorOperator_ arg_righ
          _text = rule19 _constructorOperatorItext _leftTypeItext _rightTypeItext
          _lhsOtext :: Doc
          _lhsOtext = rule20 _text
-         __result_ = T_Constructor_vOut16 _lhsOtext
+         !__result_ = T_Constructor_vOut16 _lhsOtext
          in __result_ )
      in C_Constructor_s17 v16
    {-# INLINE rule19 #-}
@@ -533,9 +534,9 @@ sem_Constructor_Infix arg_range_ arg_leftType_ arg_constructorOperator_ arg_righ
 sem_Constructor_Record :: T_Range  -> T_Name  -> T_FieldDeclarations  -> T_Constructor 
 sem_Constructor_Record arg_range_ arg_constructor_ arg_fieldDeclarations_ = T_Constructor (return st17) where
    {-# NOINLINE st17 #-}
-   st17 = let
+   !st17 = let
       v16 :: T_Constructor_v16 
-      v16 = \ (T_Constructor_vIn16 ) -> ( let
+      v16 = \ !(T_Constructor_vIn16 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _constructorX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_constructor_))
          _fieldDeclarationsX50 = Control.Monad.Identity.runIdentity (attach_T_FieldDeclarations (arg_fieldDeclarations_))
@@ -545,7 +546,7 @@ sem_Constructor_Record arg_range_ arg_constructor_ arg_fieldDeclarations_ = T_Co
          _text = rule21  ()
          _lhsOtext :: Doc
          _lhsOtext = rule22 _text
-         __result_ = T_Constructor_vOut16 _lhsOtext
+         !__result_ = T_Constructor_vOut16 _lhsOtext
          in __result_ )
      in C_Constructor_s17 v16
    {-# INLINE rule21 #-}
@@ -558,14 +559,14 @@ sem_Constructor_Record arg_range_ arg_constructor_ arg_fieldDeclarations_ = T_Co
 -- Constructors ------------------------------------------------
 -- wrapper
 data Inh_Constructors  = Inh_Constructors {  }
-data Syn_Constructors  = Syn_Constructors { text_Syn_Constructors :: ( [       Doc ] ) }
+data Syn_Constructors  = Syn_Constructors { text_Syn_Constructors :: !( [       Doc ] ) }
 {-# INLINABLE wrap_Constructors #-}
 wrap_Constructors :: T_Constructors  -> Inh_Constructors  -> (Syn_Constructors )
-wrap_Constructors (T_Constructors act) (Inh_Constructors ) =
+wrap_Constructors !(T_Constructors act) !(Inh_Constructors ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg19 = T_Constructors_vIn19 
-        (T_Constructors_vOut19 _lhsOtext) <- return (inv_Constructors_s20 sem arg19)
+        !(T_Constructors_vOut19 _lhsOtext) <- return (inv_Constructors_s20 sem arg19)
         return (Syn_Constructors _lhsOtext)
    )
 
@@ -589,16 +590,16 @@ data T_Constructors_vOut19  = T_Constructors_vOut19 ( [       Doc ] )
 sem_Constructors_Cons :: T_Constructor  -> T_Constructors  -> T_Constructors 
 sem_Constructors_Cons arg_hd_ arg_tl_ = T_Constructors (return st20) where
    {-# NOINLINE st20 #-}
-   st20 = let
+   !st20 = let
       v19 :: T_Constructors_v19 
-      v19 = \ (T_Constructors_vIn19 ) -> ( let
+      v19 = \ !(T_Constructors_vIn19 ) -> ( let
          _hdX17 = Control.Monad.Identity.runIdentity (attach_T_Constructor (arg_hd_))
          _tlX20 = Control.Monad.Identity.runIdentity (attach_T_Constructors (arg_tl_))
          (T_Constructor_vOut16 _hdItext) = inv_Constructor_s17 _hdX17 (T_Constructor_vIn16 )
          (T_Constructors_vOut19 _tlItext) = inv_Constructors_s20 _tlX20 (T_Constructors_vIn19 )
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule23 _hdItext _tlItext
-         __result_ = T_Constructors_vOut19 _lhsOtext
+         !__result_ = T_Constructors_vOut19 _lhsOtext
          in __result_ )
      in C_Constructors_s20 v19
    {-# INLINE rule23 #-}
@@ -608,12 +609,12 @@ sem_Constructors_Cons arg_hd_ arg_tl_ = T_Constructors (return st20) where
 sem_Constructors_Nil ::  T_Constructors 
 sem_Constructors_Nil  = T_Constructors (return st20) where
    {-# NOINLINE st20 #-}
-   st20 = let
+   !st20 = let
       v19 :: T_Constructors_v19 
-      v19 = \ (T_Constructors_vIn19 ) -> ( let
+      v19 = \ !(T_Constructors_vIn19 ) -> ( let
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule24  ()
-         __result_ = T_Constructors_vOut19 _lhsOtext
+         !__result_ = T_Constructors_vOut19 _lhsOtext
          in __result_ )
      in C_Constructors_s20 v19
    {-# INLINE rule24 #-}
@@ -623,14 +624,14 @@ sem_Constructors_Nil  = T_Constructors (return st20) where
 -- ContextItem -------------------------------------------------
 -- wrapper
 data Inh_ContextItem  = Inh_ContextItem {  }
-data Syn_ContextItem  = Syn_ContextItem { text_Syn_ContextItem :: (Doc) }
+data Syn_ContextItem  = Syn_ContextItem { text_Syn_ContextItem :: !(Doc) }
 {-# INLINABLE wrap_ContextItem #-}
 wrap_ContextItem :: T_ContextItem  -> Inh_ContextItem  -> (Syn_ContextItem )
-wrap_ContextItem (T_ContextItem act) (Inh_ContextItem ) =
+wrap_ContextItem !(T_ContextItem act) !(Inh_ContextItem ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg22 = T_ContextItem_vIn22 
-        (T_ContextItem_vOut22 _lhsOtext) <- return (inv_ContextItem_s23 sem arg22)
+        !(T_ContextItem_vOut22 _lhsOtext) <- return (inv_ContextItem_s23 sem arg22)
         return (Syn_ContextItem _lhsOtext)
    )
 
@@ -654,9 +655,9 @@ data T_ContextItem_vOut22  = T_ContextItem_vOut22 (Doc)
 sem_ContextItem_ContextItem :: T_Range  -> T_Name  -> T_Types  -> T_ContextItem 
 sem_ContextItem_ContextItem arg_range_ arg_name_ arg_types_ = T_ContextItem (return st23) where
    {-# NOINLINE st23 #-}
-   st23 = let
+   !st23 = let
       v22 :: T_ContextItem_v22 
-      v22 = \ (T_ContextItem_vIn22 ) -> ( let
+      v22 = \ !(T_ContextItem_vIn22 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _typesX167 = Control.Monad.Identity.runIdentity (attach_T_Types (arg_types_))
@@ -666,7 +667,7 @@ sem_ContextItem_ContextItem arg_range_ arg_name_ arg_types_ = T_ContextItem (ret
          _text = rule25 _nameItext _typesItext
          _lhsOtext :: Doc
          _lhsOtext = rule26 _text
-         __result_ = T_ContextItem_vOut22 _lhsOtext
+         !__result_ = T_ContextItem_vOut22 _lhsOtext
          in __result_ )
      in C_ContextItem_s23 v22
    {-# INLINE rule25 #-}
@@ -679,14 +680,14 @@ sem_ContextItem_ContextItem arg_range_ arg_name_ arg_types_ = T_ContextItem (ret
 -- ContextItems ------------------------------------------------
 -- wrapper
 data Inh_ContextItems  = Inh_ContextItems {  }
-data Syn_ContextItems  = Syn_ContextItems { text_Syn_ContextItems :: ( [       Doc ] ) }
+data Syn_ContextItems  = Syn_ContextItems { text_Syn_ContextItems :: !( [       Doc ] ) }
 {-# INLINABLE wrap_ContextItems #-}
 wrap_ContextItems :: T_ContextItems  -> Inh_ContextItems  -> (Syn_ContextItems )
-wrap_ContextItems (T_ContextItems act) (Inh_ContextItems ) =
+wrap_ContextItems !(T_ContextItems act) !(Inh_ContextItems ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg25 = T_ContextItems_vIn25 
-        (T_ContextItems_vOut25 _lhsOtext) <- return (inv_ContextItems_s26 sem arg25)
+        !(T_ContextItems_vOut25 _lhsOtext) <- return (inv_ContextItems_s26 sem arg25)
         return (Syn_ContextItems _lhsOtext)
    )
 
@@ -710,16 +711,16 @@ data T_ContextItems_vOut25  = T_ContextItems_vOut25 ( [       Doc ] )
 sem_ContextItems_Cons :: T_ContextItem  -> T_ContextItems  -> T_ContextItems 
 sem_ContextItems_Cons arg_hd_ arg_tl_ = T_ContextItems (return st26) where
    {-# NOINLINE st26 #-}
-   st26 = let
+   !st26 = let
       v25 :: T_ContextItems_v25 
-      v25 = \ (T_ContextItems_vIn25 ) -> ( let
+      v25 = \ !(T_ContextItems_vIn25 ) -> ( let
          _hdX23 = Control.Monad.Identity.runIdentity (attach_T_ContextItem (arg_hd_))
          _tlX26 = Control.Monad.Identity.runIdentity (attach_T_ContextItems (arg_tl_))
          (T_ContextItem_vOut22 _hdItext) = inv_ContextItem_s23 _hdX23 (T_ContextItem_vIn22 )
          (T_ContextItems_vOut25 _tlItext) = inv_ContextItems_s26 _tlX26 (T_ContextItems_vIn25 )
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule27 _hdItext _tlItext
-         __result_ = T_ContextItems_vOut25 _lhsOtext
+         !__result_ = T_ContextItems_vOut25 _lhsOtext
          in __result_ )
      in C_ContextItems_s26 v25
    {-# INLINE rule27 #-}
@@ -729,12 +730,12 @@ sem_ContextItems_Cons arg_hd_ arg_tl_ = T_ContextItems (return st26) where
 sem_ContextItems_Nil ::  T_ContextItems 
 sem_ContextItems_Nil  = T_ContextItems (return st26) where
    {-# NOINLINE st26 #-}
-   st26 = let
+   !st26 = let
       v25 :: T_ContextItems_v25 
-      v25 = \ (T_ContextItems_vIn25 ) -> ( let
+      v25 = \ !(T_ContextItems_vIn25 ) -> ( let
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule28  ()
-         __result_ = T_ContextItems_vOut25 _lhsOtext
+         !__result_ = T_ContextItems_vOut25 _lhsOtext
          in __result_ )
      in C_ContextItems_s26 v25
    {-# INLINE rule28 #-}
@@ -744,21 +745,21 @@ sem_ContextItems_Nil  = T_ContextItems (return st26) where
 -- Declaration -------------------------------------------------
 -- wrapper
 data Inh_Declaration  = Inh_Declaration {  }
-data Syn_Declaration  = Syn_Declaration { text_Syn_Declaration :: (Doc) }
+data Syn_Declaration  = Syn_Declaration { text_Syn_Declaration :: !(Doc) }
 {-# INLINABLE wrap_Declaration #-}
 wrap_Declaration :: T_Declaration  -> Inh_Declaration  -> (Syn_Declaration )
-wrap_Declaration (T_Declaration act) (Inh_Declaration ) =
+wrap_Declaration !(T_Declaration act) !(Inh_Declaration ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg28 = T_Declaration_vIn28 
-        (T_Declaration_vOut28 _lhsOtext) <- return (inv_Declaration_s29 sem arg28)
+        !(T_Declaration_vOut28 _lhsOtext) <- return (inv_Declaration_s29 sem arg28)
         return (Syn_Declaration _lhsOtext)
    )
 
 -- cata
 {-# NOINLINE sem_Declaration #-}
 sem_Declaration :: Declaration  -> T_Declaration 
-sem_Declaration ( Declaration_Hole range_ id_ ) = sem_Declaration_Hole ( sem_Range range_ ) id_
+sem_Declaration ( Declaration_Hole range_ !id_ ) = sem_Declaration_Hole ( sem_Range range_ ) id_
 sem_Declaration ( Declaration_Type range_ simpletype_ type_ ) = sem_Declaration_Type ( sem_Range range_ ) ( sem_SimpleType simpletype_ ) ( sem_Type type_ )
 sem_Declaration ( Declaration_Data range_ context_ simpletype_ constructors_ derivings_ ) = sem_Declaration_Data ( sem_Range range_ ) ( sem_ContextItems context_ ) ( sem_SimpleType simpletype_ ) ( sem_Constructors constructors_ ) ( sem_Names derivings_ )
 sem_Declaration ( Declaration_Newtype range_ context_ simpletype_ constructor_ derivings_ ) = sem_Declaration_Newtype ( sem_Range range_ ) ( sem_ContextItems context_ ) ( sem_SimpleType simpletype_ ) ( sem_Constructor constructor_ ) ( sem_Names derivings_ )
@@ -786,15 +787,15 @@ data T_Declaration_vOut28  = T_Declaration_vOut28 (Doc)
 sem_Declaration_Hole :: T_Range  -> (String) -> T_Declaration 
 sem_Declaration_Hole arg_range_ _ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _text = rule29  ()
          _lhsOtext :: Doc
          _lhsOtext = rule30 _text
-         __result_ = T_Declaration_vOut28 _lhsOtext
+         !__result_ = T_Declaration_vOut28 _lhsOtext
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule29 #-}
@@ -807,9 +808,9 @@ sem_Declaration_Hole arg_range_ _ = T_Declaration (return st29) where
 sem_Declaration_Type :: T_Range  -> T_SimpleType  -> T_Type  -> T_Declaration 
 sem_Declaration_Type arg_range_ arg_simpletype_ arg_type_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _simpletypeX152 = Control.Monad.Identity.runIdentity (attach_T_SimpleType (arg_simpletype_))
          _typeX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
@@ -819,7 +820,7 @@ sem_Declaration_Type arg_range_ arg_simpletype_ arg_type_ = T_Declaration (retur
          _text = rule31 _simpletypeItext _typeItext
          _lhsOtext :: Doc
          _lhsOtext = rule32 _text
-         __result_ = T_Declaration_vOut28 _lhsOtext
+         !__result_ = T_Declaration_vOut28 _lhsOtext
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule31 #-}
@@ -832,9 +833,9 @@ sem_Declaration_Type arg_range_ arg_simpletype_ arg_type_ = T_Declaration (retur
 sem_Declaration_Data :: T_Range  -> T_ContextItems  -> T_SimpleType  -> T_Constructors  -> T_Names  -> T_Declaration 
 sem_Declaration_Data arg_range_ arg_context_ arg_simpletype_ arg_constructors_ arg_derivings_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _contextX26 = Control.Monad.Identity.runIdentity (attach_T_ContextItems (arg_context_))
          _simpletypeX152 = Control.Monad.Identity.runIdentity (attach_T_SimpleType (arg_simpletype_))
@@ -850,7 +851,7 @@ sem_Declaration_Data arg_range_ arg_context_ arg_simpletype_ arg_constructors_ a
          _derivingDoc = rule35 _derivingsItext
          _lhsOtext :: Doc
          _lhsOtext = rule36 _text
-         __result_ = T_Declaration_vOut28 _lhsOtext
+         !__result_ = T_Declaration_vOut28 _lhsOtext
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule33 #-}
@@ -890,9 +891,9 @@ sem_Declaration_Data arg_range_ arg_context_ arg_simpletype_ arg_constructors_ a
 sem_Declaration_Newtype :: T_Range  -> T_ContextItems  -> T_SimpleType  -> T_Constructor  -> T_Names  -> T_Declaration 
 sem_Declaration_Newtype arg_range_ arg_context_ arg_simpletype_ arg_constructor_ arg_derivings_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _contextX26 = Control.Monad.Identity.runIdentity (attach_T_ContextItems (arg_context_))
          _simpletypeX152 = Control.Monad.Identity.runIdentity (attach_T_SimpleType (arg_simpletype_))
@@ -908,7 +909,7 @@ sem_Declaration_Newtype arg_range_ arg_context_ arg_simpletype_ arg_constructor_
          _derivingDoc = rule39 _derivingsItext
          _lhsOtext :: Doc
          _lhsOtext = rule40 _text
-         __result_ = T_Declaration_vOut28 _lhsOtext
+         !__result_ = T_Declaration_vOut28 _lhsOtext
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule37 #-}
@@ -941,9 +942,9 @@ sem_Declaration_Newtype arg_range_ arg_context_ arg_simpletype_ arg_constructor_
 sem_Declaration_Class :: T_Range  -> T_ContextItems  -> T_SimpleType  -> T_MaybeDeclarations  -> T_Declaration 
 sem_Declaration_Class arg_range_ arg_context_ arg_simpletype_ arg_where_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _contextX26 = Control.Monad.Identity.runIdentity (attach_T_ContextItems (arg_context_))
          _simpletypeX152 = Control.Monad.Identity.runIdentity (attach_T_SimpleType (arg_simpletype_))
@@ -955,7 +956,7 @@ sem_Declaration_Class arg_range_ arg_context_ arg_simpletype_ arg_where_ = T_Dec
          _text = rule41 _contextItext _simpletypeItext _whereItext
          _lhsOtext :: Doc
          _lhsOtext = rule42 _text
-         __result_ = T_Declaration_vOut28 _lhsOtext
+         !__result_ = T_Declaration_vOut28 _lhsOtext
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule41 #-}
@@ -974,9 +975,9 @@ sem_Declaration_Class arg_range_ arg_context_ arg_simpletype_ arg_where_ = T_Dec
 sem_Declaration_Instance :: T_Range  -> T_ContextItems  -> T_Name  -> T_Types  -> T_MaybeDeclarations  -> T_Declaration 
 sem_Declaration_Instance arg_range_ arg_context_ arg_name_ arg_types_ arg_where_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _contextX26 = Control.Monad.Identity.runIdentity (attach_T_ContextItems (arg_context_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
@@ -990,7 +991,7 @@ sem_Declaration_Instance arg_range_ arg_context_ arg_name_ arg_types_ arg_where_
          _text = rule43 _contextItext _nameItext _typesItext _whereItext
          _lhsOtext :: Doc
          _lhsOtext = rule44 _text
-         __result_ = T_Declaration_vOut28 _lhsOtext
+         !__result_ = T_Declaration_vOut28 _lhsOtext
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule43 #-}
@@ -1009,9 +1010,9 @@ sem_Declaration_Instance arg_range_ arg_context_ arg_name_ arg_types_ arg_where_
 sem_Declaration_Default :: T_Range  -> T_Types  -> T_Declaration 
 sem_Declaration_Default arg_range_ arg_types_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _typesX167 = Control.Monad.Identity.runIdentity (attach_T_Types (arg_types_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -1019,7 +1020,7 @@ sem_Declaration_Default arg_range_ arg_types_ = T_Declaration (return st29) wher
          _text = rule45 _typesItext
          _lhsOtext :: Doc
          _lhsOtext = rule46 _text
-         __result_ = T_Declaration_vOut28 _lhsOtext
+         !__result_ = T_Declaration_vOut28 _lhsOtext
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule45 #-}
@@ -1032,9 +1033,9 @@ sem_Declaration_Default arg_range_ arg_types_ = T_Declaration (return st29) wher
 sem_Declaration_FunctionBindings :: T_Range  -> T_FunctionBindings  -> T_Declaration 
 sem_Declaration_FunctionBindings arg_range_ arg_bindings_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _bindingsX59 = Control.Monad.Identity.runIdentity (attach_T_FunctionBindings (arg_bindings_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -1042,7 +1043,7 @@ sem_Declaration_FunctionBindings arg_range_ arg_bindings_ = T_Declaration (retur
          _text = rule47 _bindingsItext
          _lhsOtext :: Doc
          _lhsOtext = rule48 _text
-         __result_ = T_Declaration_vOut28 _lhsOtext
+         !__result_ = T_Declaration_vOut28 _lhsOtext
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule47 #-}
@@ -1057,9 +1058,9 @@ sem_Declaration_FunctionBindings arg_range_ arg_bindings_ = T_Declaration (retur
 sem_Declaration_PatternBinding :: T_Range  -> T_Pattern  -> T_RightHandSide  -> T_Declaration 
 sem_Declaration_PatternBinding arg_range_ arg_pattern_ arg_righthandside_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          _righthandsideX149 = Control.Monad.Identity.runIdentity (attach_T_RightHandSide (arg_righthandside_))
@@ -1069,7 +1070,7 @@ sem_Declaration_PatternBinding arg_range_ arg_pattern_ arg_righthandside_ = T_De
          _text = rule49 _patternItext _righthandsideItext
          _lhsOtext :: Doc
          _lhsOtext = rule50 _text
-         __result_ = T_Declaration_vOut28 _lhsOtext
+         !__result_ = T_Declaration_vOut28 _lhsOtext
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule49 #-}
@@ -1082,9 +1083,9 @@ sem_Declaration_PatternBinding arg_range_ arg_pattern_ arg_righthandside_ = T_De
 sem_Declaration_TypeSignature :: T_Range  -> T_Names  -> T_Type  -> T_Declaration 
 sem_Declaration_TypeSignature arg_range_ arg_names_ arg_type_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _namesX116 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_names_))
          _typeX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
@@ -1095,7 +1096,7 @@ sem_Declaration_TypeSignature arg_range_ arg_names_ arg_type_ = T_Declaration (r
          _namesDocs = rule52 _namesIisOperator _namesItext
          _lhsOtext :: Doc
          _lhsOtext = rule53 _text
-         __result_ = T_Declaration_vOut28 _lhsOtext
+         !__result_ = T_Declaration_vOut28 _lhsOtext
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule51 #-}
@@ -1111,9 +1112,9 @@ sem_Declaration_TypeSignature arg_range_ arg_names_ arg_type_ = T_Declaration (r
 sem_Declaration_Fixity :: T_Range  -> T_Fixity  -> T_MaybeInt  -> T_Names  -> T_Declaration 
 sem_Declaration_Fixity arg_range_ arg_fixity_ arg_priority_ arg_operators_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _fixityX53 = Control.Monad.Identity.runIdentity (attach_T_Fixity (arg_fixity_))
          _priorityX101 = Control.Monad.Identity.runIdentity (attach_T_MaybeInt (arg_priority_))
@@ -1126,7 +1127,7 @@ sem_Declaration_Fixity arg_range_ arg_fixity_ arg_priority_ arg_operators_ = T_D
          _ops = rule55 _operatorsIisIdentifier _operatorsItext _priorityItext
          _lhsOtext :: Doc
          _lhsOtext = rule56 _text
-         __result_ = T_Declaration_vOut28 _lhsOtext
+         !__result_ = T_Declaration_vOut28 _lhsOtext
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule54 #-}
@@ -1151,15 +1152,15 @@ sem_Declaration_Fixity arg_range_ arg_fixity_ arg_priority_ arg_operators_ = T_D
 sem_Declaration_Empty :: T_Range  -> T_Declaration 
 sem_Declaration_Empty arg_range_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _text = rule57  ()
          _lhsOtext :: Doc
          _lhsOtext = rule58 _text
-         __result_ = T_Declaration_vOut28 _lhsOtext
+         !__result_ = T_Declaration_vOut28 _lhsOtext
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule57 #-}
@@ -1172,14 +1173,14 @@ sem_Declaration_Empty arg_range_ = T_Declaration (return st29) where
 -- Declarations ------------------------------------------------
 -- wrapper
 data Inh_Declarations  = Inh_Declarations {  }
-data Syn_Declarations  = Syn_Declarations { text_Syn_Declarations :: ( [       Doc ] ) }
+data Syn_Declarations  = Syn_Declarations { text_Syn_Declarations :: !( [       Doc ] ) }
 {-# INLINABLE wrap_Declarations #-}
 wrap_Declarations :: T_Declarations  -> Inh_Declarations  -> (Syn_Declarations )
-wrap_Declarations (T_Declarations act) (Inh_Declarations ) =
+wrap_Declarations !(T_Declarations act) !(Inh_Declarations ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg31 = T_Declarations_vIn31 
-        (T_Declarations_vOut31 _lhsOtext) <- return (inv_Declarations_s32 sem arg31)
+        !(T_Declarations_vOut31 _lhsOtext) <- return (inv_Declarations_s32 sem arg31)
         return (Syn_Declarations _lhsOtext)
    )
 
@@ -1203,16 +1204,16 @@ data T_Declarations_vOut31  = T_Declarations_vOut31 ( [       Doc ] )
 sem_Declarations_Cons :: T_Declaration  -> T_Declarations  -> T_Declarations 
 sem_Declarations_Cons arg_hd_ arg_tl_ = T_Declarations (return st32) where
    {-# NOINLINE st32 #-}
-   st32 = let
+   !st32 = let
       v31 :: T_Declarations_v31 
-      v31 = \ (T_Declarations_vIn31 ) -> ( let
+      v31 = \ !(T_Declarations_vIn31 ) -> ( let
          _hdX29 = Control.Monad.Identity.runIdentity (attach_T_Declaration (arg_hd_))
          _tlX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_tl_))
          (T_Declaration_vOut28 _hdItext) = inv_Declaration_s29 _hdX29 (T_Declaration_vIn28 )
          (T_Declarations_vOut31 _tlItext) = inv_Declarations_s32 _tlX32 (T_Declarations_vIn31 )
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule59 _hdItext _tlItext
-         __result_ = T_Declarations_vOut31 _lhsOtext
+         !__result_ = T_Declarations_vOut31 _lhsOtext
          in __result_ )
      in C_Declarations_s32 v31
    {-# INLINE rule59 #-}
@@ -1222,12 +1223,12 @@ sem_Declarations_Cons arg_hd_ arg_tl_ = T_Declarations (return st32) where
 sem_Declarations_Nil ::  T_Declarations 
 sem_Declarations_Nil  = T_Declarations (return st32) where
    {-# NOINLINE st32 #-}
-   st32 = let
+   !st32 = let
       v31 :: T_Declarations_v31 
-      v31 = \ (T_Declarations_vIn31 ) -> ( let
+      v31 = \ !(T_Declarations_vIn31 ) -> ( let
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule60  ()
-         __result_ = T_Declarations_vOut31 _lhsOtext
+         !__result_ = T_Declarations_vOut31 _lhsOtext
          in __result_ )
      in C_Declarations_s32 v31
    {-# INLINE rule60 #-}
@@ -1237,14 +1238,14 @@ sem_Declarations_Nil  = T_Declarations (return st32) where
 -- Export ------------------------------------------------------
 -- wrapper
 data Inh_Export  = Inh_Export {  }
-data Syn_Export  = Syn_Export { text_Syn_Export :: (Doc) }
+data Syn_Export  = Syn_Export { text_Syn_Export :: !(Doc) }
 {-# INLINABLE wrap_Export #-}
 wrap_Export :: T_Export  -> Inh_Export  -> (Syn_Export )
-wrap_Export (T_Export act) (Inh_Export ) =
+wrap_Export !(T_Export act) !(Inh_Export ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg34 = T_Export_vIn34 
-        (T_Export_vOut34 _lhsOtext) <- return (inv_Export_s35 sem arg34)
+        !(T_Export_vOut34 _lhsOtext) <- return (inv_Export_s35 sem arg34)
         return (Syn_Export _lhsOtext)
    )
 
@@ -1271,9 +1272,9 @@ data T_Export_vOut34  = T_Export_vOut34 (Doc)
 sem_Export_Variable :: T_Range  -> T_Name  -> T_Export 
 sem_Export_Variable arg_range_ arg_name_ = T_Export (return st35) where
    {-# NOINLINE st35 #-}
-   st35 = let
+   !st35 = let
       v34 :: T_Export_v34 
-      v34 = \ (T_Export_vIn34 ) -> ( let
+      v34 = \ !(T_Export_vIn34 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -1281,7 +1282,7 @@ sem_Export_Variable arg_range_ arg_name_ = T_Export (return st35) where
          _text = rule61 _nameItext
          _lhsOtext :: Doc
          _lhsOtext = rule62 _text
-         __result_ = T_Export_vOut34 _lhsOtext
+         !__result_ = T_Export_vOut34 _lhsOtext
          in __result_ )
      in C_Export_s35 v34
    {-# INLINE rule61 #-}
@@ -1294,9 +1295,9 @@ sem_Export_Variable arg_range_ arg_name_ = T_Export (return st35) where
 sem_Export_TypeOrClass :: T_Range  -> T_Name  -> T_MaybeNames  -> T_Export 
 sem_Export_TypeOrClass arg_range_ arg_name_ arg_names_ = T_Export (return st35) where
    {-# NOINLINE st35 #-}
-   st35 = let
+   !st35 = let
       v34 :: T_Export_v34 
-      v34 = \ (T_Export_vIn34 ) -> ( let
+      v34 = \ !(T_Export_vIn34 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _namesX107 = Control.Monad.Identity.runIdentity (attach_T_MaybeNames (arg_names_))
@@ -1306,7 +1307,7 @@ sem_Export_TypeOrClass arg_range_ arg_name_ arg_names_ = T_Export (return st35) 
          _text = rule63 _nameItext _namesItext
          _lhsOtext :: Doc
          _lhsOtext = rule64 _text
-         __result_ = T_Export_vOut34 _lhsOtext
+         !__result_ = T_Export_vOut34 _lhsOtext
          in __result_ )
      in C_Export_s35 v34
    {-# INLINE rule63 #-}
@@ -1319,9 +1320,9 @@ sem_Export_TypeOrClass arg_range_ arg_name_ arg_names_ = T_Export (return st35) 
 sem_Export_TypeOrClassComplete :: T_Range  -> T_Name  -> T_Export 
 sem_Export_TypeOrClassComplete arg_range_ arg_name_ = T_Export (return st35) where
    {-# NOINLINE st35 #-}
-   st35 = let
+   !st35 = let
       v34 :: T_Export_v34 
-      v34 = \ (T_Export_vIn34 ) -> ( let
+      v34 = \ !(T_Export_vIn34 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -1329,7 +1330,7 @@ sem_Export_TypeOrClassComplete arg_range_ arg_name_ = T_Export (return st35) whe
          _text = rule65 _nameItext
          _lhsOtext :: Doc
          _lhsOtext = rule66 _text
-         __result_ = T_Export_vOut34 _lhsOtext
+         !__result_ = T_Export_vOut34 _lhsOtext
          in __result_ )
      in C_Export_s35 v34
    {-# INLINE rule65 #-}
@@ -1342,9 +1343,9 @@ sem_Export_TypeOrClassComplete arg_range_ arg_name_ = T_Export (return st35) whe
 sem_Export_Module :: T_Range  -> T_Name  -> T_Export 
 sem_Export_Module arg_range_ arg_name_ = T_Export (return st35) where
    {-# NOINLINE st35 #-}
-   st35 = let
+   !st35 = let
       v34 :: T_Export_v34 
-      v34 = \ (T_Export_vIn34 ) -> ( let
+      v34 = \ !(T_Export_vIn34 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -1352,7 +1353,7 @@ sem_Export_Module arg_range_ arg_name_ = T_Export (return st35) where
          _text = rule67 _nameItext
          _lhsOtext :: Doc
          _lhsOtext = rule68 _text
-         __result_ = T_Export_vOut34 _lhsOtext
+         !__result_ = T_Export_vOut34 _lhsOtext
          in __result_ )
      in C_Export_s35 v34
    {-# INLINE rule67 #-}
@@ -1365,14 +1366,14 @@ sem_Export_Module arg_range_ arg_name_ = T_Export (return st35) where
 -- Exports -----------------------------------------------------
 -- wrapper
 data Inh_Exports  = Inh_Exports {  }
-data Syn_Exports  = Syn_Exports { text_Syn_Exports :: ( [       Doc ] ) }
+data Syn_Exports  = Syn_Exports { text_Syn_Exports :: !( [       Doc ] ) }
 {-# INLINABLE wrap_Exports #-}
 wrap_Exports :: T_Exports  -> Inh_Exports  -> (Syn_Exports )
-wrap_Exports (T_Exports act) (Inh_Exports ) =
+wrap_Exports !(T_Exports act) !(Inh_Exports ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg37 = T_Exports_vIn37 
-        (T_Exports_vOut37 _lhsOtext) <- return (inv_Exports_s38 sem arg37)
+        !(T_Exports_vOut37 _lhsOtext) <- return (inv_Exports_s38 sem arg37)
         return (Syn_Exports _lhsOtext)
    )
 
@@ -1396,16 +1397,16 @@ data T_Exports_vOut37  = T_Exports_vOut37 ( [       Doc ] )
 sem_Exports_Cons :: T_Export  -> T_Exports  -> T_Exports 
 sem_Exports_Cons arg_hd_ arg_tl_ = T_Exports (return st38) where
    {-# NOINLINE st38 #-}
-   st38 = let
+   !st38 = let
       v37 :: T_Exports_v37 
-      v37 = \ (T_Exports_vIn37 ) -> ( let
+      v37 = \ !(T_Exports_vIn37 ) -> ( let
          _hdX35 = Control.Monad.Identity.runIdentity (attach_T_Export (arg_hd_))
          _tlX38 = Control.Monad.Identity.runIdentity (attach_T_Exports (arg_tl_))
          (T_Export_vOut34 _hdItext) = inv_Export_s35 _hdX35 (T_Export_vIn34 )
          (T_Exports_vOut37 _tlItext) = inv_Exports_s38 _tlX38 (T_Exports_vIn37 )
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule69 _hdItext _tlItext
-         __result_ = T_Exports_vOut37 _lhsOtext
+         !__result_ = T_Exports_vOut37 _lhsOtext
          in __result_ )
      in C_Exports_s38 v37
    {-# INLINE rule69 #-}
@@ -1415,12 +1416,12 @@ sem_Exports_Cons arg_hd_ arg_tl_ = T_Exports (return st38) where
 sem_Exports_Nil ::  T_Exports 
 sem_Exports_Nil  = T_Exports (return st38) where
    {-# NOINLINE st38 #-}
-   st38 = let
+   !st38 = let
       v37 :: T_Exports_v37 
-      v37 = \ (T_Exports_vIn37 ) -> ( let
+      v37 = \ !(T_Exports_vIn37 ) -> ( let
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule70  ()
-         __result_ = T_Exports_vOut37 _lhsOtext
+         !__result_ = T_Exports_vOut37 _lhsOtext
          in __result_ )
      in C_Exports_s38 v37
    {-# INLINE rule70 #-}
@@ -1430,24 +1431,24 @@ sem_Exports_Nil  = T_Exports (return st38) where
 -- Expression --------------------------------------------------
 -- wrapper
 data Inh_Expression  = Inh_Expression {  }
-data Syn_Expression  = Syn_Expression { text_Syn_Expression :: (Doc) }
+data Syn_Expression  = Syn_Expression { text_Syn_Expression :: !(Doc) }
 {-# INLINABLE wrap_Expression #-}
 wrap_Expression :: T_Expression  -> Inh_Expression  -> (Syn_Expression )
-wrap_Expression (T_Expression act) (Inh_Expression ) =
+wrap_Expression !(T_Expression act) !(Inh_Expression ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg40 = T_Expression_vIn40 
-        (T_Expression_vOut40 _lhsOtext) <- return (inv_Expression_s41 sem arg40)
+        !(T_Expression_vOut40 _lhsOtext) <- return (inv_Expression_s41 sem arg40)
         return (Syn_Expression _lhsOtext)
    )
 
 -- cata
 {-# NOINLINE sem_Expression #-}
 sem_Expression :: Expression  -> T_Expression 
-sem_Expression ( Expression_Hole range_ id_ ) = sem_Expression_Hole ( sem_Range range_ ) id_
-sem_Expression ( Expression_Feedback range_ feedback_ expression_ ) = sem_Expression_Feedback ( sem_Range range_ ) feedback_ ( sem_Expression expression_ )
+sem_Expression ( Expression_Hole range_ !id_ ) = sem_Expression_Hole ( sem_Range range_ ) id_
+sem_Expression ( Expression_Feedback range_ !feedback_ expression_ ) = sem_Expression_Feedback ( sem_Range range_ ) feedback_ ( sem_Expression expression_ )
 sem_Expression ( Expression_MustUse range_ expression_ ) = sem_Expression_MustUse ( sem_Range range_ ) ( sem_Expression expression_ )
-sem_Expression ( Expression_Eta range_ expansion_ expression_ ) = sem_Expression_Eta ( sem_Range range_ ) expansion_ ( sem_Expression expression_ )
+sem_Expression ( Expression_Eta range_ !expansion_ expression_ ) = sem_Expression_Eta ( sem_Range range_ ) expansion_ ( sem_Expression expression_ )
 sem_Expression ( Expression_Literal range_ literal_ ) = sem_Expression_Literal ( sem_Range range_ ) ( sem_Literal literal_ )
 sem_Expression ( Expression_Variable range_ name_ ) = sem_Expression_Variable ( sem_Range range_ ) ( sem_Name name_ )
 sem_Expression ( Expression_Constructor range_ name_ ) = sem_Expression_Constructor ( sem_Range range_ ) ( sem_Name name_ )
@@ -1484,15 +1485,15 @@ data T_Expression_vOut40  = T_Expression_vOut40 (Doc)
 sem_Expression_Hole :: T_Range  -> (String) -> T_Expression 
 sem_Expression_Hole arg_range_ _ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _text = rule71  ()
          _lhsOtext :: Doc
          _lhsOtext = rule72 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule71 #-}
@@ -1505,16 +1506,16 @@ sem_Expression_Hole arg_range_ _ = T_Expression (return st41) where
 sem_Expression_Feedback :: T_Range  -> (String) -> T_Expression  -> T_Expression 
 sem_Expression_Feedback arg_range_ _ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          _lhsOtext :: Doc
          _lhsOtext = rule73 _expressionItext
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule73 #-}
@@ -1524,16 +1525,16 @@ sem_Expression_Feedback arg_range_ _ arg_expression_ = T_Expression (return st41
 sem_Expression_MustUse :: T_Range  -> T_Expression  -> T_Expression 
 sem_Expression_MustUse arg_range_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          _lhsOtext :: Doc
          _lhsOtext = rule74 _expressionItext
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule74 #-}
@@ -1543,16 +1544,16 @@ sem_Expression_MustUse arg_range_ arg_expression_ = T_Expression (return st41) w
 sem_Expression_Eta :: T_Range  -> (Int) -> T_Expression  -> T_Expression 
 sem_Expression_Eta arg_range_ _ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          _lhsOtext :: Doc
          _lhsOtext = rule75 _expressionItext
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule75 #-}
@@ -1562,9 +1563,9 @@ sem_Expression_Eta arg_range_ _ arg_expression_ = T_Expression (return st41) whe
 sem_Expression_Literal :: T_Range  -> T_Literal  -> T_Expression 
 sem_Expression_Literal arg_range_ arg_literal_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _literalX86 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -1572,7 +1573,7 @@ sem_Expression_Literal arg_range_ arg_literal_ = T_Expression (return st41) wher
          _text = rule76 _literalItext
          _lhsOtext :: Doc
          _lhsOtext = rule77 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule76 #-}
@@ -1585,9 +1586,9 @@ sem_Expression_Literal arg_range_ arg_literal_ = T_Expression (return st41) wher
 sem_Expression_Variable :: T_Range  -> T_Name  -> T_Expression 
 sem_Expression_Variable arg_range_ arg_name_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -1595,7 +1596,7 @@ sem_Expression_Variable arg_range_ arg_name_ = T_Expression (return st41) where
          _text = rule78 _nameItext
          _lhsOtext :: Doc
          _lhsOtext = rule79 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule78 #-}
@@ -1608,9 +1609,9 @@ sem_Expression_Variable arg_range_ arg_name_ = T_Expression (return st41) where
 sem_Expression_Constructor :: T_Range  -> T_Name  -> T_Expression 
 sem_Expression_Constructor arg_range_ arg_name_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -1618,7 +1619,7 @@ sem_Expression_Constructor arg_range_ arg_name_ = T_Expression (return st41) whe
          _text = rule80 _nameItext
          _lhsOtext :: Doc
          _lhsOtext = rule81 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule80 #-}
@@ -1631,9 +1632,9 @@ sem_Expression_Constructor arg_range_ arg_name_ = T_Expression (return st41) whe
 sem_Expression_Parenthesized :: T_Range  -> T_Expression  -> T_Expression 
 sem_Expression_Parenthesized arg_range_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -1641,7 +1642,7 @@ sem_Expression_Parenthesized arg_range_ arg_expression_ = T_Expression (return s
          _text = rule82 _expressionItext
          _lhsOtext :: Doc
          _lhsOtext = rule83 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule82 #-}
@@ -1654,9 +1655,9 @@ sem_Expression_Parenthesized arg_range_ arg_expression_ = T_Expression (return s
 sem_Expression_NormalApplication :: T_Range  -> T_Expression  -> T_Expressions  -> T_Expression 
 sem_Expression_NormalApplication arg_range_ arg_function_ arg_arguments_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _functionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_function_))
          _argumentsX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_arguments_))
@@ -1666,7 +1667,7 @@ sem_Expression_NormalApplication arg_range_ arg_function_ arg_arguments_ = T_Exp
          _text = rule84 _argumentsItext _functionItext
          _lhsOtext :: Doc
          _lhsOtext = rule85 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule84 #-}
@@ -1679,9 +1680,9 @@ sem_Expression_NormalApplication arg_range_ arg_function_ arg_arguments_ = T_Exp
 sem_Expression_InfixApplication :: T_Range  -> T_MaybeExpression  -> T_Expression  -> T_MaybeExpression  -> T_Expression 
 sem_Expression_InfixApplication arg_range_ arg_leftExpression_ arg_operator_ arg_rightExpression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _leftExpressionX95 = Control.Monad.Identity.runIdentity (attach_T_MaybeExpression (arg_leftExpression_))
          _operatorX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_operator_))
@@ -1693,7 +1694,7 @@ sem_Expression_InfixApplication arg_range_ arg_leftExpression_ arg_operator_ arg
          _text = rule86 _leftExpressionItext _operatorItext _rightExpressionItext
          _lhsOtext :: Doc
          _lhsOtext = rule87 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule86 #-}
@@ -1721,9 +1722,9 @@ sem_Expression_InfixApplication arg_range_ arg_leftExpression_ arg_operator_ arg
 sem_Expression_If :: T_Range  -> T_Expression  -> T_Expression  -> T_Expression  -> T_Expression 
 sem_Expression_If arg_range_ arg_guardExpression_ arg_thenExpression_ arg_elseExpression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _guardExpressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_guardExpression_))
          _thenExpressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_thenExpression_))
@@ -1735,7 +1736,7 @@ sem_Expression_If arg_range_ arg_guardExpression_ arg_thenExpression_ arg_elseEx
          _text = rule88 _elseExpressionItext _guardExpressionItext _thenExpressionItext
          _lhsOtext :: Doc
          _lhsOtext = rule89 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule88 #-}
@@ -1750,9 +1751,9 @@ sem_Expression_If arg_range_ arg_guardExpression_ arg_thenExpression_ arg_elseEx
 sem_Expression_Lambda :: T_Range  -> T_Patterns  -> T_Expression  -> T_Expression 
 sem_Expression_Lambda arg_range_ arg_patterns_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternsX122 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
@@ -1762,7 +1763,7 @@ sem_Expression_Lambda arg_range_ arg_patterns_ arg_expression_ = T_Expression (r
          _text = rule90 _expressionItext _patternsItext
          _lhsOtext :: Doc
          _lhsOtext = rule91 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule90 #-}
@@ -1775,9 +1776,9 @@ sem_Expression_Lambda arg_range_ arg_patterns_ arg_expression_ = T_Expression (r
 sem_Expression_Case :: T_Range  -> T_Expression  -> T_Alternatives  -> T_Expression 
 sem_Expression_Case arg_range_ arg_expression_ arg_alternatives_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          _alternativesX5 = Control.Monad.Identity.runIdentity (attach_T_Alternatives (arg_alternatives_))
@@ -1787,7 +1788,7 @@ sem_Expression_Case arg_range_ arg_expression_ arg_alternatives_ = T_Expression 
          _text = rule92 _alternativesItext _expressionItext
          _lhsOtext :: Doc
          _lhsOtext = rule93 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule92 #-}
@@ -1802,9 +1803,9 @@ sem_Expression_Case arg_range_ arg_expression_ arg_alternatives_ = T_Expression 
 sem_Expression_Let :: T_Range  -> T_Declarations  -> T_Expression  -> T_Expression 
 sem_Expression_Let arg_range_ arg_declarations_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
@@ -1814,7 +1815,7 @@ sem_Expression_Let arg_range_ arg_declarations_ arg_expression_ = T_Expression (
          _text = rule94 _declarationsItext _expressionItext
          _lhsOtext :: Doc
          _lhsOtext = rule95 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule94 #-}
@@ -1831,9 +1832,9 @@ sem_Expression_Let arg_range_ arg_declarations_ arg_expression_ = T_Expression (
 sem_Expression_Do :: T_Range  -> T_Statements  -> T_Expression 
 sem_Expression_Do arg_range_ arg_statements_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _statementsX158 = Control.Monad.Identity.runIdentity (attach_T_Statements (arg_statements_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -1841,7 +1842,7 @@ sem_Expression_Do arg_range_ arg_statements_ = T_Expression (return st41) where
          _text = rule96 _statementsItext
          _lhsOtext :: Doc
          _lhsOtext = rule97 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule96 #-}
@@ -1854,9 +1855,9 @@ sem_Expression_Do arg_range_ arg_statements_ = T_Expression (return st41) where
 sem_Expression_List :: T_Range  -> T_Expressions  -> T_Expression 
 sem_Expression_List arg_range_ arg_expressions_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionsX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_expressions_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -1864,7 +1865,7 @@ sem_Expression_List arg_range_ arg_expressions_ = T_Expression (return st41) whe
          _text = rule98 _expressionsItext
          _lhsOtext :: Doc
          _lhsOtext = rule99 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule98 #-}
@@ -1877,9 +1878,9 @@ sem_Expression_List arg_range_ arg_expressions_ = T_Expression (return st41) whe
 sem_Expression_Tuple :: T_Range  -> T_Expressions  -> T_Expression 
 sem_Expression_Tuple arg_range_ arg_expressions_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionsX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_expressions_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -1887,7 +1888,7 @@ sem_Expression_Tuple arg_range_ arg_expressions_ = T_Expression (return st41) wh
          _text = rule100 _expressionsItext
          _lhsOtext :: Doc
          _lhsOtext = rule101 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule100 #-}
@@ -1900,9 +1901,9 @@ sem_Expression_Tuple arg_range_ arg_expressions_ = T_Expression (return st41) wh
 sem_Expression_Comprehension :: T_Range  -> T_Expression  -> T_Qualifiers  -> T_Expression 
 sem_Expression_Comprehension arg_range_ arg_expression_ arg_qualifiers_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          _qualifiersX131 = Control.Monad.Identity.runIdentity (attach_T_Qualifiers (arg_qualifiers_))
@@ -1912,7 +1913,7 @@ sem_Expression_Comprehension arg_range_ arg_expression_ arg_qualifiers_ = T_Expr
          _text = rule102 _expressionItext _qualifiersItext
          _lhsOtext :: Doc
          _lhsOtext = rule103 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule102 #-}
@@ -1926,9 +1927,9 @@ sem_Expression_Comprehension arg_range_ arg_expression_ arg_qualifiers_ = T_Expr
 sem_Expression_Typed :: T_Range  -> T_Expression  -> T_Type  -> T_Expression 
 sem_Expression_Typed arg_range_ arg_expression_ arg_type_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          _typeX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
@@ -1938,7 +1939,7 @@ sem_Expression_Typed arg_range_ arg_expression_ arg_type_ = T_Expression (return
          _text = rule104 _expressionItext _typeItext
          _lhsOtext :: Doc
          _lhsOtext = rule105 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule104 #-}
@@ -1951,9 +1952,9 @@ sem_Expression_Typed arg_range_ arg_expression_ arg_type_ = T_Expression (return
 sem_Expression_RecordConstruction :: T_Range  -> T_Name  -> T_RecordExpressionBindings  -> T_Expression 
 sem_Expression_RecordConstruction arg_range_ arg_name_ arg_recordExpressionBindings_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _recordExpressionBindingsX140 = Control.Monad.Identity.runIdentity (attach_T_RecordExpressionBindings (arg_recordExpressionBindings_))
@@ -1963,7 +1964,7 @@ sem_Expression_RecordConstruction arg_range_ arg_name_ arg_recordExpressionBindi
          _text = rule106  ()
          _lhsOtext :: Doc
          _lhsOtext = rule107 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule106 #-}
@@ -1976,9 +1977,9 @@ sem_Expression_RecordConstruction arg_range_ arg_name_ arg_recordExpressionBindi
 sem_Expression_RecordUpdate :: T_Range  -> T_Expression  -> T_RecordExpressionBindings  -> T_Expression 
 sem_Expression_RecordUpdate arg_range_ arg_expression_ arg_recordExpressionBindings_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          _recordExpressionBindingsX140 = Control.Monad.Identity.runIdentity (attach_T_RecordExpressionBindings (arg_recordExpressionBindings_))
@@ -1988,7 +1989,7 @@ sem_Expression_RecordUpdate arg_range_ arg_expression_ arg_recordExpressionBindi
          _text = rule108  ()
          _lhsOtext :: Doc
          _lhsOtext = rule109 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule108 #-}
@@ -2001,9 +2002,9 @@ sem_Expression_RecordUpdate arg_range_ arg_expression_ arg_recordExpressionBindi
 sem_Expression_Enum :: T_Range  -> T_Expression  -> T_MaybeExpression  -> T_MaybeExpression  -> T_Expression 
 sem_Expression_Enum arg_range_ arg_from_ arg_then_ arg_to_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _fromX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_from_))
          _thenX95 = Control.Monad.Identity.runIdentity (attach_T_MaybeExpression (arg_then_))
@@ -2015,7 +2016,7 @@ sem_Expression_Enum arg_range_ arg_from_ arg_then_ arg_to_ = T_Expression (retur
          _text = rule110 _fromItext _thenItext _toItext
          _lhsOtext :: Doc
          _lhsOtext = rule111 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule110 #-}
@@ -2033,9 +2034,9 @@ sem_Expression_Enum arg_range_ arg_from_ arg_then_ arg_to_ = T_Expression (retur
 sem_Expression_Negate :: T_Range  -> T_Expression  -> T_Expression 
 sem_Expression_Negate arg_range_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -2043,7 +2044,7 @@ sem_Expression_Negate arg_range_ arg_expression_ = T_Expression (return st41) wh
          _text = rule112 _expressionItext
          _lhsOtext :: Doc
          _lhsOtext = rule113 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule112 #-}
@@ -2056,9 +2057,9 @@ sem_Expression_Negate arg_range_ arg_expression_ = T_Expression (return st41) wh
 sem_Expression_NegateFloat :: T_Range  -> T_Expression  -> T_Expression 
 sem_Expression_NegateFloat arg_range_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -2066,7 +2067,7 @@ sem_Expression_NegateFloat arg_range_ arg_expression_ = T_Expression (return st4
          _text = rule114 _expressionItext
          _lhsOtext :: Doc
          _lhsOtext = rule115 _text
-         __result_ = T_Expression_vOut40 _lhsOtext
+         !__result_ = T_Expression_vOut40 _lhsOtext
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule114 #-}
@@ -2079,14 +2080,14 @@ sem_Expression_NegateFloat arg_range_ arg_expression_ = T_Expression (return st4
 -- Expressions -------------------------------------------------
 -- wrapper
 data Inh_Expressions  = Inh_Expressions {  }
-data Syn_Expressions  = Syn_Expressions { text_Syn_Expressions :: ( [       Doc ] ) }
+data Syn_Expressions  = Syn_Expressions { text_Syn_Expressions :: !( [       Doc ] ) }
 {-# INLINABLE wrap_Expressions #-}
 wrap_Expressions :: T_Expressions  -> Inh_Expressions  -> (Syn_Expressions )
-wrap_Expressions (T_Expressions act) (Inh_Expressions ) =
+wrap_Expressions !(T_Expressions act) !(Inh_Expressions ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg43 = T_Expressions_vIn43 
-        (T_Expressions_vOut43 _lhsOtext) <- return (inv_Expressions_s44 sem arg43)
+        !(T_Expressions_vOut43 _lhsOtext) <- return (inv_Expressions_s44 sem arg43)
         return (Syn_Expressions _lhsOtext)
    )
 
@@ -2110,16 +2111,16 @@ data T_Expressions_vOut43  = T_Expressions_vOut43 ( [       Doc ] )
 sem_Expressions_Cons :: T_Expression  -> T_Expressions  -> T_Expressions 
 sem_Expressions_Cons arg_hd_ arg_tl_ = T_Expressions (return st44) where
    {-# NOINLINE st44 #-}
-   st44 = let
+   !st44 = let
       v43 :: T_Expressions_v43 
-      v43 = \ (T_Expressions_vIn43 ) -> ( let
+      v43 = \ !(T_Expressions_vIn43 ) -> ( let
          _hdX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_hd_))
          _tlX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_tl_))
          (T_Expression_vOut40 _hdItext) = inv_Expression_s41 _hdX41 (T_Expression_vIn40 )
          (T_Expressions_vOut43 _tlItext) = inv_Expressions_s44 _tlX44 (T_Expressions_vIn43 )
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule116 _hdItext _tlItext
-         __result_ = T_Expressions_vOut43 _lhsOtext
+         !__result_ = T_Expressions_vOut43 _lhsOtext
          in __result_ )
      in C_Expressions_s44 v43
    {-# INLINE rule116 #-}
@@ -2129,12 +2130,12 @@ sem_Expressions_Cons arg_hd_ arg_tl_ = T_Expressions (return st44) where
 sem_Expressions_Nil ::  T_Expressions 
 sem_Expressions_Nil  = T_Expressions (return st44) where
    {-# NOINLINE st44 #-}
-   st44 = let
+   !st44 = let
       v43 :: T_Expressions_v43 
-      v43 = \ (T_Expressions_vIn43 ) -> ( let
+      v43 = \ !(T_Expressions_vIn43 ) -> ( let
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule117  ()
-         __result_ = T_Expressions_vOut43 _lhsOtext
+         !__result_ = T_Expressions_vOut43 _lhsOtext
          in __result_ )
      in C_Expressions_s44 v43
    {-# INLINE rule117 #-}
@@ -2144,14 +2145,14 @@ sem_Expressions_Nil  = T_Expressions (return st44) where
 -- FieldDeclaration --------------------------------------------
 -- wrapper
 data Inh_FieldDeclaration  = Inh_FieldDeclaration {  }
-data Syn_FieldDeclaration  = Syn_FieldDeclaration { text_Syn_FieldDeclaration :: (Doc) }
+data Syn_FieldDeclaration  = Syn_FieldDeclaration { text_Syn_FieldDeclaration :: !(Doc) }
 {-# INLINABLE wrap_FieldDeclaration #-}
 wrap_FieldDeclaration :: T_FieldDeclaration  -> Inh_FieldDeclaration  -> (Syn_FieldDeclaration )
-wrap_FieldDeclaration (T_FieldDeclaration act) (Inh_FieldDeclaration ) =
+wrap_FieldDeclaration !(T_FieldDeclaration act) !(Inh_FieldDeclaration ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg46 = T_FieldDeclaration_vIn46 
-        (T_FieldDeclaration_vOut46 _lhsOtext) <- return (inv_FieldDeclaration_s47 sem arg46)
+        !(T_FieldDeclaration_vOut46 _lhsOtext) <- return (inv_FieldDeclaration_s47 sem arg46)
         return (Syn_FieldDeclaration _lhsOtext)
    )
 
@@ -2175,9 +2176,9 @@ data T_FieldDeclaration_vOut46  = T_FieldDeclaration_vOut46 (Doc)
 sem_FieldDeclaration_FieldDeclaration :: T_Range  -> T_Names  -> T_AnnotatedType  -> T_FieldDeclaration 
 sem_FieldDeclaration_FieldDeclaration arg_range_ arg_names_ arg_type_ = T_FieldDeclaration (return st47) where
    {-# NOINLINE st47 #-}
-   st47 = let
+   !st47 = let
       v46 :: T_FieldDeclaration_v46 
-      v46 = \ (T_FieldDeclaration_vIn46 ) -> ( let
+      v46 = \ !(T_FieldDeclaration_vIn46 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _namesX116 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_names_))
          _typeX8 = Control.Monad.Identity.runIdentity (attach_T_AnnotatedType (arg_type_))
@@ -2187,7 +2188,7 @@ sem_FieldDeclaration_FieldDeclaration arg_range_ arg_names_ arg_type_ = T_FieldD
          _text = rule118  ()
          _lhsOtext :: Doc
          _lhsOtext = rule119 _text
-         __result_ = T_FieldDeclaration_vOut46 _lhsOtext
+         !__result_ = T_FieldDeclaration_vOut46 _lhsOtext
          in __result_ )
      in C_FieldDeclaration_s47 v46
    {-# INLINE rule118 #-}
@@ -2200,14 +2201,14 @@ sem_FieldDeclaration_FieldDeclaration arg_range_ arg_names_ arg_type_ = T_FieldD
 -- FieldDeclarations -------------------------------------------
 -- wrapper
 data Inh_FieldDeclarations  = Inh_FieldDeclarations {  }
-data Syn_FieldDeclarations  = Syn_FieldDeclarations { text_Syn_FieldDeclarations :: ( [       Doc ] ) }
+data Syn_FieldDeclarations  = Syn_FieldDeclarations { text_Syn_FieldDeclarations :: !( [       Doc ] ) }
 {-# INLINABLE wrap_FieldDeclarations #-}
 wrap_FieldDeclarations :: T_FieldDeclarations  -> Inh_FieldDeclarations  -> (Syn_FieldDeclarations )
-wrap_FieldDeclarations (T_FieldDeclarations act) (Inh_FieldDeclarations ) =
+wrap_FieldDeclarations !(T_FieldDeclarations act) !(Inh_FieldDeclarations ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg49 = T_FieldDeclarations_vIn49 
-        (T_FieldDeclarations_vOut49 _lhsOtext) <- return (inv_FieldDeclarations_s50 sem arg49)
+        !(T_FieldDeclarations_vOut49 _lhsOtext) <- return (inv_FieldDeclarations_s50 sem arg49)
         return (Syn_FieldDeclarations _lhsOtext)
    )
 
@@ -2231,16 +2232,16 @@ data T_FieldDeclarations_vOut49  = T_FieldDeclarations_vOut49 ( [       Doc ] )
 sem_FieldDeclarations_Cons :: T_FieldDeclaration  -> T_FieldDeclarations  -> T_FieldDeclarations 
 sem_FieldDeclarations_Cons arg_hd_ arg_tl_ = T_FieldDeclarations (return st50) where
    {-# NOINLINE st50 #-}
-   st50 = let
+   !st50 = let
       v49 :: T_FieldDeclarations_v49 
-      v49 = \ (T_FieldDeclarations_vIn49 ) -> ( let
+      v49 = \ !(T_FieldDeclarations_vIn49 ) -> ( let
          _hdX47 = Control.Monad.Identity.runIdentity (attach_T_FieldDeclaration (arg_hd_))
          _tlX50 = Control.Monad.Identity.runIdentity (attach_T_FieldDeclarations (arg_tl_))
          (T_FieldDeclaration_vOut46 _hdItext) = inv_FieldDeclaration_s47 _hdX47 (T_FieldDeclaration_vIn46 )
          (T_FieldDeclarations_vOut49 _tlItext) = inv_FieldDeclarations_s50 _tlX50 (T_FieldDeclarations_vIn49 )
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule120 _hdItext _tlItext
-         __result_ = T_FieldDeclarations_vOut49 _lhsOtext
+         !__result_ = T_FieldDeclarations_vOut49 _lhsOtext
          in __result_ )
      in C_FieldDeclarations_s50 v49
    {-# INLINE rule120 #-}
@@ -2250,12 +2251,12 @@ sem_FieldDeclarations_Cons arg_hd_ arg_tl_ = T_FieldDeclarations (return st50) w
 sem_FieldDeclarations_Nil ::  T_FieldDeclarations 
 sem_FieldDeclarations_Nil  = T_FieldDeclarations (return st50) where
    {-# NOINLINE st50 #-}
-   st50 = let
+   !st50 = let
       v49 :: T_FieldDeclarations_v49 
-      v49 = \ (T_FieldDeclarations_vIn49 ) -> ( let
+      v49 = \ !(T_FieldDeclarations_vIn49 ) -> ( let
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule121  ()
-         __result_ = T_FieldDeclarations_vOut49 _lhsOtext
+         !__result_ = T_FieldDeclarations_vOut49 _lhsOtext
          in __result_ )
      in C_FieldDeclarations_s50 v49
    {-# INLINE rule121 #-}
@@ -2265,14 +2266,14 @@ sem_FieldDeclarations_Nil  = T_FieldDeclarations (return st50) where
 -- Fixity ------------------------------------------------------
 -- wrapper
 data Inh_Fixity  = Inh_Fixity {  }
-data Syn_Fixity  = Syn_Fixity { text_Syn_Fixity :: (Doc) }
+data Syn_Fixity  = Syn_Fixity { text_Syn_Fixity :: !(Doc) }
 {-# INLINABLE wrap_Fixity #-}
 wrap_Fixity :: T_Fixity  -> Inh_Fixity  -> (Syn_Fixity )
-wrap_Fixity (T_Fixity act) (Inh_Fixity ) =
+wrap_Fixity !(T_Fixity act) !(Inh_Fixity ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg52 = T_Fixity_vIn52 
-        (T_Fixity_vOut52 _lhsOtext) <- return (inv_Fixity_s53 sem arg52)
+        !(T_Fixity_vOut52 _lhsOtext) <- return (inv_Fixity_s53 sem arg52)
         return (Syn_Fixity _lhsOtext)
    )
 
@@ -2298,15 +2299,15 @@ data T_Fixity_vOut52  = T_Fixity_vOut52 (Doc)
 sem_Fixity_Infixl :: T_Range  -> T_Fixity 
 sem_Fixity_Infixl arg_range_ = T_Fixity (return st53) where
    {-# NOINLINE st53 #-}
-   st53 = let
+   !st53 = let
       v52 :: T_Fixity_v52 
-      v52 = \ (T_Fixity_vIn52 ) -> ( let
+      v52 = \ !(T_Fixity_vIn52 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _text = rule122  ()
          _lhsOtext :: Doc
          _lhsOtext = rule123 _text
-         __result_ = T_Fixity_vOut52 _lhsOtext
+         !__result_ = T_Fixity_vOut52 _lhsOtext
          in __result_ )
      in C_Fixity_s53 v52
    {-# INLINE rule122 #-}
@@ -2319,15 +2320,15 @@ sem_Fixity_Infixl arg_range_ = T_Fixity (return st53) where
 sem_Fixity_Infixr :: T_Range  -> T_Fixity 
 sem_Fixity_Infixr arg_range_ = T_Fixity (return st53) where
    {-# NOINLINE st53 #-}
-   st53 = let
+   !st53 = let
       v52 :: T_Fixity_v52 
-      v52 = \ (T_Fixity_vIn52 ) -> ( let
+      v52 = \ !(T_Fixity_vIn52 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _text = rule124  ()
          _lhsOtext :: Doc
          _lhsOtext = rule125 _text
-         __result_ = T_Fixity_vOut52 _lhsOtext
+         !__result_ = T_Fixity_vOut52 _lhsOtext
          in __result_ )
      in C_Fixity_s53 v52
    {-# INLINE rule124 #-}
@@ -2340,15 +2341,15 @@ sem_Fixity_Infixr arg_range_ = T_Fixity (return st53) where
 sem_Fixity_Infix :: T_Range  -> T_Fixity 
 sem_Fixity_Infix arg_range_ = T_Fixity (return st53) where
    {-# NOINLINE st53 #-}
-   st53 = let
+   !st53 = let
       v52 :: T_Fixity_v52 
-      v52 = \ (T_Fixity_vIn52 ) -> ( let
+      v52 = \ !(T_Fixity_vIn52 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _text = rule126  ()
          _lhsOtext :: Doc
          _lhsOtext = rule127 _text
-         __result_ = T_Fixity_vOut52 _lhsOtext
+         !__result_ = T_Fixity_vOut52 _lhsOtext
          in __result_ )
      in C_Fixity_s53 v52
    {-# INLINE rule126 #-}
@@ -2361,22 +2362,22 @@ sem_Fixity_Infix arg_range_ = T_Fixity (return st53) where
 -- FunctionBinding ---------------------------------------------
 -- wrapper
 data Inh_FunctionBinding  = Inh_FunctionBinding {  }
-data Syn_FunctionBinding  = Syn_FunctionBinding { text_Syn_FunctionBinding :: (Doc) }
+data Syn_FunctionBinding  = Syn_FunctionBinding { text_Syn_FunctionBinding :: !(Doc) }
 {-# INLINABLE wrap_FunctionBinding #-}
 wrap_FunctionBinding :: T_FunctionBinding  -> Inh_FunctionBinding  -> (Syn_FunctionBinding )
-wrap_FunctionBinding (T_FunctionBinding act) (Inh_FunctionBinding ) =
+wrap_FunctionBinding !(T_FunctionBinding act) !(Inh_FunctionBinding ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg55 = T_FunctionBinding_vIn55 
-        (T_FunctionBinding_vOut55 _lhsOtext) <- return (inv_FunctionBinding_s56 sem arg55)
+        !(T_FunctionBinding_vOut55 _lhsOtext) <- return (inv_FunctionBinding_s56 sem arg55)
         return (Syn_FunctionBinding _lhsOtext)
    )
 
 -- cata
 {-# NOINLINE sem_FunctionBinding #-}
 sem_FunctionBinding :: FunctionBinding  -> T_FunctionBinding 
-sem_FunctionBinding ( FunctionBinding_Hole range_ id_ ) = sem_FunctionBinding_Hole ( sem_Range range_ ) id_
-sem_FunctionBinding ( FunctionBinding_Feedback range_ feedback_ functionBinding_ ) = sem_FunctionBinding_Feedback ( sem_Range range_ ) feedback_ ( sem_FunctionBinding functionBinding_ )
+sem_FunctionBinding ( FunctionBinding_Hole range_ !id_ ) = sem_FunctionBinding_Hole ( sem_Range range_ ) id_
+sem_FunctionBinding ( FunctionBinding_Feedback range_ !feedback_ functionBinding_ ) = sem_FunctionBinding_Feedback ( sem_Range range_ ) feedback_ ( sem_FunctionBinding functionBinding_ )
 sem_FunctionBinding ( FunctionBinding_FunctionBinding range_ lefthandside_ righthandside_ ) = sem_FunctionBinding_FunctionBinding ( sem_Range range_ ) ( sem_LeftHandSide lefthandside_ ) ( sem_RightHandSide righthandside_ )
 
 -- semantic domain
@@ -2394,15 +2395,15 @@ data T_FunctionBinding_vOut55  = T_FunctionBinding_vOut55 (Doc)
 sem_FunctionBinding_Hole :: T_Range  -> (String) -> T_FunctionBinding 
 sem_FunctionBinding_Hole arg_range_ _ = T_FunctionBinding (return st56) where
    {-# NOINLINE st56 #-}
-   st56 = let
+   !st56 = let
       v55 :: T_FunctionBinding_v55 
-      v55 = \ (T_FunctionBinding_vIn55 ) -> ( let
+      v55 = \ !(T_FunctionBinding_vIn55 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _text = rule128  ()
          _lhsOtext :: Doc
          _lhsOtext = rule129 _text
-         __result_ = T_FunctionBinding_vOut55 _lhsOtext
+         !__result_ = T_FunctionBinding_vOut55 _lhsOtext
          in __result_ )
      in C_FunctionBinding_s56 v55
    {-# INLINE rule128 #-}
@@ -2415,16 +2416,16 @@ sem_FunctionBinding_Hole arg_range_ _ = T_FunctionBinding (return st56) where
 sem_FunctionBinding_Feedback :: T_Range  -> (String) -> T_FunctionBinding  -> T_FunctionBinding 
 sem_FunctionBinding_Feedback arg_range_ _ arg_functionBinding_ = T_FunctionBinding (return st56) where
    {-# NOINLINE st56 #-}
-   st56 = let
+   !st56 = let
       v55 :: T_FunctionBinding_v55 
-      v55 = \ (T_FunctionBinding_vIn55 ) -> ( let
+      v55 = \ !(T_FunctionBinding_vIn55 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _functionBindingX56 = Control.Monad.Identity.runIdentity (attach_T_FunctionBinding (arg_functionBinding_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_FunctionBinding_vOut55 _functionBindingItext) = inv_FunctionBinding_s56 _functionBindingX56 (T_FunctionBinding_vIn55 )
          _lhsOtext :: Doc
          _lhsOtext = rule130 _functionBindingItext
-         __result_ = T_FunctionBinding_vOut55 _lhsOtext
+         !__result_ = T_FunctionBinding_vOut55 _lhsOtext
          in __result_ )
      in C_FunctionBinding_s56 v55
    {-# INLINE rule130 #-}
@@ -2434,9 +2435,9 @@ sem_FunctionBinding_Feedback arg_range_ _ arg_functionBinding_ = T_FunctionBindi
 sem_FunctionBinding_FunctionBinding :: T_Range  -> T_LeftHandSide  -> T_RightHandSide  -> T_FunctionBinding 
 sem_FunctionBinding_FunctionBinding arg_range_ arg_lefthandside_ arg_righthandside_ = T_FunctionBinding (return st56) where
    {-# NOINLINE st56 #-}
-   st56 = let
+   !st56 = let
       v55 :: T_FunctionBinding_v55 
-      v55 = \ (T_FunctionBinding_vIn55 ) -> ( let
+      v55 = \ !(T_FunctionBinding_vIn55 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _lefthandsideX83 = Control.Monad.Identity.runIdentity (attach_T_LeftHandSide (arg_lefthandside_))
          _righthandsideX149 = Control.Monad.Identity.runIdentity (attach_T_RightHandSide (arg_righthandside_))
@@ -2446,7 +2447,7 @@ sem_FunctionBinding_FunctionBinding arg_range_ arg_lefthandside_ arg_righthandsi
          _text = rule131 _lefthandsideItext _righthandsideItext
          _lhsOtext :: Doc
          _lhsOtext = rule132 _text
-         __result_ = T_FunctionBinding_vOut55 _lhsOtext
+         !__result_ = T_FunctionBinding_vOut55 _lhsOtext
          in __result_ )
      in C_FunctionBinding_s56 v55
    {-# INLINE rule131 #-}
@@ -2459,14 +2460,14 @@ sem_FunctionBinding_FunctionBinding arg_range_ arg_lefthandside_ arg_righthandsi
 -- FunctionBindings --------------------------------------------
 -- wrapper
 data Inh_FunctionBindings  = Inh_FunctionBindings {  }
-data Syn_FunctionBindings  = Syn_FunctionBindings { text_Syn_FunctionBindings :: ( [       Doc ] ) }
+data Syn_FunctionBindings  = Syn_FunctionBindings { text_Syn_FunctionBindings :: !( [       Doc ] ) }
 {-# INLINABLE wrap_FunctionBindings #-}
 wrap_FunctionBindings :: T_FunctionBindings  -> Inh_FunctionBindings  -> (Syn_FunctionBindings )
-wrap_FunctionBindings (T_FunctionBindings act) (Inh_FunctionBindings ) =
+wrap_FunctionBindings !(T_FunctionBindings act) !(Inh_FunctionBindings ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg58 = T_FunctionBindings_vIn58 
-        (T_FunctionBindings_vOut58 _lhsOtext) <- return (inv_FunctionBindings_s59 sem arg58)
+        !(T_FunctionBindings_vOut58 _lhsOtext) <- return (inv_FunctionBindings_s59 sem arg58)
         return (Syn_FunctionBindings _lhsOtext)
    )
 
@@ -2490,16 +2491,16 @@ data T_FunctionBindings_vOut58  = T_FunctionBindings_vOut58 ( [       Doc ] )
 sem_FunctionBindings_Cons :: T_FunctionBinding  -> T_FunctionBindings  -> T_FunctionBindings 
 sem_FunctionBindings_Cons arg_hd_ arg_tl_ = T_FunctionBindings (return st59) where
    {-# NOINLINE st59 #-}
-   st59 = let
+   !st59 = let
       v58 :: T_FunctionBindings_v58 
-      v58 = \ (T_FunctionBindings_vIn58 ) -> ( let
+      v58 = \ !(T_FunctionBindings_vIn58 ) -> ( let
          _hdX56 = Control.Monad.Identity.runIdentity (attach_T_FunctionBinding (arg_hd_))
          _tlX59 = Control.Monad.Identity.runIdentity (attach_T_FunctionBindings (arg_tl_))
          (T_FunctionBinding_vOut55 _hdItext) = inv_FunctionBinding_s56 _hdX56 (T_FunctionBinding_vIn55 )
          (T_FunctionBindings_vOut58 _tlItext) = inv_FunctionBindings_s59 _tlX59 (T_FunctionBindings_vIn58 )
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule133 _hdItext _tlItext
-         __result_ = T_FunctionBindings_vOut58 _lhsOtext
+         !__result_ = T_FunctionBindings_vOut58 _lhsOtext
          in __result_ )
      in C_FunctionBindings_s59 v58
    {-# INLINE rule133 #-}
@@ -2509,12 +2510,12 @@ sem_FunctionBindings_Cons arg_hd_ arg_tl_ = T_FunctionBindings (return st59) whe
 sem_FunctionBindings_Nil ::  T_FunctionBindings 
 sem_FunctionBindings_Nil  = T_FunctionBindings (return st59) where
    {-# NOINLINE st59 #-}
-   st59 = let
+   !st59 = let
       v58 :: T_FunctionBindings_v58 
-      v58 = \ (T_FunctionBindings_vIn58 ) -> ( let
+      v58 = \ !(T_FunctionBindings_vIn58 ) -> ( let
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule134  ()
-         __result_ = T_FunctionBindings_vOut58 _lhsOtext
+         !__result_ = T_FunctionBindings_vOut58 _lhsOtext
          in __result_ )
      in C_FunctionBindings_s59 v58
    {-# INLINE rule134 #-}
@@ -2524,14 +2525,14 @@ sem_FunctionBindings_Nil  = T_FunctionBindings (return st59) where
 -- GuardedExpression -------------------------------------------
 -- wrapper
 data Inh_GuardedExpression  = Inh_GuardedExpression {  }
-data Syn_GuardedExpression  = Syn_GuardedExpression { text_Syn_GuardedExpression :: ( Doc        -> Doc  ) }
+data Syn_GuardedExpression  = Syn_GuardedExpression { text_Syn_GuardedExpression :: !( Doc        -> Doc  ) }
 {-# INLINABLE wrap_GuardedExpression #-}
 wrap_GuardedExpression :: T_GuardedExpression  -> Inh_GuardedExpression  -> (Syn_GuardedExpression )
-wrap_GuardedExpression (T_GuardedExpression act) (Inh_GuardedExpression ) =
+wrap_GuardedExpression !(T_GuardedExpression act) !(Inh_GuardedExpression ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg61 = T_GuardedExpression_vIn61 
-        (T_GuardedExpression_vOut61 _lhsOtext) <- return (inv_GuardedExpression_s62 sem arg61)
+        !(T_GuardedExpression_vOut61 _lhsOtext) <- return (inv_GuardedExpression_s62 sem arg61)
         return (Syn_GuardedExpression _lhsOtext)
    )
 
@@ -2555,9 +2556,9 @@ data T_GuardedExpression_vOut61  = T_GuardedExpression_vOut61 ( Doc        -> Do
 sem_GuardedExpression_GuardedExpression :: T_Range  -> T_Expression  -> T_Expression  -> T_GuardedExpression 
 sem_GuardedExpression_GuardedExpression arg_range_ arg_guard_ arg_expression_ = T_GuardedExpression (return st62) where
    {-# NOINLINE st62 #-}
-   st62 = let
+   !st62 = let
       v61 :: T_GuardedExpression_v61 
-      v61 = \ (T_GuardedExpression_vIn61 ) -> ( let
+      v61 = \ !(T_GuardedExpression_vIn61 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _guardX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_guard_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
@@ -2567,7 +2568,7 @@ sem_GuardedExpression_GuardedExpression arg_range_ arg_guard_ arg_expression_ = 
          _text = rule135 _expressionItext _guardItext
          _lhsOtext ::  Doc        -> Doc  
          _lhsOtext = rule136 _text
-         __result_ = T_GuardedExpression_vOut61 _lhsOtext
+         !__result_ = T_GuardedExpression_vOut61 _lhsOtext
          in __result_ )
      in C_GuardedExpression_s62 v61
    {-# INLINE rule135 #-}
@@ -2580,14 +2581,14 @@ sem_GuardedExpression_GuardedExpression arg_range_ arg_guard_ arg_expression_ = 
 -- GuardedExpressions ------------------------------------------
 -- wrapper
 data Inh_GuardedExpressions  = Inh_GuardedExpressions {  }
-data Syn_GuardedExpressions  = Syn_GuardedExpressions { text_Syn_GuardedExpressions :: ( [        Doc -> Doc  ] ) }
+data Syn_GuardedExpressions  = Syn_GuardedExpressions { text_Syn_GuardedExpressions :: !( [        Doc -> Doc  ] ) }
 {-# INLINABLE wrap_GuardedExpressions #-}
 wrap_GuardedExpressions :: T_GuardedExpressions  -> Inh_GuardedExpressions  -> (Syn_GuardedExpressions )
-wrap_GuardedExpressions (T_GuardedExpressions act) (Inh_GuardedExpressions ) =
+wrap_GuardedExpressions !(T_GuardedExpressions act) !(Inh_GuardedExpressions ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg64 = T_GuardedExpressions_vIn64 
-        (T_GuardedExpressions_vOut64 _lhsOtext) <- return (inv_GuardedExpressions_s65 sem arg64)
+        !(T_GuardedExpressions_vOut64 _lhsOtext) <- return (inv_GuardedExpressions_s65 sem arg64)
         return (Syn_GuardedExpressions _lhsOtext)
    )
 
@@ -2611,16 +2612,16 @@ data T_GuardedExpressions_vOut64  = T_GuardedExpressions_vOut64 ( [        Doc -
 sem_GuardedExpressions_Cons :: T_GuardedExpression  -> T_GuardedExpressions  -> T_GuardedExpressions 
 sem_GuardedExpressions_Cons arg_hd_ arg_tl_ = T_GuardedExpressions (return st65) where
    {-# NOINLINE st65 #-}
-   st65 = let
+   !st65 = let
       v64 :: T_GuardedExpressions_v64 
-      v64 = \ (T_GuardedExpressions_vIn64 ) -> ( let
+      v64 = \ !(T_GuardedExpressions_vIn64 ) -> ( let
          _hdX62 = Control.Monad.Identity.runIdentity (attach_T_GuardedExpression (arg_hd_))
          _tlX65 = Control.Monad.Identity.runIdentity (attach_T_GuardedExpressions (arg_tl_))
          (T_GuardedExpression_vOut61 _hdItext) = inv_GuardedExpression_s62 _hdX62 (T_GuardedExpression_vIn61 )
          (T_GuardedExpressions_vOut64 _tlItext) = inv_GuardedExpressions_s65 _tlX65 (T_GuardedExpressions_vIn64 )
          _lhsOtext ::  [        Doc -> Doc  ] 
          _lhsOtext = rule137 _hdItext _tlItext
-         __result_ = T_GuardedExpressions_vOut64 _lhsOtext
+         !__result_ = T_GuardedExpressions_vOut64 _lhsOtext
          in __result_ )
      in C_GuardedExpressions_s65 v64
    {-# INLINE rule137 #-}
@@ -2630,12 +2631,12 @@ sem_GuardedExpressions_Cons arg_hd_ arg_tl_ = T_GuardedExpressions (return st65)
 sem_GuardedExpressions_Nil ::  T_GuardedExpressions 
 sem_GuardedExpressions_Nil  = T_GuardedExpressions (return st65) where
    {-# NOINLINE st65 #-}
-   st65 = let
+   !st65 = let
       v64 :: T_GuardedExpressions_v64 
-      v64 = \ (T_GuardedExpressions_vIn64 ) -> ( let
+      v64 = \ !(T_GuardedExpressions_vIn64 ) -> ( let
          _lhsOtext ::  [        Doc -> Doc  ] 
          _lhsOtext = rule138  ()
-         __result_ = T_GuardedExpressions_vOut64 _lhsOtext
+         !__result_ = T_GuardedExpressions_vOut64 _lhsOtext
          in __result_ )
      in C_GuardedExpressions_s65 v64
    {-# INLINE rule138 #-}
@@ -2645,14 +2646,14 @@ sem_GuardedExpressions_Nil  = T_GuardedExpressions (return st65) where
 -- Import ------------------------------------------------------
 -- wrapper
 data Inh_Import  = Inh_Import {  }
-data Syn_Import  = Syn_Import { text_Syn_Import :: (Doc) }
+data Syn_Import  = Syn_Import { text_Syn_Import :: !(Doc) }
 {-# INLINABLE wrap_Import #-}
 wrap_Import :: T_Import  -> Inh_Import  -> (Syn_Import )
-wrap_Import (T_Import act) (Inh_Import ) =
+wrap_Import !(T_Import act) !(Inh_Import ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg67 = T_Import_vIn67 
-        (T_Import_vOut67 _lhsOtext) <- return (inv_Import_s68 sem arg67)
+        !(T_Import_vOut67 _lhsOtext) <- return (inv_Import_s68 sem arg67)
         return (Syn_Import _lhsOtext)
    )
 
@@ -2678,9 +2679,9 @@ data T_Import_vOut67  = T_Import_vOut67 (Doc)
 sem_Import_Variable :: T_Range  -> T_Name  -> T_Import 
 sem_Import_Variable arg_range_ arg_name_ = T_Import (return st68) where
    {-# NOINLINE st68 #-}
-   st68 = let
+   !st68 = let
       v67 :: T_Import_v67 
-      v67 = \ (T_Import_vIn67 ) -> ( let
+      v67 = \ !(T_Import_vIn67 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -2688,7 +2689,7 @@ sem_Import_Variable arg_range_ arg_name_ = T_Import (return st68) where
          _text = rule139 _nameItext
          _lhsOtext :: Doc
          _lhsOtext = rule140 _text
-         __result_ = T_Import_vOut67 _lhsOtext
+         !__result_ = T_Import_vOut67 _lhsOtext
          in __result_ )
      in C_Import_s68 v67
    {-# INLINE rule139 #-}
@@ -2701,9 +2702,9 @@ sem_Import_Variable arg_range_ arg_name_ = T_Import (return st68) where
 sem_Import_TypeOrClass :: T_Range  -> T_Name  -> T_MaybeNames  -> T_Import 
 sem_Import_TypeOrClass arg_range_ arg_name_ arg_names_ = T_Import (return st68) where
    {-# NOINLINE st68 #-}
-   st68 = let
+   !st68 = let
       v67 :: T_Import_v67 
-      v67 = \ (T_Import_vIn67 ) -> ( let
+      v67 = \ !(T_Import_vIn67 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _namesX107 = Control.Monad.Identity.runIdentity (attach_T_MaybeNames (arg_names_))
@@ -2713,7 +2714,7 @@ sem_Import_TypeOrClass arg_range_ arg_name_ arg_names_ = T_Import (return st68) 
          _text = rule141 _nameItext _namesItext
          _lhsOtext :: Doc
          _lhsOtext = rule142 _text
-         __result_ = T_Import_vOut67 _lhsOtext
+         !__result_ = T_Import_vOut67 _lhsOtext
          in __result_ )
      in C_Import_s68 v67
    {-# INLINE rule141 #-}
@@ -2726,9 +2727,9 @@ sem_Import_TypeOrClass arg_range_ arg_name_ arg_names_ = T_Import (return st68) 
 sem_Import_TypeOrClassComplete :: T_Range  -> T_Name  -> T_Import 
 sem_Import_TypeOrClassComplete arg_range_ arg_name_ = T_Import (return st68) where
    {-# NOINLINE st68 #-}
-   st68 = let
+   !st68 = let
       v67 :: T_Import_v67 
-      v67 = \ (T_Import_vIn67 ) -> ( let
+      v67 = \ !(T_Import_vIn67 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -2736,7 +2737,7 @@ sem_Import_TypeOrClassComplete arg_range_ arg_name_ = T_Import (return st68) whe
          _text = rule143 _nameItext
          _lhsOtext :: Doc
          _lhsOtext = rule144 _text
-         __result_ = T_Import_vOut67 _lhsOtext
+         !__result_ = T_Import_vOut67 _lhsOtext
          in __result_ )
      in C_Import_s68 v67
    {-# INLINE rule143 #-}
@@ -2749,21 +2750,21 @@ sem_Import_TypeOrClassComplete arg_range_ arg_name_ = T_Import (return st68) whe
 -- ImportDeclaration -------------------------------------------
 -- wrapper
 data Inh_ImportDeclaration  = Inh_ImportDeclaration {  }
-data Syn_ImportDeclaration  = Syn_ImportDeclaration { text_Syn_ImportDeclaration :: (Doc) }
+data Syn_ImportDeclaration  = Syn_ImportDeclaration { text_Syn_ImportDeclaration :: !(Doc) }
 {-# INLINABLE wrap_ImportDeclaration #-}
 wrap_ImportDeclaration :: T_ImportDeclaration  -> Inh_ImportDeclaration  -> (Syn_ImportDeclaration )
-wrap_ImportDeclaration (T_ImportDeclaration act) (Inh_ImportDeclaration ) =
+wrap_ImportDeclaration !(T_ImportDeclaration act) !(Inh_ImportDeclaration ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg70 = T_ImportDeclaration_vIn70 
-        (T_ImportDeclaration_vOut70 _lhsOtext) <- return (inv_ImportDeclaration_s71 sem arg70)
+        !(T_ImportDeclaration_vOut70 _lhsOtext) <- return (inv_ImportDeclaration_s71 sem arg70)
         return (Syn_ImportDeclaration _lhsOtext)
    )
 
 -- cata
 {-# NOINLINE sem_ImportDeclaration #-}
 sem_ImportDeclaration :: ImportDeclaration  -> T_ImportDeclaration 
-sem_ImportDeclaration ( ImportDeclaration_Import range_ qualified_ name_ asname_ importspecification_ ) = sem_ImportDeclaration_Import ( sem_Range range_ ) qualified_ ( sem_Name name_ ) ( sem_MaybeName asname_ ) ( sem_MaybeImportSpecification importspecification_ )
+sem_ImportDeclaration ( ImportDeclaration_Import range_ !qualified_ name_ asname_ importspecification_ ) = sem_ImportDeclaration_Import ( sem_Range range_ ) qualified_ ( sem_Name name_ ) ( sem_MaybeName asname_ ) ( sem_MaybeImportSpecification importspecification_ )
 sem_ImportDeclaration ( ImportDeclaration_Empty range_ ) = sem_ImportDeclaration_Empty ( sem_Range range_ )
 
 -- semantic domain
@@ -2779,11 +2780,11 @@ data T_ImportDeclaration_vIn70  = T_ImportDeclaration_vIn70
 data T_ImportDeclaration_vOut70  = T_ImportDeclaration_vOut70 (Doc)
 {-# NOINLINE sem_ImportDeclaration_Import #-}
 sem_ImportDeclaration_Import :: T_Range  -> (Bool) -> T_Name  -> T_MaybeName  -> T_MaybeImportSpecification  -> T_ImportDeclaration 
-sem_ImportDeclaration_Import arg_range_ arg_qualified_ arg_name_ arg_asname_ arg_importspecification_ = T_ImportDeclaration (return st71) where
+sem_ImportDeclaration_Import arg_range_ !arg_qualified_ arg_name_ arg_asname_ arg_importspecification_ = T_ImportDeclaration (return st71) where
    {-# NOINLINE st71 #-}
-   st71 = let
+   !st71 = let
       v70 :: T_ImportDeclaration_v70 
-      v70 = \ (T_ImportDeclaration_vIn70 ) -> ( let
+      v70 = \ !(T_ImportDeclaration_vIn70 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _asnameX104 = Control.Monad.Identity.runIdentity (attach_T_MaybeName (arg_asname_))
@@ -2795,7 +2796,7 @@ sem_ImportDeclaration_Import arg_range_ arg_qualified_ arg_name_ arg_asname_ arg
          _text = rule145 _importspecificationItext _nameItext arg_qualified_
          _lhsOtext :: Doc
          _lhsOtext = rule146 _text
-         __result_ = T_ImportDeclaration_vOut70 _lhsOtext
+         !__result_ = T_ImportDeclaration_vOut70 _lhsOtext
          in __result_ )
      in C_ImportDeclaration_s71 v70
    {-# INLINE rule145 #-}
@@ -2808,15 +2809,15 @@ sem_ImportDeclaration_Import arg_range_ arg_qualified_ arg_name_ arg_asname_ arg
 sem_ImportDeclaration_Empty :: T_Range  -> T_ImportDeclaration 
 sem_ImportDeclaration_Empty arg_range_ = T_ImportDeclaration (return st71) where
    {-# NOINLINE st71 #-}
-   st71 = let
+   !st71 = let
       v70 :: T_ImportDeclaration_v70 
-      v70 = \ (T_ImportDeclaration_vIn70 ) -> ( let
+      v70 = \ !(T_ImportDeclaration_vIn70 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _text = rule147  ()
          _lhsOtext :: Doc
          _lhsOtext = rule148 _text
-         __result_ = T_ImportDeclaration_vOut70 _lhsOtext
+         !__result_ = T_ImportDeclaration_vOut70 _lhsOtext
          in __result_ )
      in C_ImportDeclaration_s71 v70
    {-# INLINE rule147 #-}
@@ -2829,14 +2830,14 @@ sem_ImportDeclaration_Empty arg_range_ = T_ImportDeclaration (return st71) where
 -- ImportDeclarations ------------------------------------------
 -- wrapper
 data Inh_ImportDeclarations  = Inh_ImportDeclarations {  }
-data Syn_ImportDeclarations  = Syn_ImportDeclarations { text_Syn_ImportDeclarations :: ( [       Doc ] ) }
+data Syn_ImportDeclarations  = Syn_ImportDeclarations { text_Syn_ImportDeclarations :: !( [       Doc ] ) }
 {-# INLINABLE wrap_ImportDeclarations #-}
 wrap_ImportDeclarations :: T_ImportDeclarations  -> Inh_ImportDeclarations  -> (Syn_ImportDeclarations )
-wrap_ImportDeclarations (T_ImportDeclarations act) (Inh_ImportDeclarations ) =
+wrap_ImportDeclarations !(T_ImportDeclarations act) !(Inh_ImportDeclarations ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg73 = T_ImportDeclarations_vIn73 
-        (T_ImportDeclarations_vOut73 _lhsOtext) <- return (inv_ImportDeclarations_s74 sem arg73)
+        !(T_ImportDeclarations_vOut73 _lhsOtext) <- return (inv_ImportDeclarations_s74 sem arg73)
         return (Syn_ImportDeclarations _lhsOtext)
    )
 
@@ -2860,16 +2861,16 @@ data T_ImportDeclarations_vOut73  = T_ImportDeclarations_vOut73 ( [       Doc ] 
 sem_ImportDeclarations_Cons :: T_ImportDeclaration  -> T_ImportDeclarations  -> T_ImportDeclarations 
 sem_ImportDeclarations_Cons arg_hd_ arg_tl_ = T_ImportDeclarations (return st74) where
    {-# NOINLINE st74 #-}
-   st74 = let
+   !st74 = let
       v73 :: T_ImportDeclarations_v73 
-      v73 = \ (T_ImportDeclarations_vIn73 ) -> ( let
+      v73 = \ !(T_ImportDeclarations_vIn73 ) -> ( let
          _hdX71 = Control.Monad.Identity.runIdentity (attach_T_ImportDeclaration (arg_hd_))
          _tlX74 = Control.Monad.Identity.runIdentity (attach_T_ImportDeclarations (arg_tl_))
          (T_ImportDeclaration_vOut70 _hdItext) = inv_ImportDeclaration_s71 _hdX71 (T_ImportDeclaration_vIn70 )
          (T_ImportDeclarations_vOut73 _tlItext) = inv_ImportDeclarations_s74 _tlX74 (T_ImportDeclarations_vIn73 )
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule149 _hdItext _tlItext
-         __result_ = T_ImportDeclarations_vOut73 _lhsOtext
+         !__result_ = T_ImportDeclarations_vOut73 _lhsOtext
          in __result_ )
      in C_ImportDeclarations_s74 v73
    {-# INLINE rule149 #-}
@@ -2879,12 +2880,12 @@ sem_ImportDeclarations_Cons arg_hd_ arg_tl_ = T_ImportDeclarations (return st74)
 sem_ImportDeclarations_Nil ::  T_ImportDeclarations 
 sem_ImportDeclarations_Nil  = T_ImportDeclarations (return st74) where
    {-# NOINLINE st74 #-}
-   st74 = let
+   !st74 = let
       v73 :: T_ImportDeclarations_v73 
-      v73 = \ (T_ImportDeclarations_vIn73 ) -> ( let
+      v73 = \ !(T_ImportDeclarations_vIn73 ) -> ( let
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule150  ()
-         __result_ = T_ImportDeclarations_vOut73 _lhsOtext
+         !__result_ = T_ImportDeclarations_vOut73 _lhsOtext
          in __result_ )
      in C_ImportDeclarations_s74 v73
    {-# INLINE rule150 #-}
@@ -2894,21 +2895,21 @@ sem_ImportDeclarations_Nil  = T_ImportDeclarations (return st74) where
 -- ImportSpecification -----------------------------------------
 -- wrapper
 data Inh_ImportSpecification  = Inh_ImportSpecification {  }
-data Syn_ImportSpecification  = Syn_ImportSpecification { text_Syn_ImportSpecification :: (Doc) }
+data Syn_ImportSpecification  = Syn_ImportSpecification { text_Syn_ImportSpecification :: !(Doc) }
 {-# INLINABLE wrap_ImportSpecification #-}
 wrap_ImportSpecification :: T_ImportSpecification  -> Inh_ImportSpecification  -> (Syn_ImportSpecification )
-wrap_ImportSpecification (T_ImportSpecification act) (Inh_ImportSpecification ) =
+wrap_ImportSpecification !(T_ImportSpecification act) !(Inh_ImportSpecification ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg76 = T_ImportSpecification_vIn76 
-        (T_ImportSpecification_vOut76 _lhsOtext) <- return (inv_ImportSpecification_s77 sem arg76)
+        !(T_ImportSpecification_vOut76 _lhsOtext) <- return (inv_ImportSpecification_s77 sem arg76)
         return (Syn_ImportSpecification _lhsOtext)
    )
 
 -- cata
 {-# INLINE sem_ImportSpecification #-}
 sem_ImportSpecification :: ImportSpecification  -> T_ImportSpecification 
-sem_ImportSpecification ( ImportSpecification_Import range_ hiding_ imports_ ) = sem_ImportSpecification_Import ( sem_Range range_ ) hiding_ ( sem_Imports imports_ )
+sem_ImportSpecification ( ImportSpecification_Import range_ !hiding_ imports_ ) = sem_ImportSpecification_Import ( sem_Range range_ ) hiding_ ( sem_Imports imports_ )
 
 -- semantic domain
 newtype T_ImportSpecification  = T_ImportSpecification {
@@ -2923,11 +2924,11 @@ data T_ImportSpecification_vIn76  = T_ImportSpecification_vIn76
 data T_ImportSpecification_vOut76  = T_ImportSpecification_vOut76 (Doc)
 {-# NOINLINE sem_ImportSpecification_Import #-}
 sem_ImportSpecification_Import :: T_Range  -> (Bool) -> T_Imports  -> T_ImportSpecification 
-sem_ImportSpecification_Import arg_range_ arg_hiding_ arg_imports_ = T_ImportSpecification (return st77) where
+sem_ImportSpecification_Import arg_range_ !arg_hiding_ arg_imports_ = T_ImportSpecification (return st77) where
    {-# NOINLINE st77 #-}
-   st77 = let
+   !st77 = let
       v76 :: T_ImportSpecification_v76 
-      v76 = \ (T_ImportSpecification_vIn76 ) -> ( let
+      v76 = \ !(T_ImportSpecification_vIn76 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _importsX80 = Control.Monad.Identity.runIdentity (attach_T_Imports (arg_imports_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -2935,7 +2936,7 @@ sem_ImportSpecification_Import arg_range_ arg_hiding_ arg_imports_ = T_ImportSpe
          _text = rule151 _importsItext arg_hiding_
          _lhsOtext :: Doc
          _lhsOtext = rule152 _text
-         __result_ = T_ImportSpecification_vOut76 _lhsOtext
+         !__result_ = T_ImportSpecification_vOut76 _lhsOtext
          in __result_ )
      in C_ImportSpecification_s77 v76
    {-# INLINE rule151 #-}
@@ -2949,14 +2950,14 @@ sem_ImportSpecification_Import arg_range_ arg_hiding_ arg_imports_ = T_ImportSpe
 -- Imports -----------------------------------------------------
 -- wrapper
 data Inh_Imports  = Inh_Imports {  }
-data Syn_Imports  = Syn_Imports { text_Syn_Imports :: ( [       Doc ] ) }
+data Syn_Imports  = Syn_Imports { text_Syn_Imports :: !( [       Doc ] ) }
 {-# INLINABLE wrap_Imports #-}
 wrap_Imports :: T_Imports  -> Inh_Imports  -> (Syn_Imports )
-wrap_Imports (T_Imports act) (Inh_Imports ) =
+wrap_Imports !(T_Imports act) !(Inh_Imports ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg79 = T_Imports_vIn79 
-        (T_Imports_vOut79 _lhsOtext) <- return (inv_Imports_s80 sem arg79)
+        !(T_Imports_vOut79 _lhsOtext) <- return (inv_Imports_s80 sem arg79)
         return (Syn_Imports _lhsOtext)
    )
 
@@ -2980,16 +2981,16 @@ data T_Imports_vOut79  = T_Imports_vOut79 ( [       Doc ] )
 sem_Imports_Cons :: T_Import  -> T_Imports  -> T_Imports 
 sem_Imports_Cons arg_hd_ arg_tl_ = T_Imports (return st80) where
    {-# NOINLINE st80 #-}
-   st80 = let
+   !st80 = let
       v79 :: T_Imports_v79 
-      v79 = \ (T_Imports_vIn79 ) -> ( let
+      v79 = \ !(T_Imports_vIn79 ) -> ( let
          _hdX68 = Control.Monad.Identity.runIdentity (attach_T_Import (arg_hd_))
          _tlX80 = Control.Monad.Identity.runIdentity (attach_T_Imports (arg_tl_))
          (T_Import_vOut67 _hdItext) = inv_Import_s68 _hdX68 (T_Import_vIn67 )
          (T_Imports_vOut79 _tlItext) = inv_Imports_s80 _tlX80 (T_Imports_vIn79 )
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule153 _hdItext _tlItext
-         __result_ = T_Imports_vOut79 _lhsOtext
+         !__result_ = T_Imports_vOut79 _lhsOtext
          in __result_ )
      in C_Imports_s80 v79
    {-# INLINE rule153 #-}
@@ -2999,12 +3000,12 @@ sem_Imports_Cons arg_hd_ arg_tl_ = T_Imports (return st80) where
 sem_Imports_Nil ::  T_Imports 
 sem_Imports_Nil  = T_Imports (return st80) where
    {-# NOINLINE st80 #-}
-   st80 = let
+   !st80 = let
       v79 :: T_Imports_v79 
-      v79 = \ (T_Imports_vIn79 ) -> ( let
+      v79 = \ !(T_Imports_vIn79 ) -> ( let
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule154  ()
-         __result_ = T_Imports_vOut79 _lhsOtext
+         !__result_ = T_Imports_vOut79 _lhsOtext
          in __result_ )
      in C_Imports_s80 v79
    {-# INLINE rule154 #-}
@@ -3014,14 +3015,14 @@ sem_Imports_Nil  = T_Imports (return st80) where
 -- LeftHandSide ------------------------------------------------
 -- wrapper
 data Inh_LeftHandSide  = Inh_LeftHandSide {  }
-data Syn_LeftHandSide  = Syn_LeftHandSide { text_Syn_LeftHandSide :: (Doc) }
+data Syn_LeftHandSide  = Syn_LeftHandSide { text_Syn_LeftHandSide :: !(Doc) }
 {-# INLINABLE wrap_LeftHandSide #-}
 wrap_LeftHandSide :: T_LeftHandSide  -> Inh_LeftHandSide  -> (Syn_LeftHandSide )
-wrap_LeftHandSide (T_LeftHandSide act) (Inh_LeftHandSide ) =
+wrap_LeftHandSide !(T_LeftHandSide act) !(Inh_LeftHandSide ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg82 = T_LeftHandSide_vIn82 
-        (T_LeftHandSide_vOut82 _lhsOtext) <- return (inv_LeftHandSide_s83 sem arg82)
+        !(T_LeftHandSide_vOut82 _lhsOtext) <- return (inv_LeftHandSide_s83 sem arg82)
         return (Syn_LeftHandSide _lhsOtext)
    )
 
@@ -3047,9 +3048,9 @@ data T_LeftHandSide_vOut82  = T_LeftHandSide_vOut82 (Doc)
 sem_LeftHandSide_Function :: T_Range  -> T_Name  -> T_Patterns  -> T_LeftHandSide 
 sem_LeftHandSide_Function arg_range_ arg_name_ arg_patterns_ = T_LeftHandSide (return st83) where
    {-# NOINLINE st83 #-}
-   st83 = let
+   !st83 = let
       v82 :: T_LeftHandSide_v82 
-      v82 = \ (T_LeftHandSide_vIn82 ) -> ( let
+      v82 = \ !(T_LeftHandSide_vIn82 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _patternsX122 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
@@ -3059,7 +3060,7 @@ sem_LeftHandSide_Function arg_range_ arg_name_ arg_patterns_ = T_LeftHandSide (r
          _text = rule155 _nameIisOperator _nameItext _patternsItext
          _lhsOtext :: Doc
          _lhsOtext = rule156 _text
-         __result_ = T_LeftHandSide_vOut82 _lhsOtext
+         !__result_ = T_LeftHandSide_vOut82 _lhsOtext
          in __result_ )
      in C_LeftHandSide_s83 v82
    {-# INLINE rule155 #-}
@@ -3072,9 +3073,9 @@ sem_LeftHandSide_Function arg_range_ arg_name_ arg_patterns_ = T_LeftHandSide (r
 sem_LeftHandSide_Infix :: T_Range  -> T_Pattern  -> T_Name  -> T_Pattern  -> T_LeftHandSide 
 sem_LeftHandSide_Infix arg_range_ arg_leftPattern_ arg_operator_ arg_rightPattern_ = T_LeftHandSide (return st83) where
    {-# NOINLINE st83 #-}
-   st83 = let
+   !st83 = let
       v82 :: T_LeftHandSide_v82 
-      v82 = \ (T_LeftHandSide_vIn82 ) -> ( let
+      v82 = \ !(T_LeftHandSide_vIn82 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _leftPatternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_leftPattern_))
          _operatorX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_operator_))
@@ -3086,7 +3087,7 @@ sem_LeftHandSide_Infix arg_range_ arg_leftPattern_ arg_operator_ arg_rightPatter
          _text = rule157 _leftPatternItext _operatorIisOperator _operatorItext _rightPatternItext
          _lhsOtext :: Doc
          _lhsOtext = rule158 _text
-         __result_ = T_LeftHandSide_vOut82 _lhsOtext
+         !__result_ = T_LeftHandSide_vOut82 _lhsOtext
          in __result_ )
      in C_LeftHandSide_s83 v82
    {-# INLINE rule157 #-}
@@ -3099,9 +3100,9 @@ sem_LeftHandSide_Infix arg_range_ arg_leftPattern_ arg_operator_ arg_rightPatter
 sem_LeftHandSide_Parenthesized :: T_Range  -> T_LeftHandSide  -> T_Patterns  -> T_LeftHandSide 
 sem_LeftHandSide_Parenthesized arg_range_ arg_lefthandside_ arg_patterns_ = T_LeftHandSide (return st83) where
    {-# NOINLINE st83 #-}
-   st83 = let
+   !st83 = let
       v82 :: T_LeftHandSide_v82 
-      v82 = \ (T_LeftHandSide_vIn82 ) -> ( let
+      v82 = \ !(T_LeftHandSide_vIn82 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _lefthandsideX83 = Control.Monad.Identity.runIdentity (attach_T_LeftHandSide (arg_lefthandside_))
          _patternsX122 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
@@ -3111,7 +3112,7 @@ sem_LeftHandSide_Parenthesized arg_range_ arg_lefthandside_ arg_patterns_ = T_Le
          _text = rule159 _lefthandsideItext _patternsItext
          _lhsOtext :: Doc
          _lhsOtext = rule160 _text
-         __result_ = T_LeftHandSide_vOut82 _lhsOtext
+         !__result_ = T_LeftHandSide_vOut82 _lhsOtext
          in __result_ )
      in C_LeftHandSide_s83 v82
    {-# INLINE rule159 #-}
@@ -3124,24 +3125,24 @@ sem_LeftHandSide_Parenthesized arg_range_ arg_lefthandside_ arg_patterns_ = T_Le
 -- Literal -----------------------------------------------------
 -- wrapper
 data Inh_Literal  = Inh_Literal {  }
-data Syn_Literal  = Syn_Literal { text_Syn_Literal :: (Doc) }
+data Syn_Literal  = Syn_Literal { text_Syn_Literal :: !(Doc) }
 {-# INLINABLE wrap_Literal #-}
 wrap_Literal :: T_Literal  -> Inh_Literal  -> (Syn_Literal )
-wrap_Literal (T_Literal act) (Inh_Literal ) =
+wrap_Literal !(T_Literal act) !(Inh_Literal ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg85 = T_Literal_vIn85 
-        (T_Literal_vOut85 _lhsOtext) <- return (inv_Literal_s86 sem arg85)
+        !(T_Literal_vOut85 _lhsOtext) <- return (inv_Literal_s86 sem arg85)
         return (Syn_Literal _lhsOtext)
    )
 
 -- cata
 {-# NOINLINE sem_Literal #-}
 sem_Literal :: Literal  -> T_Literal 
-sem_Literal ( Literal_Int range_ value_ ) = sem_Literal_Int ( sem_Range range_ ) value_
-sem_Literal ( Literal_Char range_ value_ ) = sem_Literal_Char ( sem_Range range_ ) value_
-sem_Literal ( Literal_Float range_ value_ ) = sem_Literal_Float ( sem_Range range_ ) value_
-sem_Literal ( Literal_String range_ value_ ) = sem_Literal_String ( sem_Range range_ ) value_
+sem_Literal ( Literal_Int range_ !value_ ) = sem_Literal_Int ( sem_Range range_ ) value_
+sem_Literal ( Literal_Char range_ !value_ ) = sem_Literal_Char ( sem_Range range_ ) value_
+sem_Literal ( Literal_Float range_ !value_ ) = sem_Literal_Float ( sem_Range range_ ) value_
+sem_Literal ( Literal_String range_ !value_ ) = sem_Literal_String ( sem_Range range_ ) value_
 
 -- semantic domain
 newtype T_Literal  = T_Literal {
@@ -3156,17 +3157,17 @@ data T_Literal_vIn85  = T_Literal_vIn85
 data T_Literal_vOut85  = T_Literal_vOut85 (Doc)
 {-# NOINLINE sem_Literal_Int #-}
 sem_Literal_Int :: T_Range  -> (String) -> T_Literal 
-sem_Literal_Int arg_range_ arg_value_ = T_Literal (return st86) where
+sem_Literal_Int arg_range_ !arg_value_ = T_Literal (return st86) where
    {-# NOINLINE st86 #-}
-   st86 = let
+   !st86 = let
       v85 :: T_Literal_v85 
-      v85 = \ (T_Literal_vIn85 ) -> ( let
+      v85 = \ !(T_Literal_vIn85 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _text = rule161 arg_value_
          _lhsOtext :: Doc
          _lhsOtext = rule162 _text
-         __result_ = T_Literal_vOut85 _lhsOtext
+         !__result_ = T_Literal_vOut85 _lhsOtext
          in __result_ )
      in C_Literal_s86 v85
    {-# INLINE rule161 #-}
@@ -3177,17 +3178,17 @@ sem_Literal_Int arg_range_ arg_value_ = T_Literal (return st86) where
      _text
 {-# NOINLINE sem_Literal_Char #-}
 sem_Literal_Char :: T_Range  -> (String) -> T_Literal 
-sem_Literal_Char arg_range_ arg_value_ = T_Literal (return st86) where
+sem_Literal_Char arg_range_ !arg_value_ = T_Literal (return st86) where
    {-# NOINLINE st86 #-}
-   st86 = let
+   !st86 = let
       v85 :: T_Literal_v85 
-      v85 = \ (T_Literal_vIn85 ) -> ( let
+      v85 = \ !(T_Literal_vIn85 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _text = rule163 arg_value_
          _lhsOtext :: Doc
          _lhsOtext = rule164 _text
-         __result_ = T_Literal_vOut85 _lhsOtext
+         !__result_ = T_Literal_vOut85 _lhsOtext
          in __result_ )
      in C_Literal_s86 v85
    {-# INLINE rule163 #-}
@@ -3198,17 +3199,17 @@ sem_Literal_Char arg_range_ arg_value_ = T_Literal (return st86) where
      _text
 {-# NOINLINE sem_Literal_Float #-}
 sem_Literal_Float :: T_Range  -> (String) -> T_Literal 
-sem_Literal_Float arg_range_ arg_value_ = T_Literal (return st86) where
+sem_Literal_Float arg_range_ !arg_value_ = T_Literal (return st86) where
    {-# NOINLINE st86 #-}
-   st86 = let
+   !st86 = let
       v85 :: T_Literal_v85 
-      v85 = \ (T_Literal_vIn85 ) -> ( let
+      v85 = \ !(T_Literal_vIn85 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _text = rule165 arg_value_
          _lhsOtext :: Doc
          _lhsOtext = rule166 _text
-         __result_ = T_Literal_vOut85 _lhsOtext
+         !__result_ = T_Literal_vOut85 _lhsOtext
          in __result_ )
      in C_Literal_s86 v85
    {-# INLINE rule165 #-}
@@ -3219,17 +3220,17 @@ sem_Literal_Float arg_range_ arg_value_ = T_Literal (return st86) where
      _text
 {-# NOINLINE sem_Literal_String #-}
 sem_Literal_String :: T_Range  -> (String) -> T_Literal 
-sem_Literal_String arg_range_ arg_value_ = T_Literal (return st86) where
+sem_Literal_String arg_range_ !arg_value_ = T_Literal (return st86) where
    {-# NOINLINE st86 #-}
-   st86 = let
+   !st86 = let
       v85 :: T_Literal_v85 
-      v85 = \ (T_Literal_vIn85 ) -> ( let
+      v85 = \ !(T_Literal_vIn85 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _text = rule167 arg_value_
          _lhsOtext :: Doc
          _lhsOtext = rule168 _text
-         __result_ = T_Literal_vOut85 _lhsOtext
+         !__result_ = T_Literal_vOut85 _lhsOtext
          in __result_ )
      in C_Literal_s86 v85
    {-# INLINE rule167 #-}
@@ -3242,14 +3243,14 @@ sem_Literal_String arg_range_ arg_value_ = T_Literal (return st86) where
 -- MaybeDeclarations -------------------------------------------
 -- wrapper
 data Inh_MaybeDeclarations  = Inh_MaybeDeclarations {  }
-data Syn_MaybeDeclarations  = Syn_MaybeDeclarations { text_Syn_MaybeDeclarations :: ( Maybe [       Doc ] ) }
+data Syn_MaybeDeclarations  = Syn_MaybeDeclarations { text_Syn_MaybeDeclarations :: !( Maybe [       Doc ] ) }
 {-# INLINABLE wrap_MaybeDeclarations #-}
 wrap_MaybeDeclarations :: T_MaybeDeclarations  -> Inh_MaybeDeclarations  -> (Syn_MaybeDeclarations )
-wrap_MaybeDeclarations (T_MaybeDeclarations act) (Inh_MaybeDeclarations ) =
+wrap_MaybeDeclarations !(T_MaybeDeclarations act) !(Inh_MaybeDeclarations ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg88 = T_MaybeDeclarations_vIn88 
-        (T_MaybeDeclarations_vOut88 _lhsOtext) <- return (inv_MaybeDeclarations_s89 sem arg88)
+        !(T_MaybeDeclarations_vOut88 _lhsOtext) <- return (inv_MaybeDeclarations_s89 sem arg88)
         return (Syn_MaybeDeclarations _lhsOtext)
    )
 
@@ -3274,13 +3275,13 @@ data T_MaybeDeclarations_vOut88  = T_MaybeDeclarations_vOut88 ( Maybe [       Do
 sem_MaybeDeclarations_Nothing ::  T_MaybeDeclarations 
 sem_MaybeDeclarations_Nothing  = T_MaybeDeclarations (return st89) where
    {-# NOINLINE st89 #-}
-   st89 = let
+   !st89 = let
       v88 :: T_MaybeDeclarations_v88 
-      v88 = \ (T_MaybeDeclarations_vIn88 ) -> ( let
+      v88 = \ !(T_MaybeDeclarations_vIn88 ) -> ( let
          _text = rule169  ()
          _lhsOtext ::  Maybe [       Doc ] 
          _lhsOtext = rule170 _text
-         __result_ = T_MaybeDeclarations_vOut88 _lhsOtext
+         !__result_ = T_MaybeDeclarations_vOut88 _lhsOtext
          in __result_ )
      in C_MaybeDeclarations_s89 v88
    {-# INLINE rule169 #-}
@@ -3293,15 +3294,15 @@ sem_MaybeDeclarations_Nothing  = T_MaybeDeclarations (return st89) where
 sem_MaybeDeclarations_Just :: T_Declarations  -> T_MaybeDeclarations 
 sem_MaybeDeclarations_Just arg_declarations_ = T_MaybeDeclarations (return st89) where
    {-# NOINLINE st89 #-}
-   st89 = let
+   !st89 = let
       v88 :: T_MaybeDeclarations_v88 
-      v88 = \ (T_MaybeDeclarations_vIn88 ) -> ( let
+      v88 = \ !(T_MaybeDeclarations_vIn88 ) -> ( let
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          (T_Declarations_vOut31 _declarationsItext) = inv_Declarations_s32 _declarationsX32 (T_Declarations_vIn31 )
          _text = rule171 _declarationsItext
          _lhsOtext ::  Maybe [       Doc ] 
          _lhsOtext = rule172 _text
-         __result_ = T_MaybeDeclarations_vOut88 _lhsOtext
+         !__result_ = T_MaybeDeclarations_vOut88 _lhsOtext
          in __result_ )
      in C_MaybeDeclarations_s89 v88
    {-# INLINE rule171 #-}
@@ -3316,14 +3317,14 @@ sem_MaybeDeclarations_Just arg_declarations_ = T_MaybeDeclarations (return st89)
 -- MaybeExports ------------------------------------------------
 -- wrapper
 data Inh_MaybeExports  = Inh_MaybeExports {  }
-data Syn_MaybeExports  = Syn_MaybeExports { text_Syn_MaybeExports :: ( Maybe [       Doc ] ) }
+data Syn_MaybeExports  = Syn_MaybeExports { text_Syn_MaybeExports :: !( Maybe [       Doc ] ) }
 {-# INLINABLE wrap_MaybeExports #-}
 wrap_MaybeExports :: T_MaybeExports  -> Inh_MaybeExports  -> (Syn_MaybeExports )
-wrap_MaybeExports (T_MaybeExports act) (Inh_MaybeExports ) =
+wrap_MaybeExports !(T_MaybeExports act) !(Inh_MaybeExports ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg91 = T_MaybeExports_vIn91 
-        (T_MaybeExports_vOut91 _lhsOtext) <- return (inv_MaybeExports_s92 sem arg91)
+        !(T_MaybeExports_vOut91 _lhsOtext) <- return (inv_MaybeExports_s92 sem arg91)
         return (Syn_MaybeExports _lhsOtext)
    )
 
@@ -3348,13 +3349,13 @@ data T_MaybeExports_vOut91  = T_MaybeExports_vOut91 ( Maybe [       Doc ] )
 sem_MaybeExports_Nothing ::  T_MaybeExports 
 sem_MaybeExports_Nothing  = T_MaybeExports (return st92) where
    {-# NOINLINE st92 #-}
-   st92 = let
+   !st92 = let
       v91 :: T_MaybeExports_v91 
-      v91 = \ (T_MaybeExports_vIn91 ) -> ( let
+      v91 = \ !(T_MaybeExports_vIn91 ) -> ( let
          _text = rule173  ()
          _lhsOtext ::  Maybe [       Doc ] 
          _lhsOtext = rule174 _text
-         __result_ = T_MaybeExports_vOut91 _lhsOtext
+         !__result_ = T_MaybeExports_vOut91 _lhsOtext
          in __result_ )
      in C_MaybeExports_s92 v91
    {-# INLINE rule173 #-}
@@ -3367,15 +3368,15 @@ sem_MaybeExports_Nothing  = T_MaybeExports (return st92) where
 sem_MaybeExports_Just :: T_Exports  -> T_MaybeExports 
 sem_MaybeExports_Just arg_exports_ = T_MaybeExports (return st92) where
    {-# NOINLINE st92 #-}
-   st92 = let
+   !st92 = let
       v91 :: T_MaybeExports_v91 
-      v91 = \ (T_MaybeExports_vIn91 ) -> ( let
+      v91 = \ !(T_MaybeExports_vIn91 ) -> ( let
          _exportsX38 = Control.Monad.Identity.runIdentity (attach_T_Exports (arg_exports_))
          (T_Exports_vOut37 _exportsItext) = inv_Exports_s38 _exportsX38 (T_Exports_vIn37 )
          _text = rule175 _exportsItext
          _lhsOtext ::  Maybe [       Doc ] 
          _lhsOtext = rule176 _text
-         __result_ = T_MaybeExports_vOut91 _lhsOtext
+         !__result_ = T_MaybeExports_vOut91 _lhsOtext
          in __result_ )
      in C_MaybeExports_s92 v91
    {-# INLINE rule175 #-}
@@ -3388,14 +3389,14 @@ sem_MaybeExports_Just arg_exports_ = T_MaybeExports (return st92) where
 -- MaybeExpression ---------------------------------------------
 -- wrapper
 data Inh_MaybeExpression  = Inh_MaybeExpression {  }
-data Syn_MaybeExpression  = Syn_MaybeExpression { text_Syn_MaybeExpression :: (        Maybe Doc  ) }
+data Syn_MaybeExpression  = Syn_MaybeExpression { text_Syn_MaybeExpression :: !(        Maybe Doc  ) }
 {-# INLINABLE wrap_MaybeExpression #-}
 wrap_MaybeExpression :: T_MaybeExpression  -> Inh_MaybeExpression  -> (Syn_MaybeExpression )
-wrap_MaybeExpression (T_MaybeExpression act) (Inh_MaybeExpression ) =
+wrap_MaybeExpression !(T_MaybeExpression act) !(Inh_MaybeExpression ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg94 = T_MaybeExpression_vIn94 
-        (T_MaybeExpression_vOut94 _lhsOtext) <- return (inv_MaybeExpression_s95 sem arg94)
+        !(T_MaybeExpression_vOut94 _lhsOtext) <- return (inv_MaybeExpression_s95 sem arg94)
         return (Syn_MaybeExpression _lhsOtext)
    )
 
@@ -3420,13 +3421,13 @@ data T_MaybeExpression_vOut94  = T_MaybeExpression_vOut94 (        Maybe Doc  )
 sem_MaybeExpression_Nothing ::  T_MaybeExpression 
 sem_MaybeExpression_Nothing  = T_MaybeExpression (return st95) where
    {-# NOINLINE st95 #-}
-   st95 = let
+   !st95 = let
       v94 :: T_MaybeExpression_v94 
-      v94 = \ (T_MaybeExpression_vIn94 ) -> ( let
+      v94 = \ !(T_MaybeExpression_vIn94 ) -> ( let
          _text = rule177  ()
          _lhsOtext ::         Maybe Doc  
          _lhsOtext = rule178 _text
-         __result_ = T_MaybeExpression_vOut94 _lhsOtext
+         !__result_ = T_MaybeExpression_vOut94 _lhsOtext
          in __result_ )
      in C_MaybeExpression_s95 v94
    {-# INLINE rule177 #-}
@@ -3439,15 +3440,15 @@ sem_MaybeExpression_Nothing  = T_MaybeExpression (return st95) where
 sem_MaybeExpression_Just :: T_Expression  -> T_MaybeExpression 
 sem_MaybeExpression_Just arg_expression_ = T_MaybeExpression (return st95) where
    {-# NOINLINE st95 #-}
-   st95 = let
+   !st95 = let
       v94 :: T_MaybeExpression_v94 
-      v94 = \ (T_MaybeExpression_vIn94 ) -> ( let
+      v94 = \ !(T_MaybeExpression_vIn94 ) -> ( let
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Expression_vOut40 _expressionItext) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          _text = rule179 _expressionItext
          _lhsOtext ::         Maybe Doc  
          _lhsOtext = rule180 _text
-         __result_ = T_MaybeExpression_vOut94 _lhsOtext
+         !__result_ = T_MaybeExpression_vOut94 _lhsOtext
          in __result_ )
      in C_MaybeExpression_s95 v94
    {-# INLINE rule179 #-}
@@ -3460,14 +3461,14 @@ sem_MaybeExpression_Just arg_expression_ = T_MaybeExpression (return st95) where
 -- MaybeImportSpecification ------------------------------------
 -- wrapper
 data Inh_MaybeImportSpecification  = Inh_MaybeImportSpecification {  }
-data Syn_MaybeImportSpecification  = Syn_MaybeImportSpecification { text_Syn_MaybeImportSpecification :: (        Maybe Doc  ) }
+data Syn_MaybeImportSpecification  = Syn_MaybeImportSpecification { text_Syn_MaybeImportSpecification :: !(        Maybe Doc  ) }
 {-# INLINABLE wrap_MaybeImportSpecification #-}
 wrap_MaybeImportSpecification :: T_MaybeImportSpecification  -> Inh_MaybeImportSpecification  -> (Syn_MaybeImportSpecification )
-wrap_MaybeImportSpecification (T_MaybeImportSpecification act) (Inh_MaybeImportSpecification ) =
+wrap_MaybeImportSpecification !(T_MaybeImportSpecification act) !(Inh_MaybeImportSpecification ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg97 = T_MaybeImportSpecification_vIn97 
-        (T_MaybeImportSpecification_vOut97 _lhsOtext) <- return (inv_MaybeImportSpecification_s98 sem arg97)
+        !(T_MaybeImportSpecification_vOut97 _lhsOtext) <- return (inv_MaybeImportSpecification_s98 sem arg97)
         return (Syn_MaybeImportSpecification _lhsOtext)
    )
 
@@ -3492,13 +3493,13 @@ data T_MaybeImportSpecification_vOut97  = T_MaybeImportSpecification_vOut97 (   
 sem_MaybeImportSpecification_Nothing ::  T_MaybeImportSpecification 
 sem_MaybeImportSpecification_Nothing  = T_MaybeImportSpecification (return st98) where
    {-# NOINLINE st98 #-}
-   st98 = let
+   !st98 = let
       v97 :: T_MaybeImportSpecification_v97 
-      v97 = \ (T_MaybeImportSpecification_vIn97 ) -> ( let
+      v97 = \ !(T_MaybeImportSpecification_vIn97 ) -> ( let
          _text = rule181  ()
          _lhsOtext ::         Maybe Doc  
          _lhsOtext = rule182 _text
-         __result_ = T_MaybeImportSpecification_vOut97 _lhsOtext
+         !__result_ = T_MaybeImportSpecification_vOut97 _lhsOtext
          in __result_ )
      in C_MaybeImportSpecification_s98 v97
    {-# INLINE rule181 #-}
@@ -3511,15 +3512,15 @@ sem_MaybeImportSpecification_Nothing  = T_MaybeImportSpecification (return st98)
 sem_MaybeImportSpecification_Just :: T_ImportSpecification  -> T_MaybeImportSpecification 
 sem_MaybeImportSpecification_Just arg_importspecification_ = T_MaybeImportSpecification (return st98) where
    {-# NOINLINE st98 #-}
-   st98 = let
+   !st98 = let
       v97 :: T_MaybeImportSpecification_v97 
-      v97 = \ (T_MaybeImportSpecification_vIn97 ) -> ( let
+      v97 = \ !(T_MaybeImportSpecification_vIn97 ) -> ( let
          _importspecificationX77 = Control.Monad.Identity.runIdentity (attach_T_ImportSpecification (arg_importspecification_))
          (T_ImportSpecification_vOut76 _importspecificationItext) = inv_ImportSpecification_s77 _importspecificationX77 (T_ImportSpecification_vIn76 )
          _text = rule183 _importspecificationItext
          _lhsOtext ::         Maybe Doc  
          _lhsOtext = rule184 _text
-         __result_ = T_MaybeImportSpecification_vOut97 _lhsOtext
+         !__result_ = T_MaybeImportSpecification_vOut97 _lhsOtext
          in __result_ )
      in C_MaybeImportSpecification_s98 v97
    {-# INLINE rule183 #-}
@@ -3532,14 +3533,14 @@ sem_MaybeImportSpecification_Just arg_importspecification_ = T_MaybeImportSpecif
 -- MaybeInt ----------------------------------------------------
 -- wrapper
 data Inh_MaybeInt  = Inh_MaybeInt {  }
-data Syn_MaybeInt  = Syn_MaybeInt { text_Syn_MaybeInt :: (        Maybe Doc  ) }
+data Syn_MaybeInt  = Syn_MaybeInt { text_Syn_MaybeInt :: !(        Maybe Doc  ) }
 {-# INLINABLE wrap_MaybeInt #-}
 wrap_MaybeInt :: T_MaybeInt  -> Inh_MaybeInt  -> (Syn_MaybeInt )
-wrap_MaybeInt (T_MaybeInt act) (Inh_MaybeInt ) =
+wrap_MaybeInt !(T_MaybeInt act) !(Inh_MaybeInt ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg100 = T_MaybeInt_vIn100 
-        (T_MaybeInt_vOut100 _lhsOtext) <- return (inv_MaybeInt_s101 sem arg100)
+        !(T_MaybeInt_vOut100 _lhsOtext) <- return (inv_MaybeInt_s101 sem arg100)
         return (Syn_MaybeInt _lhsOtext)
    )
 
@@ -3547,7 +3548,7 @@ wrap_MaybeInt (T_MaybeInt act) (Inh_MaybeInt ) =
 {-# NOINLINE sem_MaybeInt #-}
 sem_MaybeInt :: MaybeInt  -> T_MaybeInt 
 sem_MaybeInt ( MaybeInt_Nothing  ) = sem_MaybeInt_Nothing 
-sem_MaybeInt ( MaybeInt_Just int_ ) = sem_MaybeInt_Just int_
+sem_MaybeInt ( MaybeInt_Just !int_ ) = sem_MaybeInt_Just int_
 
 -- semantic domain
 newtype T_MaybeInt  = T_MaybeInt {
@@ -3564,13 +3565,13 @@ data T_MaybeInt_vOut100  = T_MaybeInt_vOut100 (        Maybe Doc  )
 sem_MaybeInt_Nothing ::  T_MaybeInt 
 sem_MaybeInt_Nothing  = T_MaybeInt (return st101) where
    {-# NOINLINE st101 #-}
-   st101 = let
+   !st101 = let
       v100 :: T_MaybeInt_v100 
-      v100 = \ (T_MaybeInt_vIn100 ) -> ( let
+      v100 = \ !(T_MaybeInt_vIn100 ) -> ( let
          _text = rule185  ()
          _lhsOtext ::         Maybe Doc  
          _lhsOtext = rule186 _text
-         __result_ = T_MaybeInt_vOut100 _lhsOtext
+         !__result_ = T_MaybeInt_vOut100 _lhsOtext
          in __result_ )
      in C_MaybeInt_s101 v100
    {-# INLINE rule185 #-}
@@ -3581,15 +3582,15 @@ sem_MaybeInt_Nothing  = T_MaybeInt (return st101) where
      _text
 {-# NOINLINE sem_MaybeInt_Just #-}
 sem_MaybeInt_Just :: (Int) -> T_MaybeInt 
-sem_MaybeInt_Just arg_int_ = T_MaybeInt (return st101) where
+sem_MaybeInt_Just !arg_int_ = T_MaybeInt (return st101) where
    {-# NOINLINE st101 #-}
-   st101 = let
+   !st101 = let
       v100 :: T_MaybeInt_v100 
-      v100 = \ (T_MaybeInt_vIn100 ) -> ( let
+      v100 = \ !(T_MaybeInt_vIn100 ) -> ( let
          _text = rule187 arg_int_
          _lhsOtext ::         Maybe Doc  
          _lhsOtext = rule188 _text
-         __result_ = T_MaybeInt_vOut100 _lhsOtext
+         !__result_ = T_MaybeInt_vOut100 _lhsOtext
          in __result_ )
      in C_MaybeInt_s101 v100
    {-# INLINE rule187 #-}
@@ -3602,14 +3603,14 @@ sem_MaybeInt_Just arg_int_ = T_MaybeInt (return st101) where
 -- MaybeName ---------------------------------------------------
 -- wrapper
 data Inh_MaybeName  = Inh_MaybeName {  }
-data Syn_MaybeName  = Syn_MaybeName { text_Syn_MaybeName :: (        Maybe Doc  ) }
+data Syn_MaybeName  = Syn_MaybeName { text_Syn_MaybeName :: !(        Maybe Doc  ) }
 {-# INLINABLE wrap_MaybeName #-}
 wrap_MaybeName :: T_MaybeName  -> Inh_MaybeName  -> (Syn_MaybeName )
-wrap_MaybeName (T_MaybeName act) (Inh_MaybeName ) =
+wrap_MaybeName !(T_MaybeName act) !(Inh_MaybeName ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg103 = T_MaybeName_vIn103 
-        (T_MaybeName_vOut103 _lhsOtext) <- return (inv_MaybeName_s104 sem arg103)
+        !(T_MaybeName_vOut103 _lhsOtext) <- return (inv_MaybeName_s104 sem arg103)
         return (Syn_MaybeName _lhsOtext)
    )
 
@@ -3634,13 +3635,13 @@ data T_MaybeName_vOut103  = T_MaybeName_vOut103 (        Maybe Doc  )
 sem_MaybeName_Nothing ::  T_MaybeName 
 sem_MaybeName_Nothing  = T_MaybeName (return st104) where
    {-# NOINLINE st104 #-}
-   st104 = let
+   !st104 = let
       v103 :: T_MaybeName_v103 
-      v103 = \ (T_MaybeName_vIn103 ) -> ( let
+      v103 = \ !(T_MaybeName_vIn103 ) -> ( let
          _text = rule189  ()
          _lhsOtext ::         Maybe Doc  
          _lhsOtext = rule190 _text
-         __result_ = T_MaybeName_vOut103 _lhsOtext
+         !__result_ = T_MaybeName_vOut103 _lhsOtext
          in __result_ )
      in C_MaybeName_s104 v103
    {-# INLINE rule189 #-}
@@ -3653,15 +3654,15 @@ sem_MaybeName_Nothing  = T_MaybeName (return st104) where
 sem_MaybeName_Just :: T_Name  -> T_MaybeName 
 sem_MaybeName_Just arg_name_ = T_MaybeName (return st104) where
    {-# NOINLINE st104 #-}
-   st104 = let
+   !st104 = let
       v103 :: T_MaybeName_v103 
-      v103 = \ (T_MaybeName_vIn103 ) -> ( let
+      v103 = \ !(T_MaybeName_vIn103 ) -> ( let
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Name_vOut112 _nameIisIdentifier _nameIisOperator _nameIisSpecial _nameItext) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          _text = rule191 _nameItext
          _lhsOtext ::         Maybe Doc  
          _lhsOtext = rule192 _text
-         __result_ = T_MaybeName_vOut103 _lhsOtext
+         !__result_ = T_MaybeName_vOut103 _lhsOtext
          in __result_ )
      in C_MaybeName_s104 v103
    {-# INLINE rule191 #-}
@@ -3674,14 +3675,14 @@ sem_MaybeName_Just arg_name_ = T_MaybeName (return st104) where
 -- MaybeNames --------------------------------------------------
 -- wrapper
 data Inh_MaybeNames  = Inh_MaybeNames {  }
-data Syn_MaybeNames  = Syn_MaybeNames { text_Syn_MaybeNames :: ( Maybe [       Doc ] ) }
+data Syn_MaybeNames  = Syn_MaybeNames { text_Syn_MaybeNames :: !( Maybe [       Doc ] ) }
 {-# INLINABLE wrap_MaybeNames #-}
 wrap_MaybeNames :: T_MaybeNames  -> Inh_MaybeNames  -> (Syn_MaybeNames )
-wrap_MaybeNames (T_MaybeNames act) (Inh_MaybeNames ) =
+wrap_MaybeNames !(T_MaybeNames act) !(Inh_MaybeNames ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg106 = T_MaybeNames_vIn106 
-        (T_MaybeNames_vOut106 _lhsOtext) <- return (inv_MaybeNames_s107 sem arg106)
+        !(T_MaybeNames_vOut106 _lhsOtext) <- return (inv_MaybeNames_s107 sem arg106)
         return (Syn_MaybeNames _lhsOtext)
    )
 
@@ -3706,13 +3707,13 @@ data T_MaybeNames_vOut106  = T_MaybeNames_vOut106 ( Maybe [       Doc ] )
 sem_MaybeNames_Nothing ::  T_MaybeNames 
 sem_MaybeNames_Nothing  = T_MaybeNames (return st107) where
    {-# NOINLINE st107 #-}
-   st107 = let
+   !st107 = let
       v106 :: T_MaybeNames_v106 
-      v106 = \ (T_MaybeNames_vIn106 ) -> ( let
+      v106 = \ !(T_MaybeNames_vIn106 ) -> ( let
          _text = rule193  ()
          _lhsOtext ::  Maybe [       Doc ] 
          _lhsOtext = rule194 _text
-         __result_ = T_MaybeNames_vOut106 _lhsOtext
+         !__result_ = T_MaybeNames_vOut106 _lhsOtext
          in __result_ )
      in C_MaybeNames_s107 v106
    {-# INLINE rule193 #-}
@@ -3725,15 +3726,15 @@ sem_MaybeNames_Nothing  = T_MaybeNames (return st107) where
 sem_MaybeNames_Just :: T_Names  -> T_MaybeNames 
 sem_MaybeNames_Just arg_names_ = T_MaybeNames (return st107) where
    {-# NOINLINE st107 #-}
-   st107 = let
+   !st107 = let
       v106 :: T_MaybeNames_v106 
-      v106 = \ (T_MaybeNames_vIn106 ) -> ( let
+      v106 = \ !(T_MaybeNames_vIn106 ) -> ( let
          _namesX116 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_names_))
          (T_Names_vOut115 _namesIisIdentifier _namesIisOperator _namesIisSpecial _namesItext) = inv_Names_s116 _namesX116 (T_Names_vIn115 )
          _text = rule195 _namesItext
          _lhsOtext ::  Maybe [       Doc ] 
          _lhsOtext = rule196 _text
-         __result_ = T_MaybeNames_vOut106 _lhsOtext
+         !__result_ = T_MaybeNames_vOut106 _lhsOtext
          in __result_ )
      in C_MaybeNames_s107 v106
    {-# INLINE rule195 #-}
@@ -3746,14 +3747,14 @@ sem_MaybeNames_Just arg_names_ = T_MaybeNames (return st107) where
 -- Module ------------------------------------------------------
 -- wrapper
 data Inh_Module  = Inh_Module {  }
-data Syn_Module  = Syn_Module { text_Syn_Module :: (Doc) }
+data Syn_Module  = Syn_Module { text_Syn_Module :: !(Doc) }
 {-# INLINABLE wrap_Module #-}
 wrap_Module :: T_Module  -> Inh_Module  -> (Syn_Module )
-wrap_Module (T_Module act) (Inh_Module ) =
+wrap_Module !(T_Module act) !(Inh_Module ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg109 = T_Module_vIn109 
-        (T_Module_vOut109 _lhsOtext) <- return (inv_Module_s110 sem arg109)
+        !(T_Module_vOut109 _lhsOtext) <- return (inv_Module_s110 sem arg109)
         return (Syn_Module _lhsOtext)
    )
 
@@ -3777,9 +3778,9 @@ data T_Module_vOut109  = T_Module_vOut109 (Doc)
 sem_Module_Module :: T_Range  -> T_MaybeName  -> T_MaybeExports  -> T_Body  -> T_Module 
 sem_Module_Module arg_range_ arg_name_ arg_exports_ arg_body_ = T_Module (return st110) where
    {-# NOINLINE st110 #-}
-   st110 = let
+   !st110 = let
       v109 :: T_Module_v109 
-      v109 = \ (T_Module_vIn109 ) -> ( let
+      v109 = \ !(T_Module_vIn109 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX104 = Control.Monad.Identity.runIdentity (attach_T_MaybeName (arg_name_))
          _exportsX92 = Control.Monad.Identity.runIdentity (attach_T_MaybeExports (arg_exports_))
@@ -3791,7 +3792,7 @@ sem_Module_Module arg_range_ arg_name_ arg_exports_ arg_body_ = T_Module (return
          _text = rule197 _bodyItext _exportsItext _nameItext
          _lhsOtext :: Doc
          _lhsOtext = rule198 _text
-         __result_ = T_Module_vOut109 _lhsOtext
+         !__result_ = T_Module_vOut109 _lhsOtext
          in __result_ )
      in C_Module_s110 v109
    {-# INLINE rule197 #-}
@@ -3817,23 +3818,23 @@ sem_Module_Module arg_range_ arg_name_ arg_exports_ arg_body_ = T_Module (return
 -- Name --------------------------------------------------------
 -- wrapper
 data Inh_Name  = Inh_Name {  }
-data Syn_Name  = Syn_Name { isIdentifier_Syn_Name :: (Bool), isOperator_Syn_Name :: (Bool), isSpecial_Syn_Name :: (Bool), text_Syn_Name :: (Doc) }
+data Syn_Name  = Syn_Name { isIdentifier_Syn_Name :: !(Bool), isOperator_Syn_Name :: !(Bool), isSpecial_Syn_Name :: !(Bool), text_Syn_Name :: !(Doc) }
 {-# INLINABLE wrap_Name #-}
 wrap_Name :: T_Name  -> Inh_Name  -> (Syn_Name )
-wrap_Name (T_Name act) (Inh_Name ) =
+wrap_Name !(T_Name act) !(Inh_Name ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg112 = T_Name_vIn112 
-        (T_Name_vOut112 _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext) <- return (inv_Name_s113 sem arg112)
+        !(T_Name_vOut112 _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext) <- return (inv_Name_s113 sem arg112)
         return (Syn_Name _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext)
    )
 
 -- cata
 {-# NOINLINE sem_Name #-}
 sem_Name :: Name  -> T_Name 
-sem_Name ( Name_Identifier range_ module_ name_ ) = sem_Name_Identifier ( sem_Range range_ ) ( sem_Strings module_ ) name_
-sem_Name ( Name_Operator range_ module_ name_ ) = sem_Name_Operator ( sem_Range range_ ) ( sem_Strings module_ ) name_
-sem_Name ( Name_Special range_ module_ name_ ) = sem_Name_Special ( sem_Range range_ ) ( sem_Strings module_ ) name_
+sem_Name ( Name_Identifier range_ module_ !origin_ !name_ ) = sem_Name_Identifier ( sem_Range range_ ) ( sem_Strings module_ ) origin_ name_
+sem_Name ( Name_Operator range_ module_ !origin_ !name_ ) = sem_Name_Operator ( sem_Range range_ ) ( sem_Strings module_ ) origin_ name_
+sem_Name ( Name_Special range_ module_ !origin_ !name_ ) = sem_Name_Special ( sem_Range range_ ) ( sem_Strings module_ ) origin_ name_
 
 -- semantic domain
 newtype T_Name  = T_Name {
@@ -3847,12 +3848,12 @@ type T_Name_v112  = (T_Name_vIn112 ) -> (T_Name_vOut112 )
 data T_Name_vIn112  = T_Name_vIn112 
 data T_Name_vOut112  = T_Name_vOut112 (Bool) (Bool) (Bool) (Doc)
 {-# NOINLINE sem_Name_Identifier #-}
-sem_Name_Identifier :: T_Range  -> T_Strings  -> (String) -> T_Name 
-sem_Name_Identifier arg_range_ arg_module_ arg_name_ = T_Name (return st113) where
+sem_Name_Identifier :: T_Range  -> T_Strings  -> (String) -> (String) -> T_Name 
+sem_Name_Identifier arg_range_ arg_module_ _ !arg_name_ = T_Name (return st113) where
    {-# NOINLINE st113 #-}
-   st113 = let
+   !st113 = let
       v112 :: T_Name_v112 
-      v112 = \ (T_Name_vIn112 ) -> ( let
+      v112 = \ !(T_Name_vIn112 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _moduleX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_module_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -3866,7 +3867,7 @@ sem_Name_Identifier arg_range_ arg_module_ arg_name_ = T_Name (return st113) whe
          _lhsOisSpecial = rule202  ()
          _lhsOtext :: Doc
          _lhsOtext = rule203 _text
-         __result_ = T_Name_vOut112 _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext
+         !__result_ = T_Name_vOut112 _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext
          in __result_ )
      in C_Name_s113 v112
    {-# INLINE rule199 #-}
@@ -3885,12 +3886,12 @@ sem_Name_Identifier arg_range_ arg_module_ arg_name_ = T_Name (return st113) whe
    rule203 = \ _text ->
      _text
 {-# NOINLINE sem_Name_Operator #-}
-sem_Name_Operator :: T_Range  -> T_Strings  -> (String) -> T_Name 
-sem_Name_Operator arg_range_ arg_module_ arg_name_ = T_Name (return st113) where
+sem_Name_Operator :: T_Range  -> T_Strings  -> (String) -> (String) -> T_Name 
+sem_Name_Operator arg_range_ arg_module_ _ !arg_name_ = T_Name (return st113) where
    {-# NOINLINE st113 #-}
-   st113 = let
+   !st113 = let
       v112 :: T_Name_v112 
-      v112 = \ (T_Name_vIn112 ) -> ( let
+      v112 = \ !(T_Name_vIn112 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _moduleX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_module_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -3904,7 +3905,7 @@ sem_Name_Operator arg_range_ arg_module_ arg_name_ = T_Name (return st113) where
          _lhsOisSpecial = rule207  ()
          _lhsOtext :: Doc
          _lhsOtext = rule208 _text
-         __result_ = T_Name_vOut112 _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext
+         !__result_ = T_Name_vOut112 _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext
          in __result_ )
      in C_Name_s113 v112
    {-# INLINE rule204 #-}
@@ -3923,12 +3924,12 @@ sem_Name_Operator arg_range_ arg_module_ arg_name_ = T_Name (return st113) where
    rule208 = \ _text ->
      _text
 {-# NOINLINE sem_Name_Special #-}
-sem_Name_Special :: T_Range  -> T_Strings  -> (String) -> T_Name 
-sem_Name_Special arg_range_ arg_module_ arg_name_ = T_Name (return st113) where
+sem_Name_Special :: T_Range  -> T_Strings  -> (String) -> (String) -> T_Name 
+sem_Name_Special arg_range_ arg_module_ _ !arg_name_ = T_Name (return st113) where
    {-# NOINLINE st113 #-}
-   st113 = let
+   !st113 = let
       v112 :: T_Name_v112 
-      v112 = \ (T_Name_vIn112 ) -> ( let
+      v112 = \ !(T_Name_vIn112 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _moduleX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_module_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -3942,7 +3943,7 @@ sem_Name_Special arg_range_ arg_module_ arg_name_ = T_Name (return st113) where
          _lhsOisOperator = rule212  ()
          _lhsOtext :: Doc
          _lhsOtext = rule213 _text
-         __result_ = T_Name_vOut112 _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext
+         !__result_ = T_Name_vOut112 _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext
          in __result_ )
      in C_Name_s113 v112
    {-# INLINE rule209 #-}
@@ -3964,14 +3965,14 @@ sem_Name_Special arg_range_ arg_module_ arg_name_ = T_Name (return st113) where
 -- Names -------------------------------------------------------
 -- wrapper
 data Inh_Names  = Inh_Names {  }
-data Syn_Names  = Syn_Names { isIdentifier_Syn_Names :: ( [Bool] ), isOperator_Syn_Names :: ( [Bool] ), isSpecial_Syn_Names :: ( [Bool] ), text_Syn_Names :: ( [       Doc ] ) }
+data Syn_Names  = Syn_Names { isIdentifier_Syn_Names :: !( [Bool] ), isOperator_Syn_Names :: !( [Bool] ), isSpecial_Syn_Names :: !( [Bool] ), text_Syn_Names :: !( [       Doc ] ) }
 {-# INLINABLE wrap_Names #-}
 wrap_Names :: T_Names  -> Inh_Names  -> (Syn_Names )
-wrap_Names (T_Names act) (Inh_Names ) =
+wrap_Names !(T_Names act) !(Inh_Names ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg115 = T_Names_vIn115 
-        (T_Names_vOut115 _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext) <- return (inv_Names_s116 sem arg115)
+        !(T_Names_vOut115 _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext) <- return (inv_Names_s116 sem arg115)
         return (Syn_Names _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext)
    )
 
@@ -3995,9 +3996,9 @@ data T_Names_vOut115  = T_Names_vOut115 ( [Bool] ) ( [Bool] ) ( [Bool] ) ( [    
 sem_Names_Cons :: T_Name  -> T_Names  -> T_Names 
 sem_Names_Cons arg_hd_ arg_tl_ = T_Names (return st116) where
    {-# NOINLINE st116 #-}
-   st116 = let
+   !st116 = let
       v115 :: T_Names_v115 
-      v115 = \ (T_Names_vIn115 ) -> ( let
+      v115 = \ !(T_Names_vIn115 ) -> ( let
          _hdX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_hd_))
          _tlX116 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_tl_))
          (T_Name_vOut112 _hdIisIdentifier _hdIisOperator _hdIisSpecial _hdItext) = inv_Name_s113 _hdX113 (T_Name_vIn112 )
@@ -4010,7 +4011,7 @@ sem_Names_Cons arg_hd_ arg_tl_ = T_Names (return st116) where
          _lhsOisSpecial = rule216 _hdIisSpecial _tlIisSpecial
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule217 _hdItext _tlItext
-         __result_ = T_Names_vOut115 _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext
+         !__result_ = T_Names_vOut115 _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext
          in __result_ )
      in C_Names_s116 v115
    {-# INLINE rule214 #-}
@@ -4029,9 +4030,9 @@ sem_Names_Cons arg_hd_ arg_tl_ = T_Names (return st116) where
 sem_Names_Nil ::  T_Names 
 sem_Names_Nil  = T_Names (return st116) where
    {-# NOINLINE st116 #-}
-   st116 = let
+   !st116 = let
       v115 :: T_Names_v115 
-      v115 = \ (T_Names_vIn115 ) -> ( let
+      v115 = \ !(T_Names_vIn115 ) -> ( let
          _lhsOisIdentifier ::  [Bool] 
          _lhsOisIdentifier = rule218  ()
          _lhsOisOperator ::  [Bool] 
@@ -4040,7 +4041,7 @@ sem_Names_Nil  = T_Names (return st116) where
          _lhsOisSpecial = rule220  ()
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule221  ()
-         __result_ = T_Names_vOut115 _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext
+         !__result_ = T_Names_vOut115 _lhsOisIdentifier _lhsOisOperator _lhsOisSpecial _lhsOtext
          in __result_ )
      in C_Names_s116 v115
    {-# INLINE rule218 #-}
@@ -4059,21 +4060,21 @@ sem_Names_Nil  = T_Names (return st116) where
 -- Pattern -----------------------------------------------------
 -- wrapper
 data Inh_Pattern  = Inh_Pattern {  }
-data Syn_Pattern  = Syn_Pattern { text_Syn_Pattern :: (Doc) }
+data Syn_Pattern  = Syn_Pattern { text_Syn_Pattern :: !(Doc) }
 {-# INLINABLE wrap_Pattern #-}
 wrap_Pattern :: T_Pattern  -> Inh_Pattern  -> (Syn_Pattern )
-wrap_Pattern (T_Pattern act) (Inh_Pattern ) =
+wrap_Pattern !(T_Pattern act) !(Inh_Pattern ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg118 = T_Pattern_vIn118 
-        (T_Pattern_vOut118 _lhsOtext) <- return (inv_Pattern_s119 sem arg118)
+        !(T_Pattern_vOut118 _lhsOtext) <- return (inv_Pattern_s119 sem arg118)
         return (Syn_Pattern _lhsOtext)
    )
 
 -- cata
 {-# NOINLINE sem_Pattern #-}
 sem_Pattern :: Pattern  -> T_Pattern 
-sem_Pattern ( Pattern_Hole range_ id_ ) = sem_Pattern_Hole ( sem_Range range_ ) id_
+sem_Pattern ( Pattern_Hole range_ !id_ ) = sem_Pattern_Hole ( sem_Range range_ ) id_
 sem_Pattern ( Pattern_Literal range_ literal_ ) = sem_Pattern_Literal ( sem_Range range_ ) ( sem_Literal literal_ )
 sem_Pattern ( Pattern_Variable range_ name_ ) = sem_Pattern_Variable ( sem_Range range_ ) ( sem_Name name_ )
 sem_Pattern ( Pattern_Constructor range_ name_ patterns_ ) = sem_Pattern_Constructor ( sem_Range range_ ) ( sem_Name name_ ) ( sem_Patterns patterns_ )
@@ -4104,15 +4105,15 @@ data T_Pattern_vOut118  = T_Pattern_vOut118 (Doc)
 sem_Pattern_Hole :: T_Range  -> (String) -> T_Pattern 
 sem_Pattern_Hole arg_range_ _ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _text = rule222  ()
          _lhsOtext :: Doc
          _lhsOtext = rule223 _text
-         __result_ = T_Pattern_vOut118 _lhsOtext
+         !__result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule222 #-}
@@ -4125,9 +4126,9 @@ sem_Pattern_Hole arg_range_ _ = T_Pattern (return st119) where
 sem_Pattern_Literal :: T_Range  -> T_Literal  -> T_Pattern 
 sem_Pattern_Literal arg_range_ arg_literal_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _literalX86 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -4135,7 +4136,7 @@ sem_Pattern_Literal arg_range_ arg_literal_ = T_Pattern (return st119) where
          _text = rule224 _literalItext
          _lhsOtext :: Doc
          _lhsOtext = rule225 _text
-         __result_ = T_Pattern_vOut118 _lhsOtext
+         !__result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule224 #-}
@@ -4148,9 +4149,9 @@ sem_Pattern_Literal arg_range_ arg_literal_ = T_Pattern (return st119) where
 sem_Pattern_Variable :: T_Range  -> T_Name  -> T_Pattern 
 sem_Pattern_Variable arg_range_ arg_name_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -4158,7 +4159,7 @@ sem_Pattern_Variable arg_range_ arg_name_ = T_Pattern (return st119) where
          _text = rule226 _nameIisOperator _nameItext
          _lhsOtext :: Doc
          _lhsOtext = rule227 _text
-         __result_ = T_Pattern_vOut118 _lhsOtext
+         !__result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule226 #-}
@@ -4171,9 +4172,9 @@ sem_Pattern_Variable arg_range_ arg_name_ = T_Pattern (return st119) where
 sem_Pattern_Constructor :: T_Range  -> T_Name  -> T_Patterns  -> T_Pattern 
 sem_Pattern_Constructor arg_range_ arg_name_ arg_patterns_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _patternsX122 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
@@ -4183,7 +4184,7 @@ sem_Pattern_Constructor arg_range_ arg_name_ arg_patterns_ = T_Pattern (return s
          _text = rule228 _nameIisOperator _nameItext _patternsItext
          _lhsOtext :: Doc
          _lhsOtext = rule229 _text
-         __result_ = T_Pattern_vOut118 _lhsOtext
+         !__result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule228 #-}
@@ -4196,9 +4197,9 @@ sem_Pattern_Constructor arg_range_ arg_name_ arg_patterns_ = T_Pattern (return s
 sem_Pattern_Parenthesized :: T_Range  -> T_Pattern  -> T_Pattern 
 sem_Pattern_Parenthesized arg_range_ arg_pattern_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -4206,7 +4207,7 @@ sem_Pattern_Parenthesized arg_range_ arg_pattern_ = T_Pattern (return st119) whe
          _text = rule230 _patternItext
          _lhsOtext :: Doc
          _lhsOtext = rule231 _text
-         __result_ = T_Pattern_vOut118 _lhsOtext
+         !__result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule230 #-}
@@ -4219,9 +4220,9 @@ sem_Pattern_Parenthesized arg_range_ arg_pattern_ = T_Pattern (return st119) whe
 sem_Pattern_InfixConstructor :: T_Range  -> T_Pattern  -> T_Name  -> T_Pattern  -> T_Pattern 
 sem_Pattern_InfixConstructor arg_range_ arg_leftPattern_ arg_constructorOperator_ arg_rightPattern_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _leftPatternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_leftPattern_))
          _constructorOperatorX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_constructorOperator_))
@@ -4233,7 +4234,7 @@ sem_Pattern_InfixConstructor arg_range_ arg_leftPattern_ arg_constructorOperator
          _text = rule232 _constructorOperatorItext _leftPatternItext _rightPatternItext
          _lhsOtext :: Doc
          _lhsOtext = rule233 _text
-         __result_ = T_Pattern_vOut118 _lhsOtext
+         !__result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule232 #-}
@@ -4246,9 +4247,9 @@ sem_Pattern_InfixConstructor arg_range_ arg_leftPattern_ arg_constructorOperator
 sem_Pattern_List :: T_Range  -> T_Patterns  -> T_Pattern 
 sem_Pattern_List arg_range_ arg_patterns_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternsX122 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -4256,7 +4257,7 @@ sem_Pattern_List arg_range_ arg_patterns_ = T_Pattern (return st119) where
          _text = rule234 _patternsItext
          _lhsOtext :: Doc
          _lhsOtext = rule235 _text
-         __result_ = T_Pattern_vOut118 _lhsOtext
+         !__result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule234 #-}
@@ -4269,9 +4270,9 @@ sem_Pattern_List arg_range_ arg_patterns_ = T_Pattern (return st119) where
 sem_Pattern_Tuple :: T_Range  -> T_Patterns  -> T_Pattern 
 sem_Pattern_Tuple arg_range_ arg_patterns_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternsX122 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -4279,7 +4280,7 @@ sem_Pattern_Tuple arg_range_ arg_patterns_ = T_Pattern (return st119) where
          _text = rule236 _patternsItext
          _lhsOtext :: Doc
          _lhsOtext = rule237 _text
-         __result_ = T_Pattern_vOut118 _lhsOtext
+         !__result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule236 #-}
@@ -4292,9 +4293,9 @@ sem_Pattern_Tuple arg_range_ arg_patterns_ = T_Pattern (return st119) where
 sem_Pattern_Record :: T_Range  -> T_Name  -> T_RecordPatternBindings  -> T_Pattern 
 sem_Pattern_Record arg_range_ arg_name_ arg_recordPatternBindings_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _recordPatternBindingsX146 = Control.Monad.Identity.runIdentity (attach_T_RecordPatternBindings (arg_recordPatternBindings_))
@@ -4304,7 +4305,7 @@ sem_Pattern_Record arg_range_ arg_name_ arg_recordPatternBindings_ = T_Pattern (
          _text = rule238  ()
          _lhsOtext :: Doc
          _lhsOtext = rule239 _text
-         __result_ = T_Pattern_vOut118 _lhsOtext
+         !__result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule238 #-}
@@ -4317,9 +4318,9 @@ sem_Pattern_Record arg_range_ arg_name_ arg_recordPatternBindings_ = T_Pattern (
 sem_Pattern_Negate :: T_Range  -> T_Literal  -> T_Pattern 
 sem_Pattern_Negate arg_range_ arg_literal_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _literalX86 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -4327,7 +4328,7 @@ sem_Pattern_Negate arg_range_ arg_literal_ = T_Pattern (return st119) where
          _text = rule240 _literalItext
          _lhsOtext :: Doc
          _lhsOtext = rule241 _text
-         __result_ = T_Pattern_vOut118 _lhsOtext
+         !__result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule240 #-}
@@ -4340,9 +4341,9 @@ sem_Pattern_Negate arg_range_ arg_literal_ = T_Pattern (return st119) where
 sem_Pattern_As :: T_Range  -> T_Name  -> T_Pattern  -> T_Pattern 
 sem_Pattern_As arg_range_ arg_name_ arg_pattern_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
@@ -4352,7 +4353,7 @@ sem_Pattern_As arg_range_ arg_name_ arg_pattern_ = T_Pattern (return st119) wher
          _text = rule242 _nameItext _patternItext
          _lhsOtext :: Doc
          _lhsOtext = rule243 _text
-         __result_ = T_Pattern_vOut118 _lhsOtext
+         !__result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule242 #-}
@@ -4365,15 +4366,15 @@ sem_Pattern_As arg_range_ arg_name_ arg_pattern_ = T_Pattern (return st119) wher
 sem_Pattern_Wildcard :: T_Range  -> T_Pattern 
 sem_Pattern_Wildcard arg_range_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _text = rule244  ()
          _lhsOtext :: Doc
          _lhsOtext = rule245 _text
-         __result_ = T_Pattern_vOut118 _lhsOtext
+         !__result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule244 #-}
@@ -4386,9 +4387,9 @@ sem_Pattern_Wildcard arg_range_ = T_Pattern (return st119) where
 sem_Pattern_Irrefutable :: T_Range  -> T_Pattern  -> T_Pattern 
 sem_Pattern_Irrefutable arg_range_ arg_pattern_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -4396,7 +4397,7 @@ sem_Pattern_Irrefutable arg_range_ arg_pattern_ = T_Pattern (return st119) where
          _text = rule246 _patternItext
          _lhsOtext :: Doc
          _lhsOtext = rule247 _text
-         __result_ = T_Pattern_vOut118 _lhsOtext
+         !__result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule246 #-}
@@ -4409,9 +4410,9 @@ sem_Pattern_Irrefutable arg_range_ arg_pattern_ = T_Pattern (return st119) where
 sem_Pattern_Successor :: T_Range  -> T_Name  -> T_Literal  -> T_Pattern 
 sem_Pattern_Successor arg_range_ arg_name_ arg_literal_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _literalX86 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
@@ -4421,7 +4422,7 @@ sem_Pattern_Successor arg_range_ arg_name_ arg_literal_ = T_Pattern (return st11
          _text = rule248 _literalItext _nameItext
          _lhsOtext :: Doc
          _lhsOtext = rule249 _text
-         __result_ = T_Pattern_vOut118 _lhsOtext
+         !__result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule248 #-}
@@ -4434,9 +4435,9 @@ sem_Pattern_Successor arg_range_ arg_name_ arg_literal_ = T_Pattern (return st11
 sem_Pattern_NegateFloat :: T_Range  -> T_Literal  -> T_Pattern 
 sem_Pattern_NegateFloat arg_range_ arg_literal_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _literalX86 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -4444,7 +4445,7 @@ sem_Pattern_NegateFloat arg_range_ arg_literal_ = T_Pattern (return st119) where
          _text = rule250 _literalItext
          _lhsOtext :: Doc
          _lhsOtext = rule251 _text
-         __result_ = T_Pattern_vOut118 _lhsOtext
+         !__result_ = T_Pattern_vOut118 _lhsOtext
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule250 #-}
@@ -4457,14 +4458,14 @@ sem_Pattern_NegateFloat arg_range_ arg_literal_ = T_Pattern (return st119) where
 -- Patterns ----------------------------------------------------
 -- wrapper
 data Inh_Patterns  = Inh_Patterns {  }
-data Syn_Patterns  = Syn_Patterns { text_Syn_Patterns :: ( [       Doc ] ) }
+data Syn_Patterns  = Syn_Patterns { text_Syn_Patterns :: !( [       Doc ] ) }
 {-# INLINABLE wrap_Patterns #-}
 wrap_Patterns :: T_Patterns  -> Inh_Patterns  -> (Syn_Patterns )
-wrap_Patterns (T_Patterns act) (Inh_Patterns ) =
+wrap_Patterns !(T_Patterns act) !(Inh_Patterns ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg121 = T_Patterns_vIn121 
-        (T_Patterns_vOut121 _lhsOtext) <- return (inv_Patterns_s122 sem arg121)
+        !(T_Patterns_vOut121 _lhsOtext) <- return (inv_Patterns_s122 sem arg121)
         return (Syn_Patterns _lhsOtext)
    )
 
@@ -4488,16 +4489,16 @@ data T_Patterns_vOut121  = T_Patterns_vOut121 ( [       Doc ] )
 sem_Patterns_Cons :: T_Pattern  -> T_Patterns  -> T_Patterns 
 sem_Patterns_Cons arg_hd_ arg_tl_ = T_Patterns (return st122) where
    {-# NOINLINE st122 #-}
-   st122 = let
+   !st122 = let
       v121 :: T_Patterns_v121 
-      v121 = \ (T_Patterns_vIn121 ) -> ( let
+      v121 = \ !(T_Patterns_vIn121 ) -> ( let
          _hdX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_hd_))
          _tlX122 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_tl_))
          (T_Pattern_vOut118 _hdItext) = inv_Pattern_s119 _hdX119 (T_Pattern_vIn118 )
          (T_Patterns_vOut121 _tlItext) = inv_Patterns_s122 _tlX122 (T_Patterns_vIn121 )
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule252 _hdItext _tlItext
-         __result_ = T_Patterns_vOut121 _lhsOtext
+         !__result_ = T_Patterns_vOut121 _lhsOtext
          in __result_ )
      in C_Patterns_s122 v121
    {-# INLINE rule252 #-}
@@ -4507,12 +4508,12 @@ sem_Patterns_Cons arg_hd_ arg_tl_ = T_Patterns (return st122) where
 sem_Patterns_Nil ::  T_Patterns 
 sem_Patterns_Nil  = T_Patterns (return st122) where
    {-# NOINLINE st122 #-}
-   st122 = let
+   !st122 = let
       v121 :: T_Patterns_v121 
-      v121 = \ (T_Patterns_vIn121 ) -> ( let
+      v121 = \ !(T_Patterns_vIn121 ) -> ( let
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule253  ()
-         __result_ = T_Patterns_vOut121 _lhsOtext
+         !__result_ = T_Patterns_vOut121 _lhsOtext
          in __result_ )
      in C_Patterns_s122 v121
    {-# INLINE rule253 #-}
@@ -4522,21 +4523,21 @@ sem_Patterns_Nil  = T_Patterns (return st122) where
 -- Position ----------------------------------------------------
 -- wrapper
 data Inh_Position  = Inh_Position {  }
-data Syn_Position  = Syn_Position { text_Syn_Position :: (Doc) }
+data Syn_Position  = Syn_Position { text_Syn_Position :: !(Doc) }
 {-# INLINABLE wrap_Position #-}
 wrap_Position :: T_Position  -> Inh_Position  -> (Syn_Position )
-wrap_Position (T_Position act) (Inh_Position ) =
+wrap_Position !(T_Position act) !(Inh_Position ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg124 = T_Position_vIn124 
-        (T_Position_vOut124 _lhsOtext) <- return (inv_Position_s125 sem arg124)
+        !(T_Position_vOut124 _lhsOtext) <- return (inv_Position_s125 sem arg124)
         return (Syn_Position _lhsOtext)
    )
 
 -- cata
 {-# NOINLINE sem_Position #-}
 sem_Position :: Position  -> T_Position 
-sem_Position ( Position_Position filename_ line_ column_ ) = sem_Position_Position filename_ line_ column_
+sem_Position ( Position_Position !filename_ !line_ !column_ ) = sem_Position_Position filename_ line_ column_
 sem_Position ( Position_Unknown  ) = sem_Position_Unknown 
 
 -- semantic domain
@@ -4552,15 +4553,15 @@ data T_Position_vIn124  = T_Position_vIn124
 data T_Position_vOut124  = T_Position_vOut124 (Doc)
 {-# NOINLINE sem_Position_Position #-}
 sem_Position_Position :: (String) -> (Int) -> (Int) -> T_Position 
-sem_Position_Position arg_filename_ arg_line_ arg_column_ = T_Position (return st125) where
+sem_Position_Position !arg_filename_ !arg_line_ !arg_column_ = T_Position (return st125) where
    {-# NOINLINE st125 #-}
-   st125 = let
+   !st125 = let
       v124 :: T_Position_v124 
-      v124 = \ (T_Position_vIn124 ) -> ( let
+      v124 = \ !(T_Position_vIn124 ) -> ( let
          _text = rule254 arg_column_ arg_filename_ arg_line_
          _lhsOtext :: Doc
          _lhsOtext = rule255 _text
-         __result_ = T_Position_vOut124 _lhsOtext
+         !__result_ = T_Position_vOut124 _lhsOtext
          in __result_ )
      in C_Position_s125 v124
    {-# INLINE rule254 #-}
@@ -4573,13 +4574,13 @@ sem_Position_Position arg_filename_ arg_line_ arg_column_ = T_Position (return s
 sem_Position_Unknown ::  T_Position 
 sem_Position_Unknown  = T_Position (return st125) where
    {-# NOINLINE st125 #-}
-   st125 = let
+   !st125 = let
       v124 :: T_Position_v124 
-      v124 = \ (T_Position_vIn124 ) -> ( let
+      v124 = \ !(T_Position_vIn124 ) -> ( let
          _text = rule256  ()
          _lhsOtext :: Doc
          _lhsOtext = rule257 _text
-         __result_ = T_Position_vOut124 _lhsOtext
+         !__result_ = T_Position_vOut124 _lhsOtext
          in __result_ )
      in C_Position_s125 v124
    {-# INLINE rule256 #-}
@@ -4592,14 +4593,14 @@ sem_Position_Unknown  = T_Position (return st125) where
 -- Qualifier ---------------------------------------------------
 -- wrapper
 data Inh_Qualifier  = Inh_Qualifier {  }
-data Syn_Qualifier  = Syn_Qualifier { text_Syn_Qualifier :: (Doc) }
+data Syn_Qualifier  = Syn_Qualifier { text_Syn_Qualifier :: !(Doc) }
 {-# INLINABLE wrap_Qualifier #-}
 wrap_Qualifier :: T_Qualifier  -> Inh_Qualifier  -> (Syn_Qualifier )
-wrap_Qualifier (T_Qualifier act) (Inh_Qualifier ) =
+wrap_Qualifier !(T_Qualifier act) !(Inh_Qualifier ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg127 = T_Qualifier_vIn127 
-        (T_Qualifier_vOut127 _lhsOtext) <- return (inv_Qualifier_s128 sem arg127)
+        !(T_Qualifier_vOut127 _lhsOtext) <- return (inv_Qualifier_s128 sem arg127)
         return (Syn_Qualifier _lhsOtext)
    )
 
@@ -4626,9 +4627,9 @@ data T_Qualifier_vOut127  = T_Qualifier_vOut127 (Doc)
 sem_Qualifier_Guard :: T_Range  -> T_Expression  -> T_Qualifier 
 sem_Qualifier_Guard arg_range_ arg_guard_ = T_Qualifier (return st128) where
    {-# NOINLINE st128 #-}
-   st128 = let
+   !st128 = let
       v127 :: T_Qualifier_v127 
-      v127 = \ (T_Qualifier_vIn127 ) -> ( let
+      v127 = \ !(T_Qualifier_vIn127 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _guardX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_guard_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -4636,7 +4637,7 @@ sem_Qualifier_Guard arg_range_ arg_guard_ = T_Qualifier (return st128) where
          _text = rule258 _guardItext
          _lhsOtext :: Doc
          _lhsOtext = rule259 _text
-         __result_ = T_Qualifier_vOut127 _lhsOtext
+         !__result_ = T_Qualifier_vOut127 _lhsOtext
          in __result_ )
      in C_Qualifier_s128 v127
    {-# INLINE rule258 #-}
@@ -4649,9 +4650,9 @@ sem_Qualifier_Guard arg_range_ arg_guard_ = T_Qualifier (return st128) where
 sem_Qualifier_Let :: T_Range  -> T_Declarations  -> T_Qualifier 
 sem_Qualifier_Let arg_range_ arg_declarations_ = T_Qualifier (return st128) where
    {-# NOINLINE st128 #-}
-   st128 = let
+   !st128 = let
       v127 :: T_Qualifier_v127 
-      v127 = \ (T_Qualifier_vIn127 ) -> ( let
+      v127 = \ !(T_Qualifier_vIn127 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -4659,7 +4660,7 @@ sem_Qualifier_Let arg_range_ arg_declarations_ = T_Qualifier (return st128) wher
          _text = rule260 _declarationsItext
          _lhsOtext :: Doc
          _lhsOtext = rule261 _text
-         __result_ = T_Qualifier_vOut127 _lhsOtext
+         !__result_ = T_Qualifier_vOut127 _lhsOtext
          in __result_ )
      in C_Qualifier_s128 v127
    {-# INLINE rule260 #-}
@@ -4672,9 +4673,9 @@ sem_Qualifier_Let arg_range_ arg_declarations_ = T_Qualifier (return st128) wher
 sem_Qualifier_Generator :: T_Range  -> T_Pattern  -> T_Expression  -> T_Qualifier 
 sem_Qualifier_Generator arg_range_ arg_pattern_ arg_expression_ = T_Qualifier (return st128) where
    {-# NOINLINE st128 #-}
-   st128 = let
+   !st128 = let
       v127 :: T_Qualifier_v127 
-      v127 = \ (T_Qualifier_vIn127 ) -> ( let
+      v127 = \ !(T_Qualifier_vIn127 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
@@ -4684,7 +4685,7 @@ sem_Qualifier_Generator arg_range_ arg_pattern_ arg_expression_ = T_Qualifier (r
          _text = rule262 _expressionItext _patternItext
          _lhsOtext :: Doc
          _lhsOtext = rule263 _text
-         __result_ = T_Qualifier_vOut127 _lhsOtext
+         !__result_ = T_Qualifier_vOut127 _lhsOtext
          in __result_ )
      in C_Qualifier_s128 v127
    {-# INLINE rule262 #-}
@@ -4697,15 +4698,15 @@ sem_Qualifier_Generator arg_range_ arg_pattern_ arg_expression_ = T_Qualifier (r
 sem_Qualifier_Empty :: T_Range  -> T_Qualifier 
 sem_Qualifier_Empty arg_range_ = T_Qualifier (return st128) where
    {-# NOINLINE st128 #-}
-   st128 = let
+   !st128 = let
       v127 :: T_Qualifier_v127 
-      v127 = \ (T_Qualifier_vIn127 ) -> ( let
+      v127 = \ !(T_Qualifier_vIn127 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _text = rule264  ()
          _lhsOtext :: Doc
          _lhsOtext = rule265 _text
-         __result_ = T_Qualifier_vOut127 _lhsOtext
+         !__result_ = T_Qualifier_vOut127 _lhsOtext
          in __result_ )
      in C_Qualifier_s128 v127
    {-# INLINE rule264 #-}
@@ -4718,14 +4719,14 @@ sem_Qualifier_Empty arg_range_ = T_Qualifier (return st128) where
 -- Qualifiers --------------------------------------------------
 -- wrapper
 data Inh_Qualifiers  = Inh_Qualifiers {  }
-data Syn_Qualifiers  = Syn_Qualifiers { text_Syn_Qualifiers :: ( [       Doc ] ) }
+data Syn_Qualifiers  = Syn_Qualifiers { text_Syn_Qualifiers :: !( [       Doc ] ) }
 {-# INLINABLE wrap_Qualifiers #-}
 wrap_Qualifiers :: T_Qualifiers  -> Inh_Qualifiers  -> (Syn_Qualifiers )
-wrap_Qualifiers (T_Qualifiers act) (Inh_Qualifiers ) =
+wrap_Qualifiers !(T_Qualifiers act) !(Inh_Qualifiers ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg130 = T_Qualifiers_vIn130 
-        (T_Qualifiers_vOut130 _lhsOtext) <- return (inv_Qualifiers_s131 sem arg130)
+        !(T_Qualifiers_vOut130 _lhsOtext) <- return (inv_Qualifiers_s131 sem arg130)
         return (Syn_Qualifiers _lhsOtext)
    )
 
@@ -4749,16 +4750,16 @@ data T_Qualifiers_vOut130  = T_Qualifiers_vOut130 ( [       Doc ] )
 sem_Qualifiers_Cons :: T_Qualifier  -> T_Qualifiers  -> T_Qualifiers 
 sem_Qualifiers_Cons arg_hd_ arg_tl_ = T_Qualifiers (return st131) where
    {-# NOINLINE st131 #-}
-   st131 = let
+   !st131 = let
       v130 :: T_Qualifiers_v130 
-      v130 = \ (T_Qualifiers_vIn130 ) -> ( let
+      v130 = \ !(T_Qualifiers_vIn130 ) -> ( let
          _hdX128 = Control.Monad.Identity.runIdentity (attach_T_Qualifier (arg_hd_))
          _tlX131 = Control.Monad.Identity.runIdentity (attach_T_Qualifiers (arg_tl_))
          (T_Qualifier_vOut127 _hdItext) = inv_Qualifier_s128 _hdX128 (T_Qualifier_vIn127 )
          (T_Qualifiers_vOut130 _tlItext) = inv_Qualifiers_s131 _tlX131 (T_Qualifiers_vIn130 )
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule266 _hdItext _tlItext
-         __result_ = T_Qualifiers_vOut130 _lhsOtext
+         !__result_ = T_Qualifiers_vOut130 _lhsOtext
          in __result_ )
      in C_Qualifiers_s131 v130
    {-# INLINE rule266 #-}
@@ -4768,12 +4769,12 @@ sem_Qualifiers_Cons arg_hd_ arg_tl_ = T_Qualifiers (return st131) where
 sem_Qualifiers_Nil ::  T_Qualifiers 
 sem_Qualifiers_Nil  = T_Qualifiers (return st131) where
    {-# NOINLINE st131 #-}
-   st131 = let
+   !st131 = let
       v130 :: T_Qualifiers_v130 
-      v130 = \ (T_Qualifiers_vIn130 ) -> ( let
+      v130 = \ !(T_Qualifiers_vIn130 ) -> ( let
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule267  ()
-         __result_ = T_Qualifiers_vOut130 _lhsOtext
+         !__result_ = T_Qualifiers_vOut130 _lhsOtext
          in __result_ )
      in C_Qualifiers_s131 v130
    {-# INLINE rule267 #-}
@@ -4783,14 +4784,14 @@ sem_Qualifiers_Nil  = T_Qualifiers (return st131) where
 -- Range -------------------------------------------------------
 -- wrapper
 data Inh_Range  = Inh_Range {  }
-data Syn_Range  = Syn_Range { text_Syn_Range :: (Doc) }
+data Syn_Range  = Syn_Range { text_Syn_Range :: !(Doc) }
 {-# INLINABLE wrap_Range #-}
 wrap_Range :: T_Range  -> Inh_Range  -> (Syn_Range )
-wrap_Range (T_Range act) (Inh_Range ) =
+wrap_Range !(T_Range act) !(Inh_Range ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg133 = T_Range_vIn133 
-        (T_Range_vOut133 _lhsOtext) <- return (inv_Range_s134 sem arg133)
+        !(T_Range_vOut133 _lhsOtext) <- return (inv_Range_s134 sem arg133)
         return (Syn_Range _lhsOtext)
    )
 
@@ -4814,9 +4815,9 @@ data T_Range_vOut133  = T_Range_vOut133 (Doc)
 sem_Range_Range :: T_Position  -> T_Position  -> T_Range 
 sem_Range_Range arg_start_ arg_stop_ = T_Range (return st134) where
    {-# NOINLINE st134 #-}
-   st134 = let
+   !st134 = let
       v133 :: T_Range_v133 
-      v133 = \ (T_Range_vIn133 ) -> ( let
+      v133 = \ !(T_Range_vIn133 ) -> ( let
          _startX125 = Control.Monad.Identity.runIdentity (attach_T_Position (arg_start_))
          _stopX125 = Control.Monad.Identity.runIdentity (attach_T_Position (arg_stop_))
          (T_Position_vOut124 _startItext) = inv_Position_s125 _startX125 (T_Position_vIn124 )
@@ -4824,7 +4825,7 @@ sem_Range_Range arg_start_ arg_stop_ = T_Range (return st134) where
          _text = rule268 _startItext _stopItext
          _lhsOtext :: Doc
          _lhsOtext = rule269 _text
-         __result_ = T_Range_vOut133 _lhsOtext
+         !__result_ = T_Range_vOut133 _lhsOtext
          in __result_ )
      in C_Range_s134 v133
    {-# INLINE rule268 #-}
@@ -4837,14 +4838,14 @@ sem_Range_Range arg_start_ arg_stop_ = T_Range (return st134) where
 -- RecordExpressionBinding -------------------------------------
 -- wrapper
 data Inh_RecordExpressionBinding  = Inh_RecordExpressionBinding {  }
-data Syn_RecordExpressionBinding  = Syn_RecordExpressionBinding { text_Syn_RecordExpressionBinding :: (Doc) }
+data Syn_RecordExpressionBinding  = Syn_RecordExpressionBinding { text_Syn_RecordExpressionBinding :: !(Doc) }
 {-# INLINABLE wrap_RecordExpressionBinding #-}
 wrap_RecordExpressionBinding :: T_RecordExpressionBinding  -> Inh_RecordExpressionBinding  -> (Syn_RecordExpressionBinding )
-wrap_RecordExpressionBinding (T_RecordExpressionBinding act) (Inh_RecordExpressionBinding ) =
+wrap_RecordExpressionBinding !(T_RecordExpressionBinding act) !(Inh_RecordExpressionBinding ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg136 = T_RecordExpressionBinding_vIn136 
-        (T_RecordExpressionBinding_vOut136 _lhsOtext) <- return (inv_RecordExpressionBinding_s137 sem arg136)
+        !(T_RecordExpressionBinding_vOut136 _lhsOtext) <- return (inv_RecordExpressionBinding_s137 sem arg136)
         return (Syn_RecordExpressionBinding _lhsOtext)
    )
 
@@ -4868,9 +4869,9 @@ data T_RecordExpressionBinding_vOut136  = T_RecordExpressionBinding_vOut136 (Doc
 sem_RecordExpressionBinding_RecordExpressionBinding :: T_Range  -> T_Name  -> T_Expression  -> T_RecordExpressionBinding 
 sem_RecordExpressionBinding_RecordExpressionBinding arg_range_ arg_name_ arg_expression_ = T_RecordExpressionBinding (return st137) where
    {-# NOINLINE st137 #-}
-   st137 = let
+   !st137 = let
       v136 :: T_RecordExpressionBinding_v136 
-      v136 = \ (T_RecordExpressionBinding_vIn136 ) -> ( let
+      v136 = \ !(T_RecordExpressionBinding_vIn136 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
@@ -4880,7 +4881,7 @@ sem_RecordExpressionBinding_RecordExpressionBinding arg_range_ arg_name_ arg_exp
          _text = rule270  ()
          _lhsOtext :: Doc
          _lhsOtext = rule271 _text
-         __result_ = T_RecordExpressionBinding_vOut136 _lhsOtext
+         !__result_ = T_RecordExpressionBinding_vOut136 _lhsOtext
          in __result_ )
      in C_RecordExpressionBinding_s137 v136
    {-# INLINE rule270 #-}
@@ -4893,14 +4894,14 @@ sem_RecordExpressionBinding_RecordExpressionBinding arg_range_ arg_name_ arg_exp
 -- RecordExpressionBindings ------------------------------------
 -- wrapper
 data Inh_RecordExpressionBindings  = Inh_RecordExpressionBindings {  }
-data Syn_RecordExpressionBindings  = Syn_RecordExpressionBindings { text_Syn_RecordExpressionBindings :: ( [       Doc ] ) }
+data Syn_RecordExpressionBindings  = Syn_RecordExpressionBindings { text_Syn_RecordExpressionBindings :: !( [       Doc ] ) }
 {-# INLINABLE wrap_RecordExpressionBindings #-}
 wrap_RecordExpressionBindings :: T_RecordExpressionBindings  -> Inh_RecordExpressionBindings  -> (Syn_RecordExpressionBindings )
-wrap_RecordExpressionBindings (T_RecordExpressionBindings act) (Inh_RecordExpressionBindings ) =
+wrap_RecordExpressionBindings !(T_RecordExpressionBindings act) !(Inh_RecordExpressionBindings ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg139 = T_RecordExpressionBindings_vIn139 
-        (T_RecordExpressionBindings_vOut139 _lhsOtext) <- return (inv_RecordExpressionBindings_s140 sem arg139)
+        !(T_RecordExpressionBindings_vOut139 _lhsOtext) <- return (inv_RecordExpressionBindings_s140 sem arg139)
         return (Syn_RecordExpressionBindings _lhsOtext)
    )
 
@@ -4924,16 +4925,16 @@ data T_RecordExpressionBindings_vOut139  = T_RecordExpressionBindings_vOut139 ( 
 sem_RecordExpressionBindings_Cons :: T_RecordExpressionBinding  -> T_RecordExpressionBindings  -> T_RecordExpressionBindings 
 sem_RecordExpressionBindings_Cons arg_hd_ arg_tl_ = T_RecordExpressionBindings (return st140) where
    {-# NOINLINE st140 #-}
-   st140 = let
+   !st140 = let
       v139 :: T_RecordExpressionBindings_v139 
-      v139 = \ (T_RecordExpressionBindings_vIn139 ) -> ( let
+      v139 = \ !(T_RecordExpressionBindings_vIn139 ) -> ( let
          _hdX137 = Control.Monad.Identity.runIdentity (attach_T_RecordExpressionBinding (arg_hd_))
          _tlX140 = Control.Monad.Identity.runIdentity (attach_T_RecordExpressionBindings (arg_tl_))
          (T_RecordExpressionBinding_vOut136 _hdItext) = inv_RecordExpressionBinding_s137 _hdX137 (T_RecordExpressionBinding_vIn136 )
          (T_RecordExpressionBindings_vOut139 _tlItext) = inv_RecordExpressionBindings_s140 _tlX140 (T_RecordExpressionBindings_vIn139 )
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule272 _hdItext _tlItext
-         __result_ = T_RecordExpressionBindings_vOut139 _lhsOtext
+         !__result_ = T_RecordExpressionBindings_vOut139 _lhsOtext
          in __result_ )
      in C_RecordExpressionBindings_s140 v139
    {-# INLINE rule272 #-}
@@ -4943,12 +4944,12 @@ sem_RecordExpressionBindings_Cons arg_hd_ arg_tl_ = T_RecordExpressionBindings (
 sem_RecordExpressionBindings_Nil ::  T_RecordExpressionBindings 
 sem_RecordExpressionBindings_Nil  = T_RecordExpressionBindings (return st140) where
    {-# NOINLINE st140 #-}
-   st140 = let
+   !st140 = let
       v139 :: T_RecordExpressionBindings_v139 
-      v139 = \ (T_RecordExpressionBindings_vIn139 ) -> ( let
+      v139 = \ !(T_RecordExpressionBindings_vIn139 ) -> ( let
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule273  ()
-         __result_ = T_RecordExpressionBindings_vOut139 _lhsOtext
+         !__result_ = T_RecordExpressionBindings_vOut139 _lhsOtext
          in __result_ )
      in C_RecordExpressionBindings_s140 v139
    {-# INLINE rule273 #-}
@@ -4958,14 +4959,14 @@ sem_RecordExpressionBindings_Nil  = T_RecordExpressionBindings (return st140) wh
 -- RecordPatternBinding ----------------------------------------
 -- wrapper
 data Inh_RecordPatternBinding  = Inh_RecordPatternBinding {  }
-data Syn_RecordPatternBinding  = Syn_RecordPatternBinding { text_Syn_RecordPatternBinding :: (Doc) }
+data Syn_RecordPatternBinding  = Syn_RecordPatternBinding { text_Syn_RecordPatternBinding :: !(Doc) }
 {-# INLINABLE wrap_RecordPatternBinding #-}
 wrap_RecordPatternBinding :: T_RecordPatternBinding  -> Inh_RecordPatternBinding  -> (Syn_RecordPatternBinding )
-wrap_RecordPatternBinding (T_RecordPatternBinding act) (Inh_RecordPatternBinding ) =
+wrap_RecordPatternBinding !(T_RecordPatternBinding act) !(Inh_RecordPatternBinding ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg142 = T_RecordPatternBinding_vIn142 
-        (T_RecordPatternBinding_vOut142 _lhsOtext) <- return (inv_RecordPatternBinding_s143 sem arg142)
+        !(T_RecordPatternBinding_vOut142 _lhsOtext) <- return (inv_RecordPatternBinding_s143 sem arg142)
         return (Syn_RecordPatternBinding _lhsOtext)
    )
 
@@ -4989,9 +4990,9 @@ data T_RecordPatternBinding_vOut142  = T_RecordPatternBinding_vOut142 (Doc)
 sem_RecordPatternBinding_RecordPatternBinding :: T_Range  -> T_Name  -> T_Pattern  -> T_RecordPatternBinding 
 sem_RecordPatternBinding_RecordPatternBinding arg_range_ arg_name_ arg_pattern_ = T_RecordPatternBinding (return st143) where
    {-# NOINLINE st143 #-}
-   st143 = let
+   !st143 = let
       v142 :: T_RecordPatternBinding_v142 
-      v142 = \ (T_RecordPatternBinding_vIn142 ) -> ( let
+      v142 = \ !(T_RecordPatternBinding_vIn142 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
@@ -5001,7 +5002,7 @@ sem_RecordPatternBinding_RecordPatternBinding arg_range_ arg_name_ arg_pattern_ 
          _text = rule274  ()
          _lhsOtext :: Doc
          _lhsOtext = rule275 _text
-         __result_ = T_RecordPatternBinding_vOut142 _lhsOtext
+         !__result_ = T_RecordPatternBinding_vOut142 _lhsOtext
          in __result_ )
      in C_RecordPatternBinding_s143 v142
    {-# INLINE rule274 #-}
@@ -5014,14 +5015,14 @@ sem_RecordPatternBinding_RecordPatternBinding arg_range_ arg_name_ arg_pattern_ 
 -- RecordPatternBindings ---------------------------------------
 -- wrapper
 data Inh_RecordPatternBindings  = Inh_RecordPatternBindings {  }
-data Syn_RecordPatternBindings  = Syn_RecordPatternBindings { text_Syn_RecordPatternBindings :: ( [       Doc ] ) }
+data Syn_RecordPatternBindings  = Syn_RecordPatternBindings { text_Syn_RecordPatternBindings :: !( [       Doc ] ) }
 {-# INLINABLE wrap_RecordPatternBindings #-}
 wrap_RecordPatternBindings :: T_RecordPatternBindings  -> Inh_RecordPatternBindings  -> (Syn_RecordPatternBindings )
-wrap_RecordPatternBindings (T_RecordPatternBindings act) (Inh_RecordPatternBindings ) =
+wrap_RecordPatternBindings !(T_RecordPatternBindings act) !(Inh_RecordPatternBindings ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg145 = T_RecordPatternBindings_vIn145 
-        (T_RecordPatternBindings_vOut145 _lhsOtext) <- return (inv_RecordPatternBindings_s146 sem arg145)
+        !(T_RecordPatternBindings_vOut145 _lhsOtext) <- return (inv_RecordPatternBindings_s146 sem arg145)
         return (Syn_RecordPatternBindings _lhsOtext)
    )
 
@@ -5045,16 +5046,16 @@ data T_RecordPatternBindings_vOut145  = T_RecordPatternBindings_vOut145 ( [     
 sem_RecordPatternBindings_Cons :: T_RecordPatternBinding  -> T_RecordPatternBindings  -> T_RecordPatternBindings 
 sem_RecordPatternBindings_Cons arg_hd_ arg_tl_ = T_RecordPatternBindings (return st146) where
    {-# NOINLINE st146 #-}
-   st146 = let
+   !st146 = let
       v145 :: T_RecordPatternBindings_v145 
-      v145 = \ (T_RecordPatternBindings_vIn145 ) -> ( let
+      v145 = \ !(T_RecordPatternBindings_vIn145 ) -> ( let
          _hdX143 = Control.Monad.Identity.runIdentity (attach_T_RecordPatternBinding (arg_hd_))
          _tlX146 = Control.Monad.Identity.runIdentity (attach_T_RecordPatternBindings (arg_tl_))
          (T_RecordPatternBinding_vOut142 _hdItext) = inv_RecordPatternBinding_s143 _hdX143 (T_RecordPatternBinding_vIn142 )
          (T_RecordPatternBindings_vOut145 _tlItext) = inv_RecordPatternBindings_s146 _tlX146 (T_RecordPatternBindings_vIn145 )
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule276 _hdItext _tlItext
-         __result_ = T_RecordPatternBindings_vOut145 _lhsOtext
+         !__result_ = T_RecordPatternBindings_vOut145 _lhsOtext
          in __result_ )
      in C_RecordPatternBindings_s146 v145
    {-# INLINE rule276 #-}
@@ -5064,12 +5065,12 @@ sem_RecordPatternBindings_Cons arg_hd_ arg_tl_ = T_RecordPatternBindings (return
 sem_RecordPatternBindings_Nil ::  T_RecordPatternBindings 
 sem_RecordPatternBindings_Nil  = T_RecordPatternBindings (return st146) where
    {-# NOINLINE st146 #-}
-   st146 = let
+   !st146 = let
       v145 :: T_RecordPatternBindings_v145 
-      v145 = \ (T_RecordPatternBindings_vIn145 ) -> ( let
+      v145 = \ !(T_RecordPatternBindings_vIn145 ) -> ( let
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule277  ()
-         __result_ = T_RecordPatternBindings_vOut145 _lhsOtext
+         !__result_ = T_RecordPatternBindings_vOut145 _lhsOtext
          in __result_ )
      in C_RecordPatternBindings_s146 v145
    {-# INLINE rule277 #-}
@@ -5079,14 +5080,14 @@ sem_RecordPatternBindings_Nil  = T_RecordPatternBindings (return st146) where
 -- RightHandSide -----------------------------------------------
 -- wrapper
 data Inh_RightHandSide  = Inh_RightHandSide {  }
-data Syn_RightHandSide  = Syn_RightHandSide { text_Syn_RightHandSide :: ( Doc        -> Doc  ) }
+data Syn_RightHandSide  = Syn_RightHandSide { text_Syn_RightHandSide :: !( Doc        -> Doc  ) }
 {-# INLINABLE wrap_RightHandSide #-}
 wrap_RightHandSide :: T_RightHandSide  -> Inh_RightHandSide  -> (Syn_RightHandSide )
-wrap_RightHandSide (T_RightHandSide act) (Inh_RightHandSide ) =
+wrap_RightHandSide !(T_RightHandSide act) !(Inh_RightHandSide ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg148 = T_RightHandSide_vIn148 
-        (T_RightHandSide_vOut148 _lhsOtext) <- return (inv_RightHandSide_s149 sem arg148)
+        !(T_RightHandSide_vOut148 _lhsOtext) <- return (inv_RightHandSide_s149 sem arg148)
         return (Syn_RightHandSide _lhsOtext)
    )
 
@@ -5111,9 +5112,9 @@ data T_RightHandSide_vOut148  = T_RightHandSide_vOut148 ( Doc        -> Doc  )
 sem_RightHandSide_Expression :: T_Range  -> T_Expression  -> T_MaybeDeclarations  -> T_RightHandSide 
 sem_RightHandSide_Expression arg_range_ arg_expression_ arg_where_ = T_RightHandSide (return st149) where
    {-# NOINLINE st149 #-}
-   st149 = let
+   !st149 = let
       v148 :: T_RightHandSide_v148 
-      v148 = \ (T_RightHandSide_vIn148 ) -> ( let
+      v148 = \ !(T_RightHandSide_vIn148 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          _whereX89 = Control.Monad.Identity.runIdentity (attach_T_MaybeDeclarations (arg_where_))
@@ -5124,7 +5125,7 @@ sem_RightHandSide_Expression arg_range_ arg_expression_ arg_where_ = T_RightHand
          _justText = rule279 _expressionItext _whereItext
          _lhsOtext ::  Doc        -> Doc  
          _lhsOtext = rule280 _text
-         __result_ = T_RightHandSide_vOut148 _lhsOtext
+         !__result_ = T_RightHandSide_vOut148 _lhsOtext
          in __result_ )
      in C_RightHandSide_s149 v148
    {-# INLINE rule278 #-}
@@ -5146,9 +5147,9 @@ sem_RightHandSide_Expression arg_range_ arg_expression_ arg_where_ = T_RightHand
 sem_RightHandSide_Guarded :: T_Range  -> T_GuardedExpressions  -> T_MaybeDeclarations  -> T_RightHandSide 
 sem_RightHandSide_Guarded arg_range_ arg_guardedexpressions_ arg_where_ = T_RightHandSide (return st149) where
    {-# NOINLINE st149 #-}
-   st149 = let
+   !st149 = let
       v148 :: T_RightHandSide_v148 
-      v148 = \ (T_RightHandSide_vIn148 ) -> ( let
+      v148 = \ !(T_RightHandSide_vIn148 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _guardedexpressionsX65 = Control.Monad.Identity.runIdentity (attach_T_GuardedExpressions (arg_guardedexpressions_))
          _whereX89 = Control.Monad.Identity.runIdentity (attach_T_MaybeDeclarations (arg_where_))
@@ -5158,7 +5159,7 @@ sem_RightHandSide_Guarded arg_range_ arg_guardedexpressions_ arg_where_ = T_Righ
          _text = rule281 _guardedexpressionsItext _whereItext
          _lhsOtext ::  Doc        -> Doc  
          _lhsOtext = rule282 _text
-         __result_ = T_RightHandSide_vOut148 _lhsOtext
+         !__result_ = T_RightHandSide_vOut148 _lhsOtext
          in __result_ )
      in C_RightHandSide_s149 v148
    {-# INLINE rule281 #-}
@@ -5179,14 +5180,14 @@ sem_RightHandSide_Guarded arg_range_ arg_guardedexpressions_ arg_where_ = T_Righ
 -- SimpleType --------------------------------------------------
 -- wrapper
 data Inh_SimpleType  = Inh_SimpleType {  }
-data Syn_SimpleType  = Syn_SimpleType { text_Syn_SimpleType :: (Doc) }
+data Syn_SimpleType  = Syn_SimpleType { text_Syn_SimpleType :: !(Doc) }
 {-# INLINABLE wrap_SimpleType #-}
 wrap_SimpleType :: T_SimpleType  -> Inh_SimpleType  -> (Syn_SimpleType )
-wrap_SimpleType (T_SimpleType act) (Inh_SimpleType ) =
+wrap_SimpleType !(T_SimpleType act) !(Inh_SimpleType ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg151 = T_SimpleType_vIn151 
-        (T_SimpleType_vOut151 _lhsOtext) <- return (inv_SimpleType_s152 sem arg151)
+        !(T_SimpleType_vOut151 _lhsOtext) <- return (inv_SimpleType_s152 sem arg151)
         return (Syn_SimpleType _lhsOtext)
    )
 
@@ -5210,9 +5211,9 @@ data T_SimpleType_vOut151  = T_SimpleType_vOut151 (Doc)
 sem_SimpleType_SimpleType :: T_Range  -> T_Name  -> T_Names  -> T_SimpleType 
 sem_SimpleType_SimpleType arg_range_ arg_name_ arg_typevariables_ = T_SimpleType (return st152) where
    {-# NOINLINE st152 #-}
-   st152 = let
+   !st152 = let
       v151 :: T_SimpleType_v151 
-      v151 = \ (T_SimpleType_vIn151 ) -> ( let
+      v151 = \ !(T_SimpleType_vIn151 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _typevariablesX116 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_typevariables_))
@@ -5222,7 +5223,7 @@ sem_SimpleType_SimpleType arg_range_ arg_name_ arg_typevariables_ = T_SimpleType
          _text = rule283 _nameItext _typevariablesItext
          _lhsOtext :: Doc
          _lhsOtext = rule284 _text
-         __result_ = T_SimpleType_vOut151 _lhsOtext
+         !__result_ = T_SimpleType_vOut151 _lhsOtext
          in __result_ )
      in C_SimpleType_s152 v151
    {-# INLINE rule283 #-}
@@ -5235,14 +5236,14 @@ sem_SimpleType_SimpleType arg_range_ arg_name_ arg_typevariables_ = T_SimpleType
 -- Statement ---------------------------------------------------
 -- wrapper
 data Inh_Statement  = Inh_Statement {  }
-data Syn_Statement  = Syn_Statement { text_Syn_Statement :: (Doc) }
+data Syn_Statement  = Syn_Statement { text_Syn_Statement :: !(Doc) }
 {-# INLINABLE wrap_Statement #-}
 wrap_Statement :: T_Statement  -> Inh_Statement  -> (Syn_Statement )
-wrap_Statement (T_Statement act) (Inh_Statement ) =
+wrap_Statement !(T_Statement act) !(Inh_Statement ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg154 = T_Statement_vIn154 
-        (T_Statement_vOut154 _lhsOtext) <- return (inv_Statement_s155 sem arg154)
+        !(T_Statement_vOut154 _lhsOtext) <- return (inv_Statement_s155 sem arg154)
         return (Syn_Statement _lhsOtext)
    )
 
@@ -5269,9 +5270,9 @@ data T_Statement_vOut154  = T_Statement_vOut154 (Doc)
 sem_Statement_Expression :: T_Range  -> T_Expression  -> T_Statement 
 sem_Statement_Expression arg_range_ arg_expression_ = T_Statement (return st155) where
    {-# NOINLINE st155 #-}
-   st155 = let
+   !st155 = let
       v154 :: T_Statement_v154 
-      v154 = \ (T_Statement_vIn154 ) -> ( let
+      v154 = \ !(T_Statement_vIn154 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -5279,7 +5280,7 @@ sem_Statement_Expression arg_range_ arg_expression_ = T_Statement (return st155)
          _text = rule285 _expressionItext
          _lhsOtext :: Doc
          _lhsOtext = rule286 _text
-         __result_ = T_Statement_vOut154 _lhsOtext
+         !__result_ = T_Statement_vOut154 _lhsOtext
          in __result_ )
      in C_Statement_s155 v154
    {-# INLINE rule285 #-}
@@ -5292,9 +5293,9 @@ sem_Statement_Expression arg_range_ arg_expression_ = T_Statement (return st155)
 sem_Statement_Let :: T_Range  -> T_Declarations  -> T_Statement 
 sem_Statement_Let arg_range_ arg_declarations_ = T_Statement (return st155) where
    {-# NOINLINE st155 #-}
-   st155 = let
+   !st155 = let
       v154 :: T_Statement_v154 
-      v154 = \ (T_Statement_vIn154 ) -> ( let
+      v154 = \ !(T_Statement_vIn154 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -5302,7 +5303,7 @@ sem_Statement_Let arg_range_ arg_declarations_ = T_Statement (return st155) wher
          _text = rule287 _declarationsItext
          _lhsOtext :: Doc
          _lhsOtext = rule288 _text
-         __result_ = T_Statement_vOut154 _lhsOtext
+         !__result_ = T_Statement_vOut154 _lhsOtext
          in __result_ )
      in C_Statement_s155 v154
    {-# INLINE rule287 #-}
@@ -5315,9 +5316,9 @@ sem_Statement_Let arg_range_ arg_declarations_ = T_Statement (return st155) wher
 sem_Statement_Generator :: T_Range  -> T_Pattern  -> T_Expression  -> T_Statement 
 sem_Statement_Generator arg_range_ arg_pattern_ arg_expression_ = T_Statement (return st155) where
    {-# NOINLINE st155 #-}
-   st155 = let
+   !st155 = let
       v154 :: T_Statement_v154 
-      v154 = \ (T_Statement_vIn154 ) -> ( let
+      v154 = \ !(T_Statement_vIn154 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
@@ -5327,7 +5328,7 @@ sem_Statement_Generator arg_range_ arg_pattern_ arg_expression_ = T_Statement (r
          _text = rule289 _expressionItext _patternItext
          _lhsOtext :: Doc
          _lhsOtext = rule290 _text
-         __result_ = T_Statement_vOut154 _lhsOtext
+         !__result_ = T_Statement_vOut154 _lhsOtext
          in __result_ )
      in C_Statement_s155 v154
    {-# INLINE rule289 #-}
@@ -5340,15 +5341,15 @@ sem_Statement_Generator arg_range_ arg_pattern_ arg_expression_ = T_Statement (r
 sem_Statement_Empty :: T_Range  -> T_Statement 
 sem_Statement_Empty arg_range_ = T_Statement (return st155) where
    {-# NOINLINE st155 #-}
-   st155 = let
+   !st155 = let
       v154 :: T_Statement_v154 
-      v154 = \ (T_Statement_vIn154 ) -> ( let
+      v154 = \ !(T_Statement_vIn154 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _text = rule291  ()
          _lhsOtext :: Doc
          _lhsOtext = rule292 _text
-         __result_ = T_Statement_vOut154 _lhsOtext
+         !__result_ = T_Statement_vOut154 _lhsOtext
          in __result_ )
      in C_Statement_s155 v154
    {-# INLINE rule291 #-}
@@ -5361,14 +5362,14 @@ sem_Statement_Empty arg_range_ = T_Statement (return st155) where
 -- Statements --------------------------------------------------
 -- wrapper
 data Inh_Statements  = Inh_Statements {  }
-data Syn_Statements  = Syn_Statements { text_Syn_Statements :: ( [       Doc ] ) }
+data Syn_Statements  = Syn_Statements { text_Syn_Statements :: !( [       Doc ] ) }
 {-# INLINABLE wrap_Statements #-}
 wrap_Statements :: T_Statements  -> Inh_Statements  -> (Syn_Statements )
-wrap_Statements (T_Statements act) (Inh_Statements ) =
+wrap_Statements !(T_Statements act) !(Inh_Statements ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg157 = T_Statements_vIn157 
-        (T_Statements_vOut157 _lhsOtext) <- return (inv_Statements_s158 sem arg157)
+        !(T_Statements_vOut157 _lhsOtext) <- return (inv_Statements_s158 sem arg157)
         return (Syn_Statements _lhsOtext)
    )
 
@@ -5392,16 +5393,16 @@ data T_Statements_vOut157  = T_Statements_vOut157 ( [       Doc ] )
 sem_Statements_Cons :: T_Statement  -> T_Statements  -> T_Statements 
 sem_Statements_Cons arg_hd_ arg_tl_ = T_Statements (return st158) where
    {-# NOINLINE st158 #-}
-   st158 = let
+   !st158 = let
       v157 :: T_Statements_v157 
-      v157 = \ (T_Statements_vIn157 ) -> ( let
+      v157 = \ !(T_Statements_vIn157 ) -> ( let
          _hdX155 = Control.Monad.Identity.runIdentity (attach_T_Statement (arg_hd_))
          _tlX158 = Control.Monad.Identity.runIdentity (attach_T_Statements (arg_tl_))
          (T_Statement_vOut154 _hdItext) = inv_Statement_s155 _hdX155 (T_Statement_vIn154 )
          (T_Statements_vOut157 _tlItext) = inv_Statements_s158 _tlX158 (T_Statements_vIn157 )
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule293 _hdItext _tlItext
-         __result_ = T_Statements_vOut157 _lhsOtext
+         !__result_ = T_Statements_vOut157 _lhsOtext
          in __result_ )
      in C_Statements_s158 v157
    {-# INLINE rule293 #-}
@@ -5411,12 +5412,12 @@ sem_Statements_Cons arg_hd_ arg_tl_ = T_Statements (return st158) where
 sem_Statements_Nil ::  T_Statements 
 sem_Statements_Nil  = T_Statements (return st158) where
    {-# NOINLINE st158 #-}
-   st158 = let
+   !st158 = let
       v157 :: T_Statements_v157 
-      v157 = \ (T_Statements_vIn157 ) -> ( let
+      v157 = \ !(T_Statements_vIn157 ) -> ( let
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule294  ()
-         __result_ = T_Statements_vOut157 _lhsOtext
+         !__result_ = T_Statements_vOut157 _lhsOtext
          in __result_ )
      in C_Statements_s158 v157
    {-# INLINE rule294 #-}
@@ -5426,14 +5427,14 @@ sem_Statements_Nil  = T_Statements (return st158) where
 -- Strings -----------------------------------------------------
 -- wrapper
 data Inh_Strings  = Inh_Strings {  }
-data Syn_Strings  = Syn_Strings { text_Syn_Strings :: ( [       Doc ] ) }
+data Syn_Strings  = Syn_Strings { text_Syn_Strings :: !( [       Doc ] ) }
 {-# INLINABLE wrap_Strings #-}
 wrap_Strings :: T_Strings  -> Inh_Strings  -> (Syn_Strings )
-wrap_Strings (T_Strings act) (Inh_Strings ) =
+wrap_Strings !(T_Strings act) !(Inh_Strings ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg160 = T_Strings_vIn160 
-        (T_Strings_vOut160 _lhsOtext) <- return (inv_Strings_s161 sem arg160)
+        !(T_Strings_vOut160 _lhsOtext) <- return (inv_Strings_s161 sem arg160)
         return (Syn_Strings _lhsOtext)
    )
 
@@ -5457,14 +5458,14 @@ data T_Strings_vOut160  = T_Strings_vOut160 ( [       Doc ] )
 sem_Strings_Cons :: (String) -> T_Strings  -> T_Strings 
 sem_Strings_Cons _ arg_tl_ = T_Strings (return st161) where
    {-# NOINLINE st161 #-}
-   st161 = let
+   !st161 = let
       v160 :: T_Strings_v160 
-      v160 = \ (T_Strings_vIn160 ) -> ( let
+      v160 = \ !(T_Strings_vIn160 ) -> ( let
          _tlX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_tl_))
          (T_Strings_vOut160 _tlItext) = inv_Strings_s161 _tlX161 (T_Strings_vIn160 )
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule295 _tlItext
-         __result_ = T_Strings_vOut160 _lhsOtext
+         !__result_ = T_Strings_vOut160 _lhsOtext
          in __result_ )
      in C_Strings_s161 v160
    {-# INLINE rule295 #-}
@@ -5474,12 +5475,12 @@ sem_Strings_Cons _ arg_tl_ = T_Strings (return st161) where
 sem_Strings_Nil ::  T_Strings 
 sem_Strings_Nil  = T_Strings (return st161) where
    {-# NOINLINE st161 #-}
-   st161 = let
+   !st161 = let
       v160 :: T_Strings_v160 
-      v160 = \ (T_Strings_vIn160 ) -> ( let
+      v160 = \ !(T_Strings_vIn160 ) -> ( let
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule296  ()
-         __result_ = T_Strings_vOut160 _lhsOtext
+         !__result_ = T_Strings_vOut160 _lhsOtext
          in __result_ )
      in C_Strings_s161 v160
    {-# INLINE rule296 #-}
@@ -5489,21 +5490,21 @@ sem_Strings_Nil  = T_Strings (return st161) where
 -- Type --------------------------------------------------------
 -- wrapper
 data Inh_Type  = Inh_Type {  }
-data Syn_Type  = Syn_Type { text_Syn_Type :: (Doc) }
+data Syn_Type  = Syn_Type { text_Syn_Type :: !(Doc) }
 {-# INLINABLE wrap_Type #-}
 wrap_Type :: T_Type  -> Inh_Type  -> (Syn_Type )
-wrap_Type (T_Type act) (Inh_Type ) =
+wrap_Type !(T_Type act) !(Inh_Type ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg163 = T_Type_vIn163 
-        (T_Type_vOut163 _lhsOtext) <- return (inv_Type_s164 sem arg163)
+        !(T_Type_vOut163 _lhsOtext) <- return (inv_Type_s164 sem arg163)
         return (Syn_Type _lhsOtext)
    )
 
 -- cata
 {-# NOINLINE sem_Type #-}
 sem_Type :: Type  -> T_Type 
-sem_Type ( Type_Application range_ prefix_ function_ arguments_ ) = sem_Type_Application ( sem_Range range_ ) prefix_ ( sem_Type function_ ) ( sem_Types arguments_ )
+sem_Type ( Type_Application range_ !prefix_ function_ arguments_ ) = sem_Type_Application ( sem_Range range_ ) prefix_ ( sem_Type function_ ) ( sem_Types arguments_ )
 sem_Type ( Type_Variable range_ name_ ) = sem_Type_Variable ( sem_Range range_ ) ( sem_Name name_ )
 sem_Type ( Type_Constructor range_ name_ ) = sem_Type_Constructor ( sem_Range range_ ) ( sem_Name name_ )
 sem_Type ( Type_Qualified range_ context_ type_ ) = sem_Type_Qualified ( sem_Range range_ ) ( sem_ContextItems context_ ) ( sem_Type type_ )
@@ -5524,11 +5525,11 @@ data T_Type_vIn163  = T_Type_vIn163
 data T_Type_vOut163  = T_Type_vOut163 (Doc)
 {-# NOINLINE sem_Type_Application #-}
 sem_Type_Application :: T_Range  -> (Bool) -> T_Type  -> T_Types  -> T_Type 
-sem_Type_Application arg_range_ arg_prefix_ arg_function_ arg_arguments_ = T_Type (return st164) where
+sem_Type_Application arg_range_ !arg_prefix_ arg_function_ arg_arguments_ = T_Type (return st164) where
    {-# NOINLINE st164 #-}
-   st164 = let
+   !st164 = let
       v163 :: T_Type_v163 
-      v163 = \ (T_Type_vIn163 ) -> ( let
+      v163 = \ !(T_Type_vIn163 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _functionX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_function_))
          _argumentsX167 = Control.Monad.Identity.runIdentity (attach_T_Types (arg_arguments_))
@@ -5538,7 +5539,7 @@ sem_Type_Application arg_range_ arg_prefix_ arg_function_ arg_arguments_ = T_Typ
          _text = rule297 _argumentsItext _functionItext arg_prefix_
          _lhsOtext :: Doc
          _lhsOtext = rule298 _text
-         __result_ = T_Type_vOut163 _lhsOtext
+         !__result_ = T_Type_vOut163 _lhsOtext
          in __result_ )
      in C_Type_s164 v163
    {-# INLINE rule297 #-}
@@ -5560,9 +5561,9 @@ sem_Type_Application arg_range_ arg_prefix_ arg_function_ arg_arguments_ = T_Typ
 sem_Type_Variable :: T_Range  -> T_Name  -> T_Type 
 sem_Type_Variable arg_range_ arg_name_ = T_Type (return st164) where
    {-# NOINLINE st164 #-}
-   st164 = let
+   !st164 = let
       v163 :: T_Type_v163 
-      v163 = \ (T_Type_vIn163 ) -> ( let
+      v163 = \ !(T_Type_vIn163 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -5570,7 +5571,7 @@ sem_Type_Variable arg_range_ arg_name_ = T_Type (return st164) where
          _text = rule299 _nameItext
          _lhsOtext :: Doc
          _lhsOtext = rule300 _text
-         __result_ = T_Type_vOut163 _lhsOtext
+         !__result_ = T_Type_vOut163 _lhsOtext
          in __result_ )
      in C_Type_s164 v163
    {-# INLINE rule299 #-}
@@ -5583,9 +5584,9 @@ sem_Type_Variable arg_range_ arg_name_ = T_Type (return st164) where
 sem_Type_Constructor :: T_Range  -> T_Name  -> T_Type 
 sem_Type_Constructor arg_range_ arg_name_ = T_Type (return st164) where
    {-# NOINLINE st164 #-}
-   st164 = let
+   !st164 = let
       v163 :: T_Type_v163 
-      v163 = \ (T_Type_vIn163 ) -> ( let
+      v163 = \ !(T_Type_vIn163 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -5593,7 +5594,7 @@ sem_Type_Constructor arg_range_ arg_name_ = T_Type (return st164) where
          _text = rule301 _nameItext
          _lhsOtext :: Doc
          _lhsOtext = rule302 _text
-         __result_ = T_Type_vOut163 _lhsOtext
+         !__result_ = T_Type_vOut163 _lhsOtext
          in __result_ )
      in C_Type_s164 v163
    {-# INLINE rule301 #-}
@@ -5606,9 +5607,9 @@ sem_Type_Constructor arg_range_ arg_name_ = T_Type (return st164) where
 sem_Type_Qualified :: T_Range  -> T_ContextItems  -> T_Type  -> T_Type 
 sem_Type_Qualified arg_range_ arg_context_ arg_type_ = T_Type (return st164) where
    {-# NOINLINE st164 #-}
-   st164 = let
+   !st164 = let
       v163 :: T_Type_v163 
-      v163 = \ (T_Type_vIn163 ) -> ( let
+      v163 = \ !(T_Type_vIn163 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _contextX26 = Control.Monad.Identity.runIdentity (attach_T_ContextItems (arg_context_))
          _typeX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
@@ -5618,7 +5619,7 @@ sem_Type_Qualified arg_range_ arg_context_ arg_type_ = T_Type (return st164) whe
          _text = rule303 _contextItext _typeItext
          _lhsOtext :: Doc
          _lhsOtext = rule304 _text
-         __result_ = T_Type_vOut163 _lhsOtext
+         !__result_ = T_Type_vOut163 _lhsOtext
          in __result_ )
      in C_Type_s164 v163
    {-# INLINE rule303 #-}
@@ -5631,9 +5632,9 @@ sem_Type_Qualified arg_range_ arg_context_ arg_type_ = T_Type (return st164) whe
 sem_Type_Forall :: T_Range  -> T_Names  -> T_Type  -> T_Type 
 sem_Type_Forall arg_range_ arg_typevariables_ arg_type_ = T_Type (return st164) where
    {-# NOINLINE st164 #-}
-   st164 = let
+   !st164 = let
       v163 :: T_Type_v163 
-      v163 = \ (T_Type_vIn163 ) -> ( let
+      v163 = \ !(T_Type_vIn163 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _typevariablesX116 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_typevariables_))
          _typeX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
@@ -5643,7 +5644,7 @@ sem_Type_Forall arg_range_ arg_typevariables_ arg_type_ = T_Type (return st164) 
          _text = rule305 _typeItext _typevariablesItext
          _lhsOtext :: Doc
          _lhsOtext = rule306 _text
-         __result_ = T_Type_vOut163 _lhsOtext
+         !__result_ = T_Type_vOut163 _lhsOtext
          in __result_ )
      in C_Type_s164 v163
    {-# INLINE rule305 #-}
@@ -5656,9 +5657,9 @@ sem_Type_Forall arg_range_ arg_typevariables_ arg_type_ = T_Type (return st164) 
 sem_Type_Exists :: T_Range  -> T_Names  -> T_Type  -> T_Type 
 sem_Type_Exists arg_range_ arg_typevariables_ arg_type_ = T_Type (return st164) where
    {-# NOINLINE st164 #-}
-   st164 = let
+   !st164 = let
       v163 :: T_Type_v163 
-      v163 = \ (T_Type_vIn163 ) -> ( let
+      v163 = \ !(T_Type_vIn163 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _typevariablesX116 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_typevariables_))
          _typeX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
@@ -5668,7 +5669,7 @@ sem_Type_Exists arg_range_ arg_typevariables_ arg_type_ = T_Type (return st164) 
          _text = rule307 _typeItext _typevariablesItext
          _lhsOtext :: Doc
          _lhsOtext = rule308 _text
-         __result_ = T_Type_vOut163 _lhsOtext
+         !__result_ = T_Type_vOut163 _lhsOtext
          in __result_ )
      in C_Type_s164 v163
    {-# INLINE rule307 #-}
@@ -5681,9 +5682,9 @@ sem_Type_Exists arg_range_ arg_typevariables_ arg_type_ = T_Type (return st164) 
 sem_Type_Parenthesized :: T_Range  -> T_Type  -> T_Type 
 sem_Type_Parenthesized arg_range_ arg_type_ = T_Type (return st164) where
    {-# NOINLINE st164 #-}
-   st164 = let
+   !st164 = let
       v163 :: T_Type_v163 
-      v163 = \ (T_Type_vIn163 ) -> ( let
+      v163 = \ !(T_Type_vIn163 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _typeX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
          (T_Range_vOut133 _rangeItext) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -5691,7 +5692,7 @@ sem_Type_Parenthesized arg_range_ arg_type_ = T_Type (return st164) where
          _text = rule309 _typeItext
          _lhsOtext :: Doc
          _lhsOtext = rule310 _text
-         __result_ = T_Type_vOut163 _lhsOtext
+         !__result_ = T_Type_vOut163 _lhsOtext
          in __result_ )
      in C_Type_s164 v163
    {-# INLINE rule309 #-}
@@ -5704,14 +5705,14 @@ sem_Type_Parenthesized arg_range_ arg_type_ = T_Type (return st164) where
 -- Types -------------------------------------------------------
 -- wrapper
 data Inh_Types  = Inh_Types {  }
-data Syn_Types  = Syn_Types { text_Syn_Types :: ( [       Doc ] ) }
+data Syn_Types  = Syn_Types { text_Syn_Types :: !( [       Doc ] ) }
 {-# INLINABLE wrap_Types #-}
 wrap_Types :: T_Types  -> Inh_Types  -> (Syn_Types )
-wrap_Types (T_Types act) (Inh_Types ) =
+wrap_Types !(T_Types act) !(Inh_Types ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg166 = T_Types_vIn166 
-        (T_Types_vOut166 _lhsOtext) <- return (inv_Types_s167 sem arg166)
+        !(T_Types_vOut166 _lhsOtext) <- return (inv_Types_s167 sem arg166)
         return (Syn_Types _lhsOtext)
    )
 
@@ -5735,16 +5736,16 @@ data T_Types_vOut166  = T_Types_vOut166 ( [       Doc ] )
 sem_Types_Cons :: T_Type  -> T_Types  -> T_Types 
 sem_Types_Cons arg_hd_ arg_tl_ = T_Types (return st167) where
    {-# NOINLINE st167 #-}
-   st167 = let
+   !st167 = let
       v166 :: T_Types_v166 
-      v166 = \ (T_Types_vIn166 ) -> ( let
+      v166 = \ !(T_Types_vIn166 ) -> ( let
          _hdX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_hd_))
          _tlX167 = Control.Monad.Identity.runIdentity (attach_T_Types (arg_tl_))
          (T_Type_vOut163 _hdItext) = inv_Type_s164 _hdX164 (T_Type_vIn163 )
          (T_Types_vOut166 _tlItext) = inv_Types_s167 _tlX167 (T_Types_vIn166 )
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule311 _hdItext _tlItext
-         __result_ = T_Types_vOut166 _lhsOtext
+         !__result_ = T_Types_vOut166 _lhsOtext
          in __result_ )
      in C_Types_s167 v166
    {-# INLINE rule311 #-}
@@ -5754,12 +5755,12 @@ sem_Types_Cons arg_hd_ arg_tl_ = T_Types (return st167) where
 sem_Types_Nil ::  T_Types 
 sem_Types_Nil  = T_Types (return st167) where
    {-# NOINLINE st167 #-}
-   st167 = let
+   !st167 = let
       v166 :: T_Types_v166 
-      v166 = \ (T_Types_vIn166 ) -> ( let
+      v166 = \ !(T_Types_vIn166 ) -> ( let
          _lhsOtext ::  [       Doc ] 
          _lhsOtext = rule312  ()
-         __result_ = T_Types_vOut166 _lhsOtext
+         !__result_ = T_Types_vOut166 _lhsOtext
          in __result_ )
      in C_Types_s167 v166
    {-# INLINE rule312 #-}

@@ -1,4 +1,5 @@
 {-# LANGUAGE Rank2Types, GADTs #-}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
   {-# OPTIONS_GHC -fno-warn-unused-binds #-}
@@ -71,7 +72,7 @@ performBindingGroup = glueGroups . bindingGroupAnalysis
                   )             
 
 getKindsFromImportEnvironment :: ImportEnvironment -> KindEnvironment
-getKindsFromImportEnvironment = M.map f . typeConstructors
+getKindsFromImportEnvironment = M.map (f . fst) . typeConstructors
    where f i = generalizeAll ([] .=>. foldr (.->.) star (replicate i star))
 
 getTypeVariables :: Assumptions -> Names
@@ -88,23 +89,23 @@ unexpected message =
 (k1 <==> k2) info = (k1 .==. k2) (info (k1, k2))
 -- Alternative -------------------------------------------------
 -- wrapper
-data Inh_Alternative  = Inh_Alternative { bindingGroups_Inh_Alternative :: (BindingGroups), kappaUnique_Inh_Alternative :: (Int) }
-data Syn_Alternative  = Syn_Alternative { bindingGroups_Syn_Alternative :: (BindingGroups), kappaUnique_Syn_Alternative :: (Int), self_Syn_Alternative :: (Alternative) }
+data Inh_Alternative  = Inh_Alternative { bindingGroups_Inh_Alternative :: !(BindingGroups), kappaUnique_Inh_Alternative :: !(Int) }
+data Syn_Alternative  = Syn_Alternative { bindingGroups_Syn_Alternative :: !(BindingGroups), kappaUnique_Syn_Alternative :: !(Int), self_Syn_Alternative :: !(Alternative) }
 {-# INLINABLE wrap_Alternative #-}
 wrap_Alternative :: T_Alternative  -> Inh_Alternative  -> (Syn_Alternative )
-wrap_Alternative (T_Alternative act) (Inh_Alternative _lhsIbindingGroups _lhsIkappaUnique) =
+wrap_Alternative !(T_Alternative act) !(Inh_Alternative _lhsIbindingGroups _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg1 = T_Alternative_vIn1 _lhsIbindingGroups _lhsIkappaUnique
-        (T_Alternative_vOut1 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Alternative_s2 sem arg1)
+        !(T_Alternative_vOut1 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Alternative_s2 sem arg1)
         return (Syn_Alternative _lhsObindingGroups _lhsOkappaUnique _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_Alternative #-}
 sem_Alternative :: Alternative  -> T_Alternative 
-sem_Alternative ( Alternative_Hole range_ id_ ) = sem_Alternative_Hole ( sem_Range range_ ) id_
-sem_Alternative ( Alternative_Feedback range_ feedback_ alternative_ ) = sem_Alternative_Feedback ( sem_Range range_ ) feedback_ ( sem_Alternative alternative_ )
+sem_Alternative ( Alternative_Hole range_ !id_ ) = sem_Alternative_Hole ( sem_Range range_ ) id_
+sem_Alternative ( Alternative_Feedback range_ !feedback_ alternative_ ) = sem_Alternative_Feedback ( sem_Range range_ ) feedback_ ( sem_Alternative alternative_ )
 sem_Alternative ( Alternative_Alternative range_ pattern_ righthandside_ ) = sem_Alternative_Alternative ( sem_Range range_ ) ( sem_Pattern pattern_ ) ( sem_RightHandSide righthandside_ )
 sem_Alternative ( Alternative_Empty range_ ) = sem_Alternative_Empty ( sem_Range range_ )
 
@@ -121,11 +122,11 @@ data T_Alternative_vIn1  = T_Alternative_vIn1 (BindingGroups) (Int)
 data T_Alternative_vOut1  = T_Alternative_vOut1 (BindingGroups) (Int) (Alternative)
 {-# NOINLINE sem_Alternative_Hole #-}
 sem_Alternative_Hole :: T_Range  -> (String) -> T_Alternative 
-sem_Alternative_Hole arg_range_ arg_id_ = T_Alternative (return st2) where
+sem_Alternative_Hole arg_range_ !arg_id_ = T_Alternative (return st2) where
    {-# NOINLINE st2 #-}
-   st2 = let
+   !st2 = let
       v1 :: T_Alternative_v1 
-      v1 = \ (T_Alternative_vIn1 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v1 = \ !(T_Alternative_vIn1 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _self = rule0 _rangeIself arg_id_
@@ -135,7 +136,7 @@ sem_Alternative_Hole arg_range_ arg_id_ = T_Alternative (return st2) where
          _lhsObindingGroups = rule2 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule3 _lhsIkappaUnique
-         __result_ = T_Alternative_vOut1 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Alternative_vOut1 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Alternative_s2 v1
    {-# INLINE rule0 #-}
@@ -152,11 +153,11 @@ sem_Alternative_Hole arg_range_ arg_id_ = T_Alternative (return st2) where
      _lhsIkappaUnique
 {-# NOINLINE sem_Alternative_Feedback #-}
 sem_Alternative_Feedback :: T_Range  -> (String) -> T_Alternative  -> T_Alternative 
-sem_Alternative_Feedback arg_range_ arg_feedback_ arg_alternative_ = T_Alternative (return st2) where
+sem_Alternative_Feedback arg_range_ !arg_feedback_ arg_alternative_ = T_Alternative (return st2) where
    {-# NOINLINE st2 #-}
-   st2 = let
+   !st2 = let
       v1 :: T_Alternative_v1 
-      v1 = \ (T_Alternative_vIn1 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v1 = \ !(T_Alternative_vIn1 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _alternativeX2 = Control.Monad.Identity.runIdentity (attach_T_Alternative (arg_alternative_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -170,7 +171,7 @@ sem_Alternative_Feedback arg_range_ arg_feedback_ arg_alternative_ = T_Alternati
          _lhsOkappaUnique = rule7 _alternativeIkappaUnique
          _alternativeObindingGroups = rule8 _lhsIbindingGroups
          _alternativeOkappaUnique = rule9 _lhsIkappaUnique
-         __result_ = T_Alternative_vOut1 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Alternative_vOut1 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Alternative_s2 v1
    {-# INLINE rule4 #-}
@@ -195,9 +196,9 @@ sem_Alternative_Feedback arg_range_ arg_feedback_ arg_alternative_ = T_Alternati
 sem_Alternative_Alternative :: T_Range  -> T_Pattern  -> T_RightHandSide  -> T_Alternative 
 sem_Alternative_Alternative arg_range_ arg_pattern_ arg_righthandside_ = T_Alternative (return st2) where
    {-# NOINLINE st2 #-}
-   st2 = let
+   !st2 = let
       v1 :: T_Alternative_v1 
-      v1 = \ (T_Alternative_vIn1 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v1 = \ !(T_Alternative_vIn1 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          _righthandsideX149 = Control.Monad.Identity.runIdentity (attach_T_RightHandSide (arg_righthandside_))
@@ -213,7 +214,7 @@ sem_Alternative_Alternative arg_range_ arg_pattern_ arg_righthandside_ = T_Alter
          _lhsOkappaUnique = rule13 _righthandsideIkappaUnique
          _righthandsideObindingGroups = rule14 _lhsIbindingGroups
          _righthandsideOkappaUnique = rule15 _lhsIkappaUnique
-         __result_ = T_Alternative_vOut1 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Alternative_vOut1 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Alternative_s2 v1
    {-# INLINE rule10 #-}
@@ -238,9 +239,9 @@ sem_Alternative_Alternative arg_range_ arg_pattern_ arg_righthandside_ = T_Alter
 sem_Alternative_Empty :: T_Range  -> T_Alternative 
 sem_Alternative_Empty arg_range_ = T_Alternative (return st2) where
    {-# NOINLINE st2 #-}
-   st2 = let
+   !st2 = let
       v1 :: T_Alternative_v1 
-      v1 = \ (T_Alternative_vIn1 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v1 = \ !(T_Alternative_vIn1 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _self = rule16 _rangeIself
@@ -250,7 +251,7 @@ sem_Alternative_Empty arg_range_ = T_Alternative (return st2) where
          _lhsObindingGroups = rule18 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule19 _lhsIkappaUnique
-         __result_ = T_Alternative_vOut1 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Alternative_vOut1 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Alternative_s2 v1
    {-# INLINE rule16 #-}
@@ -268,15 +269,15 @@ sem_Alternative_Empty arg_range_ = T_Alternative (return st2) where
 
 -- Alternatives ------------------------------------------------
 -- wrapper
-data Inh_Alternatives  = Inh_Alternatives { bindingGroups_Inh_Alternatives :: (BindingGroups), kappaUnique_Inh_Alternatives :: (Int) }
-data Syn_Alternatives  = Syn_Alternatives { bindingGroups_Syn_Alternatives :: (BindingGroups), kappaUnique_Syn_Alternatives :: (Int), self_Syn_Alternatives :: (Alternatives) }
+data Inh_Alternatives  = Inh_Alternatives { bindingGroups_Inh_Alternatives :: !(BindingGroups), kappaUnique_Inh_Alternatives :: !(Int) }
+data Syn_Alternatives  = Syn_Alternatives { bindingGroups_Syn_Alternatives :: !(BindingGroups), kappaUnique_Syn_Alternatives :: !(Int), self_Syn_Alternatives :: !(Alternatives) }
 {-# INLINABLE wrap_Alternatives #-}
 wrap_Alternatives :: T_Alternatives  -> Inh_Alternatives  -> (Syn_Alternatives )
-wrap_Alternatives (T_Alternatives act) (Inh_Alternatives _lhsIbindingGroups _lhsIkappaUnique) =
+wrap_Alternatives !(T_Alternatives act) !(Inh_Alternatives _lhsIbindingGroups _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg4 = T_Alternatives_vIn4 _lhsIbindingGroups _lhsIkappaUnique
-        (T_Alternatives_vOut4 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Alternatives_s5 sem arg4)
+        !(T_Alternatives_vOut4 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Alternatives_s5 sem arg4)
         return (Syn_Alternatives _lhsObindingGroups _lhsOkappaUnique _lhsOself)
    )
 
@@ -300,9 +301,9 @@ data T_Alternatives_vOut4  = T_Alternatives_vOut4 (BindingGroups) (Int) (Alterna
 sem_Alternatives_Cons :: T_Alternative  -> T_Alternatives  -> T_Alternatives 
 sem_Alternatives_Cons arg_hd_ arg_tl_ = T_Alternatives (return st5) where
    {-# NOINLINE st5 #-}
-   st5 = let
+   !st5 = let
       v4 :: T_Alternatives_v4 
-      v4 = \ (T_Alternatives_vIn4 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v4 = \ !(T_Alternatives_vIn4 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _hdX2 = Control.Monad.Identity.runIdentity (attach_T_Alternative (arg_hd_))
          _tlX5 = Control.Monad.Identity.runIdentity (attach_T_Alternatives (arg_tl_))
          (T_Alternative_vOut1 _hdIbindingGroups _hdIkappaUnique _hdIself) = inv_Alternative_s2 _hdX2 (T_Alternative_vIn1 _hdObindingGroups _hdOkappaUnique)
@@ -318,7 +319,7 @@ sem_Alternatives_Cons arg_hd_ arg_tl_ = T_Alternatives (return st5) where
          _hdOkappaUnique = rule25 _lhsIkappaUnique
          _tlObindingGroups = rule26 _hdIbindingGroups
          _tlOkappaUnique = rule27 _hdIkappaUnique
-         __result_ = T_Alternatives_vOut4 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Alternatives_vOut4 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Alternatives_s5 v4
    {-# INLINE rule20 #-}
@@ -349,9 +350,9 @@ sem_Alternatives_Cons arg_hd_ arg_tl_ = T_Alternatives (return st5) where
 sem_Alternatives_Nil ::  T_Alternatives 
 sem_Alternatives_Nil  = T_Alternatives (return st5) where
    {-# NOINLINE st5 #-}
-   st5 = let
+   !st5 = let
       v4 :: T_Alternatives_v4 
-      v4 = \ (T_Alternatives_vIn4 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v4 = \ !(T_Alternatives_vIn4 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _self = rule28  ()
          _lhsOself :: Alternatives
          _lhsOself = rule29 _self
@@ -359,7 +360,7 @@ sem_Alternatives_Nil  = T_Alternatives (return st5) where
          _lhsObindingGroups = rule30 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule31 _lhsIkappaUnique
-         __result_ = T_Alternatives_vOut4 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Alternatives_vOut4 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Alternatives_s5 v4
    {-# INLINE rule28 #-}
@@ -377,22 +378,22 @@ sem_Alternatives_Nil  = T_Alternatives (return st5) where
 
 -- AnnotatedType -----------------------------------------------
 -- wrapper
-data Inh_AnnotatedType  = Inh_AnnotatedType { constraints_Inh_AnnotatedType :: (KindConstraints), kappaUnique_Inh_AnnotatedType :: (Int) }
-data Syn_AnnotatedType  = Syn_AnnotatedType { assumptions_Syn_AnnotatedType :: (Assumptions), constraints_Syn_AnnotatedType :: (KindConstraints), kappa_Syn_AnnotatedType :: (Kind), kappaUnique_Syn_AnnotatedType :: (Int), self_Syn_AnnotatedType :: (AnnotatedType) }
+data Inh_AnnotatedType  = Inh_AnnotatedType { constraints_Inh_AnnotatedType :: !(KindConstraints), kappaUnique_Inh_AnnotatedType :: !(Int) }
+data Syn_AnnotatedType  = Syn_AnnotatedType { assumptions_Syn_AnnotatedType :: !(Assumptions), constraints_Syn_AnnotatedType :: !(KindConstraints), kappa_Syn_AnnotatedType :: !(Kind), kappaUnique_Syn_AnnotatedType :: !(Int), self_Syn_AnnotatedType :: !(AnnotatedType) }
 {-# INLINABLE wrap_AnnotatedType #-}
 wrap_AnnotatedType :: T_AnnotatedType  -> Inh_AnnotatedType  -> (Syn_AnnotatedType )
-wrap_AnnotatedType (T_AnnotatedType act) (Inh_AnnotatedType _lhsIconstraints _lhsIkappaUnique) =
+wrap_AnnotatedType !(T_AnnotatedType act) !(Inh_AnnotatedType _lhsIconstraints _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg7 = T_AnnotatedType_vIn7 _lhsIconstraints _lhsIkappaUnique
-        (T_AnnotatedType_vOut7 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself) <- return (inv_AnnotatedType_s8 sem arg7)
+        !(T_AnnotatedType_vOut7 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself) <- return (inv_AnnotatedType_s8 sem arg7)
         return (Syn_AnnotatedType _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself)
    )
 
 -- cata
 {-# INLINE sem_AnnotatedType #-}
 sem_AnnotatedType :: AnnotatedType  -> T_AnnotatedType 
-sem_AnnotatedType ( AnnotatedType_AnnotatedType range_ strict_ type_ ) = sem_AnnotatedType_AnnotatedType ( sem_Range range_ ) strict_ ( sem_Type type_ )
+sem_AnnotatedType ( AnnotatedType_AnnotatedType range_ !strict_ type_ ) = sem_AnnotatedType_AnnotatedType ( sem_Range range_ ) strict_ ( sem_Type type_ )
 
 -- semantic domain
 newtype T_AnnotatedType  = T_AnnotatedType {
@@ -407,11 +408,11 @@ data T_AnnotatedType_vIn7  = T_AnnotatedType_vIn7 (KindConstraints) (Int)
 data T_AnnotatedType_vOut7  = T_AnnotatedType_vOut7 (Assumptions) (KindConstraints) (Kind) (Int) (AnnotatedType)
 {-# NOINLINE sem_AnnotatedType_AnnotatedType #-}
 sem_AnnotatedType_AnnotatedType :: T_Range  -> (Bool) -> T_Type  -> T_AnnotatedType 
-sem_AnnotatedType_AnnotatedType arg_range_ arg_strict_ arg_type_ = T_AnnotatedType (return st8) where
+sem_AnnotatedType_AnnotatedType arg_range_ !arg_strict_ arg_type_ = T_AnnotatedType (return st8) where
    {-# NOINLINE st8 #-}
-   st8 = let
+   !st8 = let
       v7 :: T_AnnotatedType_v7 
-      v7 = \ (T_AnnotatedType_vIn7 _lhsIconstraints _lhsIkappaUnique) -> ( let
+      v7 = \ !(T_AnnotatedType_vIn7 _lhsIconstraints _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _typeX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -430,7 +431,7 @@ sem_AnnotatedType_AnnotatedType arg_range_ arg_strict_ arg_type_ = T_AnnotatedTy
          _lhsOkappaUnique = rule38 _typeIkappaUnique
          _typeOconstraints = rule39 _lhsIconstraints
          _typeOkappaUnique = rule40 _lhsIkappaUnique
-         __result_ = T_AnnotatedType_vOut7 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
+         !__result_ = T_AnnotatedType_vOut7 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_AnnotatedType_s8 v7
    {-# INLINE rule32 #-}
@@ -463,15 +464,15 @@ sem_AnnotatedType_AnnotatedType arg_range_ arg_strict_ arg_type_ = T_AnnotatedTy
 
 -- AnnotatedTypes ----------------------------------------------
 -- wrapper
-data Inh_AnnotatedTypes  = Inh_AnnotatedTypes { constraints_Inh_AnnotatedTypes :: (KindConstraints), kappaUnique_Inh_AnnotatedTypes :: (Int) }
-data Syn_AnnotatedTypes  = Syn_AnnotatedTypes { assumptions_Syn_AnnotatedTypes :: (Assumptions), constraints_Syn_AnnotatedTypes :: (KindConstraints), kappaUnique_Syn_AnnotatedTypes :: (Int), kappas_Syn_AnnotatedTypes :: (Kinds), self_Syn_AnnotatedTypes :: (AnnotatedTypes) }
+data Inh_AnnotatedTypes  = Inh_AnnotatedTypes { constraints_Inh_AnnotatedTypes :: !(KindConstraints), kappaUnique_Inh_AnnotatedTypes :: !(Int) }
+data Syn_AnnotatedTypes  = Syn_AnnotatedTypes { assumptions_Syn_AnnotatedTypes :: !(Assumptions), constraints_Syn_AnnotatedTypes :: !(KindConstraints), kappaUnique_Syn_AnnotatedTypes :: !(Int), kappas_Syn_AnnotatedTypes :: !(Kinds), self_Syn_AnnotatedTypes :: !(AnnotatedTypes) }
 {-# INLINABLE wrap_AnnotatedTypes #-}
 wrap_AnnotatedTypes :: T_AnnotatedTypes  -> Inh_AnnotatedTypes  -> (Syn_AnnotatedTypes )
-wrap_AnnotatedTypes (T_AnnotatedTypes act) (Inh_AnnotatedTypes _lhsIconstraints _lhsIkappaUnique) =
+wrap_AnnotatedTypes !(T_AnnotatedTypes act) !(Inh_AnnotatedTypes _lhsIconstraints _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg10 = T_AnnotatedTypes_vIn10 _lhsIconstraints _lhsIkappaUnique
-        (T_AnnotatedTypes_vOut10 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOkappas _lhsOself) <- return (inv_AnnotatedTypes_s11 sem arg10)
+        !(T_AnnotatedTypes_vOut10 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOkappas _lhsOself) <- return (inv_AnnotatedTypes_s11 sem arg10)
         return (Syn_AnnotatedTypes _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOkappas _lhsOself)
    )
 
@@ -495,9 +496,9 @@ data T_AnnotatedTypes_vOut10  = T_AnnotatedTypes_vOut10 (Assumptions) (KindConst
 sem_AnnotatedTypes_Cons :: T_AnnotatedType  -> T_AnnotatedTypes  -> T_AnnotatedTypes 
 sem_AnnotatedTypes_Cons arg_hd_ arg_tl_ = T_AnnotatedTypes (return st11) where
    {-# NOINLINE st11 #-}
-   st11 = let
+   !st11 = let
       v10 :: T_AnnotatedTypes_v10 
-      v10 = \ (T_AnnotatedTypes_vIn10 _lhsIconstraints _lhsIkappaUnique) -> ( let
+      v10 = \ !(T_AnnotatedTypes_vIn10 _lhsIconstraints _lhsIkappaUnique) -> ( let
          _hdX8 = Control.Monad.Identity.runIdentity (attach_T_AnnotatedType (arg_hd_))
          _tlX11 = Control.Monad.Identity.runIdentity (attach_T_AnnotatedTypes (arg_tl_))
          (T_AnnotatedType_vOut7 _hdIassumptions _hdIconstraints _hdIkappa _hdIkappaUnique _hdIself) = inv_AnnotatedType_s8 _hdX8 (T_AnnotatedType_vIn7 _hdOconstraints _hdOkappaUnique)
@@ -517,7 +518,7 @@ sem_AnnotatedTypes_Cons arg_hd_ arg_tl_ = T_AnnotatedTypes (return st11) where
          _hdOkappaUnique = rule48 _lhsIkappaUnique
          _tlOconstraints = rule49 _hdIconstraints
          _tlOkappaUnique = rule50 _hdIkappaUnique
-         __result_ = T_AnnotatedTypes_vOut10 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOkappas _lhsOself
+         !__result_ = T_AnnotatedTypes_vOut10 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOkappas _lhsOself
          in __result_ )
      in C_AnnotatedTypes_s11 v10
    {-# INLINE rule41 #-}
@@ -554,9 +555,9 @@ sem_AnnotatedTypes_Cons arg_hd_ arg_tl_ = T_AnnotatedTypes (return st11) where
 sem_AnnotatedTypes_Nil ::  T_AnnotatedTypes 
 sem_AnnotatedTypes_Nil  = T_AnnotatedTypes (return st11) where
    {-# NOINLINE st11 #-}
-   st11 = let
+   !st11 = let
       v10 :: T_AnnotatedTypes_v10 
-      v10 = \ (T_AnnotatedTypes_vIn10 _lhsIconstraints _lhsIkappaUnique) -> ( let
+      v10 = \ !(T_AnnotatedTypes_vIn10 _lhsIconstraints _lhsIkappaUnique) -> ( let
          _lhsOassumptions :: Assumptions
          _lhsOassumptions = rule51  ()
          _lhsOkappas :: Kinds
@@ -568,7 +569,7 @@ sem_AnnotatedTypes_Nil  = T_AnnotatedTypes (return st11) where
          _lhsOconstraints = rule55 _lhsIconstraints
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule56 _lhsIkappaUnique
-         __result_ = T_AnnotatedTypes_vOut10 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOkappas _lhsOself
+         !__result_ = T_AnnotatedTypes_vOut10 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOkappas _lhsOself
          in __result_ )
      in C_AnnotatedTypes_s11 v10
    {-# INLINE rule51 #-}
@@ -592,22 +593,22 @@ sem_AnnotatedTypes_Nil  = T_AnnotatedTypes (return st11) where
 
 -- Body --------------------------------------------------------
 -- wrapper
-data Inh_Body  = Inh_Body { importEnvironment_Inh_Body :: (ImportEnvironment), kappaUnique_Inh_Body :: (Int) }
-data Syn_Body  = Syn_Body { constraints_Syn_Body :: (KindConstraints), environment_Syn_Body :: (PatternAssumptions), kappaUnique_Syn_Body :: (Int), self_Syn_Body :: (Body) }
+data Inh_Body  = Inh_Body { importEnvironment_Inh_Body :: !(ImportEnvironment), kappaUnique_Inh_Body :: !(Int) }
+data Syn_Body  = Syn_Body { constraints_Syn_Body :: !(KindConstraints), environment_Syn_Body :: !(PatternAssumptions), kappaUnique_Syn_Body :: !(Int), self_Syn_Body :: !(Body) }
 {-# INLINABLE wrap_Body #-}
 wrap_Body :: T_Body  -> Inh_Body  -> (Syn_Body )
-wrap_Body (T_Body act) (Inh_Body _lhsIimportEnvironment _lhsIkappaUnique) =
+wrap_Body !(T_Body act) !(Inh_Body _lhsIimportEnvironment _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg13 = T_Body_vIn13 _lhsIimportEnvironment _lhsIkappaUnique
-        (T_Body_vOut13 _lhsOconstraints _lhsOenvironment _lhsOkappaUnique _lhsOself) <- return (inv_Body_s14 sem arg13)
+        !(T_Body_vOut13 _lhsOconstraints _lhsOenvironment _lhsOkappaUnique _lhsOself) <- return (inv_Body_s14 sem arg13)
         return (Syn_Body _lhsOconstraints _lhsOenvironment _lhsOkappaUnique _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_Body #-}
 sem_Body :: Body  -> T_Body 
-sem_Body ( Body_Hole range_ id_ ) = sem_Body_Hole ( sem_Range range_ ) id_
+sem_Body ( Body_Hole range_ !id_ ) = sem_Body_Hole ( sem_Range range_ ) id_
 sem_Body ( Body_Body range_ importdeclarations_ declarations_ ) = sem_Body_Body ( sem_Range range_ ) ( sem_ImportDeclarations importdeclarations_ ) ( sem_Declarations declarations_ )
 
 -- semantic domain
@@ -623,11 +624,11 @@ data T_Body_vIn13  = T_Body_vIn13 (ImportEnvironment) (Int)
 data T_Body_vOut13  = T_Body_vOut13 (KindConstraints) (PatternAssumptions) (Int) (Body)
 {-# NOINLINE sem_Body_Hole #-}
 sem_Body_Hole :: T_Range  -> (String) -> T_Body 
-sem_Body_Hole arg_range_ arg_id_ = T_Body (return st14) where
+sem_Body_Hole arg_range_ !arg_id_ = T_Body (return st14) where
    {-# NOINLINE st14 #-}
-   st14 = let
+   !st14 = let
       v13 :: T_Body_v13 
-      v13 = \ (T_Body_vIn13 _lhsIimportEnvironment _lhsIkappaUnique) -> ( let
+      v13 = \ !(T_Body_vIn13 _lhsIimportEnvironment _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _lhsOconstraints :: KindConstraints
@@ -639,7 +640,7 @@ sem_Body_Hole arg_range_ arg_id_ = T_Body (return st14) where
          _lhsOself = rule60 _self
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule61 _lhsIkappaUnique
-         __result_ = T_Body_vOut13 _lhsOconstraints _lhsOenvironment _lhsOkappaUnique _lhsOself
+         !__result_ = T_Body_vOut13 _lhsOconstraints _lhsOenvironment _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Body_s14 v13
    {-# INLINE rule57 #-}
@@ -661,9 +662,9 @@ sem_Body_Hole arg_range_ arg_id_ = T_Body (return st14) where
 sem_Body_Body :: T_Range  -> T_ImportDeclarations  -> T_Declarations  -> T_Body 
 sem_Body_Body arg_range_ arg_importdeclarations_ arg_declarations_ = T_Body (return st14) where
    {-# NOINLINE st14 #-}
-   st14 = let
+   !st14 = let
       v13 :: T_Body_v13 
-      v13 = \ (T_Body_vIn13 _lhsIimportEnvironment _lhsIkappaUnique) -> ( let
+      v13 = \ !(T_Body_vIn13 _lhsIimportEnvironment _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _importdeclarationsX74 = Control.Monad.Identity.runIdentity (attach_T_ImportDeclarations (arg_importdeclarations_))
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
@@ -684,7 +685,7 @@ sem_Body_Body arg_range_ arg_importdeclarations_ arg_declarations_ = T_Body (ret
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule70 _declarationsIkappaUnique
          _declarationsOkappaUnique = rule71 _lhsIkappaUnique
-         __result_ = T_Body_vOut13 _lhsOconstraints _lhsOenvironment _lhsOkappaUnique _lhsOself
+         !__result_ = T_Body_vOut13 _lhsOconstraints _lhsOenvironment _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Body_s14 v13
    {-# INLINE rule62 #-}
@@ -720,15 +721,15 @@ sem_Body_Body arg_range_ arg_importdeclarations_ arg_declarations_ = T_Body (ret
 
 -- Constructor -------------------------------------------------
 -- wrapper
-data Inh_Constructor  = Inh_Constructor { constraints_Inh_Constructor :: (KindConstraints), kappaUnique_Inh_Constructor :: (Int) }
-data Syn_Constructor  = Syn_Constructor { assumptions_Syn_Constructor :: (Assumptions), constraints_Syn_Constructor :: (KindConstraints), kappaUnique_Syn_Constructor :: (Int), self_Syn_Constructor :: (Constructor) }
+data Inh_Constructor  = Inh_Constructor { constraints_Inh_Constructor :: !(KindConstraints), kappaUnique_Inh_Constructor :: !(Int) }
+data Syn_Constructor  = Syn_Constructor { assumptions_Syn_Constructor :: !(Assumptions), constraints_Syn_Constructor :: !(KindConstraints), kappaUnique_Syn_Constructor :: !(Int), self_Syn_Constructor :: !(Constructor) }
 {-# INLINABLE wrap_Constructor #-}
 wrap_Constructor :: T_Constructor  -> Inh_Constructor  -> (Syn_Constructor )
-wrap_Constructor (T_Constructor act) (Inh_Constructor _lhsIconstraints _lhsIkappaUnique) =
+wrap_Constructor !(T_Constructor act) !(Inh_Constructor _lhsIconstraints _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg16 = T_Constructor_vIn16 _lhsIconstraints _lhsIkappaUnique
-        (T_Constructor_vOut16 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOself) <- return (inv_Constructor_s17 sem arg16)
+        !(T_Constructor_vOut16 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOself) <- return (inv_Constructor_s17 sem arg16)
         return (Syn_Constructor _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOself)
    )
 
@@ -754,9 +755,9 @@ data T_Constructor_vOut16  = T_Constructor_vOut16 (Assumptions) (KindConstraints
 sem_Constructor_Constructor :: T_Range  -> T_Name  -> T_AnnotatedTypes  -> T_Constructor 
 sem_Constructor_Constructor arg_range_ arg_constructor_ arg_types_ = T_Constructor (return st17) where
    {-# NOINLINE st17 #-}
-   st17 = let
+   !st17 = let
       v16 :: T_Constructor_v16 
-      v16 = \ (T_Constructor_vIn16 _lhsIconstraints _lhsIkappaUnique) -> ( let
+      v16 = \ !(T_Constructor_vIn16 _lhsIconstraints _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _constructorX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_constructor_))
          _typesX11 = Control.Monad.Identity.runIdentity (attach_T_AnnotatedTypes (arg_types_))
@@ -774,7 +775,7 @@ sem_Constructor_Constructor arg_range_ arg_constructor_ arg_types_ = T_Construct
          _lhsOkappaUnique = rule76 _typesIkappaUnique
          _typesOconstraints = rule77 _lhsIconstraints
          _typesOkappaUnique = rule78 _lhsIkappaUnique
-         __result_ = T_Constructor_vOut16 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOself
+         !__result_ = T_Constructor_vOut16 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Constructor_s17 v16
    {-# INLINE rule72 #-}
@@ -802,9 +803,9 @@ sem_Constructor_Constructor arg_range_ arg_constructor_ arg_types_ = T_Construct
 sem_Constructor_Infix :: T_Range  -> T_AnnotatedType  -> T_Name  -> T_AnnotatedType  -> T_Constructor 
 sem_Constructor_Infix arg_range_ arg_leftType_ arg_constructorOperator_ arg_rightType_ = T_Constructor (return st17) where
    {-# NOINLINE st17 #-}
-   st17 = let
+   !st17 = let
       v16 :: T_Constructor_v16 
-      v16 = \ (T_Constructor_vIn16 _lhsIconstraints _lhsIkappaUnique) -> ( let
+      v16 = \ !(T_Constructor_vIn16 _lhsIconstraints _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _leftTypeX8 = Control.Monad.Identity.runIdentity (attach_T_AnnotatedType (arg_leftType_))
          _constructorOperatorX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_constructorOperator_))
@@ -826,7 +827,7 @@ sem_Constructor_Infix arg_range_ arg_leftType_ arg_constructorOperator_ arg_righ
          _leftTypeOkappaUnique = rule85 _lhsIkappaUnique
          _rightTypeOconstraints = rule86 _leftTypeIconstraints
          _rightTypeOkappaUnique = rule87 _leftTypeIkappaUnique
-         __result_ = T_Constructor_vOut16 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOself
+         !__result_ = T_Constructor_vOut16 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Constructor_s17 v16
    {-# INLINE rule79 #-}
@@ -860,9 +861,9 @@ sem_Constructor_Infix arg_range_ arg_leftType_ arg_constructorOperator_ arg_righ
 sem_Constructor_Record :: T_Range  -> T_Name  -> T_FieldDeclarations  -> T_Constructor 
 sem_Constructor_Record arg_range_ arg_constructor_ arg_fieldDeclarations_ = T_Constructor (return st17) where
    {-# NOINLINE st17 #-}
-   st17 = let
+   !st17 = let
       v16 :: T_Constructor_v16 
-      v16 = \ (T_Constructor_vIn16 _lhsIconstraints _lhsIkappaUnique) -> ( let
+      v16 = \ !(T_Constructor_vIn16 _lhsIconstraints _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _constructorX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_constructor_))
          _fieldDeclarationsX50 = Control.Monad.Identity.runIdentity (attach_T_FieldDeclarations (arg_fieldDeclarations_))
@@ -879,7 +880,7 @@ sem_Constructor_Record arg_range_ arg_constructor_ arg_fieldDeclarations_ = T_Co
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule92 _fieldDeclarationsIkappaUnique
          _fieldDeclarationsOkappaUnique = rule93 _lhsIkappaUnique
-         __result_ = T_Constructor_vOut16 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOself
+         !__result_ = T_Constructor_vOut16 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Constructor_s17 v16
    {-# INLINE rule88 #-}
@@ -903,15 +904,15 @@ sem_Constructor_Record arg_range_ arg_constructor_ arg_fieldDeclarations_ = T_Co
 
 -- Constructors ------------------------------------------------
 -- wrapper
-data Inh_Constructors  = Inh_Constructors { constraints_Inh_Constructors :: (KindConstraints), kappaUnique_Inh_Constructors :: (Int) }
-data Syn_Constructors  = Syn_Constructors { assumptions_Syn_Constructors :: (Assumptions), constraints_Syn_Constructors :: (KindConstraints), kappaUnique_Syn_Constructors :: (Int), self_Syn_Constructors :: (Constructors) }
+data Inh_Constructors  = Inh_Constructors { constraints_Inh_Constructors :: !(KindConstraints), kappaUnique_Inh_Constructors :: !(Int) }
+data Syn_Constructors  = Syn_Constructors { assumptions_Syn_Constructors :: !(Assumptions), constraints_Syn_Constructors :: !(KindConstraints), kappaUnique_Syn_Constructors :: !(Int), self_Syn_Constructors :: !(Constructors) }
 {-# INLINABLE wrap_Constructors #-}
 wrap_Constructors :: T_Constructors  -> Inh_Constructors  -> (Syn_Constructors )
-wrap_Constructors (T_Constructors act) (Inh_Constructors _lhsIconstraints _lhsIkappaUnique) =
+wrap_Constructors !(T_Constructors act) !(Inh_Constructors _lhsIconstraints _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg19 = T_Constructors_vIn19 _lhsIconstraints _lhsIkappaUnique
-        (T_Constructors_vOut19 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOself) <- return (inv_Constructors_s20 sem arg19)
+        !(T_Constructors_vOut19 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOself) <- return (inv_Constructors_s20 sem arg19)
         return (Syn_Constructors _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOself)
    )
 
@@ -935,9 +936,9 @@ data T_Constructors_vOut19  = T_Constructors_vOut19 (Assumptions) (KindConstrain
 sem_Constructors_Cons :: T_Constructor  -> T_Constructors  -> T_Constructors 
 sem_Constructors_Cons arg_hd_ arg_tl_ = T_Constructors (return st20) where
    {-# NOINLINE st20 #-}
-   st20 = let
+   !st20 = let
       v19 :: T_Constructors_v19 
-      v19 = \ (T_Constructors_vIn19 _lhsIconstraints _lhsIkappaUnique) -> ( let
+      v19 = \ !(T_Constructors_vIn19 _lhsIconstraints _lhsIkappaUnique) -> ( let
          _hdX17 = Control.Monad.Identity.runIdentity (attach_T_Constructor (arg_hd_))
          _tlX20 = Control.Monad.Identity.runIdentity (attach_T_Constructors (arg_tl_))
          (T_Constructor_vOut16 _hdIassumptions _hdIconstraints _hdIkappaUnique _hdIself) = inv_Constructor_s17 _hdX17 (T_Constructor_vIn16 _hdOconstraints _hdOkappaUnique)
@@ -955,7 +956,7 @@ sem_Constructors_Cons arg_hd_ arg_tl_ = T_Constructors (return st20) where
          _hdOkappaUnique = rule100 _lhsIkappaUnique
          _tlOconstraints = rule101 _hdIconstraints
          _tlOkappaUnique = rule102 _hdIkappaUnique
-         __result_ = T_Constructors_vOut19 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOself
+         !__result_ = T_Constructors_vOut19 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Constructors_s20 v19
    {-# INLINE rule94 #-}
@@ -989,9 +990,9 @@ sem_Constructors_Cons arg_hd_ arg_tl_ = T_Constructors (return st20) where
 sem_Constructors_Nil ::  T_Constructors 
 sem_Constructors_Nil  = T_Constructors (return st20) where
    {-# NOINLINE st20 #-}
-   st20 = let
+   !st20 = let
       v19 :: T_Constructors_v19 
-      v19 = \ (T_Constructors_vIn19 _lhsIconstraints _lhsIkappaUnique) -> ( let
+      v19 = \ !(T_Constructors_vIn19 _lhsIconstraints _lhsIkappaUnique) -> ( let
          _lhsOassumptions :: Assumptions
          _lhsOassumptions = rule103  ()
          _self = rule104  ()
@@ -1001,7 +1002,7 @@ sem_Constructors_Nil  = T_Constructors (return st20) where
          _lhsOconstraints = rule106 _lhsIconstraints
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule107 _lhsIkappaUnique
-         __result_ = T_Constructors_vOut19 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOself
+         !__result_ = T_Constructors_vOut19 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Constructors_s20 v19
    {-# INLINE rule103 #-}
@@ -1022,15 +1023,15 @@ sem_Constructors_Nil  = T_Constructors (return st20) where
 
 -- ContextItem -------------------------------------------------
 -- wrapper
-data Inh_ContextItem  = Inh_ContextItem { kappaUnique_Inh_ContextItem :: (Int) }
-data Syn_ContextItem  = Syn_ContextItem { kappaUnique_Syn_ContextItem :: (Int), self_Syn_ContextItem :: (ContextItem) }
+data Inh_ContextItem  = Inh_ContextItem { kappaUnique_Inh_ContextItem :: !(Int) }
+data Syn_ContextItem  = Syn_ContextItem { kappaUnique_Syn_ContextItem :: !(Int), self_Syn_ContextItem :: !(ContextItem) }
 {-# INLINABLE wrap_ContextItem #-}
 wrap_ContextItem :: T_ContextItem  -> Inh_ContextItem  -> (Syn_ContextItem )
-wrap_ContextItem (T_ContextItem act) (Inh_ContextItem _lhsIkappaUnique) =
+wrap_ContextItem !(T_ContextItem act) !(Inh_ContextItem _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg22 = T_ContextItem_vIn22 _lhsIkappaUnique
-        (T_ContextItem_vOut22 _lhsOkappaUnique _lhsOself) <- return (inv_ContextItem_s23 sem arg22)
+        !(T_ContextItem_vOut22 _lhsOkappaUnique _lhsOself) <- return (inv_ContextItem_s23 sem arg22)
         return (Syn_ContextItem _lhsOkappaUnique _lhsOself)
    )
 
@@ -1054,9 +1055,9 @@ data T_ContextItem_vOut22  = T_ContextItem_vOut22 (Int) (ContextItem)
 sem_ContextItem_ContextItem :: T_Range  -> T_Name  -> T_Types  -> T_ContextItem 
 sem_ContextItem_ContextItem arg_range_ arg_name_ arg_types_ = T_ContextItem (return st23) where
    {-# NOINLINE st23 #-}
-   st23 = let
+   !st23 = let
       v22 :: T_ContextItem_v22 
-      v22 = \ (T_ContextItem_vIn22 _lhsIkappaUnique) -> ( let
+      v22 = \ !(T_ContextItem_vIn22 _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _typesX167 = Control.Monad.Identity.runIdentity (attach_T_Types (arg_types_))
@@ -1071,7 +1072,7 @@ sem_ContextItem_ContextItem arg_range_ arg_name_ arg_types_ = T_ContextItem (ret
          _lhsOkappaUnique = rule111 _typesIkappaUnique
          _typesOconstraints = rule112 _constraints
          _typesOkappaUnique = rule113 _lhsIkappaUnique
-         __result_ = T_ContextItem_vOut22 _lhsOkappaUnique _lhsOself
+         !__result_ = T_ContextItem_vOut22 _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_ContextItem_s23 v22
    {-# INLINE rule108 #-}
@@ -1095,15 +1096,15 @@ sem_ContextItem_ContextItem arg_range_ arg_name_ arg_types_ = T_ContextItem (ret
 
 -- ContextItems ------------------------------------------------
 -- wrapper
-data Inh_ContextItems  = Inh_ContextItems { kappaUnique_Inh_ContextItems :: (Int) }
-data Syn_ContextItems  = Syn_ContextItems { kappaUnique_Syn_ContextItems :: (Int), self_Syn_ContextItems :: (ContextItems) }
+data Inh_ContextItems  = Inh_ContextItems { kappaUnique_Inh_ContextItems :: !(Int) }
+data Syn_ContextItems  = Syn_ContextItems { kappaUnique_Syn_ContextItems :: !(Int), self_Syn_ContextItems :: !(ContextItems) }
 {-# INLINABLE wrap_ContextItems #-}
 wrap_ContextItems :: T_ContextItems  -> Inh_ContextItems  -> (Syn_ContextItems )
-wrap_ContextItems (T_ContextItems act) (Inh_ContextItems _lhsIkappaUnique) =
+wrap_ContextItems !(T_ContextItems act) !(Inh_ContextItems _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg25 = T_ContextItems_vIn25 _lhsIkappaUnique
-        (T_ContextItems_vOut25 _lhsOkappaUnique _lhsOself) <- return (inv_ContextItems_s26 sem arg25)
+        !(T_ContextItems_vOut25 _lhsOkappaUnique _lhsOself) <- return (inv_ContextItems_s26 sem arg25)
         return (Syn_ContextItems _lhsOkappaUnique _lhsOself)
    )
 
@@ -1127,9 +1128,9 @@ data T_ContextItems_vOut25  = T_ContextItems_vOut25 (Int) (ContextItems)
 sem_ContextItems_Cons :: T_ContextItem  -> T_ContextItems  -> T_ContextItems 
 sem_ContextItems_Cons arg_hd_ arg_tl_ = T_ContextItems (return st26) where
    {-# NOINLINE st26 #-}
-   st26 = let
+   !st26 = let
       v25 :: T_ContextItems_v25 
-      v25 = \ (T_ContextItems_vIn25 _lhsIkappaUnique) -> ( let
+      v25 = \ !(T_ContextItems_vIn25 _lhsIkappaUnique) -> ( let
          _hdX23 = Control.Monad.Identity.runIdentity (attach_T_ContextItem (arg_hd_))
          _tlX26 = Control.Monad.Identity.runIdentity (attach_T_ContextItems (arg_tl_))
          (T_ContextItem_vOut22 _hdIkappaUnique _hdIself) = inv_ContextItem_s23 _hdX23 (T_ContextItem_vIn22 _hdOkappaUnique)
@@ -1141,7 +1142,7 @@ sem_ContextItems_Cons arg_hd_ arg_tl_ = T_ContextItems (return st26) where
          _lhsOkappaUnique = rule116 _tlIkappaUnique
          _hdOkappaUnique = rule117 _lhsIkappaUnique
          _tlOkappaUnique = rule118 _hdIkappaUnique
-         __result_ = T_ContextItems_vOut25 _lhsOkappaUnique _lhsOself
+         !__result_ = T_ContextItems_vOut25 _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_ContextItems_s26 v25
    {-# INLINE rule114 #-}
@@ -1163,15 +1164,15 @@ sem_ContextItems_Cons arg_hd_ arg_tl_ = T_ContextItems (return st26) where
 sem_ContextItems_Nil ::  T_ContextItems 
 sem_ContextItems_Nil  = T_ContextItems (return st26) where
    {-# NOINLINE st26 #-}
-   st26 = let
+   !st26 = let
       v25 :: T_ContextItems_v25 
-      v25 = \ (T_ContextItems_vIn25 _lhsIkappaUnique) -> ( let
+      v25 = \ !(T_ContextItems_vIn25 _lhsIkappaUnique) -> ( let
          _self = rule119  ()
          _lhsOself :: ContextItems
          _lhsOself = rule120 _self
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule121 _lhsIkappaUnique
-         __result_ = T_ContextItems_vOut25 _lhsOkappaUnique _lhsOself
+         !__result_ = T_ContextItems_vOut25 _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_ContextItems_s26 v25
    {-# INLINE rule119 #-}
@@ -1186,22 +1187,22 @@ sem_ContextItems_Nil  = T_ContextItems (return st26) where
 
 -- Declaration -------------------------------------------------
 -- wrapper
-data Inh_Declaration  = Inh_Declaration { bindingGroups_Inh_Declaration :: (BindingGroups), kappaUnique_Inh_Declaration :: (Int) }
-data Syn_Declaration  = Syn_Declaration { bindingGroups_Syn_Declaration :: (BindingGroups), kappaUnique_Syn_Declaration :: (Int), self_Syn_Declaration :: (Declaration) }
+data Inh_Declaration  = Inh_Declaration { bindingGroups_Inh_Declaration :: !(BindingGroups), kappaUnique_Inh_Declaration :: !(Int) }
+data Syn_Declaration  = Syn_Declaration { bindingGroups_Syn_Declaration :: !(BindingGroups), kappaUnique_Syn_Declaration :: !(Int), self_Syn_Declaration :: !(Declaration) }
 {-# INLINABLE wrap_Declaration #-}
 wrap_Declaration :: T_Declaration  -> Inh_Declaration  -> (Syn_Declaration )
-wrap_Declaration (T_Declaration act) (Inh_Declaration _lhsIbindingGroups _lhsIkappaUnique) =
+wrap_Declaration !(T_Declaration act) !(Inh_Declaration _lhsIbindingGroups _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg28 = T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique
-        (T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Declaration_s29 sem arg28)
+        !(T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Declaration_s29 sem arg28)
         return (Syn_Declaration _lhsObindingGroups _lhsOkappaUnique _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_Declaration #-}
 sem_Declaration :: Declaration  -> T_Declaration 
-sem_Declaration ( Declaration_Hole range_ id_ ) = sem_Declaration_Hole ( sem_Range range_ ) id_
+sem_Declaration ( Declaration_Hole range_ !id_ ) = sem_Declaration_Hole ( sem_Range range_ ) id_
 sem_Declaration ( Declaration_Type range_ simpletype_ type_ ) = sem_Declaration_Type ( sem_Range range_ ) ( sem_SimpleType simpletype_ ) ( sem_Type type_ )
 sem_Declaration ( Declaration_Data range_ context_ simpletype_ constructors_ derivings_ ) = sem_Declaration_Data ( sem_Range range_ ) ( sem_ContextItems context_ ) ( sem_SimpleType simpletype_ ) ( sem_Constructors constructors_ ) ( sem_Names derivings_ )
 sem_Declaration ( Declaration_Newtype range_ context_ simpletype_ constructor_ derivings_ ) = sem_Declaration_Newtype ( sem_Range range_ ) ( sem_ContextItems context_ ) ( sem_SimpleType simpletype_ ) ( sem_Constructor constructor_ ) ( sem_Names derivings_ )
@@ -1227,11 +1228,11 @@ data T_Declaration_vIn28  = T_Declaration_vIn28 (BindingGroups) (Int)
 data T_Declaration_vOut28  = T_Declaration_vOut28 (BindingGroups) (Int) (Declaration)
 {-# NOINLINE sem_Declaration_Hole #-}
 sem_Declaration_Hole :: T_Range  -> (String) -> T_Declaration 
-sem_Declaration_Hole arg_range_ arg_id_ = T_Declaration (return st29) where
+sem_Declaration_Hole arg_range_ !arg_id_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v28 = \ !(T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _self = rule122 _rangeIself arg_id_
@@ -1241,7 +1242,7 @@ sem_Declaration_Hole arg_range_ arg_id_ = T_Declaration (return st29) where
          _lhsObindingGroups = rule124 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule125 _lhsIkappaUnique
-         __result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule122 #-}
@@ -1260,9 +1261,9 @@ sem_Declaration_Hole arg_range_ arg_id_ = T_Declaration (return st29) where
 sem_Declaration_Type :: T_Range  -> T_SimpleType  -> T_Type  -> T_Declaration 
 sem_Declaration_Type arg_range_ arg_simpletype_ arg_type_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v28 = \ !(T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _simpletypeX152 = Control.Monad.Identity.runIdentity (attach_T_SimpleType (arg_simpletype_))
          _typeX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
@@ -1283,7 +1284,7 @@ sem_Declaration_Type arg_range_ arg_simpletype_ arg_type_ = T_Declaration (retur
          _simpletypeOkappaUnique = rule134 _lhsIkappaUnique
          _typeOconstraints = rule135 _simpletypeIconstraints
          _typeOkappaUnique = rule136 _simpletypeIkappaUnique
-         __result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule126 #-}
@@ -1323,9 +1324,9 @@ sem_Declaration_Type arg_range_ arg_simpletype_ arg_type_ = T_Declaration (retur
 sem_Declaration_Data :: T_Range  -> T_ContextItems  -> T_SimpleType  -> T_Constructors  -> T_Names  -> T_Declaration 
 sem_Declaration_Data arg_range_ arg_context_ arg_simpletype_ arg_constructors_ arg_derivings_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v28 = \ !(T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _contextX26 = Control.Monad.Identity.runIdentity (attach_T_ContextItems (arg_context_))
          _simpletypeX152 = Control.Monad.Identity.runIdentity (attach_T_SimpleType (arg_simpletype_))
@@ -1351,7 +1352,7 @@ sem_Declaration_Data arg_range_ arg_context_ arg_simpletype_ arg_constructors_ a
          _simpletypeOkappaUnique = rule146 _contextIkappaUnique
          _constructorsOconstraints = rule147 _simpletypeIconstraints
          _constructorsOkappaUnique = rule148 _simpletypeIkappaUnique
-         __result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule137 #-}
@@ -1394,9 +1395,9 @@ sem_Declaration_Data arg_range_ arg_context_ arg_simpletype_ arg_constructors_ a
 sem_Declaration_Newtype :: T_Range  -> T_ContextItems  -> T_SimpleType  -> T_Constructor  -> T_Names  -> T_Declaration 
 sem_Declaration_Newtype arg_range_ arg_context_ arg_simpletype_ arg_constructor_ arg_derivings_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v28 = \ !(T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _contextX26 = Control.Monad.Identity.runIdentity (attach_T_ContextItems (arg_context_))
          _simpletypeX152 = Control.Monad.Identity.runIdentity (attach_T_SimpleType (arg_simpletype_))
@@ -1421,7 +1422,7 @@ sem_Declaration_Newtype arg_range_ arg_context_ arg_simpletype_ arg_constructor_
          _simpletypeOkappaUnique = rule157 _contextIkappaUnique
          _constructorOconstraints = rule158 _constraints
          _constructorOkappaUnique = rule159 _simpletypeIkappaUnique
-         __result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule149 #-}
@@ -1461,9 +1462,9 @@ sem_Declaration_Newtype arg_range_ arg_context_ arg_simpletype_ arg_constructor_
 sem_Declaration_Class :: T_Range  -> T_ContextItems  -> T_SimpleType  -> T_MaybeDeclarations  -> T_Declaration 
 sem_Declaration_Class arg_range_ arg_context_ arg_simpletype_ arg_where_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v28 = \ !(T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _contextX26 = Control.Monad.Identity.runIdentity (attach_T_ContextItems (arg_context_))
          _simpletypeX152 = Control.Monad.Identity.runIdentity (attach_T_SimpleType (arg_simpletype_))
@@ -1486,7 +1487,7 @@ sem_Declaration_Class arg_range_ arg_context_ arg_simpletype_ arg_where_ = T_Dec
          _simpletypeOkappaUnique = rule168 _contextIkappaUnique
          _whereObindingGroups = rule169 _lhsIbindingGroups
          _whereOkappaUnique = rule170 _simpletypeIkappaUnique
-         __result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule160 #-}
@@ -1526,9 +1527,9 @@ sem_Declaration_Class arg_range_ arg_context_ arg_simpletype_ arg_where_ = T_Dec
 sem_Declaration_Instance :: T_Range  -> T_ContextItems  -> T_Name  -> T_Types  -> T_MaybeDeclarations  -> T_Declaration 
 sem_Declaration_Instance arg_range_ arg_context_ arg_name_ arg_types_ arg_where_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v28 = \ !(T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _contextX26 = Control.Monad.Identity.runIdentity (attach_T_ContextItems (arg_context_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
@@ -1552,7 +1553,7 @@ sem_Declaration_Instance arg_range_ arg_context_ arg_name_ arg_types_ arg_where_
          _typesOkappaUnique = rule178 _contextIkappaUnique
          _whereObindingGroups = rule179 _lhsIbindingGroups
          _whereOkappaUnique = rule180 _typesIkappaUnique
-         __result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule171 #-}
@@ -1589,9 +1590,9 @@ sem_Declaration_Instance arg_range_ arg_context_ arg_name_ arg_types_ arg_where_
 sem_Declaration_Default :: T_Range  -> T_Types  -> T_Declaration 
 sem_Declaration_Default arg_range_ arg_types_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v28 = \ !(T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _typesX167 = Control.Monad.Identity.runIdentity (attach_T_Types (arg_types_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -1606,7 +1607,7 @@ sem_Declaration_Default arg_range_ arg_types_ = T_Declaration (return st29) wher
          _lhsOkappaUnique = rule185 _typesIkappaUnique
          _typesOconstraints = rule186 _constraints
          _typesOkappaUnique = rule187 _lhsIkappaUnique
-         __result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule181 #-}
@@ -1634,9 +1635,9 @@ sem_Declaration_Default arg_range_ arg_types_ = T_Declaration (return st29) wher
 sem_Declaration_FunctionBindings :: T_Range  -> T_FunctionBindings  -> T_Declaration 
 sem_Declaration_FunctionBindings arg_range_ arg_bindings_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v28 = \ !(T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _bindingsX59 = Control.Monad.Identity.runIdentity (attach_T_FunctionBindings (arg_bindings_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -1650,7 +1651,7 @@ sem_Declaration_FunctionBindings arg_range_ arg_bindings_ = T_Declaration (retur
          _lhsOkappaUnique = rule191 _bindingsIkappaUnique
          _bindingsObindingGroups = rule192 _lhsIbindingGroups
          _bindingsOkappaUnique = rule193 _lhsIkappaUnique
-         __result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule188 #-}
@@ -1675,9 +1676,9 @@ sem_Declaration_FunctionBindings arg_range_ arg_bindings_ = T_Declaration (retur
 sem_Declaration_PatternBinding :: T_Range  -> T_Pattern  -> T_RightHandSide  -> T_Declaration 
 sem_Declaration_PatternBinding arg_range_ arg_pattern_ arg_righthandside_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v28 = \ !(T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          _righthandsideX149 = Control.Monad.Identity.runIdentity (attach_T_RightHandSide (arg_righthandside_))
@@ -1693,7 +1694,7 @@ sem_Declaration_PatternBinding arg_range_ arg_pattern_ arg_righthandside_ = T_De
          _lhsOkappaUnique = rule197 _righthandsideIkappaUnique
          _righthandsideObindingGroups = rule198 _lhsIbindingGroups
          _righthandsideOkappaUnique = rule199 _lhsIkappaUnique
-         __result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule194 #-}
@@ -1718,9 +1719,9 @@ sem_Declaration_PatternBinding arg_range_ arg_pattern_ arg_righthandside_ = T_De
 sem_Declaration_TypeSignature :: T_Range  -> T_Names  -> T_Type  -> T_Declaration 
 sem_Declaration_TypeSignature arg_range_ arg_names_ arg_type_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v28 = \ !(T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _namesX116 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_names_))
          _typeX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
@@ -1740,7 +1741,7 @@ sem_Declaration_TypeSignature arg_range_ arg_names_ arg_type_ = T_Declaration (r
          _lhsOself :: Declaration
          _lhsOself = rule208 _self
          _typeOkappaUnique = rule209 _lhsIkappaUnique
-         __result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule200 #-}
@@ -1777,9 +1778,9 @@ sem_Declaration_TypeSignature arg_range_ arg_names_ arg_type_ = T_Declaration (r
 sem_Declaration_Fixity :: T_Range  -> T_Fixity  -> T_MaybeInt  -> T_Names  -> T_Declaration 
 sem_Declaration_Fixity arg_range_ arg_fixity_ arg_priority_ arg_operators_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v28 = \ !(T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _fixityX53 = Control.Monad.Identity.runIdentity (attach_T_Fixity (arg_fixity_))
          _priorityX101 = Control.Monad.Identity.runIdentity (attach_T_MaybeInt (arg_priority_))
@@ -1795,7 +1796,7 @@ sem_Declaration_Fixity arg_range_ arg_fixity_ arg_priority_ arg_operators_ = T_D
          _lhsObindingGroups = rule212 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule213 _lhsIkappaUnique
-         __result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule210 #-}
@@ -1814,9 +1815,9 @@ sem_Declaration_Fixity arg_range_ arg_fixity_ arg_priority_ arg_operators_ = T_D
 sem_Declaration_Empty :: T_Range  -> T_Declaration 
 sem_Declaration_Empty arg_range_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v28 = \ !(T_Declaration_vIn28 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _self = rule214 _rangeIself
@@ -1826,7 +1827,7 @@ sem_Declaration_Empty arg_range_ = T_Declaration (return st29) where
          _lhsObindingGroups = rule216 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule217 _lhsIkappaUnique
-         __result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Declaration_vOut28 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
    {-# INLINE rule214 #-}
@@ -1844,15 +1845,15 @@ sem_Declaration_Empty arg_range_ = T_Declaration (return st29) where
 
 -- Declarations ------------------------------------------------
 -- wrapper
-data Inh_Declarations  = Inh_Declarations { bindingGroups_Inh_Declarations :: (BindingGroups), kappaUnique_Inh_Declarations :: (Int) }
-data Syn_Declarations  = Syn_Declarations { bindingGroups_Syn_Declarations :: (BindingGroups), kappaUnique_Syn_Declarations :: (Int), self_Syn_Declarations :: (Declarations) }
+data Inh_Declarations  = Inh_Declarations { bindingGroups_Inh_Declarations :: !(BindingGroups), kappaUnique_Inh_Declarations :: !(Int) }
+data Syn_Declarations  = Syn_Declarations { bindingGroups_Syn_Declarations :: !(BindingGroups), kappaUnique_Syn_Declarations :: !(Int), self_Syn_Declarations :: !(Declarations) }
 {-# INLINABLE wrap_Declarations #-}
 wrap_Declarations :: T_Declarations  -> Inh_Declarations  -> (Syn_Declarations )
-wrap_Declarations (T_Declarations act) (Inh_Declarations _lhsIbindingGroups _lhsIkappaUnique) =
+wrap_Declarations !(T_Declarations act) !(Inh_Declarations _lhsIbindingGroups _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg31 = T_Declarations_vIn31 _lhsIbindingGroups _lhsIkappaUnique
-        (T_Declarations_vOut31 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Declarations_s32 sem arg31)
+        !(T_Declarations_vOut31 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Declarations_s32 sem arg31)
         return (Syn_Declarations _lhsObindingGroups _lhsOkappaUnique _lhsOself)
    )
 
@@ -1876,9 +1877,9 @@ data T_Declarations_vOut31  = T_Declarations_vOut31 (BindingGroups) (Int) (Decla
 sem_Declarations_Cons :: T_Declaration  -> T_Declarations  -> T_Declarations 
 sem_Declarations_Cons arg_hd_ arg_tl_ = T_Declarations (return st32) where
    {-# NOINLINE st32 #-}
-   st32 = let
+   !st32 = let
       v31 :: T_Declarations_v31 
-      v31 = \ (T_Declarations_vIn31 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v31 = \ !(T_Declarations_vIn31 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _hdX29 = Control.Monad.Identity.runIdentity (attach_T_Declaration (arg_hd_))
          _tlX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_tl_))
          (T_Declaration_vOut28 _hdIbindingGroups _hdIkappaUnique _hdIself) = inv_Declaration_s29 _hdX29 (T_Declaration_vIn28 _hdObindingGroups _hdOkappaUnique)
@@ -1894,7 +1895,7 @@ sem_Declarations_Cons arg_hd_ arg_tl_ = T_Declarations (return st32) where
          _hdOkappaUnique = rule223 _lhsIkappaUnique
          _tlObindingGroups = rule224 _hdIbindingGroups
          _tlOkappaUnique = rule225 _hdIkappaUnique
-         __result_ = T_Declarations_vOut31 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Declarations_vOut31 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Declarations_s32 v31
    {-# INLINE rule218 #-}
@@ -1925,9 +1926,9 @@ sem_Declarations_Cons arg_hd_ arg_tl_ = T_Declarations (return st32) where
 sem_Declarations_Nil ::  T_Declarations 
 sem_Declarations_Nil  = T_Declarations (return st32) where
    {-# NOINLINE st32 #-}
-   st32 = let
+   !st32 = let
       v31 :: T_Declarations_v31 
-      v31 = \ (T_Declarations_vIn31 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v31 = \ !(T_Declarations_vIn31 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _self = rule226  ()
          _lhsOself :: Declarations
          _lhsOself = rule227 _self
@@ -1935,7 +1936,7 @@ sem_Declarations_Nil  = T_Declarations (return st32) where
          _lhsObindingGroups = rule228 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule229 _lhsIkappaUnique
-         __result_ = T_Declarations_vOut31 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Declarations_vOut31 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Declarations_s32 v31
    {-# INLINE rule226 #-}
@@ -1954,14 +1955,14 @@ sem_Declarations_Nil  = T_Declarations (return st32) where
 -- Export ------------------------------------------------------
 -- wrapper
 data Inh_Export  = Inh_Export {  }
-data Syn_Export  = Syn_Export { self_Syn_Export :: (Export) }
+data Syn_Export  = Syn_Export { self_Syn_Export :: !(Export) }
 {-# INLINABLE wrap_Export #-}
 wrap_Export :: T_Export  -> Inh_Export  -> (Syn_Export )
-wrap_Export (T_Export act) (Inh_Export ) =
+wrap_Export !(T_Export act) !(Inh_Export ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg34 = T_Export_vIn34 
-        (T_Export_vOut34 _lhsOself) <- return (inv_Export_s35 sem arg34)
+        !(T_Export_vOut34 _lhsOself) <- return (inv_Export_s35 sem arg34)
         return (Syn_Export _lhsOself)
    )
 
@@ -1988,9 +1989,9 @@ data T_Export_vOut34  = T_Export_vOut34 (Export)
 sem_Export_Variable :: T_Range  -> T_Name  -> T_Export 
 sem_Export_Variable arg_range_ arg_name_ = T_Export (return st35) where
    {-# NOINLINE st35 #-}
-   st35 = let
+   !st35 = let
       v34 :: T_Export_v34 
-      v34 = \ (T_Export_vIn34 ) -> ( let
+      v34 = \ !(T_Export_vIn34 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -1998,7 +1999,7 @@ sem_Export_Variable arg_range_ arg_name_ = T_Export (return st35) where
          _self = rule230 _nameIself _rangeIself
          _lhsOself :: Export
          _lhsOself = rule231 _self
-         __result_ = T_Export_vOut34 _lhsOself
+         !__result_ = T_Export_vOut34 _lhsOself
          in __result_ )
      in C_Export_s35 v34
    {-# INLINE rule230 #-}
@@ -2011,9 +2012,9 @@ sem_Export_Variable arg_range_ arg_name_ = T_Export (return st35) where
 sem_Export_TypeOrClass :: T_Range  -> T_Name  -> T_MaybeNames  -> T_Export 
 sem_Export_TypeOrClass arg_range_ arg_name_ arg_names_ = T_Export (return st35) where
    {-# NOINLINE st35 #-}
-   st35 = let
+   !st35 = let
       v34 :: T_Export_v34 
-      v34 = \ (T_Export_vIn34 ) -> ( let
+      v34 = \ !(T_Export_vIn34 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _namesX107 = Control.Monad.Identity.runIdentity (attach_T_MaybeNames (arg_names_))
@@ -2023,7 +2024,7 @@ sem_Export_TypeOrClass arg_range_ arg_name_ arg_names_ = T_Export (return st35) 
          _self = rule232 _nameIself _namesIself _rangeIself
          _lhsOself :: Export
          _lhsOself = rule233 _self
-         __result_ = T_Export_vOut34 _lhsOself
+         !__result_ = T_Export_vOut34 _lhsOself
          in __result_ )
      in C_Export_s35 v34
    {-# INLINE rule232 #-}
@@ -2036,9 +2037,9 @@ sem_Export_TypeOrClass arg_range_ arg_name_ arg_names_ = T_Export (return st35) 
 sem_Export_TypeOrClassComplete :: T_Range  -> T_Name  -> T_Export 
 sem_Export_TypeOrClassComplete arg_range_ arg_name_ = T_Export (return st35) where
    {-# NOINLINE st35 #-}
-   st35 = let
+   !st35 = let
       v34 :: T_Export_v34 
-      v34 = \ (T_Export_vIn34 ) -> ( let
+      v34 = \ !(T_Export_vIn34 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -2046,7 +2047,7 @@ sem_Export_TypeOrClassComplete arg_range_ arg_name_ = T_Export (return st35) whe
          _self = rule234 _nameIself _rangeIself
          _lhsOself :: Export
          _lhsOself = rule235 _self
-         __result_ = T_Export_vOut34 _lhsOself
+         !__result_ = T_Export_vOut34 _lhsOself
          in __result_ )
      in C_Export_s35 v34
    {-# INLINE rule234 #-}
@@ -2059,9 +2060,9 @@ sem_Export_TypeOrClassComplete arg_range_ arg_name_ = T_Export (return st35) whe
 sem_Export_Module :: T_Range  -> T_Name  -> T_Export 
 sem_Export_Module arg_range_ arg_name_ = T_Export (return st35) where
    {-# NOINLINE st35 #-}
-   st35 = let
+   !st35 = let
       v34 :: T_Export_v34 
-      v34 = \ (T_Export_vIn34 ) -> ( let
+      v34 = \ !(T_Export_vIn34 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -2069,7 +2070,7 @@ sem_Export_Module arg_range_ arg_name_ = T_Export (return st35) where
          _self = rule236 _nameIself _rangeIself
          _lhsOself :: Export
          _lhsOself = rule237 _self
-         __result_ = T_Export_vOut34 _lhsOself
+         !__result_ = T_Export_vOut34 _lhsOself
          in __result_ )
      in C_Export_s35 v34
    {-# INLINE rule236 #-}
@@ -2082,14 +2083,14 @@ sem_Export_Module arg_range_ arg_name_ = T_Export (return st35) where
 -- Exports -----------------------------------------------------
 -- wrapper
 data Inh_Exports  = Inh_Exports {  }
-data Syn_Exports  = Syn_Exports { self_Syn_Exports :: (Exports) }
+data Syn_Exports  = Syn_Exports { self_Syn_Exports :: !(Exports) }
 {-# INLINABLE wrap_Exports #-}
 wrap_Exports :: T_Exports  -> Inh_Exports  -> (Syn_Exports )
-wrap_Exports (T_Exports act) (Inh_Exports ) =
+wrap_Exports !(T_Exports act) !(Inh_Exports ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg37 = T_Exports_vIn37 
-        (T_Exports_vOut37 _lhsOself) <- return (inv_Exports_s38 sem arg37)
+        !(T_Exports_vOut37 _lhsOself) <- return (inv_Exports_s38 sem arg37)
         return (Syn_Exports _lhsOself)
    )
 
@@ -2113,9 +2114,9 @@ data T_Exports_vOut37  = T_Exports_vOut37 (Exports)
 sem_Exports_Cons :: T_Export  -> T_Exports  -> T_Exports 
 sem_Exports_Cons arg_hd_ arg_tl_ = T_Exports (return st38) where
    {-# NOINLINE st38 #-}
-   st38 = let
+   !st38 = let
       v37 :: T_Exports_v37 
-      v37 = \ (T_Exports_vIn37 ) -> ( let
+      v37 = \ !(T_Exports_vIn37 ) -> ( let
          _hdX35 = Control.Monad.Identity.runIdentity (attach_T_Export (arg_hd_))
          _tlX38 = Control.Monad.Identity.runIdentity (attach_T_Exports (arg_tl_))
          (T_Export_vOut34 _hdIself) = inv_Export_s35 _hdX35 (T_Export_vIn34 )
@@ -2123,7 +2124,7 @@ sem_Exports_Cons arg_hd_ arg_tl_ = T_Exports (return st38) where
          _self = rule238 _hdIself _tlIself
          _lhsOself :: Exports
          _lhsOself = rule239 _self
-         __result_ = T_Exports_vOut37 _lhsOself
+         !__result_ = T_Exports_vOut37 _lhsOself
          in __result_ )
      in C_Exports_s38 v37
    {-# INLINE rule238 #-}
@@ -2136,13 +2137,13 @@ sem_Exports_Cons arg_hd_ arg_tl_ = T_Exports (return st38) where
 sem_Exports_Nil ::  T_Exports 
 sem_Exports_Nil  = T_Exports (return st38) where
    {-# NOINLINE st38 #-}
-   st38 = let
+   !st38 = let
       v37 :: T_Exports_v37 
-      v37 = \ (T_Exports_vIn37 ) -> ( let
+      v37 = \ !(T_Exports_vIn37 ) -> ( let
          _self = rule240  ()
          _lhsOself :: Exports
          _lhsOself = rule241 _self
-         __result_ = T_Exports_vOut37 _lhsOself
+         !__result_ = T_Exports_vOut37 _lhsOself
          in __result_ )
      in C_Exports_s38 v37
    {-# INLINE rule240 #-}
@@ -2154,25 +2155,25 @@ sem_Exports_Nil  = T_Exports (return st38) where
 
 -- Expression --------------------------------------------------
 -- wrapper
-data Inh_Expression  = Inh_Expression { bindingGroups_Inh_Expression :: (BindingGroups), kappaUnique_Inh_Expression :: (Int) }
-data Syn_Expression  = Syn_Expression { bindingGroups_Syn_Expression :: (BindingGroups), kappaUnique_Syn_Expression :: (Int), self_Syn_Expression :: (Expression) }
+data Inh_Expression  = Inh_Expression { bindingGroups_Inh_Expression :: !(BindingGroups), kappaUnique_Inh_Expression :: !(Int) }
+data Syn_Expression  = Syn_Expression { bindingGroups_Syn_Expression :: !(BindingGroups), kappaUnique_Syn_Expression :: !(Int), self_Syn_Expression :: !(Expression) }
 {-# INLINABLE wrap_Expression #-}
 wrap_Expression :: T_Expression  -> Inh_Expression  -> (Syn_Expression )
-wrap_Expression (T_Expression act) (Inh_Expression _lhsIbindingGroups _lhsIkappaUnique) =
+wrap_Expression !(T_Expression act) !(Inh_Expression _lhsIbindingGroups _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg40 = T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique
-        (T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Expression_s41 sem arg40)
+        !(T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Expression_s41 sem arg40)
         return (Syn_Expression _lhsObindingGroups _lhsOkappaUnique _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_Expression #-}
 sem_Expression :: Expression  -> T_Expression 
-sem_Expression ( Expression_Hole range_ id_ ) = sem_Expression_Hole ( sem_Range range_ ) id_
-sem_Expression ( Expression_Feedback range_ feedback_ expression_ ) = sem_Expression_Feedback ( sem_Range range_ ) feedback_ ( sem_Expression expression_ )
+sem_Expression ( Expression_Hole range_ !id_ ) = sem_Expression_Hole ( sem_Range range_ ) id_
+sem_Expression ( Expression_Feedback range_ !feedback_ expression_ ) = sem_Expression_Feedback ( sem_Range range_ ) feedback_ ( sem_Expression expression_ )
 sem_Expression ( Expression_MustUse range_ expression_ ) = sem_Expression_MustUse ( sem_Range range_ ) ( sem_Expression expression_ )
-sem_Expression ( Expression_Eta range_ expansion_ expression_ ) = sem_Expression_Eta ( sem_Range range_ ) expansion_ ( sem_Expression expression_ )
+sem_Expression ( Expression_Eta range_ !expansion_ expression_ ) = sem_Expression_Eta ( sem_Range range_ ) expansion_ ( sem_Expression expression_ )
 sem_Expression ( Expression_Literal range_ literal_ ) = sem_Expression_Literal ( sem_Range range_ ) ( sem_Literal literal_ )
 sem_Expression ( Expression_Variable range_ name_ ) = sem_Expression_Variable ( sem_Range range_ ) ( sem_Name name_ )
 sem_Expression ( Expression_Constructor range_ name_ ) = sem_Expression_Constructor ( sem_Range range_ ) ( sem_Name name_ )
@@ -2207,11 +2208,11 @@ data T_Expression_vIn40  = T_Expression_vIn40 (BindingGroups) (Int)
 data T_Expression_vOut40  = T_Expression_vOut40 (BindingGroups) (Int) (Expression)
 {-# NOINLINE sem_Expression_Hole #-}
 sem_Expression_Hole :: T_Range  -> (String) -> T_Expression 
-sem_Expression_Hole arg_range_ arg_id_ = T_Expression (return st41) where
+sem_Expression_Hole arg_range_ !arg_id_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _self = rule242 _rangeIself arg_id_
@@ -2221,7 +2222,7 @@ sem_Expression_Hole arg_range_ arg_id_ = T_Expression (return st41) where
          _lhsObindingGroups = rule244 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule245 _lhsIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule242 #-}
@@ -2238,11 +2239,11 @@ sem_Expression_Hole arg_range_ arg_id_ = T_Expression (return st41) where
      _lhsIkappaUnique
 {-# NOINLINE sem_Expression_Feedback #-}
 sem_Expression_Feedback :: T_Range  -> (String) -> T_Expression  -> T_Expression 
-sem_Expression_Feedback arg_range_ arg_feedback_ arg_expression_ = T_Expression (return st41) where
+sem_Expression_Feedback arg_range_ !arg_feedback_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -2256,7 +2257,7 @@ sem_Expression_Feedback arg_range_ arg_feedback_ arg_expression_ = T_Expression 
          _lhsOkappaUnique = rule249 _expressionIkappaUnique
          _expressionObindingGroups = rule250 _lhsIbindingGroups
          _expressionOkappaUnique = rule251 _lhsIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule246 #-}
@@ -2281,9 +2282,9 @@ sem_Expression_Feedback arg_range_ arg_feedback_ arg_expression_ = T_Expression 
 sem_Expression_MustUse :: T_Range  -> T_Expression  -> T_Expression 
 sem_Expression_MustUse arg_range_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -2297,7 +2298,7 @@ sem_Expression_MustUse arg_range_ arg_expression_ = T_Expression (return st41) w
          _lhsOkappaUnique = rule255 _expressionIkappaUnique
          _expressionObindingGroups = rule256 _lhsIbindingGroups
          _expressionOkappaUnique = rule257 _lhsIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule252 #-}
@@ -2320,11 +2321,11 @@ sem_Expression_MustUse arg_range_ arg_expression_ = T_Expression (return st41) w
      _lhsIkappaUnique
 {-# NOINLINE sem_Expression_Eta #-}
 sem_Expression_Eta :: T_Range  -> (Int) -> T_Expression  -> T_Expression 
-sem_Expression_Eta arg_range_ arg_expansion_ arg_expression_ = T_Expression (return st41) where
+sem_Expression_Eta arg_range_ !arg_expansion_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -2338,7 +2339,7 @@ sem_Expression_Eta arg_range_ arg_expansion_ arg_expression_ = T_Expression (ret
          _lhsOkappaUnique = rule261 _expressionIkappaUnique
          _expressionObindingGroups = rule262 _lhsIbindingGroups
          _expressionOkappaUnique = rule263 _lhsIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule258 #-}
@@ -2363,9 +2364,9 @@ sem_Expression_Eta arg_range_ arg_expansion_ arg_expression_ = T_Expression (ret
 sem_Expression_Literal :: T_Range  -> T_Literal  -> T_Expression 
 sem_Expression_Literal arg_range_ arg_literal_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _literalX86 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -2377,7 +2378,7 @@ sem_Expression_Literal arg_range_ arg_literal_ = T_Expression (return st41) wher
          _lhsObindingGroups = rule266 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule267 _lhsIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule264 #-}
@@ -2396,9 +2397,9 @@ sem_Expression_Literal arg_range_ arg_literal_ = T_Expression (return st41) wher
 sem_Expression_Variable :: T_Range  -> T_Name  -> T_Expression 
 sem_Expression_Variable arg_range_ arg_name_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -2410,7 +2411,7 @@ sem_Expression_Variable arg_range_ arg_name_ = T_Expression (return st41) where
          _lhsObindingGroups = rule270 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule271 _lhsIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule268 #-}
@@ -2429,9 +2430,9 @@ sem_Expression_Variable arg_range_ arg_name_ = T_Expression (return st41) where
 sem_Expression_Constructor :: T_Range  -> T_Name  -> T_Expression 
 sem_Expression_Constructor arg_range_ arg_name_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -2443,7 +2444,7 @@ sem_Expression_Constructor arg_range_ arg_name_ = T_Expression (return st41) whe
          _lhsObindingGroups = rule274 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule275 _lhsIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule272 #-}
@@ -2462,9 +2463,9 @@ sem_Expression_Constructor arg_range_ arg_name_ = T_Expression (return st41) whe
 sem_Expression_Parenthesized :: T_Range  -> T_Expression  -> T_Expression 
 sem_Expression_Parenthesized arg_range_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -2478,7 +2479,7 @@ sem_Expression_Parenthesized arg_range_ arg_expression_ = T_Expression (return s
          _lhsOkappaUnique = rule279 _expressionIkappaUnique
          _expressionObindingGroups = rule280 _lhsIbindingGroups
          _expressionOkappaUnique = rule281 _lhsIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule276 #-}
@@ -2503,9 +2504,9 @@ sem_Expression_Parenthesized arg_range_ arg_expression_ = T_Expression (return s
 sem_Expression_NormalApplication :: T_Range  -> T_Expression  -> T_Expressions  -> T_Expression 
 sem_Expression_NormalApplication arg_range_ arg_function_ arg_arguments_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _functionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_function_))
          _argumentsX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_arguments_))
@@ -2523,7 +2524,7 @@ sem_Expression_NormalApplication arg_range_ arg_function_ arg_arguments_ = T_Exp
          _functionOkappaUnique = rule287 _lhsIkappaUnique
          _argumentsObindingGroups = rule288 _functionIbindingGroups
          _argumentsOkappaUnique = rule289 _functionIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule282 #-}
@@ -2554,9 +2555,9 @@ sem_Expression_NormalApplication arg_range_ arg_function_ arg_arguments_ = T_Exp
 sem_Expression_InfixApplication :: T_Range  -> T_MaybeExpression  -> T_Expression  -> T_MaybeExpression  -> T_Expression 
 sem_Expression_InfixApplication arg_range_ arg_leftExpression_ arg_operator_ arg_rightExpression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _leftExpressionX95 = Control.Monad.Identity.runIdentity (attach_T_MaybeExpression (arg_leftExpression_))
          _operatorX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_operator_))
@@ -2578,7 +2579,7 @@ sem_Expression_InfixApplication arg_range_ arg_leftExpression_ arg_operator_ arg
          _operatorOkappaUnique = rule297 _leftExpressionIkappaUnique
          _rightExpressionObindingGroups = rule298 _operatorIbindingGroups
          _rightExpressionOkappaUnique = rule299 _operatorIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule290 #-}
@@ -2615,9 +2616,9 @@ sem_Expression_InfixApplication arg_range_ arg_leftExpression_ arg_operator_ arg
 sem_Expression_If :: T_Range  -> T_Expression  -> T_Expression  -> T_Expression  -> T_Expression 
 sem_Expression_If arg_range_ arg_guardExpression_ arg_thenExpression_ arg_elseExpression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _guardExpressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_guardExpression_))
          _thenExpressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_thenExpression_))
@@ -2639,7 +2640,7 @@ sem_Expression_If arg_range_ arg_guardExpression_ arg_thenExpression_ arg_elseEx
          _thenExpressionOkappaUnique = rule307 _guardExpressionIkappaUnique
          _elseExpressionObindingGroups = rule308 _thenExpressionIbindingGroups
          _elseExpressionOkappaUnique = rule309 _thenExpressionIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule300 #-}
@@ -2676,9 +2677,9 @@ sem_Expression_If arg_range_ arg_guardExpression_ arg_thenExpression_ arg_elseEx
 sem_Expression_Lambda :: T_Range  -> T_Patterns  -> T_Expression  -> T_Expression 
 sem_Expression_Lambda arg_range_ arg_patterns_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternsX122 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
@@ -2694,7 +2695,7 @@ sem_Expression_Lambda arg_range_ arg_patterns_ arg_expression_ = T_Expression (r
          _lhsOkappaUnique = rule313 _expressionIkappaUnique
          _expressionObindingGroups = rule314 _lhsIbindingGroups
          _expressionOkappaUnique = rule315 _lhsIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule310 #-}
@@ -2719,9 +2720,9 @@ sem_Expression_Lambda arg_range_ arg_patterns_ arg_expression_ = T_Expression (r
 sem_Expression_Case :: T_Range  -> T_Expression  -> T_Alternatives  -> T_Expression 
 sem_Expression_Case arg_range_ arg_expression_ arg_alternatives_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          _alternativesX5 = Control.Monad.Identity.runIdentity (attach_T_Alternatives (arg_alternatives_))
@@ -2739,7 +2740,7 @@ sem_Expression_Case arg_range_ arg_expression_ arg_alternatives_ = T_Expression 
          _expressionOkappaUnique = rule321 _lhsIkappaUnique
          _alternativesObindingGroups = rule322 _expressionIbindingGroups
          _alternativesOkappaUnique = rule323 _expressionIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule316 #-}
@@ -2770,9 +2771,9 @@ sem_Expression_Case arg_range_ arg_expression_ arg_alternatives_ = T_Expression 
 sem_Expression_Let :: T_Range  -> T_Declarations  -> T_Expression  -> T_Expression 
 sem_Expression_Let arg_range_ arg_declarations_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
@@ -2790,7 +2791,7 @@ sem_Expression_Let arg_range_ arg_declarations_ arg_expression_ = T_Expression (
          _declarationsOkappaUnique = rule329 _lhsIkappaUnique
          _expressionObindingGroups = rule330 _declarationsIbindingGroups
          _expressionOkappaUnique = rule331 _declarationsIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule324 #-}
@@ -2821,9 +2822,9 @@ sem_Expression_Let arg_range_ arg_declarations_ arg_expression_ = T_Expression (
 sem_Expression_Do :: T_Range  -> T_Statements  -> T_Expression 
 sem_Expression_Do arg_range_ arg_statements_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _statementsX158 = Control.Monad.Identity.runIdentity (attach_T_Statements (arg_statements_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -2837,7 +2838,7 @@ sem_Expression_Do arg_range_ arg_statements_ = T_Expression (return st41) where
          _lhsOkappaUnique = rule335 _statementsIkappaUnique
          _statementsObindingGroups = rule336 _lhsIbindingGroups
          _statementsOkappaUnique = rule337 _lhsIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule332 #-}
@@ -2862,9 +2863,9 @@ sem_Expression_Do arg_range_ arg_statements_ = T_Expression (return st41) where
 sem_Expression_List :: T_Range  -> T_Expressions  -> T_Expression 
 sem_Expression_List arg_range_ arg_expressions_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionsX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_expressions_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -2878,7 +2879,7 @@ sem_Expression_List arg_range_ arg_expressions_ = T_Expression (return st41) whe
          _lhsOkappaUnique = rule341 _expressionsIkappaUnique
          _expressionsObindingGroups = rule342 _lhsIbindingGroups
          _expressionsOkappaUnique = rule343 _lhsIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule338 #-}
@@ -2903,9 +2904,9 @@ sem_Expression_List arg_range_ arg_expressions_ = T_Expression (return st41) whe
 sem_Expression_Tuple :: T_Range  -> T_Expressions  -> T_Expression 
 sem_Expression_Tuple arg_range_ arg_expressions_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionsX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_expressions_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -2919,7 +2920,7 @@ sem_Expression_Tuple arg_range_ arg_expressions_ = T_Expression (return st41) wh
          _lhsOkappaUnique = rule347 _expressionsIkappaUnique
          _expressionsObindingGroups = rule348 _lhsIbindingGroups
          _expressionsOkappaUnique = rule349 _lhsIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule344 #-}
@@ -2944,9 +2945,9 @@ sem_Expression_Tuple arg_range_ arg_expressions_ = T_Expression (return st41) wh
 sem_Expression_Comprehension :: T_Range  -> T_Expression  -> T_Qualifiers  -> T_Expression 
 sem_Expression_Comprehension arg_range_ arg_expression_ arg_qualifiers_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          _qualifiersX131 = Control.Monad.Identity.runIdentity (attach_T_Qualifiers (arg_qualifiers_))
@@ -2964,7 +2965,7 @@ sem_Expression_Comprehension arg_range_ arg_expression_ arg_qualifiers_ = T_Expr
          _expressionOkappaUnique = rule355 _lhsIkappaUnique
          _qualifiersObindingGroups = rule356 _expressionIbindingGroups
          _qualifiersOkappaUnique = rule357 _expressionIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule350 #-}
@@ -2995,9 +2996,9 @@ sem_Expression_Comprehension arg_range_ arg_expression_ arg_qualifiers_ = T_Expr
 sem_Expression_Typed :: T_Range  -> T_Expression  -> T_Type  -> T_Expression 
 sem_Expression_Typed arg_range_ arg_expression_ arg_type_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          _typeX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
@@ -3019,7 +3020,7 @@ sem_Expression_Typed arg_range_ arg_expression_ arg_type_ = T_Expression (return
          _expressionObindingGroups = rule367 _lhsIbindingGroups
          _expressionOkappaUnique = rule368 _lhsIkappaUnique
          _typeOkappaUnique = rule369 _expressionIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule358 #-}
@@ -3062,9 +3063,9 @@ sem_Expression_Typed arg_range_ arg_expression_ arg_type_ = T_Expression (return
 sem_Expression_RecordConstruction :: T_Range  -> T_Name  -> T_RecordExpressionBindings  -> T_Expression 
 sem_Expression_RecordConstruction arg_range_ arg_name_ arg_recordExpressionBindings_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _recordExpressionBindingsX140 = Control.Monad.Identity.runIdentity (attach_T_RecordExpressionBindings (arg_recordExpressionBindings_))
@@ -3080,7 +3081,7 @@ sem_Expression_RecordConstruction arg_range_ arg_name_ arg_recordExpressionBindi
          _lhsOkappaUnique = rule373 _recordExpressionBindingsIkappaUnique
          _recordExpressionBindingsObindingGroups = rule374 _lhsIbindingGroups
          _recordExpressionBindingsOkappaUnique = rule375 _lhsIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule370 #-}
@@ -3105,9 +3106,9 @@ sem_Expression_RecordConstruction arg_range_ arg_name_ arg_recordExpressionBindi
 sem_Expression_RecordUpdate :: T_Range  -> T_Expression  -> T_RecordExpressionBindings  -> T_Expression 
 sem_Expression_RecordUpdate arg_range_ arg_expression_ arg_recordExpressionBindings_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          _recordExpressionBindingsX140 = Control.Monad.Identity.runIdentity (attach_T_RecordExpressionBindings (arg_recordExpressionBindings_))
@@ -3125,7 +3126,7 @@ sem_Expression_RecordUpdate arg_range_ arg_expression_ arg_recordExpressionBindi
          _expressionOkappaUnique = rule381 _lhsIkappaUnique
          _recordExpressionBindingsObindingGroups = rule382 _expressionIbindingGroups
          _recordExpressionBindingsOkappaUnique = rule383 _expressionIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule376 #-}
@@ -3156,9 +3157,9 @@ sem_Expression_RecordUpdate arg_range_ arg_expression_ arg_recordExpressionBindi
 sem_Expression_Enum :: T_Range  -> T_Expression  -> T_MaybeExpression  -> T_MaybeExpression  -> T_Expression 
 sem_Expression_Enum arg_range_ arg_from_ arg_then_ arg_to_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _fromX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_from_))
          _thenX95 = Control.Monad.Identity.runIdentity (attach_T_MaybeExpression (arg_then_))
@@ -3180,7 +3181,7 @@ sem_Expression_Enum arg_range_ arg_from_ arg_then_ arg_to_ = T_Expression (retur
          _thenOkappaUnique = rule391 _fromIkappaUnique
          _toObindingGroups = rule392 _thenIbindingGroups
          _toOkappaUnique = rule393 _thenIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule384 #-}
@@ -3217,9 +3218,9 @@ sem_Expression_Enum arg_range_ arg_from_ arg_then_ arg_to_ = T_Expression (retur
 sem_Expression_Negate :: T_Range  -> T_Expression  -> T_Expression 
 sem_Expression_Negate arg_range_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -3233,7 +3234,7 @@ sem_Expression_Negate arg_range_ arg_expression_ = T_Expression (return st41) wh
          _lhsOkappaUnique = rule397 _expressionIkappaUnique
          _expressionObindingGroups = rule398 _lhsIbindingGroups
          _expressionOkappaUnique = rule399 _lhsIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule394 #-}
@@ -3258,9 +3259,9 @@ sem_Expression_Negate arg_range_ arg_expression_ = T_Expression (return st41) wh
 sem_Expression_NegateFloat :: T_Range  -> T_Expression  -> T_Expression 
 sem_Expression_NegateFloat arg_range_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v40 = \ !(T_Expression_vIn40 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -3274,7 +3275,7 @@ sem_Expression_NegateFloat arg_range_ arg_expression_ = T_Expression (return st4
          _lhsOkappaUnique = rule403 _expressionIkappaUnique
          _expressionObindingGroups = rule404 _lhsIbindingGroups
          _expressionOkappaUnique = rule405 _lhsIkappaUnique
-         __result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule400 #-}
@@ -3298,15 +3299,15 @@ sem_Expression_NegateFloat arg_range_ arg_expression_ = T_Expression (return st4
 
 -- Expressions -------------------------------------------------
 -- wrapper
-data Inh_Expressions  = Inh_Expressions { bindingGroups_Inh_Expressions :: (BindingGroups), kappaUnique_Inh_Expressions :: (Int) }
-data Syn_Expressions  = Syn_Expressions { bindingGroups_Syn_Expressions :: (BindingGroups), kappaUnique_Syn_Expressions :: (Int), self_Syn_Expressions :: (Expressions) }
+data Inh_Expressions  = Inh_Expressions { bindingGroups_Inh_Expressions :: !(BindingGroups), kappaUnique_Inh_Expressions :: !(Int) }
+data Syn_Expressions  = Syn_Expressions { bindingGroups_Syn_Expressions :: !(BindingGroups), kappaUnique_Syn_Expressions :: !(Int), self_Syn_Expressions :: !(Expressions) }
 {-# INLINABLE wrap_Expressions #-}
 wrap_Expressions :: T_Expressions  -> Inh_Expressions  -> (Syn_Expressions )
-wrap_Expressions (T_Expressions act) (Inh_Expressions _lhsIbindingGroups _lhsIkappaUnique) =
+wrap_Expressions !(T_Expressions act) !(Inh_Expressions _lhsIbindingGroups _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg43 = T_Expressions_vIn43 _lhsIbindingGroups _lhsIkappaUnique
-        (T_Expressions_vOut43 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Expressions_s44 sem arg43)
+        !(T_Expressions_vOut43 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Expressions_s44 sem arg43)
         return (Syn_Expressions _lhsObindingGroups _lhsOkappaUnique _lhsOself)
    )
 
@@ -3330,9 +3331,9 @@ data T_Expressions_vOut43  = T_Expressions_vOut43 (BindingGroups) (Int) (Express
 sem_Expressions_Cons :: T_Expression  -> T_Expressions  -> T_Expressions 
 sem_Expressions_Cons arg_hd_ arg_tl_ = T_Expressions (return st44) where
    {-# NOINLINE st44 #-}
-   st44 = let
+   !st44 = let
       v43 :: T_Expressions_v43 
-      v43 = \ (T_Expressions_vIn43 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v43 = \ !(T_Expressions_vIn43 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _hdX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_hd_))
          _tlX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_tl_))
          (T_Expression_vOut40 _hdIbindingGroups _hdIkappaUnique _hdIself) = inv_Expression_s41 _hdX41 (T_Expression_vIn40 _hdObindingGroups _hdOkappaUnique)
@@ -3348,7 +3349,7 @@ sem_Expressions_Cons arg_hd_ arg_tl_ = T_Expressions (return st44) where
          _hdOkappaUnique = rule411 _lhsIkappaUnique
          _tlObindingGroups = rule412 _hdIbindingGroups
          _tlOkappaUnique = rule413 _hdIkappaUnique
-         __result_ = T_Expressions_vOut43 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expressions_vOut43 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expressions_s44 v43
    {-# INLINE rule406 #-}
@@ -3379,9 +3380,9 @@ sem_Expressions_Cons arg_hd_ arg_tl_ = T_Expressions (return st44) where
 sem_Expressions_Nil ::  T_Expressions 
 sem_Expressions_Nil  = T_Expressions (return st44) where
    {-# NOINLINE st44 #-}
-   st44 = let
+   !st44 = let
       v43 :: T_Expressions_v43 
-      v43 = \ (T_Expressions_vIn43 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v43 = \ !(T_Expressions_vIn43 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _self = rule414  ()
          _lhsOself :: Expressions
          _lhsOself = rule415 _self
@@ -3389,7 +3390,7 @@ sem_Expressions_Nil  = T_Expressions (return st44) where
          _lhsObindingGroups = rule416 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule417 _lhsIkappaUnique
-         __result_ = T_Expressions_vOut43 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Expressions_vOut43 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Expressions_s44 v43
    {-# INLINE rule414 #-}
@@ -3407,15 +3408,15 @@ sem_Expressions_Nil  = T_Expressions (return st44) where
 
 -- FieldDeclaration --------------------------------------------
 -- wrapper
-data Inh_FieldDeclaration  = Inh_FieldDeclaration { kappaUnique_Inh_FieldDeclaration :: (Int) }
-data Syn_FieldDeclaration  = Syn_FieldDeclaration { kappaUnique_Syn_FieldDeclaration :: (Int), self_Syn_FieldDeclaration :: (FieldDeclaration) }
+data Inh_FieldDeclaration  = Inh_FieldDeclaration { kappaUnique_Inh_FieldDeclaration :: !(Int) }
+data Syn_FieldDeclaration  = Syn_FieldDeclaration { kappaUnique_Syn_FieldDeclaration :: !(Int), self_Syn_FieldDeclaration :: !(FieldDeclaration) }
 {-# INLINABLE wrap_FieldDeclaration #-}
 wrap_FieldDeclaration :: T_FieldDeclaration  -> Inh_FieldDeclaration  -> (Syn_FieldDeclaration )
-wrap_FieldDeclaration (T_FieldDeclaration act) (Inh_FieldDeclaration _lhsIkappaUnique) =
+wrap_FieldDeclaration !(T_FieldDeclaration act) !(Inh_FieldDeclaration _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg46 = T_FieldDeclaration_vIn46 _lhsIkappaUnique
-        (T_FieldDeclaration_vOut46 _lhsOkappaUnique _lhsOself) <- return (inv_FieldDeclaration_s47 sem arg46)
+        !(T_FieldDeclaration_vOut46 _lhsOkappaUnique _lhsOself) <- return (inv_FieldDeclaration_s47 sem arg46)
         return (Syn_FieldDeclaration _lhsOkappaUnique _lhsOself)
    )
 
@@ -3439,9 +3440,9 @@ data T_FieldDeclaration_vOut46  = T_FieldDeclaration_vOut46 (Int) (FieldDeclarat
 sem_FieldDeclaration_FieldDeclaration :: T_Range  -> T_Names  -> T_AnnotatedType  -> T_FieldDeclaration 
 sem_FieldDeclaration_FieldDeclaration arg_range_ arg_names_ arg_type_ = T_FieldDeclaration (return st47) where
    {-# NOINLINE st47 #-}
-   st47 = let
+   !st47 = let
       v46 :: T_FieldDeclaration_v46 
-      v46 = \ (T_FieldDeclaration_vIn46 _lhsIkappaUnique) -> ( let
+      v46 = \ !(T_FieldDeclaration_vIn46 _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _namesX116 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_names_))
          _typeX8 = Control.Monad.Identity.runIdentity (attach_T_AnnotatedType (arg_type_))
@@ -3456,7 +3457,7 @@ sem_FieldDeclaration_FieldDeclaration arg_range_ arg_names_ arg_type_ = T_FieldD
          _lhsOkappaUnique = rule421 _typeIkappaUnique
          _typeOconstraints = rule422 _constraints
          _typeOkappaUnique = rule423 _lhsIkappaUnique
-         __result_ = T_FieldDeclaration_vOut46 _lhsOkappaUnique _lhsOself
+         !__result_ = T_FieldDeclaration_vOut46 _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_FieldDeclaration_s47 v46
    {-# INLINE rule418 #-}
@@ -3480,15 +3481,15 @@ sem_FieldDeclaration_FieldDeclaration arg_range_ arg_names_ arg_type_ = T_FieldD
 
 -- FieldDeclarations -------------------------------------------
 -- wrapper
-data Inh_FieldDeclarations  = Inh_FieldDeclarations { kappaUnique_Inh_FieldDeclarations :: (Int) }
-data Syn_FieldDeclarations  = Syn_FieldDeclarations { kappaUnique_Syn_FieldDeclarations :: (Int), self_Syn_FieldDeclarations :: (FieldDeclarations) }
+data Inh_FieldDeclarations  = Inh_FieldDeclarations { kappaUnique_Inh_FieldDeclarations :: !(Int) }
+data Syn_FieldDeclarations  = Syn_FieldDeclarations { kappaUnique_Syn_FieldDeclarations :: !(Int), self_Syn_FieldDeclarations :: !(FieldDeclarations) }
 {-# INLINABLE wrap_FieldDeclarations #-}
 wrap_FieldDeclarations :: T_FieldDeclarations  -> Inh_FieldDeclarations  -> (Syn_FieldDeclarations )
-wrap_FieldDeclarations (T_FieldDeclarations act) (Inh_FieldDeclarations _lhsIkappaUnique) =
+wrap_FieldDeclarations !(T_FieldDeclarations act) !(Inh_FieldDeclarations _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg49 = T_FieldDeclarations_vIn49 _lhsIkappaUnique
-        (T_FieldDeclarations_vOut49 _lhsOkappaUnique _lhsOself) <- return (inv_FieldDeclarations_s50 sem arg49)
+        !(T_FieldDeclarations_vOut49 _lhsOkappaUnique _lhsOself) <- return (inv_FieldDeclarations_s50 sem arg49)
         return (Syn_FieldDeclarations _lhsOkappaUnique _lhsOself)
    )
 
@@ -3512,9 +3513,9 @@ data T_FieldDeclarations_vOut49  = T_FieldDeclarations_vOut49 (Int) (FieldDeclar
 sem_FieldDeclarations_Cons :: T_FieldDeclaration  -> T_FieldDeclarations  -> T_FieldDeclarations 
 sem_FieldDeclarations_Cons arg_hd_ arg_tl_ = T_FieldDeclarations (return st50) where
    {-# NOINLINE st50 #-}
-   st50 = let
+   !st50 = let
       v49 :: T_FieldDeclarations_v49 
-      v49 = \ (T_FieldDeclarations_vIn49 _lhsIkappaUnique) -> ( let
+      v49 = \ !(T_FieldDeclarations_vIn49 _lhsIkappaUnique) -> ( let
          _hdX47 = Control.Monad.Identity.runIdentity (attach_T_FieldDeclaration (arg_hd_))
          _tlX50 = Control.Monad.Identity.runIdentity (attach_T_FieldDeclarations (arg_tl_))
          (T_FieldDeclaration_vOut46 _hdIkappaUnique _hdIself) = inv_FieldDeclaration_s47 _hdX47 (T_FieldDeclaration_vIn46 _hdOkappaUnique)
@@ -3526,7 +3527,7 @@ sem_FieldDeclarations_Cons arg_hd_ arg_tl_ = T_FieldDeclarations (return st50) w
          _lhsOkappaUnique = rule426 _tlIkappaUnique
          _hdOkappaUnique = rule427 _lhsIkappaUnique
          _tlOkappaUnique = rule428 _hdIkappaUnique
-         __result_ = T_FieldDeclarations_vOut49 _lhsOkappaUnique _lhsOself
+         !__result_ = T_FieldDeclarations_vOut49 _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_FieldDeclarations_s50 v49
    {-# INLINE rule424 #-}
@@ -3548,15 +3549,15 @@ sem_FieldDeclarations_Cons arg_hd_ arg_tl_ = T_FieldDeclarations (return st50) w
 sem_FieldDeclarations_Nil ::  T_FieldDeclarations 
 sem_FieldDeclarations_Nil  = T_FieldDeclarations (return st50) where
    {-# NOINLINE st50 #-}
-   st50 = let
+   !st50 = let
       v49 :: T_FieldDeclarations_v49 
-      v49 = \ (T_FieldDeclarations_vIn49 _lhsIkappaUnique) -> ( let
+      v49 = \ !(T_FieldDeclarations_vIn49 _lhsIkappaUnique) -> ( let
          _self = rule429  ()
          _lhsOself :: FieldDeclarations
          _lhsOself = rule430 _self
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule431 _lhsIkappaUnique
-         __result_ = T_FieldDeclarations_vOut49 _lhsOkappaUnique _lhsOself
+         !__result_ = T_FieldDeclarations_vOut49 _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_FieldDeclarations_s50 v49
    {-# INLINE rule429 #-}
@@ -3572,14 +3573,14 @@ sem_FieldDeclarations_Nil  = T_FieldDeclarations (return st50) where
 -- Fixity ------------------------------------------------------
 -- wrapper
 data Inh_Fixity  = Inh_Fixity {  }
-data Syn_Fixity  = Syn_Fixity { self_Syn_Fixity :: (Fixity) }
+data Syn_Fixity  = Syn_Fixity { self_Syn_Fixity :: !(Fixity) }
 {-# INLINABLE wrap_Fixity #-}
 wrap_Fixity :: T_Fixity  -> Inh_Fixity  -> (Syn_Fixity )
-wrap_Fixity (T_Fixity act) (Inh_Fixity ) =
+wrap_Fixity !(T_Fixity act) !(Inh_Fixity ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg52 = T_Fixity_vIn52 
-        (T_Fixity_vOut52 _lhsOself) <- return (inv_Fixity_s53 sem arg52)
+        !(T_Fixity_vOut52 _lhsOself) <- return (inv_Fixity_s53 sem arg52)
         return (Syn_Fixity _lhsOself)
    )
 
@@ -3605,15 +3606,15 @@ data T_Fixity_vOut52  = T_Fixity_vOut52 (Fixity)
 sem_Fixity_Infixl :: T_Range  -> T_Fixity 
 sem_Fixity_Infixl arg_range_ = T_Fixity (return st53) where
    {-# NOINLINE st53 #-}
-   st53 = let
+   !st53 = let
       v52 :: T_Fixity_v52 
-      v52 = \ (T_Fixity_vIn52 ) -> ( let
+      v52 = \ !(T_Fixity_vIn52 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _self = rule432 _rangeIself
          _lhsOself :: Fixity
          _lhsOself = rule433 _self
-         __result_ = T_Fixity_vOut52 _lhsOself
+         !__result_ = T_Fixity_vOut52 _lhsOself
          in __result_ )
      in C_Fixity_s53 v52
    {-# INLINE rule432 #-}
@@ -3626,15 +3627,15 @@ sem_Fixity_Infixl arg_range_ = T_Fixity (return st53) where
 sem_Fixity_Infixr :: T_Range  -> T_Fixity 
 sem_Fixity_Infixr arg_range_ = T_Fixity (return st53) where
    {-# NOINLINE st53 #-}
-   st53 = let
+   !st53 = let
       v52 :: T_Fixity_v52 
-      v52 = \ (T_Fixity_vIn52 ) -> ( let
+      v52 = \ !(T_Fixity_vIn52 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _self = rule434 _rangeIself
          _lhsOself :: Fixity
          _lhsOself = rule435 _self
-         __result_ = T_Fixity_vOut52 _lhsOself
+         !__result_ = T_Fixity_vOut52 _lhsOself
          in __result_ )
      in C_Fixity_s53 v52
    {-# INLINE rule434 #-}
@@ -3647,15 +3648,15 @@ sem_Fixity_Infixr arg_range_ = T_Fixity (return st53) where
 sem_Fixity_Infix :: T_Range  -> T_Fixity 
 sem_Fixity_Infix arg_range_ = T_Fixity (return st53) where
    {-# NOINLINE st53 #-}
-   st53 = let
+   !st53 = let
       v52 :: T_Fixity_v52 
-      v52 = \ (T_Fixity_vIn52 ) -> ( let
+      v52 = \ !(T_Fixity_vIn52 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _self = rule436 _rangeIself
          _lhsOself :: Fixity
          _lhsOself = rule437 _self
-         __result_ = T_Fixity_vOut52 _lhsOself
+         !__result_ = T_Fixity_vOut52 _lhsOself
          in __result_ )
      in C_Fixity_s53 v52
    {-# INLINE rule436 #-}
@@ -3667,23 +3668,23 @@ sem_Fixity_Infix arg_range_ = T_Fixity (return st53) where
 
 -- FunctionBinding ---------------------------------------------
 -- wrapper
-data Inh_FunctionBinding  = Inh_FunctionBinding { bindingGroups_Inh_FunctionBinding :: (BindingGroups), kappaUnique_Inh_FunctionBinding :: (Int) }
-data Syn_FunctionBinding  = Syn_FunctionBinding { bindingGroups_Syn_FunctionBinding :: (BindingGroups), kappaUnique_Syn_FunctionBinding :: (Int), self_Syn_FunctionBinding :: (FunctionBinding) }
+data Inh_FunctionBinding  = Inh_FunctionBinding { bindingGroups_Inh_FunctionBinding :: !(BindingGroups), kappaUnique_Inh_FunctionBinding :: !(Int) }
+data Syn_FunctionBinding  = Syn_FunctionBinding { bindingGroups_Syn_FunctionBinding :: !(BindingGroups), kappaUnique_Syn_FunctionBinding :: !(Int), self_Syn_FunctionBinding :: !(FunctionBinding) }
 {-# INLINABLE wrap_FunctionBinding #-}
 wrap_FunctionBinding :: T_FunctionBinding  -> Inh_FunctionBinding  -> (Syn_FunctionBinding )
-wrap_FunctionBinding (T_FunctionBinding act) (Inh_FunctionBinding _lhsIbindingGroups _lhsIkappaUnique) =
+wrap_FunctionBinding !(T_FunctionBinding act) !(Inh_FunctionBinding _lhsIbindingGroups _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg55 = T_FunctionBinding_vIn55 _lhsIbindingGroups _lhsIkappaUnique
-        (T_FunctionBinding_vOut55 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_FunctionBinding_s56 sem arg55)
+        !(T_FunctionBinding_vOut55 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_FunctionBinding_s56 sem arg55)
         return (Syn_FunctionBinding _lhsObindingGroups _lhsOkappaUnique _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_FunctionBinding #-}
 sem_FunctionBinding :: FunctionBinding  -> T_FunctionBinding 
-sem_FunctionBinding ( FunctionBinding_Hole range_ id_ ) = sem_FunctionBinding_Hole ( sem_Range range_ ) id_
-sem_FunctionBinding ( FunctionBinding_Feedback range_ feedback_ functionBinding_ ) = sem_FunctionBinding_Feedback ( sem_Range range_ ) feedback_ ( sem_FunctionBinding functionBinding_ )
+sem_FunctionBinding ( FunctionBinding_Hole range_ !id_ ) = sem_FunctionBinding_Hole ( sem_Range range_ ) id_
+sem_FunctionBinding ( FunctionBinding_Feedback range_ !feedback_ functionBinding_ ) = sem_FunctionBinding_Feedback ( sem_Range range_ ) feedback_ ( sem_FunctionBinding functionBinding_ )
 sem_FunctionBinding ( FunctionBinding_FunctionBinding range_ lefthandside_ righthandside_ ) = sem_FunctionBinding_FunctionBinding ( sem_Range range_ ) ( sem_LeftHandSide lefthandside_ ) ( sem_RightHandSide righthandside_ )
 
 -- semantic domain
@@ -3699,11 +3700,11 @@ data T_FunctionBinding_vIn55  = T_FunctionBinding_vIn55 (BindingGroups) (Int)
 data T_FunctionBinding_vOut55  = T_FunctionBinding_vOut55 (BindingGroups) (Int) (FunctionBinding)
 {-# NOINLINE sem_FunctionBinding_Hole #-}
 sem_FunctionBinding_Hole :: T_Range  -> (String) -> T_FunctionBinding 
-sem_FunctionBinding_Hole arg_range_ arg_id_ = T_FunctionBinding (return st56) where
+sem_FunctionBinding_Hole arg_range_ !arg_id_ = T_FunctionBinding (return st56) where
    {-# NOINLINE st56 #-}
-   st56 = let
+   !st56 = let
       v55 :: T_FunctionBinding_v55 
-      v55 = \ (T_FunctionBinding_vIn55 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v55 = \ !(T_FunctionBinding_vIn55 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _self = rule438 _rangeIself arg_id_
@@ -3713,7 +3714,7 @@ sem_FunctionBinding_Hole arg_range_ arg_id_ = T_FunctionBinding (return st56) wh
          _lhsObindingGroups = rule440 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule441 _lhsIkappaUnique
-         __result_ = T_FunctionBinding_vOut55 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_FunctionBinding_vOut55 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_FunctionBinding_s56 v55
    {-# INLINE rule438 #-}
@@ -3730,11 +3731,11 @@ sem_FunctionBinding_Hole arg_range_ arg_id_ = T_FunctionBinding (return st56) wh
      _lhsIkappaUnique
 {-# NOINLINE sem_FunctionBinding_Feedback #-}
 sem_FunctionBinding_Feedback :: T_Range  -> (String) -> T_FunctionBinding  -> T_FunctionBinding 
-sem_FunctionBinding_Feedback arg_range_ arg_feedback_ arg_functionBinding_ = T_FunctionBinding (return st56) where
+sem_FunctionBinding_Feedback arg_range_ !arg_feedback_ arg_functionBinding_ = T_FunctionBinding (return st56) where
    {-# NOINLINE st56 #-}
-   st56 = let
+   !st56 = let
       v55 :: T_FunctionBinding_v55 
-      v55 = \ (T_FunctionBinding_vIn55 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v55 = \ !(T_FunctionBinding_vIn55 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _functionBindingX56 = Control.Monad.Identity.runIdentity (attach_T_FunctionBinding (arg_functionBinding_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -3748,7 +3749,7 @@ sem_FunctionBinding_Feedback arg_range_ arg_feedback_ arg_functionBinding_ = T_F
          _lhsOkappaUnique = rule445 _functionBindingIkappaUnique
          _functionBindingObindingGroups = rule446 _lhsIbindingGroups
          _functionBindingOkappaUnique = rule447 _lhsIkappaUnique
-         __result_ = T_FunctionBinding_vOut55 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_FunctionBinding_vOut55 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_FunctionBinding_s56 v55
    {-# INLINE rule442 #-}
@@ -3773,9 +3774,9 @@ sem_FunctionBinding_Feedback arg_range_ arg_feedback_ arg_functionBinding_ = T_F
 sem_FunctionBinding_FunctionBinding :: T_Range  -> T_LeftHandSide  -> T_RightHandSide  -> T_FunctionBinding 
 sem_FunctionBinding_FunctionBinding arg_range_ arg_lefthandside_ arg_righthandside_ = T_FunctionBinding (return st56) where
    {-# NOINLINE st56 #-}
-   st56 = let
+   !st56 = let
       v55 :: T_FunctionBinding_v55 
-      v55 = \ (T_FunctionBinding_vIn55 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v55 = \ !(T_FunctionBinding_vIn55 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _lefthandsideX83 = Control.Monad.Identity.runIdentity (attach_T_LeftHandSide (arg_lefthandside_))
          _righthandsideX149 = Control.Monad.Identity.runIdentity (attach_T_RightHandSide (arg_righthandside_))
@@ -3791,7 +3792,7 @@ sem_FunctionBinding_FunctionBinding arg_range_ arg_lefthandside_ arg_righthandsi
          _lhsOkappaUnique = rule451 _righthandsideIkappaUnique
          _righthandsideObindingGroups = rule452 _lhsIbindingGroups
          _righthandsideOkappaUnique = rule453 _lhsIkappaUnique
-         __result_ = T_FunctionBinding_vOut55 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_FunctionBinding_vOut55 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_FunctionBinding_s56 v55
    {-# INLINE rule448 #-}
@@ -3815,15 +3816,15 @@ sem_FunctionBinding_FunctionBinding arg_range_ arg_lefthandside_ arg_righthandsi
 
 -- FunctionBindings --------------------------------------------
 -- wrapper
-data Inh_FunctionBindings  = Inh_FunctionBindings { bindingGroups_Inh_FunctionBindings :: (BindingGroups), kappaUnique_Inh_FunctionBindings :: (Int) }
-data Syn_FunctionBindings  = Syn_FunctionBindings { bindingGroups_Syn_FunctionBindings :: (BindingGroups), kappaUnique_Syn_FunctionBindings :: (Int), self_Syn_FunctionBindings :: (FunctionBindings) }
+data Inh_FunctionBindings  = Inh_FunctionBindings { bindingGroups_Inh_FunctionBindings :: !(BindingGroups), kappaUnique_Inh_FunctionBindings :: !(Int) }
+data Syn_FunctionBindings  = Syn_FunctionBindings { bindingGroups_Syn_FunctionBindings :: !(BindingGroups), kappaUnique_Syn_FunctionBindings :: !(Int), self_Syn_FunctionBindings :: !(FunctionBindings) }
 {-# INLINABLE wrap_FunctionBindings #-}
 wrap_FunctionBindings :: T_FunctionBindings  -> Inh_FunctionBindings  -> (Syn_FunctionBindings )
-wrap_FunctionBindings (T_FunctionBindings act) (Inh_FunctionBindings _lhsIbindingGroups _lhsIkappaUnique) =
+wrap_FunctionBindings !(T_FunctionBindings act) !(Inh_FunctionBindings _lhsIbindingGroups _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg58 = T_FunctionBindings_vIn58 _lhsIbindingGroups _lhsIkappaUnique
-        (T_FunctionBindings_vOut58 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_FunctionBindings_s59 sem arg58)
+        !(T_FunctionBindings_vOut58 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_FunctionBindings_s59 sem arg58)
         return (Syn_FunctionBindings _lhsObindingGroups _lhsOkappaUnique _lhsOself)
    )
 
@@ -3847,9 +3848,9 @@ data T_FunctionBindings_vOut58  = T_FunctionBindings_vOut58 (BindingGroups) (Int
 sem_FunctionBindings_Cons :: T_FunctionBinding  -> T_FunctionBindings  -> T_FunctionBindings 
 sem_FunctionBindings_Cons arg_hd_ arg_tl_ = T_FunctionBindings (return st59) where
    {-# NOINLINE st59 #-}
-   st59 = let
+   !st59 = let
       v58 :: T_FunctionBindings_v58 
-      v58 = \ (T_FunctionBindings_vIn58 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v58 = \ !(T_FunctionBindings_vIn58 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _hdX56 = Control.Monad.Identity.runIdentity (attach_T_FunctionBinding (arg_hd_))
          _tlX59 = Control.Monad.Identity.runIdentity (attach_T_FunctionBindings (arg_tl_))
          (T_FunctionBinding_vOut55 _hdIbindingGroups _hdIkappaUnique _hdIself) = inv_FunctionBinding_s56 _hdX56 (T_FunctionBinding_vIn55 _hdObindingGroups _hdOkappaUnique)
@@ -3865,7 +3866,7 @@ sem_FunctionBindings_Cons arg_hd_ arg_tl_ = T_FunctionBindings (return st59) whe
          _hdOkappaUnique = rule459 _lhsIkappaUnique
          _tlObindingGroups = rule460 _hdIbindingGroups
          _tlOkappaUnique = rule461 _hdIkappaUnique
-         __result_ = T_FunctionBindings_vOut58 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_FunctionBindings_vOut58 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_FunctionBindings_s59 v58
    {-# INLINE rule454 #-}
@@ -3896,9 +3897,9 @@ sem_FunctionBindings_Cons arg_hd_ arg_tl_ = T_FunctionBindings (return st59) whe
 sem_FunctionBindings_Nil ::  T_FunctionBindings 
 sem_FunctionBindings_Nil  = T_FunctionBindings (return st59) where
    {-# NOINLINE st59 #-}
-   st59 = let
+   !st59 = let
       v58 :: T_FunctionBindings_v58 
-      v58 = \ (T_FunctionBindings_vIn58 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v58 = \ !(T_FunctionBindings_vIn58 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _self = rule462  ()
          _lhsOself :: FunctionBindings
          _lhsOself = rule463 _self
@@ -3906,7 +3907,7 @@ sem_FunctionBindings_Nil  = T_FunctionBindings (return st59) where
          _lhsObindingGroups = rule464 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule465 _lhsIkappaUnique
-         __result_ = T_FunctionBindings_vOut58 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_FunctionBindings_vOut58 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_FunctionBindings_s59 v58
    {-# INLINE rule462 #-}
@@ -3924,15 +3925,15 @@ sem_FunctionBindings_Nil  = T_FunctionBindings (return st59) where
 
 -- GuardedExpression -------------------------------------------
 -- wrapper
-data Inh_GuardedExpression  = Inh_GuardedExpression { bindingGroups_Inh_GuardedExpression :: (BindingGroups), kappaUnique_Inh_GuardedExpression :: (Int) }
-data Syn_GuardedExpression  = Syn_GuardedExpression { bindingGroups_Syn_GuardedExpression :: (BindingGroups), kappaUnique_Syn_GuardedExpression :: (Int), self_Syn_GuardedExpression :: (GuardedExpression) }
+data Inh_GuardedExpression  = Inh_GuardedExpression { bindingGroups_Inh_GuardedExpression :: !(BindingGroups), kappaUnique_Inh_GuardedExpression :: !(Int) }
+data Syn_GuardedExpression  = Syn_GuardedExpression { bindingGroups_Syn_GuardedExpression :: !(BindingGroups), kappaUnique_Syn_GuardedExpression :: !(Int), self_Syn_GuardedExpression :: !(GuardedExpression) }
 {-# INLINABLE wrap_GuardedExpression #-}
 wrap_GuardedExpression :: T_GuardedExpression  -> Inh_GuardedExpression  -> (Syn_GuardedExpression )
-wrap_GuardedExpression (T_GuardedExpression act) (Inh_GuardedExpression _lhsIbindingGroups _lhsIkappaUnique) =
+wrap_GuardedExpression !(T_GuardedExpression act) !(Inh_GuardedExpression _lhsIbindingGroups _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg61 = T_GuardedExpression_vIn61 _lhsIbindingGroups _lhsIkappaUnique
-        (T_GuardedExpression_vOut61 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_GuardedExpression_s62 sem arg61)
+        !(T_GuardedExpression_vOut61 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_GuardedExpression_s62 sem arg61)
         return (Syn_GuardedExpression _lhsObindingGroups _lhsOkappaUnique _lhsOself)
    )
 
@@ -3956,9 +3957,9 @@ data T_GuardedExpression_vOut61  = T_GuardedExpression_vOut61 (BindingGroups) (I
 sem_GuardedExpression_GuardedExpression :: T_Range  -> T_Expression  -> T_Expression  -> T_GuardedExpression 
 sem_GuardedExpression_GuardedExpression arg_range_ arg_guard_ arg_expression_ = T_GuardedExpression (return st62) where
    {-# NOINLINE st62 #-}
-   st62 = let
+   !st62 = let
       v61 :: T_GuardedExpression_v61 
-      v61 = \ (T_GuardedExpression_vIn61 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v61 = \ !(T_GuardedExpression_vIn61 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _guardX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_guard_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
@@ -3976,7 +3977,7 @@ sem_GuardedExpression_GuardedExpression arg_range_ arg_guard_ arg_expression_ = 
          _guardOkappaUnique = rule471 _lhsIkappaUnique
          _expressionObindingGroups = rule472 _guardIbindingGroups
          _expressionOkappaUnique = rule473 _guardIkappaUnique
-         __result_ = T_GuardedExpression_vOut61 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_GuardedExpression_vOut61 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_GuardedExpression_s62 v61
    {-# INLINE rule466 #-}
@@ -4006,15 +4007,15 @@ sem_GuardedExpression_GuardedExpression arg_range_ arg_guard_ arg_expression_ = 
 
 -- GuardedExpressions ------------------------------------------
 -- wrapper
-data Inh_GuardedExpressions  = Inh_GuardedExpressions { bindingGroups_Inh_GuardedExpressions :: (BindingGroups), kappaUnique_Inh_GuardedExpressions :: (Int) }
-data Syn_GuardedExpressions  = Syn_GuardedExpressions { bindingGroups_Syn_GuardedExpressions :: (BindingGroups), kappaUnique_Syn_GuardedExpressions :: (Int), self_Syn_GuardedExpressions :: (GuardedExpressions) }
+data Inh_GuardedExpressions  = Inh_GuardedExpressions { bindingGroups_Inh_GuardedExpressions :: !(BindingGroups), kappaUnique_Inh_GuardedExpressions :: !(Int) }
+data Syn_GuardedExpressions  = Syn_GuardedExpressions { bindingGroups_Syn_GuardedExpressions :: !(BindingGroups), kappaUnique_Syn_GuardedExpressions :: !(Int), self_Syn_GuardedExpressions :: !(GuardedExpressions) }
 {-# INLINABLE wrap_GuardedExpressions #-}
 wrap_GuardedExpressions :: T_GuardedExpressions  -> Inh_GuardedExpressions  -> (Syn_GuardedExpressions )
-wrap_GuardedExpressions (T_GuardedExpressions act) (Inh_GuardedExpressions _lhsIbindingGroups _lhsIkappaUnique) =
+wrap_GuardedExpressions !(T_GuardedExpressions act) !(Inh_GuardedExpressions _lhsIbindingGroups _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg64 = T_GuardedExpressions_vIn64 _lhsIbindingGroups _lhsIkappaUnique
-        (T_GuardedExpressions_vOut64 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_GuardedExpressions_s65 sem arg64)
+        !(T_GuardedExpressions_vOut64 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_GuardedExpressions_s65 sem arg64)
         return (Syn_GuardedExpressions _lhsObindingGroups _lhsOkappaUnique _lhsOself)
    )
 
@@ -4038,9 +4039,9 @@ data T_GuardedExpressions_vOut64  = T_GuardedExpressions_vOut64 (BindingGroups) 
 sem_GuardedExpressions_Cons :: T_GuardedExpression  -> T_GuardedExpressions  -> T_GuardedExpressions 
 sem_GuardedExpressions_Cons arg_hd_ arg_tl_ = T_GuardedExpressions (return st65) where
    {-# NOINLINE st65 #-}
-   st65 = let
+   !st65 = let
       v64 :: T_GuardedExpressions_v64 
-      v64 = \ (T_GuardedExpressions_vIn64 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v64 = \ !(T_GuardedExpressions_vIn64 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _hdX62 = Control.Monad.Identity.runIdentity (attach_T_GuardedExpression (arg_hd_))
          _tlX65 = Control.Monad.Identity.runIdentity (attach_T_GuardedExpressions (arg_tl_))
          (T_GuardedExpression_vOut61 _hdIbindingGroups _hdIkappaUnique _hdIself) = inv_GuardedExpression_s62 _hdX62 (T_GuardedExpression_vIn61 _hdObindingGroups _hdOkappaUnique)
@@ -4056,7 +4057,7 @@ sem_GuardedExpressions_Cons arg_hd_ arg_tl_ = T_GuardedExpressions (return st65)
          _hdOkappaUnique = rule479 _lhsIkappaUnique
          _tlObindingGroups = rule480 _hdIbindingGroups
          _tlOkappaUnique = rule481 _hdIkappaUnique
-         __result_ = T_GuardedExpressions_vOut64 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_GuardedExpressions_vOut64 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_GuardedExpressions_s65 v64
    {-# INLINE rule474 #-}
@@ -4087,9 +4088,9 @@ sem_GuardedExpressions_Cons arg_hd_ arg_tl_ = T_GuardedExpressions (return st65)
 sem_GuardedExpressions_Nil ::  T_GuardedExpressions 
 sem_GuardedExpressions_Nil  = T_GuardedExpressions (return st65) where
    {-# NOINLINE st65 #-}
-   st65 = let
+   !st65 = let
       v64 :: T_GuardedExpressions_v64 
-      v64 = \ (T_GuardedExpressions_vIn64 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v64 = \ !(T_GuardedExpressions_vIn64 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _self = rule482  ()
          _lhsOself :: GuardedExpressions
          _lhsOself = rule483 _self
@@ -4097,7 +4098,7 @@ sem_GuardedExpressions_Nil  = T_GuardedExpressions (return st65) where
          _lhsObindingGroups = rule484 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule485 _lhsIkappaUnique
-         __result_ = T_GuardedExpressions_vOut64 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_GuardedExpressions_vOut64 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_GuardedExpressions_s65 v64
    {-# INLINE rule482 #-}
@@ -4116,14 +4117,14 @@ sem_GuardedExpressions_Nil  = T_GuardedExpressions (return st65) where
 -- Import ------------------------------------------------------
 -- wrapper
 data Inh_Import  = Inh_Import {  }
-data Syn_Import  = Syn_Import { self_Syn_Import :: (Import) }
+data Syn_Import  = Syn_Import { self_Syn_Import :: !(Import) }
 {-# INLINABLE wrap_Import #-}
 wrap_Import :: T_Import  -> Inh_Import  -> (Syn_Import )
-wrap_Import (T_Import act) (Inh_Import ) =
+wrap_Import !(T_Import act) !(Inh_Import ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg67 = T_Import_vIn67 
-        (T_Import_vOut67 _lhsOself) <- return (inv_Import_s68 sem arg67)
+        !(T_Import_vOut67 _lhsOself) <- return (inv_Import_s68 sem arg67)
         return (Syn_Import _lhsOself)
    )
 
@@ -4149,9 +4150,9 @@ data T_Import_vOut67  = T_Import_vOut67 (Import)
 sem_Import_Variable :: T_Range  -> T_Name  -> T_Import 
 sem_Import_Variable arg_range_ arg_name_ = T_Import (return st68) where
    {-# NOINLINE st68 #-}
-   st68 = let
+   !st68 = let
       v67 :: T_Import_v67 
-      v67 = \ (T_Import_vIn67 ) -> ( let
+      v67 = \ !(T_Import_vIn67 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -4159,7 +4160,7 @@ sem_Import_Variable arg_range_ arg_name_ = T_Import (return st68) where
          _self = rule486 _nameIself _rangeIself
          _lhsOself :: Import
          _lhsOself = rule487 _self
-         __result_ = T_Import_vOut67 _lhsOself
+         !__result_ = T_Import_vOut67 _lhsOself
          in __result_ )
      in C_Import_s68 v67
    {-# INLINE rule486 #-}
@@ -4172,9 +4173,9 @@ sem_Import_Variable arg_range_ arg_name_ = T_Import (return st68) where
 sem_Import_TypeOrClass :: T_Range  -> T_Name  -> T_MaybeNames  -> T_Import 
 sem_Import_TypeOrClass arg_range_ arg_name_ arg_names_ = T_Import (return st68) where
    {-# NOINLINE st68 #-}
-   st68 = let
+   !st68 = let
       v67 :: T_Import_v67 
-      v67 = \ (T_Import_vIn67 ) -> ( let
+      v67 = \ !(T_Import_vIn67 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _namesX107 = Control.Monad.Identity.runIdentity (attach_T_MaybeNames (arg_names_))
@@ -4184,7 +4185,7 @@ sem_Import_TypeOrClass arg_range_ arg_name_ arg_names_ = T_Import (return st68) 
          _self = rule488 _nameIself _namesIself _rangeIself
          _lhsOself :: Import
          _lhsOself = rule489 _self
-         __result_ = T_Import_vOut67 _lhsOself
+         !__result_ = T_Import_vOut67 _lhsOself
          in __result_ )
      in C_Import_s68 v67
    {-# INLINE rule488 #-}
@@ -4197,9 +4198,9 @@ sem_Import_TypeOrClass arg_range_ arg_name_ arg_names_ = T_Import (return st68) 
 sem_Import_TypeOrClassComplete :: T_Range  -> T_Name  -> T_Import 
 sem_Import_TypeOrClassComplete arg_range_ arg_name_ = T_Import (return st68) where
    {-# NOINLINE st68 #-}
-   st68 = let
+   !st68 = let
       v67 :: T_Import_v67 
-      v67 = \ (T_Import_vIn67 ) -> ( let
+      v67 = \ !(T_Import_vIn67 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -4207,7 +4208,7 @@ sem_Import_TypeOrClassComplete arg_range_ arg_name_ = T_Import (return st68) whe
          _self = rule490 _nameIself _rangeIself
          _lhsOself :: Import
          _lhsOself = rule491 _self
-         __result_ = T_Import_vOut67 _lhsOself
+         !__result_ = T_Import_vOut67 _lhsOself
          in __result_ )
      in C_Import_s68 v67
    {-# INLINE rule490 #-}
@@ -4220,21 +4221,21 @@ sem_Import_TypeOrClassComplete arg_range_ arg_name_ = T_Import (return st68) whe
 -- ImportDeclaration -------------------------------------------
 -- wrapper
 data Inh_ImportDeclaration  = Inh_ImportDeclaration {  }
-data Syn_ImportDeclaration  = Syn_ImportDeclaration { self_Syn_ImportDeclaration :: (ImportDeclaration) }
+data Syn_ImportDeclaration  = Syn_ImportDeclaration { self_Syn_ImportDeclaration :: !(ImportDeclaration) }
 {-# INLINABLE wrap_ImportDeclaration #-}
 wrap_ImportDeclaration :: T_ImportDeclaration  -> Inh_ImportDeclaration  -> (Syn_ImportDeclaration )
-wrap_ImportDeclaration (T_ImportDeclaration act) (Inh_ImportDeclaration ) =
+wrap_ImportDeclaration !(T_ImportDeclaration act) !(Inh_ImportDeclaration ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg70 = T_ImportDeclaration_vIn70 
-        (T_ImportDeclaration_vOut70 _lhsOself) <- return (inv_ImportDeclaration_s71 sem arg70)
+        !(T_ImportDeclaration_vOut70 _lhsOself) <- return (inv_ImportDeclaration_s71 sem arg70)
         return (Syn_ImportDeclaration _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_ImportDeclaration #-}
 sem_ImportDeclaration :: ImportDeclaration  -> T_ImportDeclaration 
-sem_ImportDeclaration ( ImportDeclaration_Import range_ qualified_ name_ asname_ importspecification_ ) = sem_ImportDeclaration_Import ( sem_Range range_ ) qualified_ ( sem_Name name_ ) ( sem_MaybeName asname_ ) ( sem_MaybeImportSpecification importspecification_ )
+sem_ImportDeclaration ( ImportDeclaration_Import range_ !qualified_ name_ asname_ importspecification_ ) = sem_ImportDeclaration_Import ( sem_Range range_ ) qualified_ ( sem_Name name_ ) ( sem_MaybeName asname_ ) ( sem_MaybeImportSpecification importspecification_ )
 sem_ImportDeclaration ( ImportDeclaration_Empty range_ ) = sem_ImportDeclaration_Empty ( sem_Range range_ )
 
 -- semantic domain
@@ -4250,11 +4251,11 @@ data T_ImportDeclaration_vIn70  = T_ImportDeclaration_vIn70
 data T_ImportDeclaration_vOut70  = T_ImportDeclaration_vOut70 (ImportDeclaration)
 {-# NOINLINE sem_ImportDeclaration_Import #-}
 sem_ImportDeclaration_Import :: T_Range  -> (Bool) -> T_Name  -> T_MaybeName  -> T_MaybeImportSpecification  -> T_ImportDeclaration 
-sem_ImportDeclaration_Import arg_range_ arg_qualified_ arg_name_ arg_asname_ arg_importspecification_ = T_ImportDeclaration (return st71) where
+sem_ImportDeclaration_Import arg_range_ !arg_qualified_ arg_name_ arg_asname_ arg_importspecification_ = T_ImportDeclaration (return st71) where
    {-# NOINLINE st71 #-}
-   st71 = let
+   !st71 = let
       v70 :: T_ImportDeclaration_v70 
-      v70 = \ (T_ImportDeclaration_vIn70 ) -> ( let
+      v70 = \ !(T_ImportDeclaration_vIn70 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _asnameX104 = Control.Monad.Identity.runIdentity (attach_T_MaybeName (arg_asname_))
@@ -4266,7 +4267,7 @@ sem_ImportDeclaration_Import arg_range_ arg_qualified_ arg_name_ arg_asname_ arg
          _self = rule492 _asnameIself _importspecificationIself _nameIself _rangeIself arg_qualified_
          _lhsOself :: ImportDeclaration
          _lhsOself = rule493 _self
-         __result_ = T_ImportDeclaration_vOut70 _lhsOself
+         !__result_ = T_ImportDeclaration_vOut70 _lhsOself
          in __result_ )
      in C_ImportDeclaration_s71 v70
    {-# INLINE rule492 #-}
@@ -4279,15 +4280,15 @@ sem_ImportDeclaration_Import arg_range_ arg_qualified_ arg_name_ arg_asname_ arg
 sem_ImportDeclaration_Empty :: T_Range  -> T_ImportDeclaration 
 sem_ImportDeclaration_Empty arg_range_ = T_ImportDeclaration (return st71) where
    {-# NOINLINE st71 #-}
-   st71 = let
+   !st71 = let
       v70 :: T_ImportDeclaration_v70 
-      v70 = \ (T_ImportDeclaration_vIn70 ) -> ( let
+      v70 = \ !(T_ImportDeclaration_vIn70 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _self = rule494 _rangeIself
          _lhsOself :: ImportDeclaration
          _lhsOself = rule495 _self
-         __result_ = T_ImportDeclaration_vOut70 _lhsOself
+         !__result_ = T_ImportDeclaration_vOut70 _lhsOself
          in __result_ )
      in C_ImportDeclaration_s71 v70
    {-# INLINE rule494 #-}
@@ -4300,14 +4301,14 @@ sem_ImportDeclaration_Empty arg_range_ = T_ImportDeclaration (return st71) where
 -- ImportDeclarations ------------------------------------------
 -- wrapper
 data Inh_ImportDeclarations  = Inh_ImportDeclarations {  }
-data Syn_ImportDeclarations  = Syn_ImportDeclarations { self_Syn_ImportDeclarations :: (ImportDeclarations) }
+data Syn_ImportDeclarations  = Syn_ImportDeclarations { self_Syn_ImportDeclarations :: !(ImportDeclarations) }
 {-# INLINABLE wrap_ImportDeclarations #-}
 wrap_ImportDeclarations :: T_ImportDeclarations  -> Inh_ImportDeclarations  -> (Syn_ImportDeclarations )
-wrap_ImportDeclarations (T_ImportDeclarations act) (Inh_ImportDeclarations ) =
+wrap_ImportDeclarations !(T_ImportDeclarations act) !(Inh_ImportDeclarations ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg73 = T_ImportDeclarations_vIn73 
-        (T_ImportDeclarations_vOut73 _lhsOself) <- return (inv_ImportDeclarations_s74 sem arg73)
+        !(T_ImportDeclarations_vOut73 _lhsOself) <- return (inv_ImportDeclarations_s74 sem arg73)
         return (Syn_ImportDeclarations _lhsOself)
    )
 
@@ -4331,9 +4332,9 @@ data T_ImportDeclarations_vOut73  = T_ImportDeclarations_vOut73 (ImportDeclarati
 sem_ImportDeclarations_Cons :: T_ImportDeclaration  -> T_ImportDeclarations  -> T_ImportDeclarations 
 sem_ImportDeclarations_Cons arg_hd_ arg_tl_ = T_ImportDeclarations (return st74) where
    {-# NOINLINE st74 #-}
-   st74 = let
+   !st74 = let
       v73 :: T_ImportDeclarations_v73 
-      v73 = \ (T_ImportDeclarations_vIn73 ) -> ( let
+      v73 = \ !(T_ImportDeclarations_vIn73 ) -> ( let
          _hdX71 = Control.Monad.Identity.runIdentity (attach_T_ImportDeclaration (arg_hd_))
          _tlX74 = Control.Monad.Identity.runIdentity (attach_T_ImportDeclarations (arg_tl_))
          (T_ImportDeclaration_vOut70 _hdIself) = inv_ImportDeclaration_s71 _hdX71 (T_ImportDeclaration_vIn70 )
@@ -4341,7 +4342,7 @@ sem_ImportDeclarations_Cons arg_hd_ arg_tl_ = T_ImportDeclarations (return st74)
          _self = rule496 _hdIself _tlIself
          _lhsOself :: ImportDeclarations
          _lhsOself = rule497 _self
-         __result_ = T_ImportDeclarations_vOut73 _lhsOself
+         !__result_ = T_ImportDeclarations_vOut73 _lhsOself
          in __result_ )
      in C_ImportDeclarations_s74 v73
    {-# INLINE rule496 #-}
@@ -4354,13 +4355,13 @@ sem_ImportDeclarations_Cons arg_hd_ arg_tl_ = T_ImportDeclarations (return st74)
 sem_ImportDeclarations_Nil ::  T_ImportDeclarations 
 sem_ImportDeclarations_Nil  = T_ImportDeclarations (return st74) where
    {-# NOINLINE st74 #-}
-   st74 = let
+   !st74 = let
       v73 :: T_ImportDeclarations_v73 
-      v73 = \ (T_ImportDeclarations_vIn73 ) -> ( let
+      v73 = \ !(T_ImportDeclarations_vIn73 ) -> ( let
          _self = rule498  ()
          _lhsOself :: ImportDeclarations
          _lhsOself = rule499 _self
-         __result_ = T_ImportDeclarations_vOut73 _lhsOself
+         !__result_ = T_ImportDeclarations_vOut73 _lhsOself
          in __result_ )
      in C_ImportDeclarations_s74 v73
    {-# INLINE rule498 #-}
@@ -4373,21 +4374,21 @@ sem_ImportDeclarations_Nil  = T_ImportDeclarations (return st74) where
 -- ImportSpecification -----------------------------------------
 -- wrapper
 data Inh_ImportSpecification  = Inh_ImportSpecification {  }
-data Syn_ImportSpecification  = Syn_ImportSpecification { self_Syn_ImportSpecification :: (ImportSpecification) }
+data Syn_ImportSpecification  = Syn_ImportSpecification { self_Syn_ImportSpecification :: !(ImportSpecification) }
 {-# INLINABLE wrap_ImportSpecification #-}
 wrap_ImportSpecification :: T_ImportSpecification  -> Inh_ImportSpecification  -> (Syn_ImportSpecification )
-wrap_ImportSpecification (T_ImportSpecification act) (Inh_ImportSpecification ) =
+wrap_ImportSpecification !(T_ImportSpecification act) !(Inh_ImportSpecification ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg76 = T_ImportSpecification_vIn76 
-        (T_ImportSpecification_vOut76 _lhsOself) <- return (inv_ImportSpecification_s77 sem arg76)
+        !(T_ImportSpecification_vOut76 _lhsOself) <- return (inv_ImportSpecification_s77 sem arg76)
         return (Syn_ImportSpecification _lhsOself)
    )
 
 -- cata
 {-# INLINE sem_ImportSpecification #-}
 sem_ImportSpecification :: ImportSpecification  -> T_ImportSpecification 
-sem_ImportSpecification ( ImportSpecification_Import range_ hiding_ imports_ ) = sem_ImportSpecification_Import ( sem_Range range_ ) hiding_ ( sem_Imports imports_ )
+sem_ImportSpecification ( ImportSpecification_Import range_ !hiding_ imports_ ) = sem_ImportSpecification_Import ( sem_Range range_ ) hiding_ ( sem_Imports imports_ )
 
 -- semantic domain
 newtype T_ImportSpecification  = T_ImportSpecification {
@@ -4402,11 +4403,11 @@ data T_ImportSpecification_vIn76  = T_ImportSpecification_vIn76
 data T_ImportSpecification_vOut76  = T_ImportSpecification_vOut76 (ImportSpecification)
 {-# NOINLINE sem_ImportSpecification_Import #-}
 sem_ImportSpecification_Import :: T_Range  -> (Bool) -> T_Imports  -> T_ImportSpecification 
-sem_ImportSpecification_Import arg_range_ arg_hiding_ arg_imports_ = T_ImportSpecification (return st77) where
+sem_ImportSpecification_Import arg_range_ !arg_hiding_ arg_imports_ = T_ImportSpecification (return st77) where
    {-# NOINLINE st77 #-}
-   st77 = let
+   !st77 = let
       v76 :: T_ImportSpecification_v76 
-      v76 = \ (T_ImportSpecification_vIn76 ) -> ( let
+      v76 = \ !(T_ImportSpecification_vIn76 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _importsX80 = Control.Monad.Identity.runIdentity (attach_T_Imports (arg_imports_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -4414,7 +4415,7 @@ sem_ImportSpecification_Import arg_range_ arg_hiding_ arg_imports_ = T_ImportSpe
          _self = rule500 _importsIself _rangeIself arg_hiding_
          _lhsOself :: ImportSpecification
          _lhsOself = rule501 _self
-         __result_ = T_ImportSpecification_vOut76 _lhsOself
+         !__result_ = T_ImportSpecification_vOut76 _lhsOself
          in __result_ )
      in C_ImportSpecification_s77 v76
    {-# INLINE rule500 #-}
@@ -4427,14 +4428,14 @@ sem_ImportSpecification_Import arg_range_ arg_hiding_ arg_imports_ = T_ImportSpe
 -- Imports -----------------------------------------------------
 -- wrapper
 data Inh_Imports  = Inh_Imports {  }
-data Syn_Imports  = Syn_Imports { self_Syn_Imports :: (Imports) }
+data Syn_Imports  = Syn_Imports { self_Syn_Imports :: !(Imports) }
 {-# INLINABLE wrap_Imports #-}
 wrap_Imports :: T_Imports  -> Inh_Imports  -> (Syn_Imports )
-wrap_Imports (T_Imports act) (Inh_Imports ) =
+wrap_Imports !(T_Imports act) !(Inh_Imports ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg79 = T_Imports_vIn79 
-        (T_Imports_vOut79 _lhsOself) <- return (inv_Imports_s80 sem arg79)
+        !(T_Imports_vOut79 _lhsOself) <- return (inv_Imports_s80 sem arg79)
         return (Syn_Imports _lhsOself)
    )
 
@@ -4458,9 +4459,9 @@ data T_Imports_vOut79  = T_Imports_vOut79 (Imports)
 sem_Imports_Cons :: T_Import  -> T_Imports  -> T_Imports 
 sem_Imports_Cons arg_hd_ arg_tl_ = T_Imports (return st80) where
    {-# NOINLINE st80 #-}
-   st80 = let
+   !st80 = let
       v79 :: T_Imports_v79 
-      v79 = \ (T_Imports_vIn79 ) -> ( let
+      v79 = \ !(T_Imports_vIn79 ) -> ( let
          _hdX68 = Control.Monad.Identity.runIdentity (attach_T_Import (arg_hd_))
          _tlX80 = Control.Monad.Identity.runIdentity (attach_T_Imports (arg_tl_))
          (T_Import_vOut67 _hdIself) = inv_Import_s68 _hdX68 (T_Import_vIn67 )
@@ -4468,7 +4469,7 @@ sem_Imports_Cons arg_hd_ arg_tl_ = T_Imports (return st80) where
          _self = rule502 _hdIself _tlIself
          _lhsOself :: Imports
          _lhsOself = rule503 _self
-         __result_ = T_Imports_vOut79 _lhsOself
+         !__result_ = T_Imports_vOut79 _lhsOself
          in __result_ )
      in C_Imports_s80 v79
    {-# INLINE rule502 #-}
@@ -4481,13 +4482,13 @@ sem_Imports_Cons arg_hd_ arg_tl_ = T_Imports (return st80) where
 sem_Imports_Nil ::  T_Imports 
 sem_Imports_Nil  = T_Imports (return st80) where
    {-# NOINLINE st80 #-}
-   st80 = let
+   !st80 = let
       v79 :: T_Imports_v79 
-      v79 = \ (T_Imports_vIn79 ) -> ( let
+      v79 = \ !(T_Imports_vIn79 ) -> ( let
          _self = rule504  ()
          _lhsOself :: Imports
          _lhsOself = rule505 _self
-         __result_ = T_Imports_vOut79 _lhsOself
+         !__result_ = T_Imports_vOut79 _lhsOself
          in __result_ )
      in C_Imports_s80 v79
    {-# INLINE rule504 #-}
@@ -4500,14 +4501,14 @@ sem_Imports_Nil  = T_Imports (return st80) where
 -- LeftHandSide ------------------------------------------------
 -- wrapper
 data Inh_LeftHandSide  = Inh_LeftHandSide {  }
-data Syn_LeftHandSide  = Syn_LeftHandSide { self_Syn_LeftHandSide :: (LeftHandSide) }
+data Syn_LeftHandSide  = Syn_LeftHandSide { self_Syn_LeftHandSide :: !(LeftHandSide) }
 {-# INLINABLE wrap_LeftHandSide #-}
 wrap_LeftHandSide :: T_LeftHandSide  -> Inh_LeftHandSide  -> (Syn_LeftHandSide )
-wrap_LeftHandSide (T_LeftHandSide act) (Inh_LeftHandSide ) =
+wrap_LeftHandSide !(T_LeftHandSide act) !(Inh_LeftHandSide ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg82 = T_LeftHandSide_vIn82 
-        (T_LeftHandSide_vOut82 _lhsOself) <- return (inv_LeftHandSide_s83 sem arg82)
+        !(T_LeftHandSide_vOut82 _lhsOself) <- return (inv_LeftHandSide_s83 sem arg82)
         return (Syn_LeftHandSide _lhsOself)
    )
 
@@ -4533,9 +4534,9 @@ data T_LeftHandSide_vOut82  = T_LeftHandSide_vOut82 (LeftHandSide)
 sem_LeftHandSide_Function :: T_Range  -> T_Name  -> T_Patterns  -> T_LeftHandSide 
 sem_LeftHandSide_Function arg_range_ arg_name_ arg_patterns_ = T_LeftHandSide (return st83) where
    {-# NOINLINE st83 #-}
-   st83 = let
+   !st83 = let
       v82 :: T_LeftHandSide_v82 
-      v82 = \ (T_LeftHandSide_vIn82 ) -> ( let
+      v82 = \ !(T_LeftHandSide_vIn82 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _patternsX122 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
@@ -4545,7 +4546,7 @@ sem_LeftHandSide_Function arg_range_ arg_name_ arg_patterns_ = T_LeftHandSide (r
          _self = rule506 _nameIself _patternsIself _rangeIself
          _lhsOself :: LeftHandSide
          _lhsOself = rule507 _self
-         __result_ = T_LeftHandSide_vOut82 _lhsOself
+         !__result_ = T_LeftHandSide_vOut82 _lhsOself
          in __result_ )
      in C_LeftHandSide_s83 v82
    {-# INLINE rule506 #-}
@@ -4558,9 +4559,9 @@ sem_LeftHandSide_Function arg_range_ arg_name_ arg_patterns_ = T_LeftHandSide (r
 sem_LeftHandSide_Infix :: T_Range  -> T_Pattern  -> T_Name  -> T_Pattern  -> T_LeftHandSide 
 sem_LeftHandSide_Infix arg_range_ arg_leftPattern_ arg_operator_ arg_rightPattern_ = T_LeftHandSide (return st83) where
    {-# NOINLINE st83 #-}
-   st83 = let
+   !st83 = let
       v82 :: T_LeftHandSide_v82 
-      v82 = \ (T_LeftHandSide_vIn82 ) -> ( let
+      v82 = \ !(T_LeftHandSide_vIn82 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _leftPatternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_leftPattern_))
          _operatorX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_operator_))
@@ -4572,7 +4573,7 @@ sem_LeftHandSide_Infix arg_range_ arg_leftPattern_ arg_operator_ arg_rightPatter
          _self = rule508 _leftPatternIself _operatorIself _rangeIself _rightPatternIself
          _lhsOself :: LeftHandSide
          _lhsOself = rule509 _self
-         __result_ = T_LeftHandSide_vOut82 _lhsOself
+         !__result_ = T_LeftHandSide_vOut82 _lhsOself
          in __result_ )
      in C_LeftHandSide_s83 v82
    {-# INLINE rule508 #-}
@@ -4585,9 +4586,9 @@ sem_LeftHandSide_Infix arg_range_ arg_leftPattern_ arg_operator_ arg_rightPatter
 sem_LeftHandSide_Parenthesized :: T_Range  -> T_LeftHandSide  -> T_Patterns  -> T_LeftHandSide 
 sem_LeftHandSide_Parenthesized arg_range_ arg_lefthandside_ arg_patterns_ = T_LeftHandSide (return st83) where
    {-# NOINLINE st83 #-}
-   st83 = let
+   !st83 = let
       v82 :: T_LeftHandSide_v82 
-      v82 = \ (T_LeftHandSide_vIn82 ) -> ( let
+      v82 = \ !(T_LeftHandSide_vIn82 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _lefthandsideX83 = Control.Monad.Identity.runIdentity (attach_T_LeftHandSide (arg_lefthandside_))
          _patternsX122 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
@@ -4597,7 +4598,7 @@ sem_LeftHandSide_Parenthesized arg_range_ arg_lefthandside_ arg_patterns_ = T_Le
          _self = rule510 _lefthandsideIself _patternsIself _rangeIself
          _lhsOself :: LeftHandSide
          _lhsOself = rule511 _self
-         __result_ = T_LeftHandSide_vOut82 _lhsOself
+         !__result_ = T_LeftHandSide_vOut82 _lhsOself
          in __result_ )
      in C_LeftHandSide_s83 v82
    {-# INLINE rule510 #-}
@@ -4610,24 +4611,24 @@ sem_LeftHandSide_Parenthesized arg_range_ arg_lefthandside_ arg_patterns_ = T_Le
 -- Literal -----------------------------------------------------
 -- wrapper
 data Inh_Literal  = Inh_Literal {  }
-data Syn_Literal  = Syn_Literal { self_Syn_Literal :: (Literal) }
+data Syn_Literal  = Syn_Literal { self_Syn_Literal :: !(Literal) }
 {-# INLINABLE wrap_Literal #-}
 wrap_Literal :: T_Literal  -> Inh_Literal  -> (Syn_Literal )
-wrap_Literal (T_Literal act) (Inh_Literal ) =
+wrap_Literal !(T_Literal act) !(Inh_Literal ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg85 = T_Literal_vIn85 
-        (T_Literal_vOut85 _lhsOself) <- return (inv_Literal_s86 sem arg85)
+        !(T_Literal_vOut85 _lhsOself) <- return (inv_Literal_s86 sem arg85)
         return (Syn_Literal _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_Literal #-}
 sem_Literal :: Literal  -> T_Literal 
-sem_Literal ( Literal_Int range_ value_ ) = sem_Literal_Int ( sem_Range range_ ) value_
-sem_Literal ( Literal_Char range_ value_ ) = sem_Literal_Char ( sem_Range range_ ) value_
-sem_Literal ( Literal_Float range_ value_ ) = sem_Literal_Float ( sem_Range range_ ) value_
-sem_Literal ( Literal_String range_ value_ ) = sem_Literal_String ( sem_Range range_ ) value_
+sem_Literal ( Literal_Int range_ !value_ ) = sem_Literal_Int ( sem_Range range_ ) value_
+sem_Literal ( Literal_Char range_ !value_ ) = sem_Literal_Char ( sem_Range range_ ) value_
+sem_Literal ( Literal_Float range_ !value_ ) = sem_Literal_Float ( sem_Range range_ ) value_
+sem_Literal ( Literal_String range_ !value_ ) = sem_Literal_String ( sem_Range range_ ) value_
 
 -- semantic domain
 newtype T_Literal  = T_Literal {
@@ -4642,17 +4643,17 @@ data T_Literal_vIn85  = T_Literal_vIn85
 data T_Literal_vOut85  = T_Literal_vOut85 (Literal)
 {-# NOINLINE sem_Literal_Int #-}
 sem_Literal_Int :: T_Range  -> (String) -> T_Literal 
-sem_Literal_Int arg_range_ arg_value_ = T_Literal (return st86) where
+sem_Literal_Int arg_range_ !arg_value_ = T_Literal (return st86) where
    {-# NOINLINE st86 #-}
-   st86 = let
+   !st86 = let
       v85 :: T_Literal_v85 
-      v85 = \ (T_Literal_vIn85 ) -> ( let
+      v85 = \ !(T_Literal_vIn85 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _self = rule512 _rangeIself arg_value_
          _lhsOself :: Literal
          _lhsOself = rule513 _self
-         __result_ = T_Literal_vOut85 _lhsOself
+         !__result_ = T_Literal_vOut85 _lhsOself
          in __result_ )
      in C_Literal_s86 v85
    {-# INLINE rule512 #-}
@@ -4663,17 +4664,17 @@ sem_Literal_Int arg_range_ arg_value_ = T_Literal (return st86) where
      _self
 {-# NOINLINE sem_Literal_Char #-}
 sem_Literal_Char :: T_Range  -> (String) -> T_Literal 
-sem_Literal_Char arg_range_ arg_value_ = T_Literal (return st86) where
+sem_Literal_Char arg_range_ !arg_value_ = T_Literal (return st86) where
    {-# NOINLINE st86 #-}
-   st86 = let
+   !st86 = let
       v85 :: T_Literal_v85 
-      v85 = \ (T_Literal_vIn85 ) -> ( let
+      v85 = \ !(T_Literal_vIn85 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _self = rule514 _rangeIself arg_value_
          _lhsOself :: Literal
          _lhsOself = rule515 _self
-         __result_ = T_Literal_vOut85 _lhsOself
+         !__result_ = T_Literal_vOut85 _lhsOself
          in __result_ )
      in C_Literal_s86 v85
    {-# INLINE rule514 #-}
@@ -4684,17 +4685,17 @@ sem_Literal_Char arg_range_ arg_value_ = T_Literal (return st86) where
      _self
 {-# NOINLINE sem_Literal_Float #-}
 sem_Literal_Float :: T_Range  -> (String) -> T_Literal 
-sem_Literal_Float arg_range_ arg_value_ = T_Literal (return st86) where
+sem_Literal_Float arg_range_ !arg_value_ = T_Literal (return st86) where
    {-# NOINLINE st86 #-}
-   st86 = let
+   !st86 = let
       v85 :: T_Literal_v85 
-      v85 = \ (T_Literal_vIn85 ) -> ( let
+      v85 = \ !(T_Literal_vIn85 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _self = rule516 _rangeIself arg_value_
          _lhsOself :: Literal
          _lhsOself = rule517 _self
-         __result_ = T_Literal_vOut85 _lhsOself
+         !__result_ = T_Literal_vOut85 _lhsOself
          in __result_ )
      in C_Literal_s86 v85
    {-# INLINE rule516 #-}
@@ -4705,17 +4706,17 @@ sem_Literal_Float arg_range_ arg_value_ = T_Literal (return st86) where
      _self
 {-# NOINLINE sem_Literal_String #-}
 sem_Literal_String :: T_Range  -> (String) -> T_Literal 
-sem_Literal_String arg_range_ arg_value_ = T_Literal (return st86) where
+sem_Literal_String arg_range_ !arg_value_ = T_Literal (return st86) where
    {-# NOINLINE st86 #-}
-   st86 = let
+   !st86 = let
       v85 :: T_Literal_v85 
-      v85 = \ (T_Literal_vIn85 ) -> ( let
+      v85 = \ !(T_Literal_vIn85 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _self = rule518 _rangeIself arg_value_
          _lhsOself :: Literal
          _lhsOself = rule519 _self
-         __result_ = T_Literal_vOut85 _lhsOself
+         !__result_ = T_Literal_vOut85 _lhsOself
          in __result_ )
      in C_Literal_s86 v85
    {-# INLINE rule518 #-}
@@ -4727,15 +4728,15 @@ sem_Literal_String arg_range_ arg_value_ = T_Literal (return st86) where
 
 -- MaybeDeclarations -------------------------------------------
 -- wrapper
-data Inh_MaybeDeclarations  = Inh_MaybeDeclarations { bindingGroups_Inh_MaybeDeclarations :: (BindingGroups), kappaUnique_Inh_MaybeDeclarations :: (Int) }
-data Syn_MaybeDeclarations  = Syn_MaybeDeclarations { bindingGroups_Syn_MaybeDeclarations :: (BindingGroups), kappaUnique_Syn_MaybeDeclarations :: (Int), self_Syn_MaybeDeclarations :: (MaybeDeclarations) }
+data Inh_MaybeDeclarations  = Inh_MaybeDeclarations { bindingGroups_Inh_MaybeDeclarations :: !(BindingGroups), kappaUnique_Inh_MaybeDeclarations :: !(Int) }
+data Syn_MaybeDeclarations  = Syn_MaybeDeclarations { bindingGroups_Syn_MaybeDeclarations :: !(BindingGroups), kappaUnique_Syn_MaybeDeclarations :: !(Int), self_Syn_MaybeDeclarations :: !(MaybeDeclarations) }
 {-# INLINABLE wrap_MaybeDeclarations #-}
 wrap_MaybeDeclarations :: T_MaybeDeclarations  -> Inh_MaybeDeclarations  -> (Syn_MaybeDeclarations )
-wrap_MaybeDeclarations (T_MaybeDeclarations act) (Inh_MaybeDeclarations _lhsIbindingGroups _lhsIkappaUnique) =
+wrap_MaybeDeclarations !(T_MaybeDeclarations act) !(Inh_MaybeDeclarations _lhsIbindingGroups _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg88 = T_MaybeDeclarations_vIn88 _lhsIbindingGroups _lhsIkappaUnique
-        (T_MaybeDeclarations_vOut88 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_MaybeDeclarations_s89 sem arg88)
+        !(T_MaybeDeclarations_vOut88 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_MaybeDeclarations_s89 sem arg88)
         return (Syn_MaybeDeclarations _lhsObindingGroups _lhsOkappaUnique _lhsOself)
    )
 
@@ -4760,9 +4761,9 @@ data T_MaybeDeclarations_vOut88  = T_MaybeDeclarations_vOut88 (BindingGroups) (I
 sem_MaybeDeclarations_Nothing ::  T_MaybeDeclarations 
 sem_MaybeDeclarations_Nothing  = T_MaybeDeclarations (return st89) where
    {-# NOINLINE st89 #-}
-   st89 = let
+   !st89 = let
       v88 :: T_MaybeDeclarations_v88 
-      v88 = \ (T_MaybeDeclarations_vIn88 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v88 = \ !(T_MaybeDeclarations_vIn88 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _self = rule520  ()
          _lhsOself :: MaybeDeclarations
          _lhsOself = rule521 _self
@@ -4770,7 +4771,7 @@ sem_MaybeDeclarations_Nothing  = T_MaybeDeclarations (return st89) where
          _lhsObindingGroups = rule522 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule523 _lhsIkappaUnique
-         __result_ = T_MaybeDeclarations_vOut88 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_MaybeDeclarations_vOut88 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_MaybeDeclarations_s89 v88
    {-# INLINE rule520 #-}
@@ -4789,9 +4790,9 @@ sem_MaybeDeclarations_Nothing  = T_MaybeDeclarations (return st89) where
 sem_MaybeDeclarations_Just :: T_Declarations  -> T_MaybeDeclarations 
 sem_MaybeDeclarations_Just arg_declarations_ = T_MaybeDeclarations (return st89) where
    {-# NOINLINE st89 #-}
-   st89 = let
+   !st89 = let
       v88 :: T_MaybeDeclarations_v88 
-      v88 = \ (T_MaybeDeclarations_vIn88 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v88 = \ !(T_MaybeDeclarations_vIn88 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          (T_Declarations_vOut31 _declarationsIbindingGroups _declarationsIkappaUnique _declarationsIself) = inv_Declarations_s32 _declarationsX32 (T_Declarations_vIn31 _declarationsObindingGroups _declarationsOkappaUnique)
          _self = rule524 _declarationsIself
@@ -4803,7 +4804,7 @@ sem_MaybeDeclarations_Just arg_declarations_ = T_MaybeDeclarations (return st89)
          _lhsOkappaUnique = rule527 _declarationsIkappaUnique
          _declarationsObindingGroups = rule528 _lhsIbindingGroups
          _declarationsOkappaUnique = rule529 _lhsIkappaUnique
-         __result_ = T_MaybeDeclarations_vOut88 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_MaybeDeclarations_vOut88 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_MaybeDeclarations_s89 v88
    {-# INLINE rule524 #-}
@@ -4828,14 +4829,14 @@ sem_MaybeDeclarations_Just arg_declarations_ = T_MaybeDeclarations (return st89)
 -- MaybeExports ------------------------------------------------
 -- wrapper
 data Inh_MaybeExports  = Inh_MaybeExports {  }
-data Syn_MaybeExports  = Syn_MaybeExports { self_Syn_MaybeExports :: (MaybeExports) }
+data Syn_MaybeExports  = Syn_MaybeExports { self_Syn_MaybeExports :: !(MaybeExports) }
 {-# INLINABLE wrap_MaybeExports #-}
 wrap_MaybeExports :: T_MaybeExports  -> Inh_MaybeExports  -> (Syn_MaybeExports )
-wrap_MaybeExports (T_MaybeExports act) (Inh_MaybeExports ) =
+wrap_MaybeExports !(T_MaybeExports act) !(Inh_MaybeExports ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg91 = T_MaybeExports_vIn91 
-        (T_MaybeExports_vOut91 _lhsOself) <- return (inv_MaybeExports_s92 sem arg91)
+        !(T_MaybeExports_vOut91 _lhsOself) <- return (inv_MaybeExports_s92 sem arg91)
         return (Syn_MaybeExports _lhsOself)
    )
 
@@ -4860,13 +4861,13 @@ data T_MaybeExports_vOut91  = T_MaybeExports_vOut91 (MaybeExports)
 sem_MaybeExports_Nothing ::  T_MaybeExports 
 sem_MaybeExports_Nothing  = T_MaybeExports (return st92) where
    {-# NOINLINE st92 #-}
-   st92 = let
+   !st92 = let
       v91 :: T_MaybeExports_v91 
-      v91 = \ (T_MaybeExports_vIn91 ) -> ( let
+      v91 = \ !(T_MaybeExports_vIn91 ) -> ( let
          _self = rule530  ()
          _lhsOself :: MaybeExports
          _lhsOself = rule531 _self
-         __result_ = T_MaybeExports_vOut91 _lhsOself
+         !__result_ = T_MaybeExports_vOut91 _lhsOself
          in __result_ )
      in C_MaybeExports_s92 v91
    {-# INLINE rule530 #-}
@@ -4879,15 +4880,15 @@ sem_MaybeExports_Nothing  = T_MaybeExports (return st92) where
 sem_MaybeExports_Just :: T_Exports  -> T_MaybeExports 
 sem_MaybeExports_Just arg_exports_ = T_MaybeExports (return st92) where
    {-# NOINLINE st92 #-}
-   st92 = let
+   !st92 = let
       v91 :: T_MaybeExports_v91 
-      v91 = \ (T_MaybeExports_vIn91 ) -> ( let
+      v91 = \ !(T_MaybeExports_vIn91 ) -> ( let
          _exportsX38 = Control.Monad.Identity.runIdentity (attach_T_Exports (arg_exports_))
          (T_Exports_vOut37 _exportsIself) = inv_Exports_s38 _exportsX38 (T_Exports_vIn37 )
          _self = rule532 _exportsIself
          _lhsOself :: MaybeExports
          _lhsOself = rule533 _self
-         __result_ = T_MaybeExports_vOut91 _lhsOself
+         !__result_ = T_MaybeExports_vOut91 _lhsOself
          in __result_ )
      in C_MaybeExports_s92 v91
    {-# INLINE rule532 #-}
@@ -4899,15 +4900,15 @@ sem_MaybeExports_Just arg_exports_ = T_MaybeExports (return st92) where
 
 -- MaybeExpression ---------------------------------------------
 -- wrapper
-data Inh_MaybeExpression  = Inh_MaybeExpression { bindingGroups_Inh_MaybeExpression :: (BindingGroups), kappaUnique_Inh_MaybeExpression :: (Int) }
-data Syn_MaybeExpression  = Syn_MaybeExpression { bindingGroups_Syn_MaybeExpression :: (BindingGroups), kappaUnique_Syn_MaybeExpression :: (Int), self_Syn_MaybeExpression :: (MaybeExpression) }
+data Inh_MaybeExpression  = Inh_MaybeExpression { bindingGroups_Inh_MaybeExpression :: !(BindingGroups), kappaUnique_Inh_MaybeExpression :: !(Int) }
+data Syn_MaybeExpression  = Syn_MaybeExpression { bindingGroups_Syn_MaybeExpression :: !(BindingGroups), kappaUnique_Syn_MaybeExpression :: !(Int), self_Syn_MaybeExpression :: !(MaybeExpression) }
 {-# INLINABLE wrap_MaybeExpression #-}
 wrap_MaybeExpression :: T_MaybeExpression  -> Inh_MaybeExpression  -> (Syn_MaybeExpression )
-wrap_MaybeExpression (T_MaybeExpression act) (Inh_MaybeExpression _lhsIbindingGroups _lhsIkappaUnique) =
+wrap_MaybeExpression !(T_MaybeExpression act) !(Inh_MaybeExpression _lhsIbindingGroups _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg94 = T_MaybeExpression_vIn94 _lhsIbindingGroups _lhsIkappaUnique
-        (T_MaybeExpression_vOut94 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_MaybeExpression_s95 sem arg94)
+        !(T_MaybeExpression_vOut94 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_MaybeExpression_s95 sem arg94)
         return (Syn_MaybeExpression _lhsObindingGroups _lhsOkappaUnique _lhsOself)
    )
 
@@ -4932,9 +4933,9 @@ data T_MaybeExpression_vOut94  = T_MaybeExpression_vOut94 (BindingGroups) (Int) 
 sem_MaybeExpression_Nothing ::  T_MaybeExpression 
 sem_MaybeExpression_Nothing  = T_MaybeExpression (return st95) where
    {-# NOINLINE st95 #-}
-   st95 = let
+   !st95 = let
       v94 :: T_MaybeExpression_v94 
-      v94 = \ (T_MaybeExpression_vIn94 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v94 = \ !(T_MaybeExpression_vIn94 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _self = rule534  ()
          _lhsOself :: MaybeExpression
          _lhsOself = rule535 _self
@@ -4942,7 +4943,7 @@ sem_MaybeExpression_Nothing  = T_MaybeExpression (return st95) where
          _lhsObindingGroups = rule536 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule537 _lhsIkappaUnique
-         __result_ = T_MaybeExpression_vOut94 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_MaybeExpression_vOut94 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_MaybeExpression_s95 v94
    {-# INLINE rule534 #-}
@@ -4961,9 +4962,9 @@ sem_MaybeExpression_Nothing  = T_MaybeExpression (return st95) where
 sem_MaybeExpression_Just :: T_Expression  -> T_MaybeExpression 
 sem_MaybeExpression_Just arg_expression_ = T_MaybeExpression (return st95) where
    {-# NOINLINE st95 #-}
-   st95 = let
+   !st95 = let
       v94 :: T_MaybeExpression_v94 
-      v94 = \ (T_MaybeExpression_vIn94 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v94 = \ !(T_MaybeExpression_vIn94 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Expression_vOut40 _expressionIbindingGroups _expressionIkappaUnique _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 _expressionObindingGroups _expressionOkappaUnique)
          _self = rule538 _expressionIself
@@ -4975,7 +4976,7 @@ sem_MaybeExpression_Just arg_expression_ = T_MaybeExpression (return st95) where
          _lhsOkappaUnique = rule541 _expressionIkappaUnique
          _expressionObindingGroups = rule542 _lhsIbindingGroups
          _expressionOkappaUnique = rule543 _lhsIkappaUnique
-         __result_ = T_MaybeExpression_vOut94 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_MaybeExpression_vOut94 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_MaybeExpression_s95 v94
    {-# INLINE rule538 #-}
@@ -5000,14 +5001,14 @@ sem_MaybeExpression_Just arg_expression_ = T_MaybeExpression (return st95) where
 -- MaybeImportSpecification ------------------------------------
 -- wrapper
 data Inh_MaybeImportSpecification  = Inh_MaybeImportSpecification {  }
-data Syn_MaybeImportSpecification  = Syn_MaybeImportSpecification { self_Syn_MaybeImportSpecification :: (MaybeImportSpecification) }
+data Syn_MaybeImportSpecification  = Syn_MaybeImportSpecification { self_Syn_MaybeImportSpecification :: !(MaybeImportSpecification) }
 {-# INLINABLE wrap_MaybeImportSpecification #-}
 wrap_MaybeImportSpecification :: T_MaybeImportSpecification  -> Inh_MaybeImportSpecification  -> (Syn_MaybeImportSpecification )
-wrap_MaybeImportSpecification (T_MaybeImportSpecification act) (Inh_MaybeImportSpecification ) =
+wrap_MaybeImportSpecification !(T_MaybeImportSpecification act) !(Inh_MaybeImportSpecification ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg97 = T_MaybeImportSpecification_vIn97 
-        (T_MaybeImportSpecification_vOut97 _lhsOself) <- return (inv_MaybeImportSpecification_s98 sem arg97)
+        !(T_MaybeImportSpecification_vOut97 _lhsOself) <- return (inv_MaybeImportSpecification_s98 sem arg97)
         return (Syn_MaybeImportSpecification _lhsOself)
    )
 
@@ -5032,13 +5033,13 @@ data T_MaybeImportSpecification_vOut97  = T_MaybeImportSpecification_vOut97 (May
 sem_MaybeImportSpecification_Nothing ::  T_MaybeImportSpecification 
 sem_MaybeImportSpecification_Nothing  = T_MaybeImportSpecification (return st98) where
    {-# NOINLINE st98 #-}
-   st98 = let
+   !st98 = let
       v97 :: T_MaybeImportSpecification_v97 
-      v97 = \ (T_MaybeImportSpecification_vIn97 ) -> ( let
+      v97 = \ !(T_MaybeImportSpecification_vIn97 ) -> ( let
          _self = rule544  ()
          _lhsOself :: MaybeImportSpecification
          _lhsOself = rule545 _self
-         __result_ = T_MaybeImportSpecification_vOut97 _lhsOself
+         !__result_ = T_MaybeImportSpecification_vOut97 _lhsOself
          in __result_ )
      in C_MaybeImportSpecification_s98 v97
    {-# INLINE rule544 #-}
@@ -5051,15 +5052,15 @@ sem_MaybeImportSpecification_Nothing  = T_MaybeImportSpecification (return st98)
 sem_MaybeImportSpecification_Just :: T_ImportSpecification  -> T_MaybeImportSpecification 
 sem_MaybeImportSpecification_Just arg_importspecification_ = T_MaybeImportSpecification (return st98) where
    {-# NOINLINE st98 #-}
-   st98 = let
+   !st98 = let
       v97 :: T_MaybeImportSpecification_v97 
-      v97 = \ (T_MaybeImportSpecification_vIn97 ) -> ( let
+      v97 = \ !(T_MaybeImportSpecification_vIn97 ) -> ( let
          _importspecificationX77 = Control.Monad.Identity.runIdentity (attach_T_ImportSpecification (arg_importspecification_))
          (T_ImportSpecification_vOut76 _importspecificationIself) = inv_ImportSpecification_s77 _importspecificationX77 (T_ImportSpecification_vIn76 )
          _self = rule546 _importspecificationIself
          _lhsOself :: MaybeImportSpecification
          _lhsOself = rule547 _self
-         __result_ = T_MaybeImportSpecification_vOut97 _lhsOself
+         !__result_ = T_MaybeImportSpecification_vOut97 _lhsOself
          in __result_ )
      in C_MaybeImportSpecification_s98 v97
    {-# INLINE rule546 #-}
@@ -5072,14 +5073,14 @@ sem_MaybeImportSpecification_Just arg_importspecification_ = T_MaybeImportSpecif
 -- MaybeInt ----------------------------------------------------
 -- wrapper
 data Inh_MaybeInt  = Inh_MaybeInt {  }
-data Syn_MaybeInt  = Syn_MaybeInt { self_Syn_MaybeInt :: (MaybeInt) }
+data Syn_MaybeInt  = Syn_MaybeInt { self_Syn_MaybeInt :: !(MaybeInt) }
 {-# INLINABLE wrap_MaybeInt #-}
 wrap_MaybeInt :: T_MaybeInt  -> Inh_MaybeInt  -> (Syn_MaybeInt )
-wrap_MaybeInt (T_MaybeInt act) (Inh_MaybeInt ) =
+wrap_MaybeInt !(T_MaybeInt act) !(Inh_MaybeInt ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg100 = T_MaybeInt_vIn100 
-        (T_MaybeInt_vOut100 _lhsOself) <- return (inv_MaybeInt_s101 sem arg100)
+        !(T_MaybeInt_vOut100 _lhsOself) <- return (inv_MaybeInt_s101 sem arg100)
         return (Syn_MaybeInt _lhsOself)
    )
 
@@ -5087,7 +5088,7 @@ wrap_MaybeInt (T_MaybeInt act) (Inh_MaybeInt ) =
 {-# NOINLINE sem_MaybeInt #-}
 sem_MaybeInt :: MaybeInt  -> T_MaybeInt 
 sem_MaybeInt ( MaybeInt_Nothing  ) = sem_MaybeInt_Nothing 
-sem_MaybeInt ( MaybeInt_Just int_ ) = sem_MaybeInt_Just int_
+sem_MaybeInt ( MaybeInt_Just !int_ ) = sem_MaybeInt_Just int_
 
 -- semantic domain
 newtype T_MaybeInt  = T_MaybeInt {
@@ -5104,13 +5105,13 @@ data T_MaybeInt_vOut100  = T_MaybeInt_vOut100 (MaybeInt)
 sem_MaybeInt_Nothing ::  T_MaybeInt 
 sem_MaybeInt_Nothing  = T_MaybeInt (return st101) where
    {-# NOINLINE st101 #-}
-   st101 = let
+   !st101 = let
       v100 :: T_MaybeInt_v100 
-      v100 = \ (T_MaybeInt_vIn100 ) -> ( let
+      v100 = \ !(T_MaybeInt_vIn100 ) -> ( let
          _self = rule548  ()
          _lhsOself :: MaybeInt
          _lhsOself = rule549 _self
-         __result_ = T_MaybeInt_vOut100 _lhsOself
+         !__result_ = T_MaybeInt_vOut100 _lhsOself
          in __result_ )
      in C_MaybeInt_s101 v100
    {-# INLINE rule548 #-}
@@ -5121,15 +5122,15 @@ sem_MaybeInt_Nothing  = T_MaybeInt (return st101) where
      _self
 {-# NOINLINE sem_MaybeInt_Just #-}
 sem_MaybeInt_Just :: (Int) -> T_MaybeInt 
-sem_MaybeInt_Just arg_int_ = T_MaybeInt (return st101) where
+sem_MaybeInt_Just !arg_int_ = T_MaybeInt (return st101) where
    {-# NOINLINE st101 #-}
-   st101 = let
+   !st101 = let
       v100 :: T_MaybeInt_v100 
-      v100 = \ (T_MaybeInt_vIn100 ) -> ( let
+      v100 = \ !(T_MaybeInt_vIn100 ) -> ( let
          _self = rule550 arg_int_
          _lhsOself :: MaybeInt
          _lhsOself = rule551 _self
-         __result_ = T_MaybeInt_vOut100 _lhsOself
+         !__result_ = T_MaybeInt_vOut100 _lhsOself
          in __result_ )
      in C_MaybeInt_s101 v100
    {-# INLINE rule550 #-}
@@ -5142,14 +5143,14 @@ sem_MaybeInt_Just arg_int_ = T_MaybeInt (return st101) where
 -- MaybeName ---------------------------------------------------
 -- wrapper
 data Inh_MaybeName  = Inh_MaybeName {  }
-data Syn_MaybeName  = Syn_MaybeName { self_Syn_MaybeName :: (MaybeName) }
+data Syn_MaybeName  = Syn_MaybeName { self_Syn_MaybeName :: !(MaybeName) }
 {-# INLINABLE wrap_MaybeName #-}
 wrap_MaybeName :: T_MaybeName  -> Inh_MaybeName  -> (Syn_MaybeName )
-wrap_MaybeName (T_MaybeName act) (Inh_MaybeName ) =
+wrap_MaybeName !(T_MaybeName act) !(Inh_MaybeName ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg103 = T_MaybeName_vIn103 
-        (T_MaybeName_vOut103 _lhsOself) <- return (inv_MaybeName_s104 sem arg103)
+        !(T_MaybeName_vOut103 _lhsOself) <- return (inv_MaybeName_s104 sem arg103)
         return (Syn_MaybeName _lhsOself)
    )
 
@@ -5174,13 +5175,13 @@ data T_MaybeName_vOut103  = T_MaybeName_vOut103 (MaybeName)
 sem_MaybeName_Nothing ::  T_MaybeName 
 sem_MaybeName_Nothing  = T_MaybeName (return st104) where
    {-# NOINLINE st104 #-}
-   st104 = let
+   !st104 = let
       v103 :: T_MaybeName_v103 
-      v103 = \ (T_MaybeName_vIn103 ) -> ( let
+      v103 = \ !(T_MaybeName_vIn103 ) -> ( let
          _self = rule552  ()
          _lhsOself :: MaybeName
          _lhsOself = rule553 _self
-         __result_ = T_MaybeName_vOut103 _lhsOself
+         !__result_ = T_MaybeName_vOut103 _lhsOself
          in __result_ )
      in C_MaybeName_s104 v103
    {-# INLINE rule552 #-}
@@ -5193,15 +5194,15 @@ sem_MaybeName_Nothing  = T_MaybeName (return st104) where
 sem_MaybeName_Just :: T_Name  -> T_MaybeName 
 sem_MaybeName_Just arg_name_ = T_MaybeName (return st104) where
    {-# NOINLINE st104 #-}
-   st104 = let
+   !st104 = let
       v103 :: T_MaybeName_v103 
-      v103 = \ (T_MaybeName_vIn103 ) -> ( let
+      v103 = \ !(T_MaybeName_vIn103 ) -> ( let
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Name_vOut112 _nameIself) = inv_Name_s113 _nameX113 (T_Name_vIn112 )
          _self = rule554 _nameIself
          _lhsOself :: MaybeName
          _lhsOself = rule555 _self
-         __result_ = T_MaybeName_vOut103 _lhsOself
+         !__result_ = T_MaybeName_vOut103 _lhsOself
          in __result_ )
      in C_MaybeName_s104 v103
    {-# INLINE rule554 #-}
@@ -5214,14 +5215,14 @@ sem_MaybeName_Just arg_name_ = T_MaybeName (return st104) where
 -- MaybeNames --------------------------------------------------
 -- wrapper
 data Inh_MaybeNames  = Inh_MaybeNames {  }
-data Syn_MaybeNames  = Syn_MaybeNames { self_Syn_MaybeNames :: (MaybeNames) }
+data Syn_MaybeNames  = Syn_MaybeNames { self_Syn_MaybeNames :: !(MaybeNames) }
 {-# INLINABLE wrap_MaybeNames #-}
 wrap_MaybeNames :: T_MaybeNames  -> Inh_MaybeNames  -> (Syn_MaybeNames )
-wrap_MaybeNames (T_MaybeNames act) (Inh_MaybeNames ) =
+wrap_MaybeNames !(T_MaybeNames act) !(Inh_MaybeNames ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg106 = T_MaybeNames_vIn106 
-        (T_MaybeNames_vOut106 _lhsOself) <- return (inv_MaybeNames_s107 sem arg106)
+        !(T_MaybeNames_vOut106 _lhsOself) <- return (inv_MaybeNames_s107 sem arg106)
         return (Syn_MaybeNames _lhsOself)
    )
 
@@ -5246,13 +5247,13 @@ data T_MaybeNames_vOut106  = T_MaybeNames_vOut106 (MaybeNames)
 sem_MaybeNames_Nothing ::  T_MaybeNames 
 sem_MaybeNames_Nothing  = T_MaybeNames (return st107) where
    {-# NOINLINE st107 #-}
-   st107 = let
+   !st107 = let
       v106 :: T_MaybeNames_v106 
-      v106 = \ (T_MaybeNames_vIn106 ) -> ( let
+      v106 = \ !(T_MaybeNames_vIn106 ) -> ( let
          _self = rule556  ()
          _lhsOself :: MaybeNames
          _lhsOself = rule557 _self
-         __result_ = T_MaybeNames_vOut106 _lhsOself
+         !__result_ = T_MaybeNames_vOut106 _lhsOself
          in __result_ )
      in C_MaybeNames_s107 v106
    {-# INLINE rule556 #-}
@@ -5265,15 +5266,15 @@ sem_MaybeNames_Nothing  = T_MaybeNames (return st107) where
 sem_MaybeNames_Just :: T_Names  -> T_MaybeNames 
 sem_MaybeNames_Just arg_names_ = T_MaybeNames (return st107) where
    {-# NOINLINE st107 #-}
-   st107 = let
+   !st107 = let
       v106 :: T_MaybeNames_v106 
-      v106 = \ (T_MaybeNames_vIn106 ) -> ( let
+      v106 = \ !(T_MaybeNames_vIn106 ) -> ( let
          _namesX116 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_names_))
          (T_Names_vOut115 _namesIself) = inv_Names_s116 _namesX116 (T_Names_vIn115 )
          _self = rule558 _namesIself
          _lhsOself :: MaybeNames
          _lhsOself = rule559 _self
-         __result_ = T_MaybeNames_vOut106 _lhsOself
+         !__result_ = T_MaybeNames_vOut106 _lhsOself
          in __result_ )
      in C_MaybeNames_s107 v106
    {-# INLINE rule558 #-}
@@ -5285,15 +5286,15 @@ sem_MaybeNames_Just arg_names_ = T_MaybeNames (return st107) where
 
 -- Module ------------------------------------------------------
 -- wrapper
-data Inh_Module  = Inh_Module { importEnvironment_Inh_Module :: (ImportEnvironment), options_Inh_Module :: ([Option]) }
-data Syn_Module  = Syn_Module { debugIO_Syn_Module :: (IO ()), kindEnvironment_Syn_Module :: (KindEnvironment), kindErrors_Syn_Module :: (KindErrors), self_Syn_Module :: (Module) }
+data Inh_Module  = Inh_Module { importEnvironment_Inh_Module :: !(ImportEnvironment), options_Inh_Module :: !([Option]) }
+data Syn_Module  = Syn_Module { debugIO_Syn_Module :: !(IO ()), kindEnvironment_Syn_Module :: !(KindEnvironment), kindErrors_Syn_Module :: !(KindErrors), self_Syn_Module :: !(Module) }
 {-# INLINABLE wrap_Module #-}
 wrap_Module :: T_Module  -> Inh_Module  -> (Syn_Module )
-wrap_Module (T_Module act) (Inh_Module _lhsIimportEnvironment _lhsIoptions) =
+wrap_Module !(T_Module act) !(Inh_Module _lhsIimportEnvironment _lhsIoptions) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg109 = T_Module_vIn109 _lhsIimportEnvironment _lhsIoptions
-        (T_Module_vOut109 _lhsOdebugIO _lhsOkindEnvironment _lhsOkindErrors _lhsOself) <- return (inv_Module_s110 sem arg109)
+        !(T_Module_vOut109 _lhsOdebugIO _lhsOkindEnvironment _lhsOkindErrors _lhsOself) <- return (inv_Module_s110 sem arg109)
         return (Syn_Module _lhsOdebugIO _lhsOkindEnvironment _lhsOkindErrors _lhsOself)
    )
 
@@ -5317,9 +5318,9 @@ data T_Module_vOut109  = T_Module_vOut109 (IO ()) (KindEnvironment) (KindErrors)
 sem_Module_Module :: T_Range  -> T_MaybeName  -> T_MaybeExports  -> T_Body  -> T_Module 
 sem_Module_Module arg_range_ arg_name_ arg_exports_ arg_body_ = T_Module (return st110) where
    {-# NOINLINE st110 #-}
-   st110 = let
+   !st110 = let
       v109 :: T_Module_v109 
-      v109 = \ (T_Module_vIn109 _lhsIimportEnvironment _lhsIoptions) -> ( let
+      v109 = \ !(T_Module_vIn109 _lhsIimportEnvironment _lhsIoptions) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX104 = Control.Monad.Identity.runIdentity (attach_T_MaybeName (arg_name_))
          _exportsX92 = Control.Monad.Identity.runIdentity (attach_T_MaybeExports (arg_exports_))
@@ -5341,7 +5342,7 @@ sem_Module_Module arg_range_ arg_name_ arg_exports_ arg_body_ = T_Module (return
          _lhsOkindEnvironment :: KindEnvironment
          _lhsOkindEnvironment = rule567 _kindEnvironment
          _bodyOimportEnvironment = rule568 _lhsIimportEnvironment
-         __result_ = T_Module_vOut109 _lhsOdebugIO _lhsOkindEnvironment _lhsOkindErrors _lhsOself
+         !__result_ = T_Module_vOut109 _lhsOdebugIO _lhsOkindEnvironment _lhsOkindErrors _lhsOself
          in __result_ )
      in C_Module_s110 v109
    {-# INLINE rule560 #-}
@@ -5376,23 +5377,23 @@ sem_Module_Module arg_range_ arg_name_ arg_exports_ arg_body_ = T_Module (return
 -- Name --------------------------------------------------------
 -- wrapper
 data Inh_Name  = Inh_Name {  }
-data Syn_Name  = Syn_Name { self_Syn_Name :: (Name) }
+data Syn_Name  = Syn_Name { self_Syn_Name :: !(Name) }
 {-# INLINABLE wrap_Name #-}
 wrap_Name :: T_Name  -> Inh_Name  -> (Syn_Name )
-wrap_Name (T_Name act) (Inh_Name ) =
+wrap_Name !(T_Name act) !(Inh_Name ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg112 = T_Name_vIn112 
-        (T_Name_vOut112 _lhsOself) <- return (inv_Name_s113 sem arg112)
+        !(T_Name_vOut112 _lhsOself) <- return (inv_Name_s113 sem arg112)
         return (Syn_Name _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_Name #-}
 sem_Name :: Name  -> T_Name 
-sem_Name ( Name_Identifier range_ module_ name_ ) = sem_Name_Identifier ( sem_Range range_ ) ( sem_Strings module_ ) name_
-sem_Name ( Name_Operator range_ module_ name_ ) = sem_Name_Operator ( sem_Range range_ ) ( sem_Strings module_ ) name_
-sem_Name ( Name_Special range_ module_ name_ ) = sem_Name_Special ( sem_Range range_ ) ( sem_Strings module_ ) name_
+sem_Name ( Name_Identifier range_ module_ !origin_ !name_ ) = sem_Name_Identifier ( sem_Range range_ ) ( sem_Strings module_ ) origin_ name_
+sem_Name ( Name_Operator range_ module_ !origin_ !name_ ) = sem_Name_Operator ( sem_Range range_ ) ( sem_Strings module_ ) origin_ name_
+sem_Name ( Name_Special range_ module_ !origin_ !name_ ) = sem_Name_Special ( sem_Range range_ ) ( sem_Strings module_ ) origin_ name_
 
 -- semantic domain
 newtype T_Name  = T_Name {
@@ -5406,71 +5407,71 @@ type T_Name_v112  = (T_Name_vIn112 ) -> (T_Name_vOut112 )
 data T_Name_vIn112  = T_Name_vIn112 
 data T_Name_vOut112  = T_Name_vOut112 (Name)
 {-# NOINLINE sem_Name_Identifier #-}
-sem_Name_Identifier :: T_Range  -> T_Strings  -> (String) -> T_Name 
-sem_Name_Identifier arg_range_ arg_module_ arg_name_ = T_Name (return st113) where
+sem_Name_Identifier :: T_Range  -> T_Strings  -> (String) -> (String) -> T_Name 
+sem_Name_Identifier arg_range_ arg_module_ !arg_origin_ !arg_name_ = T_Name (return st113) where
    {-# NOINLINE st113 #-}
-   st113 = let
+   !st113 = let
       v112 :: T_Name_v112 
-      v112 = \ (T_Name_vIn112 ) -> ( let
+      v112 = \ !(T_Name_vIn112 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _moduleX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_module_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Strings_vOut160 _moduleIself) = inv_Strings_s161 _moduleX161 (T_Strings_vIn160 )
-         _self = rule569 _moduleIself _rangeIself arg_name_
+         _self = rule569 _moduleIself _rangeIself arg_name_ arg_origin_
          _lhsOself :: Name
          _lhsOself = rule570 _self
-         __result_ = T_Name_vOut112 _lhsOself
+         !__result_ = T_Name_vOut112 _lhsOself
          in __result_ )
      in C_Name_s113 v112
    {-# INLINE rule569 #-}
-   rule569 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ ->
-     Name_Identifier _rangeIself _moduleIself name_
+   rule569 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ origin_ ->
+     Name_Identifier _rangeIself _moduleIself origin_ name_
    {-# INLINE rule570 #-}
    rule570 = \ _self ->
      _self
 {-# NOINLINE sem_Name_Operator #-}
-sem_Name_Operator :: T_Range  -> T_Strings  -> (String) -> T_Name 
-sem_Name_Operator arg_range_ arg_module_ arg_name_ = T_Name (return st113) where
+sem_Name_Operator :: T_Range  -> T_Strings  -> (String) -> (String) -> T_Name 
+sem_Name_Operator arg_range_ arg_module_ !arg_origin_ !arg_name_ = T_Name (return st113) where
    {-# NOINLINE st113 #-}
-   st113 = let
+   !st113 = let
       v112 :: T_Name_v112 
-      v112 = \ (T_Name_vIn112 ) -> ( let
+      v112 = \ !(T_Name_vIn112 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _moduleX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_module_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Strings_vOut160 _moduleIself) = inv_Strings_s161 _moduleX161 (T_Strings_vIn160 )
-         _self = rule571 _moduleIself _rangeIself arg_name_
+         _self = rule571 _moduleIself _rangeIself arg_name_ arg_origin_
          _lhsOself :: Name
          _lhsOself = rule572 _self
-         __result_ = T_Name_vOut112 _lhsOself
+         !__result_ = T_Name_vOut112 _lhsOself
          in __result_ )
      in C_Name_s113 v112
    {-# INLINE rule571 #-}
-   rule571 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ ->
-     Name_Operator _rangeIself _moduleIself name_
+   rule571 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ origin_ ->
+     Name_Operator _rangeIself _moduleIself origin_ name_
    {-# INLINE rule572 #-}
    rule572 = \ _self ->
      _self
 {-# NOINLINE sem_Name_Special #-}
-sem_Name_Special :: T_Range  -> T_Strings  -> (String) -> T_Name 
-sem_Name_Special arg_range_ arg_module_ arg_name_ = T_Name (return st113) where
+sem_Name_Special :: T_Range  -> T_Strings  -> (String) -> (String) -> T_Name 
+sem_Name_Special arg_range_ arg_module_ !arg_origin_ !arg_name_ = T_Name (return st113) where
    {-# NOINLINE st113 #-}
-   st113 = let
+   !st113 = let
       v112 :: T_Name_v112 
-      v112 = \ (T_Name_vIn112 ) -> ( let
+      v112 = \ !(T_Name_vIn112 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _moduleX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_module_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          (T_Strings_vOut160 _moduleIself) = inv_Strings_s161 _moduleX161 (T_Strings_vIn160 )
-         _self = rule573 _moduleIself _rangeIself arg_name_
+         _self = rule573 _moduleIself _rangeIself arg_name_ arg_origin_
          _lhsOself :: Name
          _lhsOself = rule574 _self
-         __result_ = T_Name_vOut112 _lhsOself
+         !__result_ = T_Name_vOut112 _lhsOself
          in __result_ )
      in C_Name_s113 v112
    {-# INLINE rule573 #-}
-   rule573 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ ->
-     Name_Special _rangeIself _moduleIself name_
+   rule573 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ origin_ ->
+     Name_Special _rangeIself _moduleIself origin_ name_
    {-# INLINE rule574 #-}
    rule574 = \ _self ->
      _self
@@ -5478,14 +5479,14 @@ sem_Name_Special arg_range_ arg_module_ arg_name_ = T_Name (return st113) where
 -- Names -------------------------------------------------------
 -- wrapper
 data Inh_Names  = Inh_Names {  }
-data Syn_Names  = Syn_Names { self_Syn_Names :: (Names) }
+data Syn_Names  = Syn_Names { self_Syn_Names :: !(Names) }
 {-# INLINABLE wrap_Names #-}
 wrap_Names :: T_Names  -> Inh_Names  -> (Syn_Names )
-wrap_Names (T_Names act) (Inh_Names ) =
+wrap_Names !(T_Names act) !(Inh_Names ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg115 = T_Names_vIn115 
-        (T_Names_vOut115 _lhsOself) <- return (inv_Names_s116 sem arg115)
+        !(T_Names_vOut115 _lhsOself) <- return (inv_Names_s116 sem arg115)
         return (Syn_Names _lhsOself)
    )
 
@@ -5509,9 +5510,9 @@ data T_Names_vOut115  = T_Names_vOut115 (Names)
 sem_Names_Cons :: T_Name  -> T_Names  -> T_Names 
 sem_Names_Cons arg_hd_ arg_tl_ = T_Names (return st116) where
    {-# NOINLINE st116 #-}
-   st116 = let
+   !st116 = let
       v115 :: T_Names_v115 
-      v115 = \ (T_Names_vIn115 ) -> ( let
+      v115 = \ !(T_Names_vIn115 ) -> ( let
          _hdX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_hd_))
          _tlX116 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_tl_))
          (T_Name_vOut112 _hdIself) = inv_Name_s113 _hdX113 (T_Name_vIn112 )
@@ -5519,7 +5520,7 @@ sem_Names_Cons arg_hd_ arg_tl_ = T_Names (return st116) where
          _self = rule575 _hdIself _tlIself
          _lhsOself :: Names
          _lhsOself = rule576 _self
-         __result_ = T_Names_vOut115 _lhsOself
+         !__result_ = T_Names_vOut115 _lhsOself
          in __result_ )
      in C_Names_s116 v115
    {-# INLINE rule575 #-}
@@ -5532,13 +5533,13 @@ sem_Names_Cons arg_hd_ arg_tl_ = T_Names (return st116) where
 sem_Names_Nil ::  T_Names 
 sem_Names_Nil  = T_Names (return st116) where
    {-# NOINLINE st116 #-}
-   st116 = let
+   !st116 = let
       v115 :: T_Names_v115 
-      v115 = \ (T_Names_vIn115 ) -> ( let
+      v115 = \ !(T_Names_vIn115 ) -> ( let
          _self = rule577  ()
          _lhsOself :: Names
          _lhsOself = rule578 _self
-         __result_ = T_Names_vOut115 _lhsOself
+         !__result_ = T_Names_vOut115 _lhsOself
          in __result_ )
      in C_Names_s116 v115
    {-# INLINE rule577 #-}
@@ -5551,21 +5552,21 @@ sem_Names_Nil  = T_Names (return st116) where
 -- Pattern -----------------------------------------------------
 -- wrapper
 data Inh_Pattern  = Inh_Pattern {  }
-data Syn_Pattern  = Syn_Pattern { self_Syn_Pattern :: (Pattern) }
+data Syn_Pattern  = Syn_Pattern { self_Syn_Pattern :: !(Pattern) }
 {-# INLINABLE wrap_Pattern #-}
 wrap_Pattern :: T_Pattern  -> Inh_Pattern  -> (Syn_Pattern )
-wrap_Pattern (T_Pattern act) (Inh_Pattern ) =
+wrap_Pattern !(T_Pattern act) !(Inh_Pattern ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg118 = T_Pattern_vIn118 
-        (T_Pattern_vOut118 _lhsOself) <- return (inv_Pattern_s119 sem arg118)
+        !(T_Pattern_vOut118 _lhsOself) <- return (inv_Pattern_s119 sem arg118)
         return (Syn_Pattern _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_Pattern #-}
 sem_Pattern :: Pattern  -> T_Pattern 
-sem_Pattern ( Pattern_Hole range_ id_ ) = sem_Pattern_Hole ( sem_Range range_ ) id_
+sem_Pattern ( Pattern_Hole range_ !id_ ) = sem_Pattern_Hole ( sem_Range range_ ) id_
 sem_Pattern ( Pattern_Literal range_ literal_ ) = sem_Pattern_Literal ( sem_Range range_ ) ( sem_Literal literal_ )
 sem_Pattern ( Pattern_Variable range_ name_ ) = sem_Pattern_Variable ( sem_Range range_ ) ( sem_Name name_ )
 sem_Pattern ( Pattern_Constructor range_ name_ patterns_ ) = sem_Pattern_Constructor ( sem_Range range_ ) ( sem_Name name_ ) ( sem_Patterns patterns_ )
@@ -5594,17 +5595,17 @@ data T_Pattern_vIn118  = T_Pattern_vIn118
 data T_Pattern_vOut118  = T_Pattern_vOut118 (Pattern)
 {-# NOINLINE sem_Pattern_Hole #-}
 sem_Pattern_Hole :: T_Range  -> (String) -> T_Pattern 
-sem_Pattern_Hole arg_range_ arg_id_ = T_Pattern (return st119) where
+sem_Pattern_Hole arg_range_ !arg_id_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _self = rule579 _rangeIself arg_id_
          _lhsOself :: Pattern
          _lhsOself = rule580 _self
-         __result_ = T_Pattern_vOut118 _lhsOself
+         !__result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule579 #-}
@@ -5617,9 +5618,9 @@ sem_Pattern_Hole arg_range_ arg_id_ = T_Pattern (return st119) where
 sem_Pattern_Literal :: T_Range  -> T_Literal  -> T_Pattern 
 sem_Pattern_Literal arg_range_ arg_literal_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _literalX86 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -5627,7 +5628,7 @@ sem_Pattern_Literal arg_range_ arg_literal_ = T_Pattern (return st119) where
          _self = rule581 _literalIself _rangeIself
          _lhsOself :: Pattern
          _lhsOself = rule582 _self
-         __result_ = T_Pattern_vOut118 _lhsOself
+         !__result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule581 #-}
@@ -5640,9 +5641,9 @@ sem_Pattern_Literal arg_range_ arg_literal_ = T_Pattern (return st119) where
 sem_Pattern_Variable :: T_Range  -> T_Name  -> T_Pattern 
 sem_Pattern_Variable arg_range_ arg_name_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -5650,7 +5651,7 @@ sem_Pattern_Variable arg_range_ arg_name_ = T_Pattern (return st119) where
          _self = rule583 _nameIself _rangeIself
          _lhsOself :: Pattern
          _lhsOself = rule584 _self
-         __result_ = T_Pattern_vOut118 _lhsOself
+         !__result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule583 #-}
@@ -5663,9 +5664,9 @@ sem_Pattern_Variable arg_range_ arg_name_ = T_Pattern (return st119) where
 sem_Pattern_Constructor :: T_Range  -> T_Name  -> T_Patterns  -> T_Pattern 
 sem_Pattern_Constructor arg_range_ arg_name_ arg_patterns_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _patternsX122 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
@@ -5675,7 +5676,7 @@ sem_Pattern_Constructor arg_range_ arg_name_ arg_patterns_ = T_Pattern (return s
          _self = rule585 _nameIself _patternsIself _rangeIself
          _lhsOself :: Pattern
          _lhsOself = rule586 _self
-         __result_ = T_Pattern_vOut118 _lhsOself
+         !__result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule585 #-}
@@ -5688,9 +5689,9 @@ sem_Pattern_Constructor arg_range_ arg_name_ arg_patterns_ = T_Pattern (return s
 sem_Pattern_Parenthesized :: T_Range  -> T_Pattern  -> T_Pattern 
 sem_Pattern_Parenthesized arg_range_ arg_pattern_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -5698,7 +5699,7 @@ sem_Pattern_Parenthesized arg_range_ arg_pattern_ = T_Pattern (return st119) whe
          _self = rule587 _patternIself _rangeIself
          _lhsOself :: Pattern
          _lhsOself = rule588 _self
-         __result_ = T_Pattern_vOut118 _lhsOself
+         !__result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule587 #-}
@@ -5711,9 +5712,9 @@ sem_Pattern_Parenthesized arg_range_ arg_pattern_ = T_Pattern (return st119) whe
 sem_Pattern_InfixConstructor :: T_Range  -> T_Pattern  -> T_Name  -> T_Pattern  -> T_Pattern 
 sem_Pattern_InfixConstructor arg_range_ arg_leftPattern_ arg_constructorOperator_ arg_rightPattern_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _leftPatternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_leftPattern_))
          _constructorOperatorX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_constructorOperator_))
@@ -5725,7 +5726,7 @@ sem_Pattern_InfixConstructor arg_range_ arg_leftPattern_ arg_constructorOperator
          _self = rule589 _constructorOperatorIself _leftPatternIself _rangeIself _rightPatternIself
          _lhsOself :: Pattern
          _lhsOself = rule590 _self
-         __result_ = T_Pattern_vOut118 _lhsOself
+         !__result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule589 #-}
@@ -5738,9 +5739,9 @@ sem_Pattern_InfixConstructor arg_range_ arg_leftPattern_ arg_constructorOperator
 sem_Pattern_List :: T_Range  -> T_Patterns  -> T_Pattern 
 sem_Pattern_List arg_range_ arg_patterns_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternsX122 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -5748,7 +5749,7 @@ sem_Pattern_List arg_range_ arg_patterns_ = T_Pattern (return st119) where
          _self = rule591 _patternsIself _rangeIself
          _lhsOself :: Pattern
          _lhsOself = rule592 _self
-         __result_ = T_Pattern_vOut118 _lhsOself
+         !__result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule591 #-}
@@ -5761,9 +5762,9 @@ sem_Pattern_List arg_range_ arg_patterns_ = T_Pattern (return st119) where
 sem_Pattern_Tuple :: T_Range  -> T_Patterns  -> T_Pattern 
 sem_Pattern_Tuple arg_range_ arg_patterns_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternsX122 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -5771,7 +5772,7 @@ sem_Pattern_Tuple arg_range_ arg_patterns_ = T_Pattern (return st119) where
          _self = rule593 _patternsIself _rangeIself
          _lhsOself :: Pattern
          _lhsOself = rule594 _self
-         __result_ = T_Pattern_vOut118 _lhsOself
+         !__result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule593 #-}
@@ -5784,9 +5785,9 @@ sem_Pattern_Tuple arg_range_ arg_patterns_ = T_Pattern (return st119) where
 sem_Pattern_Record :: T_Range  -> T_Name  -> T_RecordPatternBindings  -> T_Pattern 
 sem_Pattern_Record arg_range_ arg_name_ arg_recordPatternBindings_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _recordPatternBindingsX146 = Control.Monad.Identity.runIdentity (attach_T_RecordPatternBindings (arg_recordPatternBindings_))
@@ -5796,7 +5797,7 @@ sem_Pattern_Record arg_range_ arg_name_ arg_recordPatternBindings_ = T_Pattern (
          _self = rule595 _nameIself _rangeIself _recordPatternBindingsIself
          _lhsOself :: Pattern
          _lhsOself = rule596 _self
-         __result_ = T_Pattern_vOut118 _lhsOself
+         !__result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule595 #-}
@@ -5809,9 +5810,9 @@ sem_Pattern_Record arg_range_ arg_name_ arg_recordPatternBindings_ = T_Pattern (
 sem_Pattern_Negate :: T_Range  -> T_Literal  -> T_Pattern 
 sem_Pattern_Negate arg_range_ arg_literal_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _literalX86 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -5819,7 +5820,7 @@ sem_Pattern_Negate arg_range_ arg_literal_ = T_Pattern (return st119) where
          _self = rule597 _literalIself _rangeIself
          _lhsOself :: Pattern
          _lhsOself = rule598 _self
-         __result_ = T_Pattern_vOut118 _lhsOself
+         !__result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule597 #-}
@@ -5832,9 +5833,9 @@ sem_Pattern_Negate arg_range_ arg_literal_ = T_Pattern (return st119) where
 sem_Pattern_As :: T_Range  -> T_Name  -> T_Pattern  -> T_Pattern 
 sem_Pattern_As arg_range_ arg_name_ arg_pattern_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
@@ -5844,7 +5845,7 @@ sem_Pattern_As arg_range_ arg_name_ arg_pattern_ = T_Pattern (return st119) wher
          _self = rule599 _nameIself _patternIself _rangeIself
          _lhsOself :: Pattern
          _lhsOself = rule600 _self
-         __result_ = T_Pattern_vOut118 _lhsOself
+         !__result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule599 #-}
@@ -5857,15 +5858,15 @@ sem_Pattern_As arg_range_ arg_name_ arg_pattern_ = T_Pattern (return st119) wher
 sem_Pattern_Wildcard :: T_Range  -> T_Pattern 
 sem_Pattern_Wildcard arg_range_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _self = rule601 _rangeIself
          _lhsOself :: Pattern
          _lhsOself = rule602 _self
-         __result_ = T_Pattern_vOut118 _lhsOself
+         !__result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule601 #-}
@@ -5878,9 +5879,9 @@ sem_Pattern_Wildcard arg_range_ = T_Pattern (return st119) where
 sem_Pattern_Irrefutable :: T_Range  -> T_Pattern  -> T_Pattern 
 sem_Pattern_Irrefutable arg_range_ arg_pattern_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -5888,7 +5889,7 @@ sem_Pattern_Irrefutable arg_range_ arg_pattern_ = T_Pattern (return st119) where
          _self = rule603 _patternIself _rangeIself
          _lhsOself :: Pattern
          _lhsOself = rule604 _self
-         __result_ = T_Pattern_vOut118 _lhsOself
+         !__result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule603 #-}
@@ -5901,9 +5902,9 @@ sem_Pattern_Irrefutable arg_range_ arg_pattern_ = T_Pattern (return st119) where
 sem_Pattern_Successor :: T_Range  -> T_Name  -> T_Literal  -> T_Pattern 
 sem_Pattern_Successor arg_range_ arg_name_ arg_literal_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _literalX86 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
@@ -5913,7 +5914,7 @@ sem_Pattern_Successor arg_range_ arg_name_ arg_literal_ = T_Pattern (return st11
          _self = rule605 _literalIself _nameIself _rangeIself
          _lhsOself :: Pattern
          _lhsOself = rule606 _self
-         __result_ = T_Pattern_vOut118 _lhsOself
+         !__result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule605 #-}
@@ -5926,9 +5927,9 @@ sem_Pattern_Successor arg_range_ arg_name_ arg_literal_ = T_Pattern (return st11
 sem_Pattern_NegateFloat :: T_Range  -> T_Literal  -> T_Pattern 
 sem_Pattern_NegateFloat arg_range_ arg_literal_ = T_Pattern (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Pattern_v118 
-      v118 = \ (T_Pattern_vIn118 ) -> ( let
+      v118 = \ !(T_Pattern_vIn118 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _literalX86 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -5936,7 +5937,7 @@ sem_Pattern_NegateFloat arg_range_ arg_literal_ = T_Pattern (return st119) where
          _self = rule607 _literalIself _rangeIself
          _lhsOself :: Pattern
          _lhsOself = rule608 _self
-         __result_ = T_Pattern_vOut118 _lhsOself
+         !__result_ = T_Pattern_vOut118 _lhsOself
          in __result_ )
      in C_Pattern_s119 v118
    {-# INLINE rule607 #-}
@@ -5949,14 +5950,14 @@ sem_Pattern_NegateFloat arg_range_ arg_literal_ = T_Pattern (return st119) where
 -- Patterns ----------------------------------------------------
 -- wrapper
 data Inh_Patterns  = Inh_Patterns {  }
-data Syn_Patterns  = Syn_Patterns { self_Syn_Patterns :: (Patterns) }
+data Syn_Patterns  = Syn_Patterns { self_Syn_Patterns :: !(Patterns) }
 {-# INLINABLE wrap_Patterns #-}
 wrap_Patterns :: T_Patterns  -> Inh_Patterns  -> (Syn_Patterns )
-wrap_Patterns (T_Patterns act) (Inh_Patterns ) =
+wrap_Patterns !(T_Patterns act) !(Inh_Patterns ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg121 = T_Patterns_vIn121 
-        (T_Patterns_vOut121 _lhsOself) <- return (inv_Patterns_s122 sem arg121)
+        !(T_Patterns_vOut121 _lhsOself) <- return (inv_Patterns_s122 sem arg121)
         return (Syn_Patterns _lhsOself)
    )
 
@@ -5980,9 +5981,9 @@ data T_Patterns_vOut121  = T_Patterns_vOut121 (Patterns)
 sem_Patterns_Cons :: T_Pattern  -> T_Patterns  -> T_Patterns 
 sem_Patterns_Cons arg_hd_ arg_tl_ = T_Patterns (return st122) where
    {-# NOINLINE st122 #-}
-   st122 = let
+   !st122 = let
       v121 :: T_Patterns_v121 
-      v121 = \ (T_Patterns_vIn121 ) -> ( let
+      v121 = \ !(T_Patterns_vIn121 ) -> ( let
          _hdX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_hd_))
          _tlX122 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_tl_))
          (T_Pattern_vOut118 _hdIself) = inv_Pattern_s119 _hdX119 (T_Pattern_vIn118 )
@@ -5990,7 +5991,7 @@ sem_Patterns_Cons arg_hd_ arg_tl_ = T_Patterns (return st122) where
          _self = rule609 _hdIself _tlIself
          _lhsOself :: Patterns
          _lhsOself = rule610 _self
-         __result_ = T_Patterns_vOut121 _lhsOself
+         !__result_ = T_Patterns_vOut121 _lhsOself
          in __result_ )
      in C_Patterns_s122 v121
    {-# INLINE rule609 #-}
@@ -6003,13 +6004,13 @@ sem_Patterns_Cons arg_hd_ arg_tl_ = T_Patterns (return st122) where
 sem_Patterns_Nil ::  T_Patterns 
 sem_Patterns_Nil  = T_Patterns (return st122) where
    {-# NOINLINE st122 #-}
-   st122 = let
+   !st122 = let
       v121 :: T_Patterns_v121 
-      v121 = \ (T_Patterns_vIn121 ) -> ( let
+      v121 = \ !(T_Patterns_vIn121 ) -> ( let
          _self = rule611  ()
          _lhsOself :: Patterns
          _lhsOself = rule612 _self
-         __result_ = T_Patterns_vOut121 _lhsOself
+         !__result_ = T_Patterns_vOut121 _lhsOself
          in __result_ )
      in C_Patterns_s122 v121
    {-# INLINE rule611 #-}
@@ -6022,21 +6023,21 @@ sem_Patterns_Nil  = T_Patterns (return st122) where
 -- Position ----------------------------------------------------
 -- wrapper
 data Inh_Position  = Inh_Position {  }
-data Syn_Position  = Syn_Position { self_Syn_Position :: (Position) }
+data Syn_Position  = Syn_Position { self_Syn_Position :: !(Position) }
 {-# INLINABLE wrap_Position #-}
 wrap_Position :: T_Position  -> Inh_Position  -> (Syn_Position )
-wrap_Position (T_Position act) (Inh_Position ) =
+wrap_Position !(T_Position act) !(Inh_Position ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg124 = T_Position_vIn124 
-        (T_Position_vOut124 _lhsOself) <- return (inv_Position_s125 sem arg124)
+        !(T_Position_vOut124 _lhsOself) <- return (inv_Position_s125 sem arg124)
         return (Syn_Position _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_Position #-}
 sem_Position :: Position  -> T_Position 
-sem_Position ( Position_Position filename_ line_ column_ ) = sem_Position_Position filename_ line_ column_
+sem_Position ( Position_Position !filename_ !line_ !column_ ) = sem_Position_Position filename_ line_ column_
 sem_Position ( Position_Unknown  ) = sem_Position_Unknown 
 
 -- semantic domain
@@ -6052,15 +6053,15 @@ data T_Position_vIn124  = T_Position_vIn124
 data T_Position_vOut124  = T_Position_vOut124 (Position)
 {-# NOINLINE sem_Position_Position #-}
 sem_Position_Position :: (String) -> (Int) -> (Int) -> T_Position 
-sem_Position_Position arg_filename_ arg_line_ arg_column_ = T_Position (return st125) where
+sem_Position_Position !arg_filename_ !arg_line_ !arg_column_ = T_Position (return st125) where
    {-# NOINLINE st125 #-}
-   st125 = let
+   !st125 = let
       v124 :: T_Position_v124 
-      v124 = \ (T_Position_vIn124 ) -> ( let
+      v124 = \ !(T_Position_vIn124 ) -> ( let
          _self = rule613 arg_column_ arg_filename_ arg_line_
          _lhsOself :: Position
          _lhsOself = rule614 _self
-         __result_ = T_Position_vOut124 _lhsOself
+         !__result_ = T_Position_vOut124 _lhsOself
          in __result_ )
      in C_Position_s125 v124
    {-# INLINE rule613 #-}
@@ -6073,13 +6074,13 @@ sem_Position_Position arg_filename_ arg_line_ arg_column_ = T_Position (return s
 sem_Position_Unknown ::  T_Position 
 sem_Position_Unknown  = T_Position (return st125) where
    {-# NOINLINE st125 #-}
-   st125 = let
+   !st125 = let
       v124 :: T_Position_v124 
-      v124 = \ (T_Position_vIn124 ) -> ( let
+      v124 = \ !(T_Position_vIn124 ) -> ( let
          _self = rule615  ()
          _lhsOself :: Position
          _lhsOself = rule616 _self
-         __result_ = T_Position_vOut124 _lhsOself
+         !__result_ = T_Position_vOut124 _lhsOself
          in __result_ )
      in C_Position_s125 v124
    {-# INLINE rule615 #-}
@@ -6091,15 +6092,15 @@ sem_Position_Unknown  = T_Position (return st125) where
 
 -- Qualifier ---------------------------------------------------
 -- wrapper
-data Inh_Qualifier  = Inh_Qualifier { bindingGroups_Inh_Qualifier :: (BindingGroups), kappaUnique_Inh_Qualifier :: (Int) }
-data Syn_Qualifier  = Syn_Qualifier { bindingGroups_Syn_Qualifier :: (BindingGroups), kappaUnique_Syn_Qualifier :: (Int), self_Syn_Qualifier :: (Qualifier) }
+data Inh_Qualifier  = Inh_Qualifier { bindingGroups_Inh_Qualifier :: !(BindingGroups), kappaUnique_Inh_Qualifier :: !(Int) }
+data Syn_Qualifier  = Syn_Qualifier { bindingGroups_Syn_Qualifier :: !(BindingGroups), kappaUnique_Syn_Qualifier :: !(Int), self_Syn_Qualifier :: !(Qualifier) }
 {-# INLINABLE wrap_Qualifier #-}
 wrap_Qualifier :: T_Qualifier  -> Inh_Qualifier  -> (Syn_Qualifier )
-wrap_Qualifier (T_Qualifier act) (Inh_Qualifier _lhsIbindingGroups _lhsIkappaUnique) =
+wrap_Qualifier !(T_Qualifier act) !(Inh_Qualifier _lhsIbindingGroups _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg127 = T_Qualifier_vIn127 _lhsIbindingGroups _lhsIkappaUnique
-        (T_Qualifier_vOut127 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Qualifier_s128 sem arg127)
+        !(T_Qualifier_vOut127 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Qualifier_s128 sem arg127)
         return (Syn_Qualifier _lhsObindingGroups _lhsOkappaUnique _lhsOself)
    )
 
@@ -6126,9 +6127,9 @@ data T_Qualifier_vOut127  = T_Qualifier_vOut127 (BindingGroups) (Int) (Qualifier
 sem_Qualifier_Guard :: T_Range  -> T_Expression  -> T_Qualifier 
 sem_Qualifier_Guard arg_range_ arg_guard_ = T_Qualifier (return st128) where
    {-# NOINLINE st128 #-}
-   st128 = let
+   !st128 = let
       v127 :: T_Qualifier_v127 
-      v127 = \ (T_Qualifier_vIn127 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v127 = \ !(T_Qualifier_vIn127 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _guardX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_guard_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -6142,7 +6143,7 @@ sem_Qualifier_Guard arg_range_ arg_guard_ = T_Qualifier (return st128) where
          _lhsOkappaUnique = rule620 _guardIkappaUnique
          _guardObindingGroups = rule621 _lhsIbindingGroups
          _guardOkappaUnique = rule622 _lhsIkappaUnique
-         __result_ = T_Qualifier_vOut127 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Qualifier_vOut127 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Qualifier_s128 v127
    {-# INLINE rule617 #-}
@@ -6167,9 +6168,9 @@ sem_Qualifier_Guard arg_range_ arg_guard_ = T_Qualifier (return st128) where
 sem_Qualifier_Let :: T_Range  -> T_Declarations  -> T_Qualifier 
 sem_Qualifier_Let arg_range_ arg_declarations_ = T_Qualifier (return st128) where
    {-# NOINLINE st128 #-}
-   st128 = let
+   !st128 = let
       v127 :: T_Qualifier_v127 
-      v127 = \ (T_Qualifier_vIn127 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v127 = \ !(T_Qualifier_vIn127 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -6183,7 +6184,7 @@ sem_Qualifier_Let arg_range_ arg_declarations_ = T_Qualifier (return st128) wher
          _lhsOkappaUnique = rule626 _declarationsIkappaUnique
          _declarationsObindingGroups = rule627 _lhsIbindingGroups
          _declarationsOkappaUnique = rule628 _lhsIkappaUnique
-         __result_ = T_Qualifier_vOut127 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Qualifier_vOut127 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Qualifier_s128 v127
    {-# INLINE rule623 #-}
@@ -6208,9 +6209,9 @@ sem_Qualifier_Let arg_range_ arg_declarations_ = T_Qualifier (return st128) wher
 sem_Qualifier_Generator :: T_Range  -> T_Pattern  -> T_Expression  -> T_Qualifier 
 sem_Qualifier_Generator arg_range_ arg_pattern_ arg_expression_ = T_Qualifier (return st128) where
    {-# NOINLINE st128 #-}
-   st128 = let
+   !st128 = let
       v127 :: T_Qualifier_v127 
-      v127 = \ (T_Qualifier_vIn127 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v127 = \ !(T_Qualifier_vIn127 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
@@ -6226,7 +6227,7 @@ sem_Qualifier_Generator arg_range_ arg_pattern_ arg_expression_ = T_Qualifier (r
          _lhsOkappaUnique = rule632 _expressionIkappaUnique
          _expressionObindingGroups = rule633 _lhsIbindingGroups
          _expressionOkappaUnique = rule634 _lhsIkappaUnique
-         __result_ = T_Qualifier_vOut127 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Qualifier_vOut127 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Qualifier_s128 v127
    {-# INLINE rule629 #-}
@@ -6251,9 +6252,9 @@ sem_Qualifier_Generator arg_range_ arg_pattern_ arg_expression_ = T_Qualifier (r
 sem_Qualifier_Empty :: T_Range  -> T_Qualifier 
 sem_Qualifier_Empty arg_range_ = T_Qualifier (return st128) where
    {-# NOINLINE st128 #-}
-   st128 = let
+   !st128 = let
       v127 :: T_Qualifier_v127 
-      v127 = \ (T_Qualifier_vIn127 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v127 = \ !(T_Qualifier_vIn127 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _self = rule635 _rangeIself
@@ -6263,7 +6264,7 @@ sem_Qualifier_Empty arg_range_ = T_Qualifier (return st128) where
          _lhsObindingGroups = rule637 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule638 _lhsIkappaUnique
-         __result_ = T_Qualifier_vOut127 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Qualifier_vOut127 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Qualifier_s128 v127
    {-# INLINE rule635 #-}
@@ -6281,15 +6282,15 @@ sem_Qualifier_Empty arg_range_ = T_Qualifier (return st128) where
 
 -- Qualifiers --------------------------------------------------
 -- wrapper
-data Inh_Qualifiers  = Inh_Qualifiers { bindingGroups_Inh_Qualifiers :: (BindingGroups), kappaUnique_Inh_Qualifiers :: (Int) }
-data Syn_Qualifiers  = Syn_Qualifiers { bindingGroups_Syn_Qualifiers :: (BindingGroups), kappaUnique_Syn_Qualifiers :: (Int), self_Syn_Qualifiers :: (Qualifiers) }
+data Inh_Qualifiers  = Inh_Qualifiers { bindingGroups_Inh_Qualifiers :: !(BindingGroups), kappaUnique_Inh_Qualifiers :: !(Int) }
+data Syn_Qualifiers  = Syn_Qualifiers { bindingGroups_Syn_Qualifiers :: !(BindingGroups), kappaUnique_Syn_Qualifiers :: !(Int), self_Syn_Qualifiers :: !(Qualifiers) }
 {-# INLINABLE wrap_Qualifiers #-}
 wrap_Qualifiers :: T_Qualifiers  -> Inh_Qualifiers  -> (Syn_Qualifiers )
-wrap_Qualifiers (T_Qualifiers act) (Inh_Qualifiers _lhsIbindingGroups _lhsIkappaUnique) =
+wrap_Qualifiers !(T_Qualifiers act) !(Inh_Qualifiers _lhsIbindingGroups _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg130 = T_Qualifiers_vIn130 _lhsIbindingGroups _lhsIkappaUnique
-        (T_Qualifiers_vOut130 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Qualifiers_s131 sem arg130)
+        !(T_Qualifiers_vOut130 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Qualifiers_s131 sem arg130)
         return (Syn_Qualifiers _lhsObindingGroups _lhsOkappaUnique _lhsOself)
    )
 
@@ -6313,9 +6314,9 @@ data T_Qualifiers_vOut130  = T_Qualifiers_vOut130 (BindingGroups) (Int) (Qualifi
 sem_Qualifiers_Cons :: T_Qualifier  -> T_Qualifiers  -> T_Qualifiers 
 sem_Qualifiers_Cons arg_hd_ arg_tl_ = T_Qualifiers (return st131) where
    {-# NOINLINE st131 #-}
-   st131 = let
+   !st131 = let
       v130 :: T_Qualifiers_v130 
-      v130 = \ (T_Qualifiers_vIn130 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v130 = \ !(T_Qualifiers_vIn130 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _hdX128 = Control.Monad.Identity.runIdentity (attach_T_Qualifier (arg_hd_))
          _tlX131 = Control.Monad.Identity.runIdentity (attach_T_Qualifiers (arg_tl_))
          (T_Qualifier_vOut127 _hdIbindingGroups _hdIkappaUnique _hdIself) = inv_Qualifier_s128 _hdX128 (T_Qualifier_vIn127 _hdObindingGroups _hdOkappaUnique)
@@ -6331,7 +6332,7 @@ sem_Qualifiers_Cons arg_hd_ arg_tl_ = T_Qualifiers (return st131) where
          _hdOkappaUnique = rule644 _lhsIkappaUnique
          _tlObindingGroups = rule645 _hdIbindingGroups
          _tlOkappaUnique = rule646 _hdIkappaUnique
-         __result_ = T_Qualifiers_vOut130 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Qualifiers_vOut130 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Qualifiers_s131 v130
    {-# INLINE rule639 #-}
@@ -6362,9 +6363,9 @@ sem_Qualifiers_Cons arg_hd_ arg_tl_ = T_Qualifiers (return st131) where
 sem_Qualifiers_Nil ::  T_Qualifiers 
 sem_Qualifiers_Nil  = T_Qualifiers (return st131) where
    {-# NOINLINE st131 #-}
-   st131 = let
+   !st131 = let
       v130 :: T_Qualifiers_v130 
-      v130 = \ (T_Qualifiers_vIn130 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v130 = \ !(T_Qualifiers_vIn130 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _self = rule647  ()
          _lhsOself :: Qualifiers
          _lhsOself = rule648 _self
@@ -6372,7 +6373,7 @@ sem_Qualifiers_Nil  = T_Qualifiers (return st131) where
          _lhsObindingGroups = rule649 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule650 _lhsIkappaUnique
-         __result_ = T_Qualifiers_vOut130 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Qualifiers_vOut130 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Qualifiers_s131 v130
    {-# INLINE rule647 #-}
@@ -6391,14 +6392,14 @@ sem_Qualifiers_Nil  = T_Qualifiers (return st131) where
 -- Range -------------------------------------------------------
 -- wrapper
 data Inh_Range  = Inh_Range {  }
-data Syn_Range  = Syn_Range { self_Syn_Range :: (Range) }
+data Syn_Range  = Syn_Range { self_Syn_Range :: !(Range) }
 {-# INLINABLE wrap_Range #-}
 wrap_Range :: T_Range  -> Inh_Range  -> (Syn_Range )
-wrap_Range (T_Range act) (Inh_Range ) =
+wrap_Range !(T_Range act) !(Inh_Range ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg133 = T_Range_vIn133 
-        (T_Range_vOut133 _lhsOself) <- return (inv_Range_s134 sem arg133)
+        !(T_Range_vOut133 _lhsOself) <- return (inv_Range_s134 sem arg133)
         return (Syn_Range _lhsOself)
    )
 
@@ -6422,9 +6423,9 @@ data T_Range_vOut133  = T_Range_vOut133 (Range)
 sem_Range_Range :: T_Position  -> T_Position  -> T_Range 
 sem_Range_Range arg_start_ arg_stop_ = T_Range (return st134) where
    {-# NOINLINE st134 #-}
-   st134 = let
+   !st134 = let
       v133 :: T_Range_v133 
-      v133 = \ (T_Range_vIn133 ) -> ( let
+      v133 = \ !(T_Range_vIn133 ) -> ( let
          _startX125 = Control.Monad.Identity.runIdentity (attach_T_Position (arg_start_))
          _stopX125 = Control.Monad.Identity.runIdentity (attach_T_Position (arg_stop_))
          (T_Position_vOut124 _startIself) = inv_Position_s125 _startX125 (T_Position_vIn124 )
@@ -6432,7 +6433,7 @@ sem_Range_Range arg_start_ arg_stop_ = T_Range (return st134) where
          _self = rule651 _startIself _stopIself
          _lhsOself :: Range
          _lhsOself = rule652 _self
-         __result_ = T_Range_vOut133 _lhsOself
+         !__result_ = T_Range_vOut133 _lhsOself
          in __result_ )
      in C_Range_s134 v133
    {-# INLINE rule651 #-}
@@ -6444,15 +6445,15 @@ sem_Range_Range arg_start_ arg_stop_ = T_Range (return st134) where
 
 -- RecordExpressionBinding -------------------------------------
 -- wrapper
-data Inh_RecordExpressionBinding  = Inh_RecordExpressionBinding { bindingGroups_Inh_RecordExpressionBinding :: (BindingGroups), kappaUnique_Inh_RecordExpressionBinding :: (Int) }
-data Syn_RecordExpressionBinding  = Syn_RecordExpressionBinding { bindingGroups_Syn_RecordExpressionBinding :: (BindingGroups), kappaUnique_Syn_RecordExpressionBinding :: (Int), self_Syn_RecordExpressionBinding :: (RecordExpressionBinding) }
+data Inh_RecordExpressionBinding  = Inh_RecordExpressionBinding { bindingGroups_Inh_RecordExpressionBinding :: !(BindingGroups), kappaUnique_Inh_RecordExpressionBinding :: !(Int) }
+data Syn_RecordExpressionBinding  = Syn_RecordExpressionBinding { bindingGroups_Syn_RecordExpressionBinding :: !(BindingGroups), kappaUnique_Syn_RecordExpressionBinding :: !(Int), self_Syn_RecordExpressionBinding :: !(RecordExpressionBinding) }
 {-# INLINABLE wrap_RecordExpressionBinding #-}
 wrap_RecordExpressionBinding :: T_RecordExpressionBinding  -> Inh_RecordExpressionBinding  -> (Syn_RecordExpressionBinding )
-wrap_RecordExpressionBinding (T_RecordExpressionBinding act) (Inh_RecordExpressionBinding _lhsIbindingGroups _lhsIkappaUnique) =
+wrap_RecordExpressionBinding !(T_RecordExpressionBinding act) !(Inh_RecordExpressionBinding _lhsIbindingGroups _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg136 = T_RecordExpressionBinding_vIn136 _lhsIbindingGroups _lhsIkappaUnique
-        (T_RecordExpressionBinding_vOut136 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_RecordExpressionBinding_s137 sem arg136)
+        !(T_RecordExpressionBinding_vOut136 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_RecordExpressionBinding_s137 sem arg136)
         return (Syn_RecordExpressionBinding _lhsObindingGroups _lhsOkappaUnique _lhsOself)
    )
 
@@ -6476,9 +6477,9 @@ data T_RecordExpressionBinding_vOut136  = T_RecordExpressionBinding_vOut136 (Bin
 sem_RecordExpressionBinding_RecordExpressionBinding :: T_Range  -> T_Name  -> T_Expression  -> T_RecordExpressionBinding 
 sem_RecordExpressionBinding_RecordExpressionBinding arg_range_ arg_name_ arg_expression_ = T_RecordExpressionBinding (return st137) where
    {-# NOINLINE st137 #-}
-   st137 = let
+   !st137 = let
       v136 :: T_RecordExpressionBinding_v136 
-      v136 = \ (T_RecordExpressionBinding_vIn136 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v136 = \ !(T_RecordExpressionBinding_vIn136 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
@@ -6494,7 +6495,7 @@ sem_RecordExpressionBinding_RecordExpressionBinding arg_range_ arg_name_ arg_exp
          _lhsOkappaUnique = rule656 _expressionIkappaUnique
          _expressionObindingGroups = rule657 _lhsIbindingGroups
          _expressionOkappaUnique = rule658 _lhsIkappaUnique
-         __result_ = T_RecordExpressionBinding_vOut136 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_RecordExpressionBinding_vOut136 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_RecordExpressionBinding_s137 v136
    {-# INLINE rule653 #-}
@@ -6518,15 +6519,15 @@ sem_RecordExpressionBinding_RecordExpressionBinding arg_range_ arg_name_ arg_exp
 
 -- RecordExpressionBindings ------------------------------------
 -- wrapper
-data Inh_RecordExpressionBindings  = Inh_RecordExpressionBindings { bindingGroups_Inh_RecordExpressionBindings :: (BindingGroups), kappaUnique_Inh_RecordExpressionBindings :: (Int) }
-data Syn_RecordExpressionBindings  = Syn_RecordExpressionBindings { bindingGroups_Syn_RecordExpressionBindings :: (BindingGroups), kappaUnique_Syn_RecordExpressionBindings :: (Int), self_Syn_RecordExpressionBindings :: (RecordExpressionBindings) }
+data Inh_RecordExpressionBindings  = Inh_RecordExpressionBindings { bindingGroups_Inh_RecordExpressionBindings :: !(BindingGroups), kappaUnique_Inh_RecordExpressionBindings :: !(Int) }
+data Syn_RecordExpressionBindings  = Syn_RecordExpressionBindings { bindingGroups_Syn_RecordExpressionBindings :: !(BindingGroups), kappaUnique_Syn_RecordExpressionBindings :: !(Int), self_Syn_RecordExpressionBindings :: !(RecordExpressionBindings) }
 {-# INLINABLE wrap_RecordExpressionBindings #-}
 wrap_RecordExpressionBindings :: T_RecordExpressionBindings  -> Inh_RecordExpressionBindings  -> (Syn_RecordExpressionBindings )
-wrap_RecordExpressionBindings (T_RecordExpressionBindings act) (Inh_RecordExpressionBindings _lhsIbindingGroups _lhsIkappaUnique) =
+wrap_RecordExpressionBindings !(T_RecordExpressionBindings act) !(Inh_RecordExpressionBindings _lhsIbindingGroups _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg139 = T_RecordExpressionBindings_vIn139 _lhsIbindingGroups _lhsIkappaUnique
-        (T_RecordExpressionBindings_vOut139 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_RecordExpressionBindings_s140 sem arg139)
+        !(T_RecordExpressionBindings_vOut139 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_RecordExpressionBindings_s140 sem arg139)
         return (Syn_RecordExpressionBindings _lhsObindingGroups _lhsOkappaUnique _lhsOself)
    )
 
@@ -6550,9 +6551,9 @@ data T_RecordExpressionBindings_vOut139  = T_RecordExpressionBindings_vOut139 (B
 sem_RecordExpressionBindings_Cons :: T_RecordExpressionBinding  -> T_RecordExpressionBindings  -> T_RecordExpressionBindings 
 sem_RecordExpressionBindings_Cons arg_hd_ arg_tl_ = T_RecordExpressionBindings (return st140) where
    {-# NOINLINE st140 #-}
-   st140 = let
+   !st140 = let
       v139 :: T_RecordExpressionBindings_v139 
-      v139 = \ (T_RecordExpressionBindings_vIn139 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v139 = \ !(T_RecordExpressionBindings_vIn139 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _hdX137 = Control.Monad.Identity.runIdentity (attach_T_RecordExpressionBinding (arg_hd_))
          _tlX140 = Control.Monad.Identity.runIdentity (attach_T_RecordExpressionBindings (arg_tl_))
          (T_RecordExpressionBinding_vOut136 _hdIbindingGroups _hdIkappaUnique _hdIself) = inv_RecordExpressionBinding_s137 _hdX137 (T_RecordExpressionBinding_vIn136 _hdObindingGroups _hdOkappaUnique)
@@ -6568,7 +6569,7 @@ sem_RecordExpressionBindings_Cons arg_hd_ arg_tl_ = T_RecordExpressionBindings (
          _hdOkappaUnique = rule664 _lhsIkappaUnique
          _tlObindingGroups = rule665 _hdIbindingGroups
          _tlOkappaUnique = rule666 _hdIkappaUnique
-         __result_ = T_RecordExpressionBindings_vOut139 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_RecordExpressionBindings_vOut139 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_RecordExpressionBindings_s140 v139
    {-# INLINE rule659 #-}
@@ -6599,9 +6600,9 @@ sem_RecordExpressionBindings_Cons arg_hd_ arg_tl_ = T_RecordExpressionBindings (
 sem_RecordExpressionBindings_Nil ::  T_RecordExpressionBindings 
 sem_RecordExpressionBindings_Nil  = T_RecordExpressionBindings (return st140) where
    {-# NOINLINE st140 #-}
-   st140 = let
+   !st140 = let
       v139 :: T_RecordExpressionBindings_v139 
-      v139 = \ (T_RecordExpressionBindings_vIn139 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v139 = \ !(T_RecordExpressionBindings_vIn139 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _self = rule667  ()
          _lhsOself :: RecordExpressionBindings
          _lhsOself = rule668 _self
@@ -6609,7 +6610,7 @@ sem_RecordExpressionBindings_Nil  = T_RecordExpressionBindings (return st140) wh
          _lhsObindingGroups = rule669 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule670 _lhsIkappaUnique
-         __result_ = T_RecordExpressionBindings_vOut139 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_RecordExpressionBindings_vOut139 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_RecordExpressionBindings_s140 v139
    {-# INLINE rule667 #-}
@@ -6628,14 +6629,14 @@ sem_RecordExpressionBindings_Nil  = T_RecordExpressionBindings (return st140) wh
 -- RecordPatternBinding ----------------------------------------
 -- wrapper
 data Inh_RecordPatternBinding  = Inh_RecordPatternBinding {  }
-data Syn_RecordPatternBinding  = Syn_RecordPatternBinding { self_Syn_RecordPatternBinding :: (RecordPatternBinding) }
+data Syn_RecordPatternBinding  = Syn_RecordPatternBinding { self_Syn_RecordPatternBinding :: !(RecordPatternBinding) }
 {-# INLINABLE wrap_RecordPatternBinding #-}
 wrap_RecordPatternBinding :: T_RecordPatternBinding  -> Inh_RecordPatternBinding  -> (Syn_RecordPatternBinding )
-wrap_RecordPatternBinding (T_RecordPatternBinding act) (Inh_RecordPatternBinding ) =
+wrap_RecordPatternBinding !(T_RecordPatternBinding act) !(Inh_RecordPatternBinding ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg142 = T_RecordPatternBinding_vIn142 
-        (T_RecordPatternBinding_vOut142 _lhsOself) <- return (inv_RecordPatternBinding_s143 sem arg142)
+        !(T_RecordPatternBinding_vOut142 _lhsOself) <- return (inv_RecordPatternBinding_s143 sem arg142)
         return (Syn_RecordPatternBinding _lhsOself)
    )
 
@@ -6659,9 +6660,9 @@ data T_RecordPatternBinding_vOut142  = T_RecordPatternBinding_vOut142 (RecordPat
 sem_RecordPatternBinding_RecordPatternBinding :: T_Range  -> T_Name  -> T_Pattern  -> T_RecordPatternBinding 
 sem_RecordPatternBinding_RecordPatternBinding arg_range_ arg_name_ arg_pattern_ = T_RecordPatternBinding (return st143) where
    {-# NOINLINE st143 #-}
-   st143 = let
+   !st143 = let
       v142 :: T_RecordPatternBinding_v142 
-      v142 = \ (T_RecordPatternBinding_vIn142 ) -> ( let
+      v142 = \ !(T_RecordPatternBinding_vIn142 ) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
@@ -6671,7 +6672,7 @@ sem_RecordPatternBinding_RecordPatternBinding arg_range_ arg_name_ arg_pattern_ 
          _self = rule671 _nameIself _patternIself _rangeIself
          _lhsOself :: RecordPatternBinding
          _lhsOself = rule672 _self
-         __result_ = T_RecordPatternBinding_vOut142 _lhsOself
+         !__result_ = T_RecordPatternBinding_vOut142 _lhsOself
          in __result_ )
      in C_RecordPatternBinding_s143 v142
    {-# INLINE rule671 #-}
@@ -6684,14 +6685,14 @@ sem_RecordPatternBinding_RecordPatternBinding arg_range_ arg_name_ arg_pattern_ 
 -- RecordPatternBindings ---------------------------------------
 -- wrapper
 data Inh_RecordPatternBindings  = Inh_RecordPatternBindings {  }
-data Syn_RecordPatternBindings  = Syn_RecordPatternBindings { self_Syn_RecordPatternBindings :: (RecordPatternBindings) }
+data Syn_RecordPatternBindings  = Syn_RecordPatternBindings { self_Syn_RecordPatternBindings :: !(RecordPatternBindings) }
 {-# INLINABLE wrap_RecordPatternBindings #-}
 wrap_RecordPatternBindings :: T_RecordPatternBindings  -> Inh_RecordPatternBindings  -> (Syn_RecordPatternBindings )
-wrap_RecordPatternBindings (T_RecordPatternBindings act) (Inh_RecordPatternBindings ) =
+wrap_RecordPatternBindings !(T_RecordPatternBindings act) !(Inh_RecordPatternBindings ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg145 = T_RecordPatternBindings_vIn145 
-        (T_RecordPatternBindings_vOut145 _lhsOself) <- return (inv_RecordPatternBindings_s146 sem arg145)
+        !(T_RecordPatternBindings_vOut145 _lhsOself) <- return (inv_RecordPatternBindings_s146 sem arg145)
         return (Syn_RecordPatternBindings _lhsOself)
    )
 
@@ -6715,9 +6716,9 @@ data T_RecordPatternBindings_vOut145  = T_RecordPatternBindings_vOut145 (RecordP
 sem_RecordPatternBindings_Cons :: T_RecordPatternBinding  -> T_RecordPatternBindings  -> T_RecordPatternBindings 
 sem_RecordPatternBindings_Cons arg_hd_ arg_tl_ = T_RecordPatternBindings (return st146) where
    {-# NOINLINE st146 #-}
-   st146 = let
+   !st146 = let
       v145 :: T_RecordPatternBindings_v145 
-      v145 = \ (T_RecordPatternBindings_vIn145 ) -> ( let
+      v145 = \ !(T_RecordPatternBindings_vIn145 ) -> ( let
          _hdX143 = Control.Monad.Identity.runIdentity (attach_T_RecordPatternBinding (arg_hd_))
          _tlX146 = Control.Monad.Identity.runIdentity (attach_T_RecordPatternBindings (arg_tl_))
          (T_RecordPatternBinding_vOut142 _hdIself) = inv_RecordPatternBinding_s143 _hdX143 (T_RecordPatternBinding_vIn142 )
@@ -6725,7 +6726,7 @@ sem_RecordPatternBindings_Cons arg_hd_ arg_tl_ = T_RecordPatternBindings (return
          _self = rule673 _hdIself _tlIself
          _lhsOself :: RecordPatternBindings
          _lhsOself = rule674 _self
-         __result_ = T_RecordPatternBindings_vOut145 _lhsOself
+         !__result_ = T_RecordPatternBindings_vOut145 _lhsOself
          in __result_ )
      in C_RecordPatternBindings_s146 v145
    {-# INLINE rule673 #-}
@@ -6738,13 +6739,13 @@ sem_RecordPatternBindings_Cons arg_hd_ arg_tl_ = T_RecordPatternBindings (return
 sem_RecordPatternBindings_Nil ::  T_RecordPatternBindings 
 sem_RecordPatternBindings_Nil  = T_RecordPatternBindings (return st146) where
    {-# NOINLINE st146 #-}
-   st146 = let
+   !st146 = let
       v145 :: T_RecordPatternBindings_v145 
-      v145 = \ (T_RecordPatternBindings_vIn145 ) -> ( let
+      v145 = \ !(T_RecordPatternBindings_vIn145 ) -> ( let
          _self = rule675  ()
          _lhsOself :: RecordPatternBindings
          _lhsOself = rule676 _self
-         __result_ = T_RecordPatternBindings_vOut145 _lhsOself
+         !__result_ = T_RecordPatternBindings_vOut145 _lhsOself
          in __result_ )
      in C_RecordPatternBindings_s146 v145
    {-# INLINE rule675 #-}
@@ -6756,15 +6757,15 @@ sem_RecordPatternBindings_Nil  = T_RecordPatternBindings (return st146) where
 
 -- RightHandSide -----------------------------------------------
 -- wrapper
-data Inh_RightHandSide  = Inh_RightHandSide { bindingGroups_Inh_RightHandSide :: (BindingGroups), kappaUnique_Inh_RightHandSide :: (Int) }
-data Syn_RightHandSide  = Syn_RightHandSide { bindingGroups_Syn_RightHandSide :: (BindingGroups), kappaUnique_Syn_RightHandSide :: (Int), self_Syn_RightHandSide :: (RightHandSide) }
+data Inh_RightHandSide  = Inh_RightHandSide { bindingGroups_Inh_RightHandSide :: !(BindingGroups), kappaUnique_Inh_RightHandSide :: !(Int) }
+data Syn_RightHandSide  = Syn_RightHandSide { bindingGroups_Syn_RightHandSide :: !(BindingGroups), kappaUnique_Syn_RightHandSide :: !(Int), self_Syn_RightHandSide :: !(RightHandSide) }
 {-# INLINABLE wrap_RightHandSide #-}
 wrap_RightHandSide :: T_RightHandSide  -> Inh_RightHandSide  -> (Syn_RightHandSide )
-wrap_RightHandSide (T_RightHandSide act) (Inh_RightHandSide _lhsIbindingGroups _lhsIkappaUnique) =
+wrap_RightHandSide !(T_RightHandSide act) !(Inh_RightHandSide _lhsIbindingGroups _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg148 = T_RightHandSide_vIn148 _lhsIbindingGroups _lhsIkappaUnique
-        (T_RightHandSide_vOut148 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_RightHandSide_s149 sem arg148)
+        !(T_RightHandSide_vOut148 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_RightHandSide_s149 sem arg148)
         return (Syn_RightHandSide _lhsObindingGroups _lhsOkappaUnique _lhsOself)
    )
 
@@ -6789,9 +6790,9 @@ data T_RightHandSide_vOut148  = T_RightHandSide_vOut148 (BindingGroups) (Int) (R
 sem_RightHandSide_Expression :: T_Range  -> T_Expression  -> T_MaybeDeclarations  -> T_RightHandSide 
 sem_RightHandSide_Expression arg_range_ arg_expression_ arg_where_ = T_RightHandSide (return st149) where
    {-# NOINLINE st149 #-}
-   st149 = let
+   !st149 = let
       v148 :: T_RightHandSide_v148 
-      v148 = \ (T_RightHandSide_vIn148 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v148 = \ !(T_RightHandSide_vIn148 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          _whereX89 = Control.Monad.Identity.runIdentity (attach_T_MaybeDeclarations (arg_where_))
@@ -6809,7 +6810,7 @@ sem_RightHandSide_Expression arg_range_ arg_expression_ arg_where_ = T_RightHand
          _expressionOkappaUnique = rule682 _lhsIkappaUnique
          _whereObindingGroups = rule683 _expressionIbindingGroups
          _whereOkappaUnique = rule684 _expressionIkappaUnique
-         __result_ = T_RightHandSide_vOut148 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_RightHandSide_vOut148 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_RightHandSide_s149 v148
    {-# INLINE rule677 #-}
@@ -6840,9 +6841,9 @@ sem_RightHandSide_Expression arg_range_ arg_expression_ arg_where_ = T_RightHand
 sem_RightHandSide_Guarded :: T_Range  -> T_GuardedExpressions  -> T_MaybeDeclarations  -> T_RightHandSide 
 sem_RightHandSide_Guarded arg_range_ arg_guardedexpressions_ arg_where_ = T_RightHandSide (return st149) where
    {-# NOINLINE st149 #-}
-   st149 = let
+   !st149 = let
       v148 :: T_RightHandSide_v148 
-      v148 = \ (T_RightHandSide_vIn148 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v148 = \ !(T_RightHandSide_vIn148 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _guardedexpressionsX65 = Control.Monad.Identity.runIdentity (attach_T_GuardedExpressions (arg_guardedexpressions_))
          _whereX89 = Control.Monad.Identity.runIdentity (attach_T_MaybeDeclarations (arg_where_))
@@ -6860,7 +6861,7 @@ sem_RightHandSide_Guarded arg_range_ arg_guardedexpressions_ arg_where_ = T_Righ
          _guardedexpressionsOkappaUnique = rule690 _lhsIkappaUnique
          _whereObindingGroups = rule691 _guardedexpressionsIbindingGroups
          _whereOkappaUnique = rule692 _guardedexpressionsIkappaUnique
-         __result_ = T_RightHandSide_vOut148 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_RightHandSide_vOut148 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_RightHandSide_s149 v148
    {-# INLINE rule685 #-}
@@ -6890,15 +6891,15 @@ sem_RightHandSide_Guarded arg_range_ arg_guardedexpressions_ arg_where_ = T_Righ
 
 -- SimpleType --------------------------------------------------
 -- wrapper
-data Inh_SimpleType  = Inh_SimpleType { constraints_Inh_SimpleType :: (KindConstraints), kappaOfRHS_Inh_SimpleType :: (Kind), kappaUnique_Inh_SimpleType :: (Int) }
-data Syn_SimpleType  = Syn_SimpleType { constraints_Syn_SimpleType :: (KindConstraints), declared_Syn_SimpleType :: (PatternAssumptions), environment_Syn_SimpleType :: (PatternAssumptions), kappaUnique_Syn_SimpleType :: (Int), self_Syn_SimpleType :: (SimpleType) }
+data Inh_SimpleType  = Inh_SimpleType { constraints_Inh_SimpleType :: !(KindConstraints), kappaOfRHS_Inh_SimpleType :: !(Kind), kappaUnique_Inh_SimpleType :: !(Int) }
+data Syn_SimpleType  = Syn_SimpleType { constraints_Syn_SimpleType :: !(KindConstraints), declared_Syn_SimpleType :: !(PatternAssumptions), environment_Syn_SimpleType :: !(PatternAssumptions), kappaUnique_Syn_SimpleType :: !(Int), self_Syn_SimpleType :: !(SimpleType) }
 {-# INLINABLE wrap_SimpleType #-}
 wrap_SimpleType :: T_SimpleType  -> Inh_SimpleType  -> (Syn_SimpleType )
-wrap_SimpleType (T_SimpleType act) (Inh_SimpleType _lhsIconstraints _lhsIkappaOfRHS _lhsIkappaUnique) =
+wrap_SimpleType !(T_SimpleType act) !(Inh_SimpleType _lhsIconstraints _lhsIkappaOfRHS _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg151 = T_SimpleType_vIn151 _lhsIconstraints _lhsIkappaOfRHS _lhsIkappaUnique
-        (T_SimpleType_vOut151 _lhsOconstraints _lhsOdeclared _lhsOenvironment _lhsOkappaUnique _lhsOself) <- return (inv_SimpleType_s152 sem arg151)
+        !(T_SimpleType_vOut151 _lhsOconstraints _lhsOdeclared _lhsOenvironment _lhsOkappaUnique _lhsOself) <- return (inv_SimpleType_s152 sem arg151)
         return (Syn_SimpleType _lhsOconstraints _lhsOdeclared _lhsOenvironment _lhsOkappaUnique _lhsOself)
    )
 
@@ -6922,9 +6923,9 @@ data T_SimpleType_vOut151  = T_SimpleType_vOut151 (KindConstraints) (PatternAssu
 sem_SimpleType_SimpleType :: T_Range  -> T_Name  -> T_Names  -> T_SimpleType 
 sem_SimpleType_SimpleType arg_range_ arg_name_ arg_typevariables_ = T_SimpleType (return st152) where
    {-# NOINLINE st152 #-}
-   st152 = let
+   !st152 = let
       v151 :: T_SimpleType_v151 
-      v151 = \ (T_SimpleType_vIn151 _lhsIconstraints _lhsIkappaOfRHS _lhsIkappaUnique) -> ( let
+      v151 = \ !(T_SimpleType_vIn151 _lhsIconstraints _lhsIkappaOfRHS _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _typevariablesX116 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_typevariables_))
@@ -6945,7 +6946,7 @@ sem_SimpleType_SimpleType arg_range_ arg_name_ arg_typevariables_ = T_SimpleType
          _self = rule700 _nameIself _rangeIself _typevariablesIself
          _lhsOself :: SimpleType
          _lhsOself = rule701 _self
-         __result_ = T_SimpleType_vOut151 _lhsOconstraints _lhsOdeclared _lhsOenvironment _lhsOkappaUnique _lhsOself
+         !__result_ = T_SimpleType_vOut151 _lhsOconstraints _lhsOdeclared _lhsOenvironment _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_SimpleType_s152 v151
    {-# INLINE rule693 #-}
@@ -6978,15 +6979,15 @@ sem_SimpleType_SimpleType arg_range_ arg_name_ arg_typevariables_ = T_SimpleType
 
 -- Statement ---------------------------------------------------
 -- wrapper
-data Inh_Statement  = Inh_Statement { bindingGroups_Inh_Statement :: (BindingGroups), kappaUnique_Inh_Statement :: (Int) }
-data Syn_Statement  = Syn_Statement { bindingGroups_Syn_Statement :: (BindingGroups), kappaUnique_Syn_Statement :: (Int), self_Syn_Statement :: (Statement) }
+data Inh_Statement  = Inh_Statement { bindingGroups_Inh_Statement :: !(BindingGroups), kappaUnique_Inh_Statement :: !(Int) }
+data Syn_Statement  = Syn_Statement { bindingGroups_Syn_Statement :: !(BindingGroups), kappaUnique_Syn_Statement :: !(Int), self_Syn_Statement :: !(Statement) }
 {-# INLINABLE wrap_Statement #-}
 wrap_Statement :: T_Statement  -> Inh_Statement  -> (Syn_Statement )
-wrap_Statement (T_Statement act) (Inh_Statement _lhsIbindingGroups _lhsIkappaUnique) =
+wrap_Statement !(T_Statement act) !(Inh_Statement _lhsIbindingGroups _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg154 = T_Statement_vIn154 _lhsIbindingGroups _lhsIkappaUnique
-        (T_Statement_vOut154 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Statement_s155 sem arg154)
+        !(T_Statement_vOut154 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Statement_s155 sem arg154)
         return (Syn_Statement _lhsObindingGroups _lhsOkappaUnique _lhsOself)
    )
 
@@ -7013,9 +7014,9 @@ data T_Statement_vOut154  = T_Statement_vOut154 (BindingGroups) (Int) (Statement
 sem_Statement_Expression :: T_Range  -> T_Expression  -> T_Statement 
 sem_Statement_Expression arg_range_ arg_expression_ = T_Statement (return st155) where
    {-# NOINLINE st155 #-}
-   st155 = let
+   !st155 = let
       v154 :: T_Statement_v154 
-      v154 = \ (T_Statement_vIn154 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v154 = \ !(T_Statement_vIn154 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -7029,7 +7030,7 @@ sem_Statement_Expression arg_range_ arg_expression_ = T_Statement (return st155)
          _lhsOkappaUnique = rule705 _expressionIkappaUnique
          _expressionObindingGroups = rule706 _lhsIbindingGroups
          _expressionOkappaUnique = rule707 _lhsIkappaUnique
-         __result_ = T_Statement_vOut154 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Statement_vOut154 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Statement_s155 v154
    {-# INLINE rule702 #-}
@@ -7054,9 +7055,9 @@ sem_Statement_Expression arg_range_ arg_expression_ = T_Statement (return st155)
 sem_Statement_Let :: T_Range  -> T_Declarations  -> T_Statement 
 sem_Statement_Let arg_range_ arg_declarations_ = T_Statement (return st155) where
    {-# NOINLINE st155 #-}
-   st155 = let
+   !st155 = let
       v154 :: T_Statement_v154 
-      v154 = \ (T_Statement_vIn154 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v154 = \ !(T_Statement_vIn154 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -7070,7 +7071,7 @@ sem_Statement_Let arg_range_ arg_declarations_ = T_Statement (return st155) wher
          _lhsOkappaUnique = rule711 _declarationsIkappaUnique
          _declarationsObindingGroups = rule712 _lhsIbindingGroups
          _declarationsOkappaUnique = rule713 _lhsIkappaUnique
-         __result_ = T_Statement_vOut154 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Statement_vOut154 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Statement_s155 v154
    {-# INLINE rule708 #-}
@@ -7095,9 +7096,9 @@ sem_Statement_Let arg_range_ arg_declarations_ = T_Statement (return st155) wher
 sem_Statement_Generator :: T_Range  -> T_Pattern  -> T_Expression  -> T_Statement 
 sem_Statement_Generator arg_range_ arg_pattern_ arg_expression_ = T_Statement (return st155) where
    {-# NOINLINE st155 #-}
-   st155 = let
+   !st155 = let
       v154 :: T_Statement_v154 
-      v154 = \ (T_Statement_vIn154 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v154 = \ !(T_Statement_vIn154 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternX119 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
@@ -7113,7 +7114,7 @@ sem_Statement_Generator arg_range_ arg_pattern_ arg_expression_ = T_Statement (r
          _lhsOkappaUnique = rule717 _expressionIkappaUnique
          _expressionObindingGroups = rule718 _lhsIbindingGroups
          _expressionOkappaUnique = rule719 _lhsIkappaUnique
-         __result_ = T_Statement_vOut154 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Statement_vOut154 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Statement_s155 v154
    {-# INLINE rule714 #-}
@@ -7138,9 +7139,9 @@ sem_Statement_Generator arg_range_ arg_pattern_ arg_expression_ = T_Statement (r
 sem_Statement_Empty :: T_Range  -> T_Statement 
 sem_Statement_Empty arg_range_ = T_Statement (return st155) where
    {-# NOINLINE st155 #-}
-   st155 = let
+   !st155 = let
       v154 :: T_Statement_v154 
-      v154 = \ (T_Statement_vIn154 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v154 = \ !(T_Statement_vIn154 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
          _self = rule720 _rangeIself
@@ -7150,7 +7151,7 @@ sem_Statement_Empty arg_range_ = T_Statement (return st155) where
          _lhsObindingGroups = rule722 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule723 _lhsIkappaUnique
-         __result_ = T_Statement_vOut154 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Statement_vOut154 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Statement_s155 v154
    {-# INLINE rule720 #-}
@@ -7168,15 +7169,15 @@ sem_Statement_Empty arg_range_ = T_Statement (return st155) where
 
 -- Statements --------------------------------------------------
 -- wrapper
-data Inh_Statements  = Inh_Statements { bindingGroups_Inh_Statements :: (BindingGroups), kappaUnique_Inh_Statements :: (Int) }
-data Syn_Statements  = Syn_Statements { bindingGroups_Syn_Statements :: (BindingGroups), kappaUnique_Syn_Statements :: (Int), self_Syn_Statements :: (Statements) }
+data Inh_Statements  = Inh_Statements { bindingGroups_Inh_Statements :: !(BindingGroups), kappaUnique_Inh_Statements :: !(Int) }
+data Syn_Statements  = Syn_Statements { bindingGroups_Syn_Statements :: !(BindingGroups), kappaUnique_Syn_Statements :: !(Int), self_Syn_Statements :: !(Statements) }
 {-# INLINABLE wrap_Statements #-}
 wrap_Statements :: T_Statements  -> Inh_Statements  -> (Syn_Statements )
-wrap_Statements (T_Statements act) (Inh_Statements _lhsIbindingGroups _lhsIkappaUnique) =
+wrap_Statements !(T_Statements act) !(Inh_Statements _lhsIbindingGroups _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg157 = T_Statements_vIn157 _lhsIbindingGroups _lhsIkappaUnique
-        (T_Statements_vOut157 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Statements_s158 sem arg157)
+        !(T_Statements_vOut157 _lhsObindingGroups _lhsOkappaUnique _lhsOself) <- return (inv_Statements_s158 sem arg157)
         return (Syn_Statements _lhsObindingGroups _lhsOkappaUnique _lhsOself)
    )
 
@@ -7200,9 +7201,9 @@ data T_Statements_vOut157  = T_Statements_vOut157 (BindingGroups) (Int) (Stateme
 sem_Statements_Cons :: T_Statement  -> T_Statements  -> T_Statements 
 sem_Statements_Cons arg_hd_ arg_tl_ = T_Statements (return st158) where
    {-# NOINLINE st158 #-}
-   st158 = let
+   !st158 = let
       v157 :: T_Statements_v157 
-      v157 = \ (T_Statements_vIn157 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v157 = \ !(T_Statements_vIn157 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _hdX155 = Control.Monad.Identity.runIdentity (attach_T_Statement (arg_hd_))
          _tlX158 = Control.Monad.Identity.runIdentity (attach_T_Statements (arg_tl_))
          (T_Statement_vOut154 _hdIbindingGroups _hdIkappaUnique _hdIself) = inv_Statement_s155 _hdX155 (T_Statement_vIn154 _hdObindingGroups _hdOkappaUnique)
@@ -7218,7 +7219,7 @@ sem_Statements_Cons arg_hd_ arg_tl_ = T_Statements (return st158) where
          _hdOkappaUnique = rule729 _lhsIkappaUnique
          _tlObindingGroups = rule730 _hdIbindingGroups
          _tlOkappaUnique = rule731 _hdIkappaUnique
-         __result_ = T_Statements_vOut157 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Statements_vOut157 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Statements_s158 v157
    {-# INLINE rule724 #-}
@@ -7249,9 +7250,9 @@ sem_Statements_Cons arg_hd_ arg_tl_ = T_Statements (return st158) where
 sem_Statements_Nil ::  T_Statements 
 sem_Statements_Nil  = T_Statements (return st158) where
    {-# NOINLINE st158 #-}
-   st158 = let
+   !st158 = let
       v157 :: T_Statements_v157 
-      v157 = \ (T_Statements_vIn157 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
+      v157 = \ !(T_Statements_vIn157 _lhsIbindingGroups _lhsIkappaUnique) -> ( let
          _self = rule732  ()
          _lhsOself :: Statements
          _lhsOself = rule733 _self
@@ -7259,7 +7260,7 @@ sem_Statements_Nil  = T_Statements (return st158) where
          _lhsObindingGroups = rule734 _lhsIbindingGroups
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule735 _lhsIkappaUnique
-         __result_ = T_Statements_vOut157 _lhsObindingGroups _lhsOkappaUnique _lhsOself
+         !__result_ = T_Statements_vOut157 _lhsObindingGroups _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Statements_s158 v157
    {-# INLINE rule732 #-}
@@ -7278,14 +7279,14 @@ sem_Statements_Nil  = T_Statements (return st158) where
 -- Strings -----------------------------------------------------
 -- wrapper
 data Inh_Strings  = Inh_Strings {  }
-data Syn_Strings  = Syn_Strings { self_Syn_Strings :: (Strings) }
+data Syn_Strings  = Syn_Strings { self_Syn_Strings :: !(Strings) }
 {-# INLINABLE wrap_Strings #-}
 wrap_Strings :: T_Strings  -> Inh_Strings  -> (Syn_Strings )
-wrap_Strings (T_Strings act) (Inh_Strings ) =
+wrap_Strings !(T_Strings act) !(Inh_Strings ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg160 = T_Strings_vIn160 
-        (T_Strings_vOut160 _lhsOself) <- return (inv_Strings_s161 sem arg160)
+        !(T_Strings_vOut160 _lhsOself) <- return (inv_Strings_s161 sem arg160)
         return (Syn_Strings _lhsOself)
    )
 
@@ -7307,17 +7308,17 @@ data T_Strings_vIn160  = T_Strings_vIn160
 data T_Strings_vOut160  = T_Strings_vOut160 (Strings)
 {-# NOINLINE sem_Strings_Cons #-}
 sem_Strings_Cons :: (String) -> T_Strings  -> T_Strings 
-sem_Strings_Cons arg_hd_ arg_tl_ = T_Strings (return st161) where
+sem_Strings_Cons !arg_hd_ arg_tl_ = T_Strings (return st161) where
    {-# NOINLINE st161 #-}
-   st161 = let
+   !st161 = let
       v160 :: T_Strings_v160 
-      v160 = \ (T_Strings_vIn160 ) -> ( let
+      v160 = \ !(T_Strings_vIn160 ) -> ( let
          _tlX161 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_tl_))
          (T_Strings_vOut160 _tlIself) = inv_Strings_s161 _tlX161 (T_Strings_vIn160 )
          _self = rule736 _tlIself arg_hd_
          _lhsOself :: Strings
          _lhsOself = rule737 _self
-         __result_ = T_Strings_vOut160 _lhsOself
+         !__result_ = T_Strings_vOut160 _lhsOself
          in __result_ )
      in C_Strings_s161 v160
    {-# INLINE rule736 #-}
@@ -7330,13 +7331,13 @@ sem_Strings_Cons arg_hd_ arg_tl_ = T_Strings (return st161) where
 sem_Strings_Nil ::  T_Strings 
 sem_Strings_Nil  = T_Strings (return st161) where
    {-# NOINLINE st161 #-}
-   st161 = let
+   !st161 = let
       v160 :: T_Strings_v160 
-      v160 = \ (T_Strings_vIn160 ) -> ( let
+      v160 = \ !(T_Strings_vIn160 ) -> ( let
          _self = rule738  ()
          _lhsOself :: Strings
          _lhsOself = rule739 _self
-         __result_ = T_Strings_vOut160 _lhsOself
+         !__result_ = T_Strings_vOut160 _lhsOself
          in __result_ )
      in C_Strings_s161 v160
    {-# INLINE rule738 #-}
@@ -7348,22 +7349,22 @@ sem_Strings_Nil  = T_Strings (return st161) where
 
 -- Type --------------------------------------------------------
 -- wrapper
-data Inh_Type  = Inh_Type { constraints_Inh_Type :: (KindConstraints), kappaUnique_Inh_Type :: (Int) }
-data Syn_Type  = Syn_Type { assumptions_Syn_Type :: (Assumptions), constraints_Syn_Type :: (KindConstraints), kappa_Syn_Type :: (Kind), kappaUnique_Syn_Type :: (Int), self_Syn_Type :: (Type) }
+data Inh_Type  = Inh_Type { constraints_Inh_Type :: !(KindConstraints), kappaUnique_Inh_Type :: !(Int) }
+data Syn_Type  = Syn_Type { assumptions_Syn_Type :: !(Assumptions), constraints_Syn_Type :: !(KindConstraints), kappa_Syn_Type :: !(Kind), kappaUnique_Syn_Type :: !(Int), self_Syn_Type :: !(Type) }
 {-# INLINABLE wrap_Type #-}
 wrap_Type :: T_Type  -> Inh_Type  -> (Syn_Type )
-wrap_Type (T_Type act) (Inh_Type _lhsIconstraints _lhsIkappaUnique) =
+wrap_Type !(T_Type act) !(Inh_Type _lhsIconstraints _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg163 = T_Type_vIn163 _lhsIconstraints _lhsIkappaUnique
-        (T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself) <- return (inv_Type_s164 sem arg163)
+        !(T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself) <- return (inv_Type_s164 sem arg163)
         return (Syn_Type _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_Type #-}
 sem_Type :: Type  -> T_Type 
-sem_Type ( Type_Application range_ prefix_ function_ arguments_ ) = sem_Type_Application ( sem_Range range_ ) prefix_ ( sem_Type function_ ) ( sem_Types arguments_ )
+sem_Type ( Type_Application range_ !prefix_ function_ arguments_ ) = sem_Type_Application ( sem_Range range_ ) prefix_ ( sem_Type function_ ) ( sem_Types arguments_ )
 sem_Type ( Type_Variable range_ name_ ) = sem_Type_Variable ( sem_Range range_ ) ( sem_Name name_ )
 sem_Type ( Type_Constructor range_ name_ ) = sem_Type_Constructor ( sem_Range range_ ) ( sem_Name name_ )
 sem_Type ( Type_Qualified range_ context_ type_ ) = sem_Type_Qualified ( sem_Range range_ ) ( sem_ContextItems context_ ) ( sem_Type type_ )
@@ -7384,11 +7385,11 @@ data T_Type_vIn163  = T_Type_vIn163 (KindConstraints) (Int)
 data T_Type_vOut163  = T_Type_vOut163 (Assumptions) (KindConstraints) (Kind) (Int) (Type)
 {-# NOINLINE sem_Type_Application #-}
 sem_Type_Application :: T_Range  -> (Bool) -> T_Type  -> T_Types  -> T_Type 
-sem_Type_Application arg_range_ arg_prefix_ arg_function_ arg_arguments_ = T_Type (return st164) where
+sem_Type_Application arg_range_ !arg_prefix_ arg_function_ arg_arguments_ = T_Type (return st164) where
    {-# NOINLINE st164 #-}
-   st164 = let
+   !st164 = let
       v163 :: T_Type_v163 
-      v163 = \ (T_Type_vIn163 _lhsIconstraints _lhsIkappaUnique) -> ( let
+      v163 = \ !(T_Type_vIn163 _lhsIconstraints _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _functionX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_function_))
          _argumentsX167 = Control.Monad.Identity.runIdentity (attach_T_Types (arg_arguments_))
@@ -7412,7 +7413,7 @@ sem_Type_Application arg_range_ arg_prefix_ arg_function_ arg_arguments_ = T_Typ
          _functionOkappaUnique = rule749 _lhsIkappaUnique
          _argumentsOconstraints = rule750 _functionIconstraints
          _argumentsOkappaUnique = rule751 _functionIkappaUnique
-         __result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
+         !__result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Type_s164 v163
    {-# INLINE rule740 #-}
@@ -7455,9 +7456,9 @@ sem_Type_Application arg_range_ arg_prefix_ arg_function_ arg_arguments_ = T_Typ
 sem_Type_Variable :: T_Range  -> T_Name  -> T_Type 
 sem_Type_Variable arg_range_ arg_name_ = T_Type (return st164) where
    {-# NOINLINE st164 #-}
-   st164 = let
+   !st164 = let
       v163 :: T_Type_v163 
-      v163 = \ (T_Type_vIn163 _lhsIconstraints _lhsIkappaUnique) -> ( let
+      v163 = \ !(T_Type_vIn163 _lhsIconstraints _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -7474,7 +7475,7 @@ sem_Type_Variable arg_range_ arg_name_ = T_Type (return st164) where
          _lhsOconstraints = rule757 _lhsIconstraints
          _lhsOkappa :: Kind
          _lhsOkappa = rule758 _kappa
-         __result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
+         !__result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Type_s164 v163
    {-# INLINE rule752 #-}
@@ -7502,9 +7503,9 @@ sem_Type_Variable arg_range_ arg_name_ = T_Type (return st164) where
 sem_Type_Constructor :: T_Range  -> T_Name  -> T_Type 
 sem_Type_Constructor arg_range_ arg_name_ = T_Type (return st164) where
    {-# NOINLINE st164 #-}
-   st164 = let
+   !st164 = let
       v163 :: T_Type_v163 
-      v163 = \ (T_Type_vIn163 _lhsIconstraints _lhsIkappaUnique) -> ( let
+      v163 = \ !(T_Type_vIn163 _lhsIconstraints _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX113 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -7521,7 +7522,7 @@ sem_Type_Constructor arg_range_ arg_name_ = T_Type (return st164) where
          _lhsOconstraints = rule764 _lhsIconstraints
          _lhsOkappa :: Kind
          _lhsOkappa = rule765 _kappa
-         __result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
+         !__result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Type_s164 v163
    {-# INLINE rule759 #-}
@@ -7549,9 +7550,9 @@ sem_Type_Constructor arg_range_ arg_name_ = T_Type (return st164) where
 sem_Type_Qualified :: T_Range  -> T_ContextItems  -> T_Type  -> T_Type 
 sem_Type_Qualified arg_range_ arg_context_ arg_type_ = T_Type (return st164) where
    {-# NOINLINE st164 #-}
-   st164 = let
+   !st164 = let
       v163 :: T_Type_v163 
-      v163 = \ (T_Type_vIn163 _lhsIconstraints _lhsIkappaUnique) -> ( let
+      v163 = \ !(T_Type_vIn163 _lhsIconstraints _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _contextX26 = Control.Monad.Identity.runIdentity (attach_T_ContextItems (arg_context_))
          _typeX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
@@ -7573,7 +7574,7 @@ sem_Type_Qualified arg_range_ arg_context_ arg_type_ = T_Type (return st164) whe
          _contextOkappaUnique = rule773 _lhsIkappaUnique
          _typeOconstraints = rule774 _lhsIconstraints
          _typeOkappaUnique = rule775 _contextIkappaUnique
-         __result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
+         !__result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Type_s164 v163
    {-# INLINE rule766 #-}
@@ -7610,9 +7611,9 @@ sem_Type_Qualified arg_range_ arg_context_ arg_type_ = T_Type (return st164) whe
 sem_Type_Forall :: T_Range  -> T_Names  -> T_Type  -> T_Type 
 sem_Type_Forall arg_range_ arg_typevariables_ arg_type_ = T_Type (return st164) where
    {-# NOINLINE st164 #-}
-   st164 = let
+   !st164 = let
       v163 :: T_Type_v163 
-      v163 = \ (T_Type_vIn163 _lhsIconstraints _lhsIkappaUnique) -> ( let
+      v163 = \ !(T_Type_vIn163 _lhsIconstraints _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _typevariablesX116 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_typevariables_))
          _typeX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
@@ -7633,7 +7634,7 @@ sem_Type_Forall arg_range_ arg_typevariables_ arg_type_ = T_Type (return st164) 
          _lhsOkappaUnique = rule782 _typeIkappaUnique
          _typeOconstraints = rule783 _lhsIconstraints
          _typeOkappaUnique = rule784 _lhsIkappaUnique
-         __result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
+         !__result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Type_s164 v163
    {-# INLINE rule776 #-}
@@ -7667,9 +7668,9 @@ sem_Type_Forall arg_range_ arg_typevariables_ arg_type_ = T_Type (return st164) 
 sem_Type_Exists :: T_Range  -> T_Names  -> T_Type  -> T_Type 
 sem_Type_Exists arg_range_ arg_typevariables_ arg_type_ = T_Type (return st164) where
    {-# NOINLINE st164 #-}
-   st164 = let
+   !st164 = let
       v163 :: T_Type_v163 
-      v163 = \ (T_Type_vIn163 _lhsIconstraints _lhsIkappaUnique) -> ( let
+      v163 = \ !(T_Type_vIn163 _lhsIconstraints _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _typevariablesX116 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_typevariables_))
          _typeX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
@@ -7690,7 +7691,7 @@ sem_Type_Exists arg_range_ arg_typevariables_ arg_type_ = T_Type (return st164) 
          _lhsOkappaUnique = rule791 _typeIkappaUnique
          _typeOconstraints = rule792 _lhsIconstraints
          _typeOkappaUnique = rule793 _lhsIkappaUnique
-         __result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
+         !__result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Type_s164 v163
    {-# INLINE rule785 #-}
@@ -7724,9 +7725,9 @@ sem_Type_Exists arg_range_ arg_typevariables_ arg_type_ = T_Type (return st164) 
 sem_Type_Parenthesized :: T_Range  -> T_Type  -> T_Type 
 sem_Type_Parenthesized arg_range_ arg_type_ = T_Type (return st164) where
    {-# NOINLINE st164 #-}
-   st164 = let
+   !st164 = let
       v163 :: T_Type_v163 
-      v163 = \ (T_Type_vIn163 _lhsIconstraints _lhsIkappaUnique) -> ( let
+      v163 = \ !(T_Type_vIn163 _lhsIconstraints _lhsIkappaUnique) -> ( let
          _rangeX134 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _typeX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
          (T_Range_vOut133 _rangeIself) = inv_Range_s134 _rangeX134 (T_Range_vIn133 )
@@ -7744,7 +7745,7 @@ sem_Type_Parenthesized arg_range_ arg_type_ = T_Type (return st164) where
          _lhsOkappaUnique = rule799 _typeIkappaUnique
          _typeOconstraints = rule800 _lhsIconstraints
          _typeOkappaUnique = rule801 _lhsIkappaUnique
-         __result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
+         !__result_ = T_Type_vOut163 _lhsOassumptions _lhsOconstraints _lhsOkappa _lhsOkappaUnique _lhsOself
          in __result_ )
      in C_Type_s164 v163
    {-# INLINE rule794 #-}
@@ -7774,15 +7775,15 @@ sem_Type_Parenthesized arg_range_ arg_type_ = T_Type (return st164) where
 
 -- Types -------------------------------------------------------
 -- wrapper
-data Inh_Types  = Inh_Types { constraints_Inh_Types :: (KindConstraints), kappaUnique_Inh_Types :: (Int) }
-data Syn_Types  = Syn_Types { assumptions_Syn_Types :: (Assumptions), constraints_Syn_Types :: (KindConstraints), kappaUnique_Syn_Types :: (Int), kappas_Syn_Types :: (Kinds), self_Syn_Types :: (Types) }
+data Inh_Types  = Inh_Types { constraints_Inh_Types :: !(KindConstraints), kappaUnique_Inh_Types :: !(Int) }
+data Syn_Types  = Syn_Types { assumptions_Syn_Types :: !(Assumptions), constraints_Syn_Types :: !(KindConstraints), kappaUnique_Syn_Types :: !(Int), kappas_Syn_Types :: !(Kinds), self_Syn_Types :: !(Types) }
 {-# INLINABLE wrap_Types #-}
 wrap_Types :: T_Types  -> Inh_Types  -> (Syn_Types )
-wrap_Types (T_Types act) (Inh_Types _lhsIconstraints _lhsIkappaUnique) =
+wrap_Types !(T_Types act) !(Inh_Types _lhsIconstraints _lhsIkappaUnique) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg166 = T_Types_vIn166 _lhsIconstraints _lhsIkappaUnique
-        (T_Types_vOut166 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOkappas _lhsOself) <- return (inv_Types_s167 sem arg166)
+        !(T_Types_vOut166 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOkappas _lhsOself) <- return (inv_Types_s167 sem arg166)
         return (Syn_Types _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOkappas _lhsOself)
    )
 
@@ -7806,9 +7807,9 @@ data T_Types_vOut166  = T_Types_vOut166 (Assumptions) (KindConstraints) (Int) (K
 sem_Types_Cons :: T_Type  -> T_Types  -> T_Types 
 sem_Types_Cons arg_hd_ arg_tl_ = T_Types (return st167) where
    {-# NOINLINE st167 #-}
-   st167 = let
+   !st167 = let
       v166 :: T_Types_v166 
-      v166 = \ (T_Types_vIn166 _lhsIconstraints _lhsIkappaUnique) -> ( let
+      v166 = \ !(T_Types_vIn166 _lhsIconstraints _lhsIkappaUnique) -> ( let
          _hdX164 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_hd_))
          _tlX167 = Control.Monad.Identity.runIdentity (attach_T_Types (arg_tl_))
          (T_Type_vOut163 _hdIassumptions _hdIconstraints _hdIkappa _hdIkappaUnique _hdIself) = inv_Type_s164 _hdX164 (T_Type_vIn163 _hdOconstraints _hdOkappaUnique)
@@ -7828,7 +7829,7 @@ sem_Types_Cons arg_hd_ arg_tl_ = T_Types (return st167) where
          _hdOkappaUnique = rule809 _lhsIkappaUnique
          _tlOconstraints = rule810 _hdIconstraints
          _tlOkappaUnique = rule811 _hdIkappaUnique
-         __result_ = T_Types_vOut166 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOkappas _lhsOself
+         !__result_ = T_Types_vOut166 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOkappas _lhsOself
          in __result_ )
      in C_Types_s167 v166
    {-# INLINE rule802 #-}
@@ -7865,9 +7866,9 @@ sem_Types_Cons arg_hd_ arg_tl_ = T_Types (return st167) where
 sem_Types_Nil ::  T_Types 
 sem_Types_Nil  = T_Types (return st167) where
    {-# NOINLINE st167 #-}
-   st167 = let
+   !st167 = let
       v166 :: T_Types_v166 
-      v166 = \ (T_Types_vIn166 _lhsIconstraints _lhsIkappaUnique) -> ( let
+      v166 = \ !(T_Types_vIn166 _lhsIconstraints _lhsIkappaUnique) -> ( let
          _lhsOassumptions :: Assumptions
          _lhsOassumptions = rule812  ()
          _lhsOkappas :: Kinds
@@ -7879,7 +7880,7 @@ sem_Types_Nil  = T_Types (return st167) where
          _lhsOconstraints = rule816 _lhsIconstraints
          _lhsOkappaUnique :: Int
          _lhsOkappaUnique = rule817 _lhsIkappaUnique
-         __result_ = T_Types_vOut166 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOkappas _lhsOself
+         !__result_ = T_Types_vOut166 _lhsOassumptions _lhsOconstraints _lhsOkappaUnique _lhsOkappas _lhsOself
          in __result_ )
      in C_Types_s167 v166
    {-# INLINE rule812 #-}

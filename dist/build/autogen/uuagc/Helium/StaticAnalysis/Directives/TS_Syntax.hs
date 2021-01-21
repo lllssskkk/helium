@@ -1,9 +1,10 @@
 
 
--- UUAGC 0.9.52.1 (Helium/StaticAnalysis/Directives/TS_Syntax.ag)
+-- UUAGC 0.9.52.2 (Helium/StaticAnalysis/Directives/TS_Syntax.ag)
 module Helium.StaticAnalysis.Directives.TS_Syntax where
 
 import Helium.Syntax.UHA_Syntax
+import Top.Types.Classes()
 -- Judgement ---------------------------------------------------
 data Judgement = Judgement_Judgement (Expression) (Type)
 -- SimpleJudgement ---------------------------------------------
@@ -16,6 +17,10 @@ data TypeRule = TypeRule_TypeRule (SimpleJudgements) (Judgement)
 type TypingStrategies = [TypingStrategy]
 -- TypingStrategy ----------------------------------------------
 data TypingStrategy = TypingStrategy_Siblings (Names)
+                    | TypingStrategy_Never (Name) (Type) (String)
+                    | TypingStrategy_Close (Name) (String)
+                    | TypingStrategy_Disjoint (Names) (String)
+                    | TypingStrategy_Default (Name) (([Type]))
                     | TypingStrategy_TypingStrategy (TypeRule) (UserStatements)
 -- UserStatement -----------------------------------------------
 data UserStatement = UserStatement_Equal (Type) (Type) (String)

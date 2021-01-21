@@ -1,6 +1,6 @@
 
 
--- UUAGC 0.9.52.1 (Helium/Syntax/UHA_Syntax.ag)
+-- UUAGC 0.9.52.2 (Helium/Syntax/UHA_Syntax.ag)
 module Helium.Syntax.UHA_Syntax where
 -- Alternative -------------------------------------------------
 data Alternative = Alternative_Hole (Range) (String)
@@ -139,9 +139,9 @@ data MaybeNames = MaybeNames_Nothing
 -- Module ------------------------------------------------------
 data Module = Module_Module (Range) (MaybeName) (MaybeExports) (Body)
 -- Name --------------------------------------------------------
-data Name = Name_Identifier (Range) (Strings) (String)
-          | Name_Operator (Range) (Strings) (String)
-          | Name_Special (Range) (Strings) (String)
+data Name = Name_Identifier (Range) (Strings) (String) (String)
+          | Name_Operator (Range) (Strings) (String) (String)
+          | Name_Special (Range) (Strings) (String) (String)
 -- Names -------------------------------------------------------
 type Names = [Name]
 -- Pattern -----------------------------------------------------

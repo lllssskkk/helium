@@ -1,4 +1,5 @@
 {-# LANGUAGE Rank2Types, GADTs #-}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Helium.StaticAnalysis.Directives.TS_Analyse where
@@ -8,6 +9,7 @@ import qualified Data.Map as M
 
 
 import Helium.Syntax.UHA_Syntax
+import Top.Types.Classes()
 
 
 import Top.Types
@@ -19,12 +21,14 @@ import Helium.StaticAnalysis.Miscellaneous.ConstraintInfo
 import Helium.StaticAnalysis.Directives.TS_Syntax
 import Helium.StaticAnalysis.Miscellaneous.TypeConversion
 import Data.List
-import Helium.Syntax.UHA_Utils (nameFromString)
+import Helium.Syntax.UHA_Utils (nameFromString, convertTp, convertTpScheme)
 import Helium.Syntax.UHA_Range (noRange)
 import Helium.StaticAnalysis.Messages.Messages
 import Helium.StaticAnalysis.Directives.TS_Messages
 import Helium.ModuleSystem.ImportEnvironment hiding (setTypeSynonyms, classEnvironment)
+import qualified  Helium.ModuleSystem.ImportEnvironment as IE
 import Helium.Utils.Utils (internalError)
+import Helium.Utils.QualifiedTypes
 import qualified Helium.Syntax.UHA_Pretty as PP
 import Control.Monad.Identity (Identity)
 import qualified Control.Monad.Identity
@@ -44,26 +48,32 @@ analyseTypingStrategy ts ie =
 findDuplicates :: Ord a => [a] -> [[a]]
 findDuplicates = filter (not . isSingleton) . group . sort
    where isSingleton [_] = True
-         isSingleton _   = False        
+         isSingleton _   = False    
+
+unQualifyTypePair :: ImportEnvironment -> ConstraintInfo -> ConstraintInfo
+unQualifyTypePair env cinfo = let f (TypePair (t1, t2)) = TypePair (unqualifier t1, unqualifier t2)
+                                  f x                   = x
+                                  unqualifier           = convertTp (unQualifyName env)
+                              in cinfo { properties = map f (properties cinfo)}    
 -- Alternative -------------------------------------------------
 -- wrapper
 data Inh_Alternative  = Inh_Alternative {  }
-data Syn_Alternative  = Syn_Alternative { self_Syn_Alternative :: (Alternative) }
+data Syn_Alternative  = Syn_Alternative { self_Syn_Alternative :: !(Alternative) }
 {-# INLINABLE wrap_Alternative #-}
 wrap_Alternative :: T_Alternative  -> Inh_Alternative  -> (Syn_Alternative )
-wrap_Alternative (T_Alternative act) (Inh_Alternative ) =
+wrap_Alternative !(T_Alternative act) !(Inh_Alternative ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg1 = T_Alternative_vIn1 
-        (T_Alternative_vOut1 _lhsOself) <- return (inv_Alternative_s2 sem arg1)
+        !(T_Alternative_vOut1 _lhsOself) <- return (inv_Alternative_s2 sem arg1)
         return (Syn_Alternative _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_Alternative #-}
 sem_Alternative :: Alternative  -> T_Alternative 
-sem_Alternative ( Alternative_Hole range_ id_ ) = sem_Alternative_Hole ( sem_Range range_ ) id_
-sem_Alternative ( Alternative_Feedback range_ feedback_ alternative_ ) = sem_Alternative_Feedback ( sem_Range range_ ) feedback_ ( sem_Alternative alternative_ )
+sem_Alternative ( Alternative_Hole range_ !id_ ) = sem_Alternative_Hole ( sem_Range range_ ) id_
+sem_Alternative ( Alternative_Feedback range_ !feedback_ alternative_ ) = sem_Alternative_Feedback ( sem_Range range_ ) feedback_ ( sem_Alternative alternative_ )
 sem_Alternative ( Alternative_Alternative range_ pattern_ righthandside_ ) = sem_Alternative_Alternative ( sem_Range range_ ) ( sem_Pattern pattern_ ) ( sem_RightHandSide righthandside_ )
 sem_Alternative ( Alternative_Empty range_ ) = sem_Alternative_Empty ( sem_Range range_ )
 
@@ -80,17 +90,17 @@ data T_Alternative_vIn1  = T_Alternative_vIn1
 data T_Alternative_vOut1  = T_Alternative_vOut1 (Alternative)
 {-# NOINLINE sem_Alternative_Hole #-}
 sem_Alternative_Hole :: T_Range  -> (String) -> T_Alternative 
-sem_Alternative_Hole arg_range_ arg_id_ = T_Alternative (return st2) where
+sem_Alternative_Hole arg_range_ !arg_id_ = T_Alternative (return st2) where
    {-# NOINLINE st2 #-}
-   st2 = let
+   !st2 = let
       v1 :: T_Alternative_v1 
-      v1 = \ (T_Alternative_vIn1 ) -> ( let
+      v1 = \ !(T_Alternative_vIn1 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          _self = rule0 _rangeIself arg_id_
          _lhsOself :: Alternative
          _lhsOself = rule1 _self
-         __result_ = T_Alternative_vOut1 _lhsOself
+         !__result_ = T_Alternative_vOut1 _lhsOself
          in __result_ )
      in C_Alternative_s2 v1
    {-# INLINE rule0 #-}
@@ -101,11 +111,11 @@ sem_Alternative_Hole arg_range_ arg_id_ = T_Alternative (return st2) where
      _self
 {-# NOINLINE sem_Alternative_Feedback #-}
 sem_Alternative_Feedback :: T_Range  -> (String) -> T_Alternative  -> T_Alternative 
-sem_Alternative_Feedback arg_range_ arg_feedback_ arg_alternative_ = T_Alternative (return st2) where
+sem_Alternative_Feedback arg_range_ !arg_feedback_ arg_alternative_ = T_Alternative (return st2) where
    {-# NOINLINE st2 #-}
-   st2 = let
+   !st2 = let
       v1 :: T_Alternative_v1 
-      v1 = \ (T_Alternative_vIn1 ) -> ( let
+      v1 = \ !(T_Alternative_vIn1 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _alternativeX2 = Control.Monad.Identity.runIdentity (attach_T_Alternative (arg_alternative_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
@@ -113,7 +123,7 @@ sem_Alternative_Feedback arg_range_ arg_feedback_ arg_alternative_ = T_Alternati
          _self = rule2 _alternativeIself _rangeIself arg_feedback_
          _lhsOself :: Alternative
          _lhsOself = rule3 _self
-         __result_ = T_Alternative_vOut1 _lhsOself
+         !__result_ = T_Alternative_vOut1 _lhsOself
          in __result_ )
      in C_Alternative_s2 v1
    {-# INLINE rule2 #-}
@@ -126,9 +136,9 @@ sem_Alternative_Feedback arg_range_ arg_feedback_ arg_alternative_ = T_Alternati
 sem_Alternative_Alternative :: T_Range  -> T_Pattern  -> T_RightHandSide  -> T_Alternative 
 sem_Alternative_Alternative arg_range_ arg_pattern_ arg_righthandside_ = T_Alternative (return st2) where
    {-# NOINLINE st2 #-}
-   st2 = let
+   !st2 = let
       v1 :: T_Alternative_v1 
-      v1 = \ (T_Alternative_vIn1 ) -> ( let
+      v1 = \ !(T_Alternative_vIn1 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternX122 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          _righthandsideX152 = Control.Monad.Identity.runIdentity (attach_T_RightHandSide (arg_righthandside_))
@@ -138,7 +148,7 @@ sem_Alternative_Alternative arg_range_ arg_pattern_ arg_righthandside_ = T_Alter
          _self = rule4 _patternIself _rangeIself _righthandsideIself
          _lhsOself :: Alternative
          _lhsOself = rule5 _self
-         __result_ = T_Alternative_vOut1 _lhsOself
+         !__result_ = T_Alternative_vOut1 _lhsOself
          in __result_ )
      in C_Alternative_s2 v1
    {-# INLINE rule4 #-}
@@ -151,15 +161,15 @@ sem_Alternative_Alternative arg_range_ arg_pattern_ arg_righthandside_ = T_Alter
 sem_Alternative_Empty :: T_Range  -> T_Alternative 
 sem_Alternative_Empty arg_range_ = T_Alternative (return st2) where
    {-# NOINLINE st2 #-}
-   st2 = let
+   !st2 = let
       v1 :: T_Alternative_v1 
-      v1 = \ (T_Alternative_vIn1 ) -> ( let
+      v1 = \ !(T_Alternative_vIn1 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          _self = rule6 _rangeIself
          _lhsOself :: Alternative
          _lhsOself = rule7 _self
-         __result_ = T_Alternative_vOut1 _lhsOself
+         !__result_ = T_Alternative_vOut1 _lhsOself
          in __result_ )
      in C_Alternative_s2 v1
    {-# INLINE rule6 #-}
@@ -172,14 +182,14 @@ sem_Alternative_Empty arg_range_ = T_Alternative (return st2) where
 -- Alternatives ------------------------------------------------
 -- wrapper
 data Inh_Alternatives  = Inh_Alternatives {  }
-data Syn_Alternatives  = Syn_Alternatives { self_Syn_Alternatives :: (Alternatives) }
+data Syn_Alternatives  = Syn_Alternatives { self_Syn_Alternatives :: !(Alternatives) }
 {-# INLINABLE wrap_Alternatives #-}
 wrap_Alternatives :: T_Alternatives  -> Inh_Alternatives  -> (Syn_Alternatives )
-wrap_Alternatives (T_Alternatives act) (Inh_Alternatives ) =
+wrap_Alternatives !(T_Alternatives act) !(Inh_Alternatives ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg4 = T_Alternatives_vIn4 
-        (T_Alternatives_vOut4 _lhsOself) <- return (inv_Alternatives_s5 sem arg4)
+        !(T_Alternatives_vOut4 _lhsOself) <- return (inv_Alternatives_s5 sem arg4)
         return (Syn_Alternatives _lhsOself)
    )
 
@@ -203,9 +213,9 @@ data T_Alternatives_vOut4  = T_Alternatives_vOut4 (Alternatives)
 sem_Alternatives_Cons :: T_Alternative  -> T_Alternatives  -> T_Alternatives 
 sem_Alternatives_Cons arg_hd_ arg_tl_ = T_Alternatives (return st5) where
    {-# NOINLINE st5 #-}
-   st5 = let
+   !st5 = let
       v4 :: T_Alternatives_v4 
-      v4 = \ (T_Alternatives_vIn4 ) -> ( let
+      v4 = \ !(T_Alternatives_vIn4 ) -> ( let
          _hdX2 = Control.Monad.Identity.runIdentity (attach_T_Alternative (arg_hd_))
          _tlX5 = Control.Monad.Identity.runIdentity (attach_T_Alternatives (arg_tl_))
          (T_Alternative_vOut1 _hdIself) = inv_Alternative_s2 _hdX2 (T_Alternative_vIn1 )
@@ -213,7 +223,7 @@ sem_Alternatives_Cons arg_hd_ arg_tl_ = T_Alternatives (return st5) where
          _self = rule8 _hdIself _tlIself
          _lhsOself :: Alternatives
          _lhsOself = rule9 _self
-         __result_ = T_Alternatives_vOut4 _lhsOself
+         !__result_ = T_Alternatives_vOut4 _lhsOself
          in __result_ )
      in C_Alternatives_s5 v4
    {-# INLINE rule8 #-}
@@ -226,13 +236,13 @@ sem_Alternatives_Cons arg_hd_ arg_tl_ = T_Alternatives (return st5) where
 sem_Alternatives_Nil ::  T_Alternatives 
 sem_Alternatives_Nil  = T_Alternatives (return st5) where
    {-# NOINLINE st5 #-}
-   st5 = let
+   !st5 = let
       v4 :: T_Alternatives_v4 
-      v4 = \ (T_Alternatives_vIn4 ) -> ( let
+      v4 = \ !(T_Alternatives_vIn4 ) -> ( let
          _self = rule10  ()
          _lhsOself :: Alternatives
          _lhsOself = rule11 _self
-         __result_ = T_Alternatives_vOut4 _lhsOself
+         !__result_ = T_Alternatives_vOut4 _lhsOself
          in __result_ )
      in C_Alternatives_s5 v4
    {-# INLINE rule10 #-}
@@ -245,21 +255,21 @@ sem_Alternatives_Nil  = T_Alternatives (return st5) where
 -- AnnotatedType -----------------------------------------------
 -- wrapper
 data Inh_AnnotatedType  = Inh_AnnotatedType {  }
-data Syn_AnnotatedType  = Syn_AnnotatedType { self_Syn_AnnotatedType :: (AnnotatedType) }
+data Syn_AnnotatedType  = Syn_AnnotatedType { self_Syn_AnnotatedType :: !(AnnotatedType) }
 {-# INLINABLE wrap_AnnotatedType #-}
 wrap_AnnotatedType :: T_AnnotatedType  -> Inh_AnnotatedType  -> (Syn_AnnotatedType )
-wrap_AnnotatedType (T_AnnotatedType act) (Inh_AnnotatedType ) =
+wrap_AnnotatedType !(T_AnnotatedType act) !(Inh_AnnotatedType ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg7 = T_AnnotatedType_vIn7 
-        (T_AnnotatedType_vOut7 _lhsOself) <- return (inv_AnnotatedType_s8 sem arg7)
+        !(T_AnnotatedType_vOut7 _lhsOself) <- return (inv_AnnotatedType_s8 sem arg7)
         return (Syn_AnnotatedType _lhsOself)
    )
 
 -- cata
 {-# INLINE sem_AnnotatedType #-}
 sem_AnnotatedType :: AnnotatedType  -> T_AnnotatedType 
-sem_AnnotatedType ( AnnotatedType_AnnotatedType range_ strict_ type_ ) = sem_AnnotatedType_AnnotatedType ( sem_Range range_ ) strict_ ( sem_Type type_ )
+sem_AnnotatedType ( AnnotatedType_AnnotatedType range_ !strict_ type_ ) = sem_AnnotatedType_AnnotatedType ( sem_Range range_ ) strict_ ( sem_Type type_ )
 
 -- semantic domain
 newtype T_AnnotatedType  = T_AnnotatedType {
@@ -274,19 +284,20 @@ data T_AnnotatedType_vIn7  = T_AnnotatedType_vIn7
 data T_AnnotatedType_vOut7  = T_AnnotatedType_vOut7 (AnnotatedType)
 {-# NOINLINE sem_AnnotatedType_AnnotatedType #-}
 sem_AnnotatedType_AnnotatedType :: T_Range  -> (Bool) -> T_Type  -> T_AnnotatedType 
-sem_AnnotatedType_AnnotatedType arg_range_ arg_strict_ arg_type_ = T_AnnotatedType (return st8) where
+sem_AnnotatedType_AnnotatedType arg_range_ !arg_strict_ arg_type_ = T_AnnotatedType (return st8) where
    {-# NOINLINE st8 #-}
-   st8 = let
+   !st8 = let
       v7 :: T_AnnotatedType_v7 
-      v7 = \ (T_AnnotatedType_vIn7 ) -> ( let
+      v7 = \ !(T_AnnotatedType_vIn7 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _typeX173 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 )
+         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 _typeOqualifier)
          _self = rule12 _rangeIself _typeIself arg_strict_
          _lhsOself :: AnnotatedType
          _lhsOself = rule13 _self
-         __result_ = T_AnnotatedType_vOut7 _lhsOself
+         _typeOqualifier = rule14  ()
+         !__result_ = T_AnnotatedType_vOut7 _lhsOself
          in __result_ )
      in C_AnnotatedType_s8 v7
    {-# INLINE rule12 #-}
@@ -295,18 +306,21 @@ sem_AnnotatedType_AnnotatedType arg_range_ arg_strict_ arg_type_ = T_AnnotatedTy
    {-# INLINE rule13 #-}
    rule13 = \ _self ->
      _self
+   {-# INLINE rule14 #-}
+   rule14 = \  (_ :: ()) ->
+     error "missing rule: AnnotatedType.AnnotatedType.type.qualifier"
 
 -- AnnotatedTypes ----------------------------------------------
 -- wrapper
 data Inh_AnnotatedTypes  = Inh_AnnotatedTypes {  }
-data Syn_AnnotatedTypes  = Syn_AnnotatedTypes { self_Syn_AnnotatedTypes :: (AnnotatedTypes) }
+data Syn_AnnotatedTypes  = Syn_AnnotatedTypes { self_Syn_AnnotatedTypes :: !(AnnotatedTypes) }
 {-# INLINABLE wrap_AnnotatedTypes #-}
 wrap_AnnotatedTypes :: T_AnnotatedTypes  -> Inh_AnnotatedTypes  -> (Syn_AnnotatedTypes )
-wrap_AnnotatedTypes (T_AnnotatedTypes act) (Inh_AnnotatedTypes ) =
+wrap_AnnotatedTypes !(T_AnnotatedTypes act) !(Inh_AnnotatedTypes ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg10 = T_AnnotatedTypes_vIn10 
-        (T_AnnotatedTypes_vOut10 _lhsOself) <- return (inv_AnnotatedTypes_s11 sem arg10)
+        !(T_AnnotatedTypes_vOut10 _lhsOself) <- return (inv_AnnotatedTypes_s11 sem arg10)
         return (Syn_AnnotatedTypes _lhsOself)
    )
 
@@ -330,63 +344,63 @@ data T_AnnotatedTypes_vOut10  = T_AnnotatedTypes_vOut10 (AnnotatedTypes)
 sem_AnnotatedTypes_Cons :: T_AnnotatedType  -> T_AnnotatedTypes  -> T_AnnotatedTypes 
 sem_AnnotatedTypes_Cons arg_hd_ arg_tl_ = T_AnnotatedTypes (return st11) where
    {-# NOINLINE st11 #-}
-   st11 = let
+   !st11 = let
       v10 :: T_AnnotatedTypes_v10 
-      v10 = \ (T_AnnotatedTypes_vIn10 ) -> ( let
+      v10 = \ !(T_AnnotatedTypes_vIn10 ) -> ( let
          _hdX8 = Control.Monad.Identity.runIdentity (attach_T_AnnotatedType (arg_hd_))
          _tlX11 = Control.Monad.Identity.runIdentity (attach_T_AnnotatedTypes (arg_tl_))
          (T_AnnotatedType_vOut7 _hdIself) = inv_AnnotatedType_s8 _hdX8 (T_AnnotatedType_vIn7 )
          (T_AnnotatedTypes_vOut10 _tlIself) = inv_AnnotatedTypes_s11 _tlX11 (T_AnnotatedTypes_vIn10 )
-         _self = rule14 _hdIself _tlIself
+         _self = rule15 _hdIself _tlIself
          _lhsOself :: AnnotatedTypes
-         _lhsOself = rule15 _self
-         __result_ = T_AnnotatedTypes_vOut10 _lhsOself
+         _lhsOself = rule16 _self
+         !__result_ = T_AnnotatedTypes_vOut10 _lhsOself
          in __result_ )
      in C_AnnotatedTypes_s11 v10
-   {-# INLINE rule14 #-}
-   rule14 = \ ((_hdIself) :: AnnotatedType) ((_tlIself) :: AnnotatedTypes) ->
-     (:) _hdIself _tlIself
    {-# INLINE rule15 #-}
-   rule15 = \ _self ->
+   rule15 = \ ((_hdIself) :: AnnotatedType) ((_tlIself) :: AnnotatedTypes) ->
+     (:) _hdIself _tlIself
+   {-# INLINE rule16 #-}
+   rule16 = \ _self ->
      _self
 {-# NOINLINE sem_AnnotatedTypes_Nil #-}
 sem_AnnotatedTypes_Nil ::  T_AnnotatedTypes 
 sem_AnnotatedTypes_Nil  = T_AnnotatedTypes (return st11) where
    {-# NOINLINE st11 #-}
-   st11 = let
+   !st11 = let
       v10 :: T_AnnotatedTypes_v10 
-      v10 = \ (T_AnnotatedTypes_vIn10 ) -> ( let
-         _self = rule16  ()
+      v10 = \ !(T_AnnotatedTypes_vIn10 ) -> ( let
+         _self = rule17  ()
          _lhsOself :: AnnotatedTypes
-         _lhsOself = rule17 _self
-         __result_ = T_AnnotatedTypes_vOut10 _lhsOself
+         _lhsOself = rule18 _self
+         !__result_ = T_AnnotatedTypes_vOut10 _lhsOself
          in __result_ )
      in C_AnnotatedTypes_s11 v10
-   {-# INLINE rule16 #-}
-   rule16 = \  (_ :: ()) ->
-     []
    {-# INLINE rule17 #-}
-   rule17 = \ _self ->
+   rule17 = \  (_ :: ()) ->
+     []
+   {-# INLINE rule18 #-}
+   rule18 = \ _self ->
      _self
 
 -- Body --------------------------------------------------------
 -- wrapper
 data Inh_Body  = Inh_Body {  }
-data Syn_Body  = Syn_Body { self_Syn_Body :: (Body) }
+data Syn_Body  = Syn_Body { self_Syn_Body :: !(Body) }
 {-# INLINABLE wrap_Body #-}
 wrap_Body :: T_Body  -> Inh_Body  -> (Syn_Body )
-wrap_Body (T_Body act) (Inh_Body ) =
+wrap_Body !(T_Body act) !(Inh_Body ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg13 = T_Body_vIn13 
-        (T_Body_vOut13 _lhsOself) <- return (inv_Body_s14 sem arg13)
+        !(T_Body_vOut13 _lhsOself) <- return (inv_Body_s14 sem arg13)
         return (Syn_Body _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_Body #-}
 sem_Body :: Body  -> T_Body 
-sem_Body ( Body_Hole range_ id_ ) = sem_Body_Hole ( sem_Range range_ ) id_
+sem_Body ( Body_Hole range_ !id_ ) = sem_Body_Hole ( sem_Range range_ ) id_
 sem_Body ( Body_Body range_ importdeclarations_ declarations_ ) = sem_Body_Body ( sem_Range range_ ) ( sem_ImportDeclarations importdeclarations_ ) ( sem_Declarations declarations_ )
 
 -- semantic domain
@@ -402,62 +416,62 @@ data T_Body_vIn13  = T_Body_vIn13
 data T_Body_vOut13  = T_Body_vOut13 (Body)
 {-# NOINLINE sem_Body_Hole #-}
 sem_Body_Hole :: T_Range  -> (String) -> T_Body 
-sem_Body_Hole arg_range_ arg_id_ = T_Body (return st14) where
+sem_Body_Hole arg_range_ !arg_id_ = T_Body (return st14) where
    {-# NOINLINE st14 #-}
-   st14 = let
+   !st14 = let
       v13 :: T_Body_v13 
-      v13 = \ (T_Body_vIn13 ) -> ( let
+      v13 = \ !(T_Body_vIn13 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         _self = rule18 _rangeIself arg_id_
+         _self = rule19 _rangeIself arg_id_
          _lhsOself :: Body
-         _lhsOself = rule19 _self
-         __result_ = T_Body_vOut13 _lhsOself
+         _lhsOself = rule20 _self
+         !__result_ = T_Body_vOut13 _lhsOself
          in __result_ )
      in C_Body_s14 v13
-   {-# INLINE rule18 #-}
-   rule18 = \ ((_rangeIself) :: Range) id_ ->
-     Body_Hole _rangeIself id_
    {-# INLINE rule19 #-}
-   rule19 = \ _self ->
+   rule19 = \ ((_rangeIself) :: Range) id_ ->
+     Body_Hole _rangeIself id_
+   {-# INLINE rule20 #-}
+   rule20 = \ _self ->
      _self
 {-# NOINLINE sem_Body_Body #-}
 sem_Body_Body :: T_Range  -> T_ImportDeclarations  -> T_Declarations  -> T_Body 
 sem_Body_Body arg_range_ arg_importdeclarations_ arg_declarations_ = T_Body (return st14) where
    {-# NOINLINE st14 #-}
-   st14 = let
+   !st14 = let
       v13 :: T_Body_v13 
-      v13 = \ (T_Body_vIn13 ) -> ( let
+      v13 = \ !(T_Body_vIn13 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _importdeclarationsX74 = Control.Monad.Identity.runIdentity (attach_T_ImportDeclarations (arg_importdeclarations_))
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_ImportDeclarations_vOut73 _importdeclarationsIself) = inv_ImportDeclarations_s74 _importdeclarationsX74 (T_ImportDeclarations_vIn73 )
          (T_Declarations_vOut31 _declarationsIself) = inv_Declarations_s32 _declarationsX32 (T_Declarations_vIn31 )
-         _self = rule20 _declarationsIself _importdeclarationsIself _rangeIself
+         _self = rule21 _declarationsIself _importdeclarationsIself _rangeIself
          _lhsOself :: Body
-         _lhsOself = rule21 _self
-         __result_ = T_Body_vOut13 _lhsOself
+         _lhsOself = rule22 _self
+         !__result_ = T_Body_vOut13 _lhsOself
          in __result_ )
      in C_Body_s14 v13
-   {-# INLINE rule20 #-}
-   rule20 = \ ((_declarationsIself) :: Declarations) ((_importdeclarationsIself) :: ImportDeclarations) ((_rangeIself) :: Range) ->
-     Body_Body _rangeIself _importdeclarationsIself _declarationsIself
    {-# INLINE rule21 #-}
-   rule21 = \ _self ->
+   rule21 = \ ((_declarationsIself) :: Declarations) ((_importdeclarationsIself) :: ImportDeclarations) ((_rangeIself) :: Range) ->
+     Body_Body _rangeIself _importdeclarationsIself _declarationsIself
+   {-# INLINE rule22 #-}
+   rule22 = \ _self ->
      _self
 
 -- Constructor -------------------------------------------------
 -- wrapper
 data Inh_Constructor  = Inh_Constructor {  }
-data Syn_Constructor  = Syn_Constructor { self_Syn_Constructor :: (Constructor) }
+data Syn_Constructor  = Syn_Constructor { self_Syn_Constructor :: !(Constructor) }
 {-# INLINABLE wrap_Constructor #-}
 wrap_Constructor :: T_Constructor  -> Inh_Constructor  -> (Syn_Constructor )
-wrap_Constructor (T_Constructor act) (Inh_Constructor ) =
+wrap_Constructor !(T_Constructor act) !(Inh_Constructor ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg16 = T_Constructor_vIn16 
-        (T_Constructor_vOut16 _lhsOself) <- return (inv_Constructor_s17 sem arg16)
+        !(T_Constructor_vOut16 _lhsOself) <- return (inv_Constructor_s17 sem arg16)
         return (Syn_Constructor _lhsOself)
    )
 
@@ -483,34 +497,34 @@ data T_Constructor_vOut16  = T_Constructor_vOut16 (Constructor)
 sem_Constructor_Constructor :: T_Range  -> T_Name  -> T_AnnotatedTypes  -> T_Constructor 
 sem_Constructor_Constructor arg_range_ arg_constructor_ arg_types_ = T_Constructor (return st17) where
    {-# NOINLINE st17 #-}
-   st17 = let
+   !st17 = let
       v16 :: T_Constructor_v16 
-      v16 = \ (T_Constructor_vIn16 ) -> ( let
+      v16 = \ !(T_Constructor_vIn16 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _constructorX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_constructor_))
          _typesX11 = Control.Monad.Identity.runIdentity (attach_T_AnnotatedTypes (arg_types_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Name_vOut115 _constructorIself) = inv_Name_s116 _constructorX116 (T_Name_vIn115 )
          (T_AnnotatedTypes_vOut10 _typesIself) = inv_AnnotatedTypes_s11 _typesX11 (T_AnnotatedTypes_vIn10 )
-         _self = rule22 _constructorIself _rangeIself _typesIself
+         _self = rule23 _constructorIself _rangeIself _typesIself
          _lhsOself :: Constructor
-         _lhsOself = rule23 _self
-         __result_ = T_Constructor_vOut16 _lhsOself
+         _lhsOself = rule24 _self
+         !__result_ = T_Constructor_vOut16 _lhsOself
          in __result_ )
      in C_Constructor_s17 v16
-   {-# INLINE rule22 #-}
-   rule22 = \ ((_constructorIself) :: Name) ((_rangeIself) :: Range) ((_typesIself) :: AnnotatedTypes) ->
-     Constructor_Constructor _rangeIself _constructorIself _typesIself
    {-# INLINE rule23 #-}
-   rule23 = \ _self ->
+   rule23 = \ ((_constructorIself) :: Name) ((_rangeIself) :: Range) ((_typesIself) :: AnnotatedTypes) ->
+     Constructor_Constructor _rangeIself _constructorIself _typesIself
+   {-# INLINE rule24 #-}
+   rule24 = \ _self ->
      _self
 {-# NOINLINE sem_Constructor_Infix #-}
 sem_Constructor_Infix :: T_Range  -> T_AnnotatedType  -> T_Name  -> T_AnnotatedType  -> T_Constructor 
 sem_Constructor_Infix arg_range_ arg_leftType_ arg_constructorOperator_ arg_rightType_ = T_Constructor (return st17) where
    {-# NOINLINE st17 #-}
-   st17 = let
+   !st17 = let
       v16 :: T_Constructor_v16 
-      v16 = \ (T_Constructor_vIn16 ) -> ( let
+      v16 = \ !(T_Constructor_vIn16 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _leftTypeX8 = Control.Monad.Identity.runIdentity (attach_T_AnnotatedType (arg_leftType_))
          _constructorOperatorX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_constructorOperator_))
@@ -519,55 +533,55 @@ sem_Constructor_Infix arg_range_ arg_leftType_ arg_constructorOperator_ arg_righ
          (T_AnnotatedType_vOut7 _leftTypeIself) = inv_AnnotatedType_s8 _leftTypeX8 (T_AnnotatedType_vIn7 )
          (T_Name_vOut115 _constructorOperatorIself) = inv_Name_s116 _constructorOperatorX116 (T_Name_vIn115 )
          (T_AnnotatedType_vOut7 _rightTypeIself) = inv_AnnotatedType_s8 _rightTypeX8 (T_AnnotatedType_vIn7 )
-         _self = rule24 _constructorOperatorIself _leftTypeIself _rangeIself _rightTypeIself
+         _self = rule25 _constructorOperatorIself _leftTypeIself _rangeIself _rightTypeIself
          _lhsOself :: Constructor
-         _lhsOself = rule25 _self
-         __result_ = T_Constructor_vOut16 _lhsOself
+         _lhsOself = rule26 _self
+         !__result_ = T_Constructor_vOut16 _lhsOself
          in __result_ )
      in C_Constructor_s17 v16
-   {-# INLINE rule24 #-}
-   rule24 = \ ((_constructorOperatorIself) :: Name) ((_leftTypeIself) :: AnnotatedType) ((_rangeIself) :: Range) ((_rightTypeIself) :: AnnotatedType) ->
-     Constructor_Infix _rangeIself _leftTypeIself _constructorOperatorIself _rightTypeIself
    {-# INLINE rule25 #-}
-   rule25 = \ _self ->
+   rule25 = \ ((_constructorOperatorIself) :: Name) ((_leftTypeIself) :: AnnotatedType) ((_rangeIself) :: Range) ((_rightTypeIself) :: AnnotatedType) ->
+     Constructor_Infix _rangeIself _leftTypeIself _constructorOperatorIself _rightTypeIself
+   {-# INLINE rule26 #-}
+   rule26 = \ _self ->
      _self
 {-# NOINLINE sem_Constructor_Record #-}
 sem_Constructor_Record :: T_Range  -> T_Name  -> T_FieldDeclarations  -> T_Constructor 
 sem_Constructor_Record arg_range_ arg_constructor_ arg_fieldDeclarations_ = T_Constructor (return st17) where
    {-# NOINLINE st17 #-}
-   st17 = let
+   !st17 = let
       v16 :: T_Constructor_v16 
-      v16 = \ (T_Constructor_vIn16 ) -> ( let
+      v16 = \ !(T_Constructor_vIn16 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _constructorX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_constructor_))
          _fieldDeclarationsX50 = Control.Monad.Identity.runIdentity (attach_T_FieldDeclarations (arg_fieldDeclarations_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Name_vOut115 _constructorIself) = inv_Name_s116 _constructorX116 (T_Name_vIn115 )
          (T_FieldDeclarations_vOut49 _fieldDeclarationsIself) = inv_FieldDeclarations_s50 _fieldDeclarationsX50 (T_FieldDeclarations_vIn49 )
-         _self = rule26 _constructorIself _fieldDeclarationsIself _rangeIself
+         _self = rule27 _constructorIself _fieldDeclarationsIself _rangeIself
          _lhsOself :: Constructor
-         _lhsOself = rule27 _self
-         __result_ = T_Constructor_vOut16 _lhsOself
+         _lhsOself = rule28 _self
+         !__result_ = T_Constructor_vOut16 _lhsOself
          in __result_ )
      in C_Constructor_s17 v16
-   {-# INLINE rule26 #-}
-   rule26 = \ ((_constructorIself) :: Name) ((_fieldDeclarationsIself) :: FieldDeclarations) ((_rangeIself) :: Range) ->
-     Constructor_Record _rangeIself _constructorIself _fieldDeclarationsIself
    {-# INLINE rule27 #-}
-   rule27 = \ _self ->
+   rule27 = \ ((_constructorIself) :: Name) ((_fieldDeclarationsIself) :: FieldDeclarations) ((_rangeIself) :: Range) ->
+     Constructor_Record _rangeIself _constructorIself _fieldDeclarationsIself
+   {-# INLINE rule28 #-}
+   rule28 = \ _self ->
      _self
 
 -- Constructors ------------------------------------------------
 -- wrapper
 data Inh_Constructors  = Inh_Constructors {  }
-data Syn_Constructors  = Syn_Constructors { self_Syn_Constructors :: (Constructors) }
+data Syn_Constructors  = Syn_Constructors { self_Syn_Constructors :: !(Constructors) }
 {-# INLINABLE wrap_Constructors #-}
 wrap_Constructors :: T_Constructors  -> Inh_Constructors  -> (Syn_Constructors )
-wrap_Constructors (T_Constructors act) (Inh_Constructors ) =
+wrap_Constructors !(T_Constructors act) !(Inh_Constructors ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg19 = T_Constructors_vIn19 
-        (T_Constructors_vOut19 _lhsOself) <- return (inv_Constructors_s20 sem arg19)
+        !(T_Constructors_vOut19 _lhsOself) <- return (inv_Constructors_s20 sem arg19)
         return (Syn_Constructors _lhsOself)
    )
 
@@ -591,56 +605,56 @@ data T_Constructors_vOut19  = T_Constructors_vOut19 (Constructors)
 sem_Constructors_Cons :: T_Constructor  -> T_Constructors  -> T_Constructors 
 sem_Constructors_Cons arg_hd_ arg_tl_ = T_Constructors (return st20) where
    {-# NOINLINE st20 #-}
-   st20 = let
+   !st20 = let
       v19 :: T_Constructors_v19 
-      v19 = \ (T_Constructors_vIn19 ) -> ( let
+      v19 = \ !(T_Constructors_vIn19 ) -> ( let
          _hdX17 = Control.Monad.Identity.runIdentity (attach_T_Constructor (arg_hd_))
          _tlX20 = Control.Monad.Identity.runIdentity (attach_T_Constructors (arg_tl_))
          (T_Constructor_vOut16 _hdIself) = inv_Constructor_s17 _hdX17 (T_Constructor_vIn16 )
          (T_Constructors_vOut19 _tlIself) = inv_Constructors_s20 _tlX20 (T_Constructors_vIn19 )
-         _self = rule28 _hdIself _tlIself
+         _self = rule29 _hdIself _tlIself
          _lhsOself :: Constructors
-         _lhsOself = rule29 _self
-         __result_ = T_Constructors_vOut19 _lhsOself
+         _lhsOself = rule30 _self
+         !__result_ = T_Constructors_vOut19 _lhsOself
          in __result_ )
      in C_Constructors_s20 v19
-   {-# INLINE rule28 #-}
-   rule28 = \ ((_hdIself) :: Constructor) ((_tlIself) :: Constructors) ->
-     (:) _hdIself _tlIself
    {-# INLINE rule29 #-}
-   rule29 = \ _self ->
+   rule29 = \ ((_hdIself) :: Constructor) ((_tlIself) :: Constructors) ->
+     (:) _hdIself _tlIself
+   {-# INLINE rule30 #-}
+   rule30 = \ _self ->
      _self
 {-# NOINLINE sem_Constructors_Nil #-}
 sem_Constructors_Nil ::  T_Constructors 
 sem_Constructors_Nil  = T_Constructors (return st20) where
    {-# NOINLINE st20 #-}
-   st20 = let
+   !st20 = let
       v19 :: T_Constructors_v19 
-      v19 = \ (T_Constructors_vIn19 ) -> ( let
-         _self = rule30  ()
+      v19 = \ !(T_Constructors_vIn19 ) -> ( let
+         _self = rule31  ()
          _lhsOself :: Constructors
-         _lhsOself = rule31 _self
-         __result_ = T_Constructors_vOut19 _lhsOself
+         _lhsOself = rule32 _self
+         !__result_ = T_Constructors_vOut19 _lhsOself
          in __result_ )
      in C_Constructors_s20 v19
-   {-# INLINE rule30 #-}
-   rule30 = \  (_ :: ()) ->
-     []
    {-# INLINE rule31 #-}
-   rule31 = \ _self ->
+   rule31 = \  (_ :: ()) ->
+     []
+   {-# INLINE rule32 #-}
+   rule32 = \ _self ->
      _self
 
 -- ContextItem -------------------------------------------------
 -- wrapper
 data Inh_ContextItem  = Inh_ContextItem {  }
-data Syn_ContextItem  = Syn_ContextItem { self_Syn_ContextItem :: (ContextItem) }
+data Syn_ContextItem  = Syn_ContextItem { self_Syn_ContextItem :: !(ContextItem) }
 {-# INLINABLE wrap_ContextItem #-}
 wrap_ContextItem :: T_ContextItem  -> Inh_ContextItem  -> (Syn_ContextItem )
-wrap_ContextItem (T_ContextItem act) (Inh_ContextItem ) =
+wrap_ContextItem !(T_ContextItem act) !(Inh_ContextItem ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg22 = T_ContextItem_vIn22 
-        (T_ContextItem_vOut22 _lhsOself) <- return (inv_ContextItem_s23 sem arg22)
+        !(T_ContextItem_vOut22 _lhsOself) <- return (inv_ContextItem_s23 sem arg22)
         return (Syn_ContextItem _lhsOself)
    )
 
@@ -664,39 +678,43 @@ data T_ContextItem_vOut22  = T_ContextItem_vOut22 (ContextItem)
 sem_ContextItem_ContextItem :: T_Range  -> T_Name  -> T_Types  -> T_ContextItem 
 sem_ContextItem_ContextItem arg_range_ arg_name_ arg_types_ = T_ContextItem (return st23) where
    {-# NOINLINE st23 #-}
-   st23 = let
+   !st23 = let
       v22 :: T_ContextItem_v22 
-      v22 = \ (T_ContextItem_vIn22 ) -> ( let
+      v22 = \ !(T_ContextItem_vIn22 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _typesX179 = Control.Monad.Identity.runIdentity (attach_T_Types (arg_types_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
-         (T_Types_vOut178 _typesIself _typesItypevariables) = inv_Types_s179 _typesX179 (T_Types_vIn178 )
-         _self = rule32 _nameIself _rangeIself _typesIself
+         (T_Types_vOut178 _typesIself _typesItypevariables) = inv_Types_s179 _typesX179 (T_Types_vIn178 _typesOqualifier)
+         _self = rule33 _nameIself _rangeIself _typesIself
          _lhsOself :: ContextItem
-         _lhsOself = rule33 _self
-         __result_ = T_ContextItem_vOut22 _lhsOself
+         _lhsOself = rule34 _self
+         _typesOqualifier = rule35  ()
+         !__result_ = T_ContextItem_vOut22 _lhsOself
          in __result_ )
      in C_ContextItem_s23 v22
-   {-# INLINE rule32 #-}
-   rule32 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_typesIself) :: Types) ->
-     ContextItem_ContextItem _rangeIself _nameIself _typesIself
    {-# INLINE rule33 #-}
-   rule33 = \ _self ->
+   rule33 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_typesIself) :: Types) ->
+     ContextItem_ContextItem _rangeIself _nameIself _typesIself
+   {-# INLINE rule34 #-}
+   rule34 = \ _self ->
      _self
+   {-# INLINE rule35 #-}
+   rule35 = \  (_ :: ()) ->
+     error "missing rule: ContextItem.ContextItem.types.qualifier"
 
 -- ContextItems ------------------------------------------------
 -- wrapper
 data Inh_ContextItems  = Inh_ContextItems {  }
-data Syn_ContextItems  = Syn_ContextItems { self_Syn_ContextItems :: (ContextItems) }
+data Syn_ContextItems  = Syn_ContextItems { self_Syn_ContextItems :: !(ContextItems) }
 {-# INLINABLE wrap_ContextItems #-}
 wrap_ContextItems :: T_ContextItems  -> Inh_ContextItems  -> (Syn_ContextItems )
-wrap_ContextItems (T_ContextItems act) (Inh_ContextItems ) =
+wrap_ContextItems !(T_ContextItems act) !(Inh_ContextItems ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg25 = T_ContextItems_vIn25 
-        (T_ContextItems_vOut25 _lhsOself) <- return (inv_ContextItems_s26 sem arg25)
+        !(T_ContextItems_vOut25 _lhsOself) <- return (inv_ContextItems_s26 sem arg25)
         return (Syn_ContextItems _lhsOself)
    )
 
@@ -720,63 +738,63 @@ data T_ContextItems_vOut25  = T_ContextItems_vOut25 (ContextItems)
 sem_ContextItems_Cons :: T_ContextItem  -> T_ContextItems  -> T_ContextItems 
 sem_ContextItems_Cons arg_hd_ arg_tl_ = T_ContextItems (return st26) where
    {-# NOINLINE st26 #-}
-   st26 = let
+   !st26 = let
       v25 :: T_ContextItems_v25 
-      v25 = \ (T_ContextItems_vIn25 ) -> ( let
+      v25 = \ !(T_ContextItems_vIn25 ) -> ( let
          _hdX23 = Control.Monad.Identity.runIdentity (attach_T_ContextItem (arg_hd_))
          _tlX26 = Control.Monad.Identity.runIdentity (attach_T_ContextItems (arg_tl_))
          (T_ContextItem_vOut22 _hdIself) = inv_ContextItem_s23 _hdX23 (T_ContextItem_vIn22 )
          (T_ContextItems_vOut25 _tlIself) = inv_ContextItems_s26 _tlX26 (T_ContextItems_vIn25 )
-         _self = rule34 _hdIself _tlIself
+         _self = rule36 _hdIself _tlIself
          _lhsOself :: ContextItems
-         _lhsOself = rule35 _self
-         __result_ = T_ContextItems_vOut25 _lhsOself
+         _lhsOself = rule37 _self
+         !__result_ = T_ContextItems_vOut25 _lhsOself
          in __result_ )
      in C_ContextItems_s26 v25
-   {-# INLINE rule34 #-}
-   rule34 = \ ((_hdIself) :: ContextItem) ((_tlIself) :: ContextItems) ->
+   {-# INLINE rule36 #-}
+   rule36 = \ ((_hdIself) :: ContextItem) ((_tlIself) :: ContextItems) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule35 #-}
-   rule35 = \ _self ->
+   {-# INLINE rule37 #-}
+   rule37 = \ _self ->
      _self
 {-# NOINLINE sem_ContextItems_Nil #-}
 sem_ContextItems_Nil ::  T_ContextItems 
 sem_ContextItems_Nil  = T_ContextItems (return st26) where
    {-# NOINLINE st26 #-}
-   st26 = let
+   !st26 = let
       v25 :: T_ContextItems_v25 
-      v25 = \ (T_ContextItems_vIn25 ) -> ( let
-         _self = rule36  ()
+      v25 = \ !(T_ContextItems_vIn25 ) -> ( let
+         _self = rule38  ()
          _lhsOself :: ContextItems
-         _lhsOself = rule37 _self
-         __result_ = T_ContextItems_vOut25 _lhsOself
+         _lhsOself = rule39 _self
+         !__result_ = T_ContextItems_vOut25 _lhsOself
          in __result_ )
      in C_ContextItems_s26 v25
-   {-# INLINE rule36 #-}
-   rule36 = \  (_ :: ()) ->
+   {-# INLINE rule38 #-}
+   rule38 = \  (_ :: ()) ->
      []
-   {-# INLINE rule37 #-}
-   rule37 = \ _self ->
+   {-# INLINE rule39 #-}
+   rule39 = \ _self ->
      _self
 
 -- Declaration -------------------------------------------------
 -- wrapper
 data Inh_Declaration  = Inh_Declaration {  }
-data Syn_Declaration  = Syn_Declaration { self_Syn_Declaration :: (Declaration) }
+data Syn_Declaration  = Syn_Declaration { self_Syn_Declaration :: !(Declaration) }
 {-# INLINABLE wrap_Declaration #-}
 wrap_Declaration :: T_Declaration  -> Inh_Declaration  -> (Syn_Declaration )
-wrap_Declaration (T_Declaration act) (Inh_Declaration ) =
+wrap_Declaration !(T_Declaration act) !(Inh_Declaration ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg28 = T_Declaration_vIn28 
-        (T_Declaration_vOut28 _lhsOself) <- return (inv_Declaration_s29 sem arg28)
+        !(T_Declaration_vOut28 _lhsOself) <- return (inv_Declaration_s29 sem arg28)
         return (Syn_Declaration _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_Declaration #-}
 sem_Declaration :: Declaration  -> T_Declaration 
-sem_Declaration ( Declaration_Hole range_ id_ ) = sem_Declaration_Hole ( sem_Range range_ ) id_
+sem_Declaration ( Declaration_Hole range_ !id_ ) = sem_Declaration_Hole ( sem_Range range_ ) id_
 sem_Declaration ( Declaration_Type range_ simpletype_ type_ ) = sem_Declaration_Type ( sem_Range range_ ) ( sem_SimpleType simpletype_ ) ( sem_Type type_ )
 sem_Declaration ( Declaration_Data range_ context_ simpletype_ constructors_ derivings_ ) = sem_Declaration_Data ( sem_Range range_ ) ( sem_ContextItems context_ ) ( sem_SimpleType simpletype_ ) ( sem_Constructors constructors_ ) ( sem_Names derivings_ )
 sem_Declaration ( Declaration_Newtype range_ context_ simpletype_ constructor_ derivings_ ) = sem_Declaration_Newtype ( sem_Range range_ ) ( sem_ContextItems context_ ) ( sem_SimpleType simpletype_ ) ( sem_Constructor constructor_ ) ( sem_Names derivings_ )
@@ -802,57 +820,61 @@ data T_Declaration_vIn28  = T_Declaration_vIn28
 data T_Declaration_vOut28  = T_Declaration_vOut28 (Declaration)
 {-# NOINLINE sem_Declaration_Hole #-}
 sem_Declaration_Hole :: T_Range  -> (String) -> T_Declaration 
-sem_Declaration_Hole arg_range_ arg_id_ = T_Declaration (return st29) where
+sem_Declaration_Hole arg_range_ !arg_id_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         _self = rule38 _rangeIself arg_id_
+         _self = rule40 _rangeIself arg_id_
          _lhsOself :: Declaration
-         _lhsOself = rule39 _self
-         __result_ = T_Declaration_vOut28 _lhsOself
+         _lhsOself = rule41 _self
+         !__result_ = T_Declaration_vOut28 _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
-   {-# INLINE rule38 #-}
-   rule38 = \ ((_rangeIself) :: Range) id_ ->
+   {-# INLINE rule40 #-}
+   rule40 = \ ((_rangeIself) :: Range) id_ ->
      Declaration_Hole _rangeIself id_
-   {-# INLINE rule39 #-}
-   rule39 = \ _self ->
+   {-# INLINE rule41 #-}
+   rule41 = \ _self ->
      _self
 {-# NOINLINE sem_Declaration_Type #-}
 sem_Declaration_Type :: T_Range  -> T_SimpleType  -> T_Type  -> T_Declaration 
 sem_Declaration_Type arg_range_ arg_simpletype_ arg_type_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _simpletypeX161 = Control.Monad.Identity.runIdentity (attach_T_SimpleType (arg_simpletype_))
          _typeX173 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_SimpleType_vOut160 _simpletypeIself) = inv_SimpleType_s161 _simpletypeX161 (T_SimpleType_vIn160 )
-         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 )
-         _self = rule40 _rangeIself _simpletypeIself _typeIself
+         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 _typeOqualifier)
+         _self = rule42 _rangeIself _simpletypeIself _typeIself
          _lhsOself :: Declaration
-         _lhsOself = rule41 _self
-         __result_ = T_Declaration_vOut28 _lhsOself
+         _lhsOself = rule43 _self
+         _typeOqualifier = rule44  ()
+         !__result_ = T_Declaration_vOut28 _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
-   {-# INLINE rule40 #-}
-   rule40 = \ ((_rangeIself) :: Range) ((_simpletypeIself) :: SimpleType) ((_typeIself) :: Type) ->
+   {-# INLINE rule42 #-}
+   rule42 = \ ((_rangeIself) :: Range) ((_simpletypeIself) :: SimpleType) ((_typeIself) :: Type) ->
      Declaration_Type _rangeIself _simpletypeIself _typeIself
-   {-# INLINE rule41 #-}
-   rule41 = \ _self ->
+   {-# INLINE rule43 #-}
+   rule43 = \ _self ->
      _self
+   {-# INLINE rule44 #-}
+   rule44 = \  (_ :: ()) ->
+     error "missing rule: Declaration.Type.type.qualifier"
 {-# NOINLINE sem_Declaration_Data #-}
 sem_Declaration_Data :: T_Range  -> T_ContextItems  -> T_SimpleType  -> T_Constructors  -> T_Names  -> T_Declaration 
 sem_Declaration_Data arg_range_ arg_context_ arg_simpletype_ arg_constructors_ arg_derivings_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _contextX26 = Control.Monad.Identity.runIdentity (attach_T_ContextItems (arg_context_))
          _simpletypeX161 = Control.Monad.Identity.runIdentity (attach_T_SimpleType (arg_simpletype_))
@@ -863,25 +885,25 @@ sem_Declaration_Data arg_range_ arg_context_ arg_simpletype_ arg_constructors_ a
          (T_SimpleType_vOut160 _simpletypeIself) = inv_SimpleType_s161 _simpletypeX161 (T_SimpleType_vIn160 )
          (T_Constructors_vOut19 _constructorsIself) = inv_Constructors_s20 _constructorsX20 (T_Constructors_vIn19 )
          (T_Names_vOut118 _derivingsIself) = inv_Names_s119 _derivingsX119 (T_Names_vIn118 )
-         _self = rule42 _constructorsIself _contextIself _derivingsIself _rangeIself _simpletypeIself
+         _self = rule45 _constructorsIself _contextIself _derivingsIself _rangeIself _simpletypeIself
          _lhsOself :: Declaration
-         _lhsOself = rule43 _self
-         __result_ = T_Declaration_vOut28 _lhsOself
+         _lhsOself = rule46 _self
+         !__result_ = T_Declaration_vOut28 _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
-   {-# INLINE rule42 #-}
-   rule42 = \ ((_constructorsIself) :: Constructors) ((_contextIself) :: ContextItems) ((_derivingsIself) :: Names) ((_rangeIself) :: Range) ((_simpletypeIself) :: SimpleType) ->
+   {-# INLINE rule45 #-}
+   rule45 = \ ((_constructorsIself) :: Constructors) ((_contextIself) :: ContextItems) ((_derivingsIself) :: Names) ((_rangeIself) :: Range) ((_simpletypeIself) :: SimpleType) ->
      Declaration_Data _rangeIself _contextIself _simpletypeIself _constructorsIself _derivingsIself
-   {-# INLINE rule43 #-}
-   rule43 = \ _self ->
+   {-# INLINE rule46 #-}
+   rule46 = \ _self ->
      _self
 {-# NOINLINE sem_Declaration_Newtype #-}
 sem_Declaration_Newtype :: T_Range  -> T_ContextItems  -> T_SimpleType  -> T_Constructor  -> T_Names  -> T_Declaration 
 sem_Declaration_Newtype arg_range_ arg_context_ arg_simpletype_ arg_constructor_ arg_derivings_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _contextX26 = Control.Monad.Identity.runIdentity (attach_T_ContextItems (arg_context_))
          _simpletypeX161 = Control.Monad.Identity.runIdentity (attach_T_SimpleType (arg_simpletype_))
@@ -892,25 +914,25 @@ sem_Declaration_Newtype arg_range_ arg_context_ arg_simpletype_ arg_constructor_
          (T_SimpleType_vOut160 _simpletypeIself) = inv_SimpleType_s161 _simpletypeX161 (T_SimpleType_vIn160 )
          (T_Constructor_vOut16 _constructorIself) = inv_Constructor_s17 _constructorX17 (T_Constructor_vIn16 )
          (T_Names_vOut118 _derivingsIself) = inv_Names_s119 _derivingsX119 (T_Names_vIn118 )
-         _self = rule44 _constructorIself _contextIself _derivingsIself _rangeIself _simpletypeIself
+         _self = rule47 _constructorIself _contextIself _derivingsIself _rangeIself _simpletypeIself
          _lhsOself :: Declaration
-         _lhsOself = rule45 _self
-         __result_ = T_Declaration_vOut28 _lhsOself
+         _lhsOself = rule48 _self
+         !__result_ = T_Declaration_vOut28 _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
-   {-# INLINE rule44 #-}
-   rule44 = \ ((_constructorIself) :: Constructor) ((_contextIself) :: ContextItems) ((_derivingsIself) :: Names) ((_rangeIself) :: Range) ((_simpletypeIself) :: SimpleType) ->
+   {-# INLINE rule47 #-}
+   rule47 = \ ((_constructorIself) :: Constructor) ((_contextIself) :: ContextItems) ((_derivingsIself) :: Names) ((_rangeIself) :: Range) ((_simpletypeIself) :: SimpleType) ->
      Declaration_Newtype _rangeIself _contextIself _simpletypeIself _constructorIself _derivingsIself
-   {-# INLINE rule45 #-}
-   rule45 = \ _self ->
+   {-# INLINE rule48 #-}
+   rule48 = \ _self ->
      _self
 {-# NOINLINE sem_Declaration_Class #-}
 sem_Declaration_Class :: T_Range  -> T_ContextItems  -> T_SimpleType  -> T_MaybeDeclarations  -> T_Declaration 
 sem_Declaration_Class arg_range_ arg_context_ arg_simpletype_ arg_where_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _contextX26 = Control.Monad.Identity.runIdentity (attach_T_ContextItems (arg_context_))
          _simpletypeX161 = Control.Monad.Identity.runIdentity (attach_T_SimpleType (arg_simpletype_))
@@ -919,25 +941,25 @@ sem_Declaration_Class arg_range_ arg_context_ arg_simpletype_ arg_where_ = T_Dec
          (T_ContextItems_vOut25 _contextIself) = inv_ContextItems_s26 _contextX26 (T_ContextItems_vIn25 )
          (T_SimpleType_vOut160 _simpletypeIself) = inv_SimpleType_s161 _simpletypeX161 (T_SimpleType_vIn160 )
          (T_MaybeDeclarations_vOut91 _whereIself) = inv_MaybeDeclarations_s92 _whereX92 (T_MaybeDeclarations_vIn91 )
-         _self = rule46 _contextIself _rangeIself _simpletypeIself _whereIself
+         _self = rule49 _contextIself _rangeIself _simpletypeIself _whereIself
          _lhsOself :: Declaration
-         _lhsOself = rule47 _self
-         __result_ = T_Declaration_vOut28 _lhsOself
+         _lhsOself = rule50 _self
+         !__result_ = T_Declaration_vOut28 _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
-   {-# INLINE rule46 #-}
-   rule46 = \ ((_contextIself) :: ContextItems) ((_rangeIself) :: Range) ((_simpletypeIself) :: SimpleType) ((_whereIself) :: MaybeDeclarations) ->
+   {-# INLINE rule49 #-}
+   rule49 = \ ((_contextIself) :: ContextItems) ((_rangeIself) :: Range) ((_simpletypeIself) :: SimpleType) ((_whereIself) :: MaybeDeclarations) ->
      Declaration_Class _rangeIself _contextIself _simpletypeIself _whereIself
-   {-# INLINE rule47 #-}
-   rule47 = \ _self ->
+   {-# INLINE rule50 #-}
+   rule50 = \ _self ->
      _self
 {-# NOINLINE sem_Declaration_Instance #-}
 sem_Declaration_Instance :: T_Range  -> T_ContextItems  -> T_Name  -> T_Types  -> T_MaybeDeclarations  -> T_Declaration 
 sem_Declaration_Instance arg_range_ arg_context_ arg_name_ arg_types_ arg_where_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _contextX26 = Control.Monad.Identity.runIdentity (attach_T_ContextItems (arg_context_))
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
@@ -946,123 +968,135 @@ sem_Declaration_Instance arg_range_ arg_context_ arg_name_ arg_types_ arg_where_
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_ContextItems_vOut25 _contextIself) = inv_ContextItems_s26 _contextX26 (T_ContextItems_vIn25 )
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
-         (T_Types_vOut178 _typesIself _typesItypevariables) = inv_Types_s179 _typesX179 (T_Types_vIn178 )
+         (T_Types_vOut178 _typesIself _typesItypevariables) = inv_Types_s179 _typesX179 (T_Types_vIn178 _typesOqualifier)
          (T_MaybeDeclarations_vOut91 _whereIself) = inv_MaybeDeclarations_s92 _whereX92 (T_MaybeDeclarations_vIn91 )
-         _self = rule48 _contextIself _nameIself _rangeIself _typesIself _whereIself
+         _self = rule51 _contextIself _nameIself _rangeIself _typesIself _whereIself
          _lhsOself :: Declaration
-         _lhsOself = rule49 _self
-         __result_ = T_Declaration_vOut28 _lhsOself
+         _lhsOself = rule52 _self
+         _typesOqualifier = rule53  ()
+         !__result_ = T_Declaration_vOut28 _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
-   {-# INLINE rule48 #-}
-   rule48 = \ ((_contextIself) :: ContextItems) ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_typesIself) :: Types) ((_whereIself) :: MaybeDeclarations) ->
+   {-# INLINE rule51 #-}
+   rule51 = \ ((_contextIself) :: ContextItems) ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_typesIself) :: Types) ((_whereIself) :: MaybeDeclarations) ->
      Declaration_Instance _rangeIself _contextIself _nameIself _typesIself _whereIself
-   {-# INLINE rule49 #-}
-   rule49 = \ _self ->
+   {-# INLINE rule52 #-}
+   rule52 = \ _self ->
      _self
+   {-# INLINE rule53 #-}
+   rule53 = \  (_ :: ()) ->
+     error "missing rule: Declaration.Instance.types.qualifier"
 {-# NOINLINE sem_Declaration_Default #-}
 sem_Declaration_Default :: T_Range  -> T_Types  -> T_Declaration 
 sem_Declaration_Default arg_range_ arg_types_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _typesX179 = Control.Monad.Identity.runIdentity (attach_T_Types (arg_types_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         (T_Types_vOut178 _typesIself _typesItypevariables) = inv_Types_s179 _typesX179 (T_Types_vIn178 )
-         _self = rule50 _rangeIself _typesIself
+         (T_Types_vOut178 _typesIself _typesItypevariables) = inv_Types_s179 _typesX179 (T_Types_vIn178 _typesOqualifier)
+         _self = rule54 _rangeIself _typesIself
          _lhsOself :: Declaration
-         _lhsOself = rule51 _self
-         __result_ = T_Declaration_vOut28 _lhsOself
+         _lhsOself = rule55 _self
+         _typesOqualifier = rule56  ()
+         !__result_ = T_Declaration_vOut28 _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
-   {-# INLINE rule50 #-}
-   rule50 = \ ((_rangeIself) :: Range) ((_typesIself) :: Types) ->
+   {-# INLINE rule54 #-}
+   rule54 = \ ((_rangeIself) :: Range) ((_typesIself) :: Types) ->
      Declaration_Default _rangeIself _typesIself
-   {-# INLINE rule51 #-}
-   rule51 = \ _self ->
+   {-# INLINE rule55 #-}
+   rule55 = \ _self ->
      _self
+   {-# INLINE rule56 #-}
+   rule56 = \  (_ :: ()) ->
+     error "missing rule: Declaration.Default.types.qualifier"
 {-# NOINLINE sem_Declaration_FunctionBindings #-}
 sem_Declaration_FunctionBindings :: T_Range  -> T_FunctionBindings  -> T_Declaration 
 sem_Declaration_FunctionBindings arg_range_ arg_bindings_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _bindingsX59 = Control.Monad.Identity.runIdentity (attach_T_FunctionBindings (arg_bindings_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_FunctionBindings_vOut58 _bindingsIself) = inv_FunctionBindings_s59 _bindingsX59 (T_FunctionBindings_vIn58 )
-         _self = rule52 _bindingsIself _rangeIself
+         _self = rule57 _bindingsIself _rangeIself
          _lhsOself :: Declaration
-         _lhsOself = rule53 _self
-         __result_ = T_Declaration_vOut28 _lhsOself
+         _lhsOself = rule58 _self
+         !__result_ = T_Declaration_vOut28 _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
-   {-# INLINE rule52 #-}
-   rule52 = \ ((_bindingsIself) :: FunctionBindings) ((_rangeIself) :: Range) ->
+   {-# INLINE rule57 #-}
+   rule57 = \ ((_bindingsIself) :: FunctionBindings) ((_rangeIself) :: Range) ->
      Declaration_FunctionBindings _rangeIself _bindingsIself
-   {-# INLINE rule53 #-}
-   rule53 = \ _self ->
+   {-# INLINE rule58 #-}
+   rule58 = \ _self ->
      _self
 {-# NOINLINE sem_Declaration_PatternBinding #-}
 sem_Declaration_PatternBinding :: T_Range  -> T_Pattern  -> T_RightHandSide  -> T_Declaration 
 sem_Declaration_PatternBinding arg_range_ arg_pattern_ arg_righthandside_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternX122 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          _righthandsideX152 = Control.Monad.Identity.runIdentity (attach_T_RightHandSide (arg_righthandside_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Pattern_vOut121 _patternIself) = inv_Pattern_s122 _patternX122 (T_Pattern_vIn121 )
          (T_RightHandSide_vOut151 _righthandsideIself) = inv_RightHandSide_s152 _righthandsideX152 (T_RightHandSide_vIn151 )
-         _self = rule54 _patternIself _rangeIself _righthandsideIself
+         _self = rule59 _patternIself _rangeIself _righthandsideIself
          _lhsOself :: Declaration
-         _lhsOself = rule55 _self
-         __result_ = T_Declaration_vOut28 _lhsOself
+         _lhsOself = rule60 _self
+         !__result_ = T_Declaration_vOut28 _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
-   {-# INLINE rule54 #-}
-   rule54 = \ ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ((_righthandsideIself) :: RightHandSide) ->
+   {-# INLINE rule59 #-}
+   rule59 = \ ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ((_righthandsideIself) :: RightHandSide) ->
      Declaration_PatternBinding _rangeIself _patternIself _righthandsideIself
-   {-# INLINE rule55 #-}
-   rule55 = \ _self ->
+   {-# INLINE rule60 #-}
+   rule60 = \ _self ->
      _self
 {-# NOINLINE sem_Declaration_TypeSignature #-}
 sem_Declaration_TypeSignature :: T_Range  -> T_Names  -> T_Type  -> T_Declaration 
 sem_Declaration_TypeSignature arg_range_ arg_names_ arg_type_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _namesX119 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_names_))
          _typeX173 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Names_vOut118 _namesIself) = inv_Names_s119 _namesX119 (T_Names_vIn118 )
-         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 )
-         _self = rule56 _namesIself _rangeIself _typeIself
+         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 _typeOqualifier)
+         _self = rule61 _namesIself _rangeIself _typeIself
          _lhsOself :: Declaration
-         _lhsOself = rule57 _self
-         __result_ = T_Declaration_vOut28 _lhsOself
+         _lhsOself = rule62 _self
+         _typeOqualifier = rule63  ()
+         !__result_ = T_Declaration_vOut28 _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
-   {-# INLINE rule56 #-}
-   rule56 = \ ((_namesIself) :: Names) ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
+   {-# INLINE rule61 #-}
+   rule61 = \ ((_namesIself) :: Names) ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
      Declaration_TypeSignature _rangeIself _namesIself _typeIself
-   {-# INLINE rule57 #-}
-   rule57 = \ _self ->
+   {-# INLINE rule62 #-}
+   rule62 = \ _self ->
      _self
+   {-# INLINE rule63 #-}
+   rule63 = \  (_ :: ()) ->
+     error "missing rule: Declaration.TypeSignature.type.qualifier"
 {-# NOINLINE sem_Declaration_Fixity #-}
 sem_Declaration_Fixity :: T_Range  -> T_Fixity  -> T_MaybeInt  -> T_Names  -> T_Declaration 
 sem_Declaration_Fixity arg_range_ arg_fixity_ arg_priority_ arg_operators_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _fixityX53 = Control.Monad.Identity.runIdentity (attach_T_Fixity (arg_fixity_))
          _priorityX104 = Control.Monad.Identity.runIdentity (attach_T_MaybeInt (arg_priority_))
@@ -1071,51 +1105,51 @@ sem_Declaration_Fixity arg_range_ arg_fixity_ arg_priority_ arg_operators_ = T_D
          (T_Fixity_vOut52 _fixityIself) = inv_Fixity_s53 _fixityX53 (T_Fixity_vIn52 )
          (T_MaybeInt_vOut103 _priorityIself) = inv_MaybeInt_s104 _priorityX104 (T_MaybeInt_vIn103 )
          (T_Names_vOut118 _operatorsIself) = inv_Names_s119 _operatorsX119 (T_Names_vIn118 )
-         _self = rule58 _fixityIself _operatorsIself _priorityIself _rangeIself
+         _self = rule64 _fixityIself _operatorsIself _priorityIself _rangeIself
          _lhsOself :: Declaration
-         _lhsOself = rule59 _self
-         __result_ = T_Declaration_vOut28 _lhsOself
+         _lhsOself = rule65 _self
+         !__result_ = T_Declaration_vOut28 _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
-   {-# INLINE rule58 #-}
-   rule58 = \ ((_fixityIself) :: Fixity) ((_operatorsIself) :: Names) ((_priorityIself) :: MaybeInt) ((_rangeIself) :: Range) ->
+   {-# INLINE rule64 #-}
+   rule64 = \ ((_fixityIself) :: Fixity) ((_operatorsIself) :: Names) ((_priorityIself) :: MaybeInt) ((_rangeIself) :: Range) ->
      Declaration_Fixity _rangeIself _fixityIself _priorityIself _operatorsIself
-   {-# INLINE rule59 #-}
-   rule59 = \ _self ->
+   {-# INLINE rule65 #-}
+   rule65 = \ _self ->
      _self
 {-# NOINLINE sem_Declaration_Empty #-}
 sem_Declaration_Empty :: T_Range  -> T_Declaration 
 sem_Declaration_Empty arg_range_ = T_Declaration (return st29) where
    {-# NOINLINE st29 #-}
-   st29 = let
+   !st29 = let
       v28 :: T_Declaration_v28 
-      v28 = \ (T_Declaration_vIn28 ) -> ( let
+      v28 = \ !(T_Declaration_vIn28 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         _self = rule60 _rangeIself
+         _self = rule66 _rangeIself
          _lhsOself :: Declaration
-         _lhsOself = rule61 _self
-         __result_ = T_Declaration_vOut28 _lhsOself
+         _lhsOself = rule67 _self
+         !__result_ = T_Declaration_vOut28 _lhsOself
          in __result_ )
      in C_Declaration_s29 v28
-   {-# INLINE rule60 #-}
-   rule60 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule66 #-}
+   rule66 = \ ((_rangeIself) :: Range) ->
      Declaration_Empty _rangeIself
-   {-# INLINE rule61 #-}
-   rule61 = \ _self ->
+   {-# INLINE rule67 #-}
+   rule67 = \ _self ->
      _self
 
 -- Declarations ------------------------------------------------
 -- wrapper
 data Inh_Declarations  = Inh_Declarations {  }
-data Syn_Declarations  = Syn_Declarations { self_Syn_Declarations :: (Declarations) }
+data Syn_Declarations  = Syn_Declarations { self_Syn_Declarations :: !(Declarations) }
 {-# INLINABLE wrap_Declarations #-}
 wrap_Declarations :: T_Declarations  -> Inh_Declarations  -> (Syn_Declarations )
-wrap_Declarations (T_Declarations act) (Inh_Declarations ) =
+wrap_Declarations !(T_Declarations act) !(Inh_Declarations ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg31 = T_Declarations_vIn31 
-        (T_Declarations_vOut31 _lhsOself) <- return (inv_Declarations_s32 sem arg31)
+        !(T_Declarations_vOut31 _lhsOself) <- return (inv_Declarations_s32 sem arg31)
         return (Syn_Declarations _lhsOself)
    )
 
@@ -1139,56 +1173,56 @@ data T_Declarations_vOut31  = T_Declarations_vOut31 (Declarations)
 sem_Declarations_Cons :: T_Declaration  -> T_Declarations  -> T_Declarations 
 sem_Declarations_Cons arg_hd_ arg_tl_ = T_Declarations (return st32) where
    {-# NOINLINE st32 #-}
-   st32 = let
+   !st32 = let
       v31 :: T_Declarations_v31 
-      v31 = \ (T_Declarations_vIn31 ) -> ( let
+      v31 = \ !(T_Declarations_vIn31 ) -> ( let
          _hdX29 = Control.Monad.Identity.runIdentity (attach_T_Declaration (arg_hd_))
          _tlX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_tl_))
          (T_Declaration_vOut28 _hdIself) = inv_Declaration_s29 _hdX29 (T_Declaration_vIn28 )
          (T_Declarations_vOut31 _tlIself) = inv_Declarations_s32 _tlX32 (T_Declarations_vIn31 )
-         _self = rule62 _hdIself _tlIself
+         _self = rule68 _hdIself _tlIself
          _lhsOself :: Declarations
-         _lhsOself = rule63 _self
-         __result_ = T_Declarations_vOut31 _lhsOself
+         _lhsOself = rule69 _self
+         !__result_ = T_Declarations_vOut31 _lhsOself
          in __result_ )
      in C_Declarations_s32 v31
-   {-# INLINE rule62 #-}
-   rule62 = \ ((_hdIself) :: Declaration) ((_tlIself) :: Declarations) ->
+   {-# INLINE rule68 #-}
+   rule68 = \ ((_hdIself) :: Declaration) ((_tlIself) :: Declarations) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule63 #-}
-   rule63 = \ _self ->
+   {-# INLINE rule69 #-}
+   rule69 = \ _self ->
      _self
 {-# NOINLINE sem_Declarations_Nil #-}
 sem_Declarations_Nil ::  T_Declarations 
 sem_Declarations_Nil  = T_Declarations (return st32) where
    {-# NOINLINE st32 #-}
-   st32 = let
+   !st32 = let
       v31 :: T_Declarations_v31 
-      v31 = \ (T_Declarations_vIn31 ) -> ( let
-         _self = rule64  ()
+      v31 = \ !(T_Declarations_vIn31 ) -> ( let
+         _self = rule70  ()
          _lhsOself :: Declarations
-         _lhsOself = rule65 _self
-         __result_ = T_Declarations_vOut31 _lhsOself
+         _lhsOself = rule71 _self
+         !__result_ = T_Declarations_vOut31 _lhsOself
          in __result_ )
      in C_Declarations_s32 v31
-   {-# INLINE rule64 #-}
-   rule64 = \  (_ :: ()) ->
+   {-# INLINE rule70 #-}
+   rule70 = \  (_ :: ()) ->
      []
-   {-# INLINE rule65 #-}
-   rule65 = \ _self ->
+   {-# INLINE rule71 #-}
+   rule71 = \ _self ->
      _self
 
 -- Export ------------------------------------------------------
 -- wrapper
 data Inh_Export  = Inh_Export {  }
-data Syn_Export  = Syn_Export { self_Syn_Export :: (Export) }
+data Syn_Export  = Syn_Export { self_Syn_Export :: !(Export) }
 {-# INLINABLE wrap_Export #-}
 wrap_Export :: T_Export  -> Inh_Export  -> (Syn_Export )
-wrap_Export (T_Export act) (Inh_Export ) =
+wrap_Export !(T_Export act) !(Inh_Export ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg34 = T_Export_vIn34 
-        (T_Export_vOut34 _lhsOself) <- return (inv_Export_s35 sem arg34)
+        !(T_Export_vOut34 _lhsOself) <- return (inv_Export_s35 sem arg34)
         return (Syn_Export _lhsOself)
    )
 
@@ -1215,80 +1249,9 @@ data T_Export_vOut34  = T_Export_vOut34 (Export)
 sem_Export_Variable :: T_Range  -> T_Name  -> T_Export 
 sem_Export_Variable arg_range_ arg_name_ = T_Export (return st35) where
    {-# NOINLINE st35 #-}
-   st35 = let
+   !st35 = let
       v34 :: T_Export_v34 
-      v34 = \ (T_Export_vIn34 ) -> ( let
-         _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
-         _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
-         (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
-         _self = rule66 _nameIself _rangeIself
-         _lhsOself :: Export
-         _lhsOself = rule67 _self
-         __result_ = T_Export_vOut34 _lhsOself
-         in __result_ )
-     in C_Export_s35 v34
-   {-# INLINE rule66 #-}
-   rule66 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
-     Export_Variable _rangeIself _nameIself
-   {-# INLINE rule67 #-}
-   rule67 = \ _self ->
-     _self
-{-# NOINLINE sem_Export_TypeOrClass #-}
-sem_Export_TypeOrClass :: T_Range  -> T_Name  -> T_MaybeNames  -> T_Export 
-sem_Export_TypeOrClass arg_range_ arg_name_ arg_names_ = T_Export (return st35) where
-   {-# NOINLINE st35 #-}
-   st35 = let
-      v34 :: T_Export_v34 
-      v34 = \ (T_Export_vIn34 ) -> ( let
-         _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
-         _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
-         _namesX110 = Control.Monad.Identity.runIdentity (attach_T_MaybeNames (arg_names_))
-         (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
-         (T_MaybeNames_vOut109 _namesIself) = inv_MaybeNames_s110 _namesX110 (T_MaybeNames_vIn109 )
-         _self = rule68 _nameIself _namesIself _rangeIself
-         _lhsOself :: Export
-         _lhsOself = rule69 _self
-         __result_ = T_Export_vOut34 _lhsOself
-         in __result_ )
-     in C_Export_s35 v34
-   {-# INLINE rule68 #-}
-   rule68 = \ ((_nameIself) :: Name) ((_namesIself) :: MaybeNames) ((_rangeIself) :: Range) ->
-     Export_TypeOrClass _rangeIself _nameIself _namesIself
-   {-# INLINE rule69 #-}
-   rule69 = \ _self ->
-     _self
-{-# NOINLINE sem_Export_TypeOrClassComplete #-}
-sem_Export_TypeOrClassComplete :: T_Range  -> T_Name  -> T_Export 
-sem_Export_TypeOrClassComplete arg_range_ arg_name_ = T_Export (return st35) where
-   {-# NOINLINE st35 #-}
-   st35 = let
-      v34 :: T_Export_v34 
-      v34 = \ (T_Export_vIn34 ) -> ( let
-         _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
-         _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
-         (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
-         _self = rule70 _nameIself _rangeIself
-         _lhsOself :: Export
-         _lhsOself = rule71 _self
-         __result_ = T_Export_vOut34 _lhsOself
-         in __result_ )
-     in C_Export_s35 v34
-   {-# INLINE rule70 #-}
-   rule70 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
-     Export_TypeOrClassComplete _rangeIself _nameIself
-   {-# INLINE rule71 #-}
-   rule71 = \ _self ->
-     _self
-{-# NOINLINE sem_Export_Module #-}
-sem_Export_Module :: T_Range  -> T_Name  -> T_Export 
-sem_Export_Module arg_range_ arg_name_ = T_Export (return st35) where
-   {-# NOINLINE st35 #-}
-   st35 = let
-      v34 :: T_Export_v34 
-      v34 = \ (T_Export_vIn34 ) -> ( let
+      v34 = \ !(T_Export_vIn34 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
@@ -1296,27 +1259,98 @@ sem_Export_Module arg_range_ arg_name_ = T_Export (return st35) where
          _self = rule72 _nameIself _rangeIself
          _lhsOself :: Export
          _lhsOself = rule73 _self
-         __result_ = T_Export_vOut34 _lhsOself
+         !__result_ = T_Export_vOut34 _lhsOself
          in __result_ )
      in C_Export_s35 v34
    {-# INLINE rule72 #-}
    rule72 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
-     Export_Module _rangeIself _nameIself
+     Export_Variable _rangeIself _nameIself
    {-# INLINE rule73 #-}
    rule73 = \ _self ->
+     _self
+{-# NOINLINE sem_Export_TypeOrClass #-}
+sem_Export_TypeOrClass :: T_Range  -> T_Name  -> T_MaybeNames  -> T_Export 
+sem_Export_TypeOrClass arg_range_ arg_name_ arg_names_ = T_Export (return st35) where
+   {-# NOINLINE st35 #-}
+   !st35 = let
+      v34 :: T_Export_v34 
+      v34 = \ !(T_Export_vIn34 ) -> ( let
+         _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
+         _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
+         _namesX110 = Control.Monad.Identity.runIdentity (attach_T_MaybeNames (arg_names_))
+         (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
+         (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
+         (T_MaybeNames_vOut109 _namesIself) = inv_MaybeNames_s110 _namesX110 (T_MaybeNames_vIn109 )
+         _self = rule74 _nameIself _namesIself _rangeIself
+         _lhsOself :: Export
+         _lhsOself = rule75 _self
+         !__result_ = T_Export_vOut34 _lhsOself
+         in __result_ )
+     in C_Export_s35 v34
+   {-# INLINE rule74 #-}
+   rule74 = \ ((_nameIself) :: Name) ((_namesIself) :: MaybeNames) ((_rangeIself) :: Range) ->
+     Export_TypeOrClass _rangeIself _nameIself _namesIself
+   {-# INLINE rule75 #-}
+   rule75 = \ _self ->
+     _self
+{-# NOINLINE sem_Export_TypeOrClassComplete #-}
+sem_Export_TypeOrClassComplete :: T_Range  -> T_Name  -> T_Export 
+sem_Export_TypeOrClassComplete arg_range_ arg_name_ = T_Export (return st35) where
+   {-# NOINLINE st35 #-}
+   !st35 = let
+      v34 :: T_Export_v34 
+      v34 = \ !(T_Export_vIn34 ) -> ( let
+         _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
+         _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
+         (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
+         (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
+         _self = rule76 _nameIself _rangeIself
+         _lhsOself :: Export
+         _lhsOself = rule77 _self
+         !__result_ = T_Export_vOut34 _lhsOself
+         in __result_ )
+     in C_Export_s35 v34
+   {-# INLINE rule76 #-}
+   rule76 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+     Export_TypeOrClassComplete _rangeIself _nameIself
+   {-# INLINE rule77 #-}
+   rule77 = \ _self ->
+     _self
+{-# NOINLINE sem_Export_Module #-}
+sem_Export_Module :: T_Range  -> T_Name  -> T_Export 
+sem_Export_Module arg_range_ arg_name_ = T_Export (return st35) where
+   {-# NOINLINE st35 #-}
+   !st35 = let
+      v34 :: T_Export_v34 
+      v34 = \ !(T_Export_vIn34 ) -> ( let
+         _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
+         _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
+         (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
+         (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
+         _self = rule78 _nameIself _rangeIself
+         _lhsOself :: Export
+         _lhsOself = rule79 _self
+         !__result_ = T_Export_vOut34 _lhsOself
+         in __result_ )
+     in C_Export_s35 v34
+   {-# INLINE rule78 #-}
+   rule78 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+     Export_Module _rangeIself _nameIself
+   {-# INLINE rule79 #-}
+   rule79 = \ _self ->
      _self
 
 -- Exports -----------------------------------------------------
 -- wrapper
 data Inh_Exports  = Inh_Exports {  }
-data Syn_Exports  = Syn_Exports { self_Syn_Exports :: (Exports) }
+data Syn_Exports  = Syn_Exports { self_Syn_Exports :: !(Exports) }
 {-# INLINABLE wrap_Exports #-}
 wrap_Exports :: T_Exports  -> Inh_Exports  -> (Syn_Exports )
-wrap_Exports (T_Exports act) (Inh_Exports ) =
+wrap_Exports !(T_Exports act) !(Inh_Exports ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg37 = T_Exports_vIn37 
-        (T_Exports_vOut37 _lhsOself) <- return (inv_Exports_s38 sem arg37)
+        !(T_Exports_vOut37 _lhsOself) <- return (inv_Exports_s38 sem arg37)
         return (Syn_Exports _lhsOself)
    )
 
@@ -1340,66 +1374,66 @@ data T_Exports_vOut37  = T_Exports_vOut37 (Exports)
 sem_Exports_Cons :: T_Export  -> T_Exports  -> T_Exports 
 sem_Exports_Cons arg_hd_ arg_tl_ = T_Exports (return st38) where
    {-# NOINLINE st38 #-}
-   st38 = let
+   !st38 = let
       v37 :: T_Exports_v37 
-      v37 = \ (T_Exports_vIn37 ) -> ( let
+      v37 = \ !(T_Exports_vIn37 ) -> ( let
          _hdX35 = Control.Monad.Identity.runIdentity (attach_T_Export (arg_hd_))
          _tlX38 = Control.Monad.Identity.runIdentity (attach_T_Exports (arg_tl_))
          (T_Export_vOut34 _hdIself) = inv_Export_s35 _hdX35 (T_Export_vIn34 )
          (T_Exports_vOut37 _tlIself) = inv_Exports_s38 _tlX38 (T_Exports_vIn37 )
-         _self = rule74 _hdIself _tlIself
+         _self = rule80 _hdIself _tlIself
          _lhsOself :: Exports
-         _lhsOself = rule75 _self
-         __result_ = T_Exports_vOut37 _lhsOself
+         _lhsOself = rule81 _self
+         !__result_ = T_Exports_vOut37 _lhsOself
          in __result_ )
      in C_Exports_s38 v37
-   {-# INLINE rule74 #-}
-   rule74 = \ ((_hdIself) :: Export) ((_tlIself) :: Exports) ->
+   {-# INLINE rule80 #-}
+   rule80 = \ ((_hdIself) :: Export) ((_tlIself) :: Exports) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule75 #-}
-   rule75 = \ _self ->
+   {-# INLINE rule81 #-}
+   rule81 = \ _self ->
      _self
 {-# NOINLINE sem_Exports_Nil #-}
 sem_Exports_Nil ::  T_Exports 
 sem_Exports_Nil  = T_Exports (return st38) where
    {-# NOINLINE st38 #-}
-   st38 = let
+   !st38 = let
       v37 :: T_Exports_v37 
-      v37 = \ (T_Exports_vIn37 ) -> ( let
-         _self = rule76  ()
+      v37 = \ !(T_Exports_vIn37 ) -> ( let
+         _self = rule82  ()
          _lhsOself :: Exports
-         _lhsOself = rule77 _self
-         __result_ = T_Exports_vOut37 _lhsOself
+         _lhsOself = rule83 _self
+         !__result_ = T_Exports_vOut37 _lhsOself
          in __result_ )
      in C_Exports_s38 v37
-   {-# INLINE rule76 #-}
-   rule76 = \  (_ :: ()) ->
+   {-# INLINE rule82 #-}
+   rule82 = \  (_ :: ()) ->
      []
-   {-# INLINE rule77 #-}
-   rule77 = \ _self ->
+   {-# INLINE rule83 #-}
+   rule83 = \ _self ->
      _self
 
 -- Expression --------------------------------------------------
 -- wrapper
 data Inh_Expression  = Inh_Expression {  }
-data Syn_Expression  = Syn_Expression { allVariables_Syn_Expression :: ([(Name,Entity)]), self_Syn_Expression :: (Expression) }
+data Syn_Expression  = Syn_Expression { allVariables_Syn_Expression :: !([(Name,Entity)]), self_Syn_Expression :: !(Expression) }
 {-# INLINABLE wrap_Expression #-}
 wrap_Expression :: T_Expression  -> Inh_Expression  -> (Syn_Expression )
-wrap_Expression (T_Expression act) (Inh_Expression ) =
+wrap_Expression !(T_Expression act) !(Inh_Expression ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg40 = T_Expression_vIn40 
-        (T_Expression_vOut40 _lhsOallVariables _lhsOself) <- return (inv_Expression_s41 sem arg40)
+        !(T_Expression_vOut40 _lhsOallVariables _lhsOself) <- return (inv_Expression_s41 sem arg40)
         return (Syn_Expression _lhsOallVariables _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_Expression #-}
 sem_Expression :: Expression  -> T_Expression 
-sem_Expression ( Expression_Hole range_ id_ ) = sem_Expression_Hole ( sem_Range range_ ) id_
-sem_Expression ( Expression_Feedback range_ feedback_ expression_ ) = sem_Expression_Feedback ( sem_Range range_ ) feedback_ ( sem_Expression expression_ )
+sem_Expression ( Expression_Hole range_ !id_ ) = sem_Expression_Hole ( sem_Range range_ ) id_
+sem_Expression ( Expression_Feedback range_ !feedback_ expression_ ) = sem_Expression_Feedback ( sem_Range range_ ) feedback_ ( sem_Expression expression_ )
 sem_Expression ( Expression_MustUse range_ expression_ ) = sem_Expression_MustUse ( sem_Range range_ ) ( sem_Expression expression_ )
-sem_Expression ( Expression_Eta range_ expansion_ expression_ ) = sem_Expression_Eta ( sem_Range range_ ) expansion_ ( sem_Expression expression_ )
+sem_Expression ( Expression_Eta range_ !expansion_ expression_ ) = sem_Expression_Eta ( sem_Range range_ ) expansion_ ( sem_Expression expression_ )
 sem_Expression ( Expression_Literal range_ literal_ ) = sem_Expression_Literal ( sem_Range range_ ) ( sem_Literal literal_ )
 sem_Expression ( Expression_Variable range_ name_ ) = sem_Expression_Variable ( sem_Range range_ ) ( sem_Name name_ )
 sem_Expression ( Expression_Constructor range_ name_ ) = sem_Expression_Constructor ( sem_Range range_ ) ( sem_Name name_ )
@@ -1434,233 +1468,233 @@ data T_Expression_vIn40  = T_Expression_vIn40
 data T_Expression_vOut40  = T_Expression_vOut40 ([(Name,Entity)]) (Expression)
 {-# NOINLINE sem_Expression_Hole #-}
 sem_Expression_Hole :: T_Range  -> (String) -> T_Expression 
-sem_Expression_Hole arg_range_ arg_id_ = T_Expression (return st41) where
+sem_Expression_Hole arg_range_ !arg_id_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule78  ()
-         _self = rule79 _rangeIself arg_id_
-         _lhsOself :: Expression
-         _lhsOself = rule80 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
-         in __result_ )
-     in C_Expression_s41 v40
-   {-# INLINE rule78 #-}
-   rule78 = \  (_ :: ()) ->
-     []
-   {-# INLINE rule79 #-}
-   rule79 = \ ((_rangeIself) :: Range) id_ ->
-     Expression_Hole _rangeIself id_
-   {-# INLINE rule80 #-}
-   rule80 = \ _self ->
-     _self
-{-# NOINLINE sem_Expression_Feedback #-}
-sem_Expression_Feedback :: T_Range  -> (String) -> T_Expression  -> T_Expression 
-sem_Expression_Feedback arg_range_ arg_feedback_ arg_expression_ = T_Expression (return st41) where
-   {-# NOINLINE st41 #-}
-   st41 = let
-      v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
-         _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
-         _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
-         (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule81 _expressionIallVariables
-         _self = rule82 _expressionIself _rangeIself arg_feedback_
-         _lhsOself :: Expression
-         _lhsOself = rule83 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
-         in __result_ )
-     in C_Expression_s41 v40
-   {-# INLINE rule81 #-}
-   rule81 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
-     _expressionIallVariables
-   {-# INLINE rule82 #-}
-   rule82 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) feedback_ ->
-     Expression_Feedback _rangeIself feedback_ _expressionIself
-   {-# INLINE rule83 #-}
-   rule83 = \ _self ->
-     _self
-{-# NOINLINE sem_Expression_MustUse #-}
-sem_Expression_MustUse :: T_Range  -> T_Expression  -> T_Expression 
-sem_Expression_MustUse arg_range_ arg_expression_ = T_Expression (return st41) where
-   {-# NOINLINE st41 #-}
-   st41 = let
-      v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
-         _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
-         _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
-         (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule84 _expressionIallVariables
-         _self = rule85 _expressionIself _rangeIself
+         _lhsOallVariables = rule84  ()
+         _self = rule85 _rangeIself arg_id_
          _lhsOself :: Expression
          _lhsOself = rule86 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule84 #-}
-   rule84 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
-     _expressionIallVariables
+   rule84 = \  (_ :: ()) ->
+     []
    {-# INLINE rule85 #-}
-   rule85 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
-     Expression_MustUse _rangeIself _expressionIself
+   rule85 = \ ((_rangeIself) :: Range) id_ ->
+     Expression_Hole _rangeIself id_
    {-# INLINE rule86 #-}
    rule86 = \ _self ->
      _self
-{-# NOINLINE sem_Expression_Eta #-}
-sem_Expression_Eta :: T_Range  -> (Int) -> T_Expression  -> T_Expression 
-sem_Expression_Eta arg_range_ arg_expansion_ arg_expression_ = T_Expression (return st41) where
+{-# NOINLINE sem_Expression_Feedback #-}
+sem_Expression_Feedback :: T_Range  -> (String) -> T_Expression  -> T_Expression 
+sem_Expression_Feedback arg_range_ !arg_feedback_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          _lhsOallVariables :: [(Name,Entity)]
          _lhsOallVariables = rule87 _expressionIallVariables
-         _self = rule88 _expressionIself _rangeIself arg_expansion_
+         _self = rule88 _expressionIself _rangeIself arg_feedback_
          _lhsOself :: Expression
          _lhsOself = rule89 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule87 #-}
    rule87 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
      _expressionIallVariables
    {-# INLINE rule88 #-}
-   rule88 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) expansion_ ->
-     Expression_Eta _rangeIself expansion_ _expressionIself
+   rule88 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) feedback_ ->
+     Expression_Feedback _rangeIself feedback_ _expressionIself
    {-# INLINE rule89 #-}
    rule89 = \ _self ->
      _self
-{-# NOINLINE sem_Expression_Literal #-}
-sem_Expression_Literal :: T_Range  -> T_Literal  -> T_Expression 
-sem_Expression_Literal arg_range_ arg_literal_ = T_Expression (return st41) where
+{-# NOINLINE sem_Expression_MustUse #-}
+sem_Expression_MustUse :: T_Range  -> T_Expression  -> T_Expression 
+sem_Expression_MustUse arg_range_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
-         _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
-         _literalX89 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
-         (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         (T_Literal_vOut88 _literalIself) = inv_Literal_s89 _literalX89 (T_Literal_vIn88 )
-         _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule90  ()
-         _self = rule91 _literalIself _rangeIself
-         _lhsOself :: Expression
-         _lhsOself = rule92 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
-         in __result_ )
-     in C_Expression_s41 v40
-   {-# INLINE rule90 #-}
-   rule90 = \  (_ :: ()) ->
-     []
-   {-# INLINE rule91 #-}
-   rule91 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
-     Expression_Literal _rangeIself _literalIself
-   {-# INLINE rule92 #-}
-   rule92 = \ _self ->
-     _self
-{-# NOINLINE sem_Expression_Variable #-}
-sem_Expression_Variable :: T_Range  -> T_Name  -> T_Expression 
-sem_Expression_Variable arg_range_ arg_name_ = T_Expression (return st41) where
-   {-# NOINLINE st41 #-}
-   st41 = let
-      v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
-         _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
-         _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
-         (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
-         _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule93 _nameIself
-         _self = rule94 _nameIself _rangeIself
-         _lhsOself :: Expression
-         _lhsOself = rule95 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
-         in __result_ )
-     in C_Expression_s41 v40
-   {-# INLINE rule93 #-}
-   rule93 = \ ((_nameIself) :: Name) ->
-                                         [(_nameIself, Variable)]
-   {-# INLINE rule94 #-}
-   rule94 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
-     Expression_Variable _rangeIself _nameIself
-   {-# INLINE rule95 #-}
-   rule95 = \ _self ->
-     _self
-{-# NOINLINE sem_Expression_Constructor #-}
-sem_Expression_Constructor :: T_Range  -> T_Name  -> T_Expression 
-sem_Expression_Constructor arg_range_ arg_name_ = T_Expression (return st41) where
-   {-# NOINLINE st41 #-}
-   st41 = let
-      v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
-         _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
-         _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
-         (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
-         _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule96 _nameIself
-         _self = rule97 _nameIself _rangeIself
-         _lhsOself :: Expression
-         _lhsOself = rule98 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
-         in __result_ )
-     in C_Expression_s41 v40
-   {-# INLINE rule96 #-}
-   rule96 = \ ((_nameIself) :: Name) ->
-                                         [(_nameIself, Constructor)]
-   {-# INLINE rule97 #-}
-   rule97 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
-     Expression_Constructor _rangeIself _nameIself
-   {-# INLINE rule98 #-}
-   rule98 = \ _self ->
-     _self
-{-# NOINLINE sem_Expression_Parenthesized #-}
-sem_Expression_Parenthesized :: T_Range  -> T_Expression  -> T_Expression 
-sem_Expression_Parenthesized arg_range_ arg_expression_ = T_Expression (return st41) where
-   {-# NOINLINE st41 #-}
-   st41 = let
-      v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule99 _expressionIallVariables
-         _self = rule100 _expressionIself _rangeIself
+         _lhsOallVariables = rule90 _expressionIallVariables
+         _self = rule91 _expressionIself _rangeIself
+         _lhsOself :: Expression
+         _lhsOself = rule92 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         in __result_ )
+     in C_Expression_s41 v40
+   {-# INLINE rule90 #-}
+   rule90 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
+     _expressionIallVariables
+   {-# INLINE rule91 #-}
+   rule91 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
+     Expression_MustUse _rangeIself _expressionIself
+   {-# INLINE rule92 #-}
+   rule92 = \ _self ->
+     _self
+{-# NOINLINE sem_Expression_Eta #-}
+sem_Expression_Eta :: T_Range  -> (Int) -> T_Expression  -> T_Expression 
+sem_Expression_Eta arg_range_ !arg_expansion_ arg_expression_ = T_Expression (return st41) where
+   {-# NOINLINE st41 #-}
+   !st41 = let
+      v40 :: T_Expression_v40 
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
+         _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
+         _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
+         (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
+         (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
+         _lhsOallVariables :: [(Name,Entity)]
+         _lhsOallVariables = rule93 _expressionIallVariables
+         _self = rule94 _expressionIself _rangeIself arg_expansion_
+         _lhsOself :: Expression
+         _lhsOself = rule95 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         in __result_ )
+     in C_Expression_s41 v40
+   {-# INLINE rule93 #-}
+   rule93 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
+     _expressionIallVariables
+   {-# INLINE rule94 #-}
+   rule94 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) expansion_ ->
+     Expression_Eta _rangeIself expansion_ _expressionIself
+   {-# INLINE rule95 #-}
+   rule95 = \ _self ->
+     _self
+{-# NOINLINE sem_Expression_Literal #-}
+sem_Expression_Literal :: T_Range  -> T_Literal  -> T_Expression 
+sem_Expression_Literal arg_range_ arg_literal_ = T_Expression (return st41) where
+   {-# NOINLINE st41 #-}
+   !st41 = let
+      v40 :: T_Expression_v40 
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
+         _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
+         _literalX89 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
+         (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
+         (T_Literal_vOut88 _literalIself) = inv_Literal_s89 _literalX89 (T_Literal_vIn88 )
+         _lhsOallVariables :: [(Name,Entity)]
+         _lhsOallVariables = rule96  ()
+         _self = rule97 _literalIself _rangeIself
+         _lhsOself :: Expression
+         _lhsOself = rule98 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         in __result_ )
+     in C_Expression_s41 v40
+   {-# INLINE rule96 #-}
+   rule96 = \  (_ :: ()) ->
+     []
+   {-# INLINE rule97 #-}
+   rule97 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
+     Expression_Literal _rangeIself _literalIself
+   {-# INLINE rule98 #-}
+   rule98 = \ _self ->
+     _self
+{-# NOINLINE sem_Expression_Variable #-}
+sem_Expression_Variable :: T_Range  -> T_Name  -> T_Expression 
+sem_Expression_Variable arg_range_ arg_name_ = T_Expression (return st41) where
+   {-# NOINLINE st41 #-}
+   !st41 = let
+      v40 :: T_Expression_v40 
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
+         _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
+         _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
+         (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
+         (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
+         _lhsOallVariables :: [(Name,Entity)]
+         _lhsOallVariables = rule99 _nameIself
+         _self = rule100 _nameIself _rangeIself
          _lhsOself :: Expression
          _lhsOself = rule101 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expression_s41 v40
    {-# INLINE rule99 #-}
-   rule99 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
-     _expressionIallVariables
+   rule99 = \ ((_nameIself) :: Name) ->
+                                         [(_nameIself, Variable)]
    {-# INLINE rule100 #-}
-   rule100 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
-     Expression_Parenthesized _rangeIself _expressionIself
+   rule100 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+     Expression_Variable _rangeIself _nameIself
    {-# INLINE rule101 #-}
    rule101 = \ _self ->
+     _self
+{-# NOINLINE sem_Expression_Constructor #-}
+sem_Expression_Constructor :: T_Range  -> T_Name  -> T_Expression 
+sem_Expression_Constructor arg_range_ arg_name_ = T_Expression (return st41) where
+   {-# NOINLINE st41 #-}
+   !st41 = let
+      v40 :: T_Expression_v40 
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
+         _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
+         _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
+         (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
+         (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
+         _lhsOallVariables :: [(Name,Entity)]
+         _lhsOallVariables = rule102 _nameIself
+         _self = rule103 _nameIself _rangeIself
+         _lhsOself :: Expression
+         _lhsOself = rule104 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         in __result_ )
+     in C_Expression_s41 v40
+   {-# INLINE rule102 #-}
+   rule102 = \ ((_nameIself) :: Name) ->
+                                         [(_nameIself, Constructor)]
+   {-# INLINE rule103 #-}
+   rule103 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+     Expression_Constructor _rangeIself _nameIself
+   {-# INLINE rule104 #-}
+   rule104 = \ _self ->
+     _self
+{-# NOINLINE sem_Expression_Parenthesized #-}
+sem_Expression_Parenthesized :: T_Range  -> T_Expression  -> T_Expression 
+sem_Expression_Parenthesized arg_range_ arg_expression_ = T_Expression (return st41) where
+   {-# NOINLINE st41 #-}
+   !st41 = let
+      v40 :: T_Expression_v40 
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
+         _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
+         _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
+         (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
+         (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
+         _lhsOallVariables :: [(Name,Entity)]
+         _lhsOallVariables = rule105 _expressionIallVariables
+         _self = rule106 _expressionIself _rangeIself
+         _lhsOself :: Expression
+         _lhsOself = rule107 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         in __result_ )
+     in C_Expression_s41 v40
+   {-# INLINE rule105 #-}
+   rule105 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
+     _expressionIallVariables
+   {-# INLINE rule106 #-}
+   rule106 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
+     Expression_Parenthesized _rangeIself _expressionIself
+   {-# INLINE rule107 #-}
+   rule107 = \ _self ->
      _self
 {-# NOINLINE sem_Expression_NormalApplication #-}
 sem_Expression_NormalApplication :: T_Range  -> T_Expression  -> T_Expressions  -> T_Expression 
 sem_Expression_NormalApplication arg_range_ arg_function_ arg_arguments_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _functionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_function_))
          _argumentsX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_arguments_))
@@ -1668,29 +1702,29 @@ sem_Expression_NormalApplication arg_range_ arg_function_ arg_arguments_ = T_Exp
          (T_Expression_vOut40 _functionIallVariables _functionIself) = inv_Expression_s41 _functionX41 (T_Expression_vIn40 )
          (T_Expressions_vOut43 _argumentsIallVariables _argumentsIself) = inv_Expressions_s44 _argumentsX44 (T_Expressions_vIn43 )
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule102 _argumentsIallVariables _functionIallVariables
-         _self = rule103 _argumentsIself _functionIself _rangeIself
+         _lhsOallVariables = rule108 _argumentsIallVariables _functionIallVariables
+         _self = rule109 _argumentsIself _functionIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule104 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         _lhsOself = rule110 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule102 #-}
-   rule102 = \ ((_argumentsIallVariables) :: [(Name,Entity)]) ((_functionIallVariables) :: [(Name,Entity)]) ->
+   {-# INLINE rule108 #-}
+   rule108 = \ ((_argumentsIallVariables) :: [(Name,Entity)]) ((_functionIallVariables) :: [(Name,Entity)]) ->
      _functionIallVariables  ++  _argumentsIallVariables
-   {-# INLINE rule103 #-}
-   rule103 = \ ((_argumentsIself) :: Expressions) ((_functionIself) :: Expression) ((_rangeIself) :: Range) ->
+   {-# INLINE rule109 #-}
+   rule109 = \ ((_argumentsIself) :: Expressions) ((_functionIself) :: Expression) ((_rangeIself) :: Range) ->
      Expression_NormalApplication _rangeIself _functionIself _argumentsIself
-   {-# INLINE rule104 #-}
-   rule104 = \ _self ->
+   {-# INLINE rule110 #-}
+   rule110 = \ _self ->
      _self
 {-# NOINLINE sem_Expression_InfixApplication #-}
 sem_Expression_InfixApplication :: T_Range  -> T_MaybeExpression  -> T_Expression  -> T_MaybeExpression  -> T_Expression 
 sem_Expression_InfixApplication arg_range_ arg_leftExpression_ arg_operator_ arg_rightExpression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _leftExpressionX98 = Control.Monad.Identity.runIdentity (attach_T_MaybeExpression (arg_leftExpression_))
          _operatorX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_operator_))
@@ -1700,29 +1734,29 @@ sem_Expression_InfixApplication arg_range_ arg_leftExpression_ arg_operator_ arg
          (T_Expression_vOut40 _operatorIallVariables _operatorIself) = inv_Expression_s41 _operatorX41 (T_Expression_vIn40 )
          (T_MaybeExpression_vOut97 _rightExpressionIallVariables _rightExpressionIself) = inv_MaybeExpression_s98 _rightExpressionX98 (T_MaybeExpression_vIn97 )
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule105 _leftExpressionIallVariables _operatorIallVariables _rightExpressionIallVariables
-         _self = rule106 _leftExpressionIself _operatorIself _rangeIself _rightExpressionIself
+         _lhsOallVariables = rule111 _leftExpressionIallVariables _operatorIallVariables _rightExpressionIallVariables
+         _self = rule112 _leftExpressionIself _operatorIself _rangeIself _rightExpressionIself
          _lhsOself :: Expression
-         _lhsOself = rule107 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         _lhsOself = rule113 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule105 #-}
-   rule105 = \ ((_leftExpressionIallVariables) :: [(Name,Entity)]) ((_operatorIallVariables) :: [(Name,Entity)]) ((_rightExpressionIallVariables) :: [(Name,Entity)]) ->
+   {-# INLINE rule111 #-}
+   rule111 = \ ((_leftExpressionIallVariables) :: [(Name,Entity)]) ((_operatorIallVariables) :: [(Name,Entity)]) ((_rightExpressionIallVariables) :: [(Name,Entity)]) ->
      _leftExpressionIallVariables  ++  _operatorIallVariables  ++  _rightExpressionIallVariables
-   {-# INLINE rule106 #-}
-   rule106 = \ ((_leftExpressionIself) :: MaybeExpression) ((_operatorIself) :: Expression) ((_rangeIself) :: Range) ((_rightExpressionIself) :: MaybeExpression) ->
+   {-# INLINE rule112 #-}
+   rule112 = \ ((_leftExpressionIself) :: MaybeExpression) ((_operatorIself) :: Expression) ((_rangeIself) :: Range) ((_rightExpressionIself) :: MaybeExpression) ->
      Expression_InfixApplication _rangeIself _leftExpressionIself _operatorIself _rightExpressionIself
-   {-# INLINE rule107 #-}
-   rule107 = \ _self ->
+   {-# INLINE rule113 #-}
+   rule113 = \ _self ->
      _self
 {-# NOINLINE sem_Expression_If #-}
 sem_Expression_If :: T_Range  -> T_Expression  -> T_Expression  -> T_Expression  -> T_Expression 
 sem_Expression_If arg_range_ arg_guardExpression_ arg_thenExpression_ arg_elseExpression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _guardExpressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_guardExpression_))
          _thenExpressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_thenExpression_))
@@ -1732,29 +1766,29 @@ sem_Expression_If arg_range_ arg_guardExpression_ arg_thenExpression_ arg_elseEx
          (T_Expression_vOut40 _thenExpressionIallVariables _thenExpressionIself) = inv_Expression_s41 _thenExpressionX41 (T_Expression_vIn40 )
          (T_Expression_vOut40 _elseExpressionIallVariables _elseExpressionIself) = inv_Expression_s41 _elseExpressionX41 (T_Expression_vIn40 )
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule108 _elseExpressionIallVariables _guardExpressionIallVariables _thenExpressionIallVariables
-         _self = rule109 _elseExpressionIself _guardExpressionIself _rangeIself _thenExpressionIself
+         _lhsOallVariables = rule114 _elseExpressionIallVariables _guardExpressionIallVariables _thenExpressionIallVariables
+         _self = rule115 _elseExpressionIself _guardExpressionIself _rangeIself _thenExpressionIself
          _lhsOself :: Expression
-         _lhsOself = rule110 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         _lhsOself = rule116 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule108 #-}
-   rule108 = \ ((_elseExpressionIallVariables) :: [(Name,Entity)]) ((_guardExpressionIallVariables) :: [(Name,Entity)]) ((_thenExpressionIallVariables) :: [(Name,Entity)]) ->
+   {-# INLINE rule114 #-}
+   rule114 = \ ((_elseExpressionIallVariables) :: [(Name,Entity)]) ((_guardExpressionIallVariables) :: [(Name,Entity)]) ((_thenExpressionIallVariables) :: [(Name,Entity)]) ->
      _guardExpressionIallVariables  ++  _thenExpressionIallVariables  ++  _elseExpressionIallVariables
-   {-# INLINE rule109 #-}
-   rule109 = \ ((_elseExpressionIself) :: Expression) ((_guardExpressionIself) :: Expression) ((_rangeIself) :: Range) ((_thenExpressionIself) :: Expression) ->
+   {-# INLINE rule115 #-}
+   rule115 = \ ((_elseExpressionIself) :: Expression) ((_guardExpressionIself) :: Expression) ((_rangeIself) :: Range) ((_thenExpressionIself) :: Expression) ->
      Expression_If _rangeIself _guardExpressionIself _thenExpressionIself _elseExpressionIself
-   {-# INLINE rule110 #-}
-   rule110 = \ _self ->
+   {-# INLINE rule116 #-}
+   rule116 = \ _self ->
      _self
 {-# NOINLINE sem_Expression_Lambda #-}
 sem_Expression_Lambda :: T_Range  -> T_Patterns  -> T_Expression  -> T_Expression 
 sem_Expression_Lambda arg_range_ arg_patterns_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternsX125 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
@@ -1762,29 +1796,29 @@ sem_Expression_Lambda arg_range_ arg_patterns_ arg_expression_ = T_Expression (r
          (T_Patterns_vOut124 _patternsIself) = inv_Patterns_s125 _patternsX125 (T_Patterns_vIn124 )
          (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule111 _expressionIallVariables
-         _self = rule112 _expressionIself _patternsIself _rangeIself
+         _lhsOallVariables = rule117 _expressionIallVariables
+         _self = rule118 _expressionIself _patternsIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule113 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         _lhsOself = rule119 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule111 #-}
-   rule111 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
+   {-# INLINE rule117 #-}
+   rule117 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
      _expressionIallVariables
-   {-# INLINE rule112 #-}
-   rule112 = \ ((_expressionIself) :: Expression) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
+   {-# INLINE rule118 #-}
+   rule118 = \ ((_expressionIself) :: Expression) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
      Expression_Lambda _rangeIself _patternsIself _expressionIself
-   {-# INLINE rule113 #-}
-   rule113 = \ _self ->
+   {-# INLINE rule119 #-}
+   rule119 = \ _self ->
      _self
 {-# NOINLINE sem_Expression_Case #-}
 sem_Expression_Case :: T_Range  -> T_Expression  -> T_Alternatives  -> T_Expression 
 sem_Expression_Case arg_range_ arg_expression_ arg_alternatives_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          _alternativesX5 = Control.Monad.Identity.runIdentity (attach_T_Alternatives (arg_alternatives_))
@@ -1792,29 +1826,29 @@ sem_Expression_Case arg_range_ arg_expression_ arg_alternatives_ = T_Expression 
          (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          (T_Alternatives_vOut4 _alternativesIself) = inv_Alternatives_s5 _alternativesX5 (T_Alternatives_vIn4 )
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule114 _expressionIallVariables
-         _self = rule115 _alternativesIself _expressionIself _rangeIself
+         _lhsOallVariables = rule120 _expressionIallVariables
+         _self = rule121 _alternativesIself _expressionIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule116 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         _lhsOself = rule122 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule114 #-}
-   rule114 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
+   {-# INLINE rule120 #-}
+   rule120 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
      _expressionIallVariables
-   {-# INLINE rule115 #-}
-   rule115 = \ ((_alternativesIself) :: Alternatives) ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
+   {-# INLINE rule121 #-}
+   rule121 = \ ((_alternativesIself) :: Alternatives) ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
      Expression_Case _rangeIself _expressionIself _alternativesIself
-   {-# INLINE rule116 #-}
-   rule116 = \ _self ->
+   {-# INLINE rule122 #-}
+   rule122 = \ _self ->
      _self
 {-# NOINLINE sem_Expression_Let #-}
 sem_Expression_Let :: T_Range  -> T_Declarations  -> T_Expression  -> T_Expression 
 sem_Expression_Let arg_range_ arg_declarations_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
@@ -1822,113 +1856,113 @@ sem_Expression_Let arg_range_ arg_declarations_ arg_expression_ = T_Expression (
          (T_Declarations_vOut31 _declarationsIself) = inv_Declarations_s32 _declarationsX32 (T_Declarations_vIn31 )
          (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule117 _expressionIallVariables
-         _self = rule118 _declarationsIself _expressionIself _rangeIself
+         _lhsOallVariables = rule123 _expressionIallVariables
+         _self = rule124 _declarationsIself _expressionIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule119 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         _lhsOself = rule125 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule117 #-}
-   rule117 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
+   {-# INLINE rule123 #-}
+   rule123 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
      _expressionIallVariables
-   {-# INLINE rule118 #-}
-   rule118 = \ ((_declarationsIself) :: Declarations) ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
+   {-# INLINE rule124 #-}
+   rule124 = \ ((_declarationsIself) :: Declarations) ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
      Expression_Let _rangeIself _declarationsIself _expressionIself
-   {-# INLINE rule119 #-}
-   rule119 = \ _self ->
+   {-# INLINE rule125 #-}
+   rule125 = \ _self ->
      _self
 {-# NOINLINE sem_Expression_Do #-}
 sem_Expression_Do :: T_Range  -> T_Statements  -> T_Expression 
 sem_Expression_Do arg_range_ arg_statements_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _statementsX167 = Control.Monad.Identity.runIdentity (attach_T_Statements (arg_statements_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Statements_vOut166 _statementsIself) = inv_Statements_s167 _statementsX167 (T_Statements_vIn166 )
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule120  ()
-         _self = rule121 _rangeIself _statementsIself
+         _lhsOallVariables = rule126  ()
+         _self = rule127 _rangeIself _statementsIself
          _lhsOself :: Expression
-         _lhsOself = rule122 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         _lhsOself = rule128 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule120 #-}
-   rule120 = \  (_ :: ()) ->
+   {-# INLINE rule126 #-}
+   rule126 = \  (_ :: ()) ->
      []
-   {-# INLINE rule121 #-}
-   rule121 = \ ((_rangeIself) :: Range) ((_statementsIself) :: Statements) ->
+   {-# INLINE rule127 #-}
+   rule127 = \ ((_rangeIself) :: Range) ((_statementsIself) :: Statements) ->
      Expression_Do _rangeIself _statementsIself
-   {-# INLINE rule122 #-}
-   rule122 = \ _self ->
+   {-# INLINE rule128 #-}
+   rule128 = \ _self ->
      _self
 {-# NOINLINE sem_Expression_List #-}
 sem_Expression_List :: T_Range  -> T_Expressions  -> T_Expression 
 sem_Expression_List arg_range_ arg_expressions_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionsX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_expressions_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Expressions_vOut43 _expressionsIallVariables _expressionsIself) = inv_Expressions_s44 _expressionsX44 (T_Expressions_vIn43 )
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule123 _expressionsIallVariables
-         _self = rule124 _expressionsIself _rangeIself
+         _lhsOallVariables = rule129 _expressionsIallVariables
+         _self = rule130 _expressionsIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule125 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         _lhsOself = rule131 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule123 #-}
-   rule123 = \ ((_expressionsIallVariables) :: [(Name,Entity)]) ->
+   {-# INLINE rule129 #-}
+   rule129 = \ ((_expressionsIallVariables) :: [(Name,Entity)]) ->
      _expressionsIallVariables
-   {-# INLINE rule124 #-}
-   rule124 = \ ((_expressionsIself) :: Expressions) ((_rangeIself) :: Range) ->
+   {-# INLINE rule130 #-}
+   rule130 = \ ((_expressionsIself) :: Expressions) ((_rangeIself) :: Range) ->
      Expression_List _rangeIself _expressionsIself
-   {-# INLINE rule125 #-}
-   rule125 = \ _self ->
+   {-# INLINE rule131 #-}
+   rule131 = \ _self ->
      _self
 {-# NOINLINE sem_Expression_Tuple #-}
 sem_Expression_Tuple :: T_Range  -> T_Expressions  -> T_Expression 
 sem_Expression_Tuple arg_range_ arg_expressions_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionsX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_expressions_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Expressions_vOut43 _expressionsIallVariables _expressionsIself) = inv_Expressions_s44 _expressionsX44 (T_Expressions_vIn43 )
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule126 _expressionsIallVariables
-         _self = rule127 _expressionsIself _rangeIself
+         _lhsOallVariables = rule132 _expressionsIallVariables
+         _self = rule133 _expressionsIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule128 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         _lhsOself = rule134 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule126 #-}
-   rule126 = \ ((_expressionsIallVariables) :: [(Name,Entity)]) ->
+   {-# INLINE rule132 #-}
+   rule132 = \ ((_expressionsIallVariables) :: [(Name,Entity)]) ->
      _expressionsIallVariables
-   {-# INLINE rule127 #-}
-   rule127 = \ ((_expressionsIself) :: Expressions) ((_rangeIself) :: Range) ->
+   {-# INLINE rule133 #-}
+   rule133 = \ ((_expressionsIself) :: Expressions) ((_rangeIself) :: Range) ->
      Expression_Tuple _rangeIself _expressionsIself
-   {-# INLINE rule128 #-}
-   rule128 = \ _self ->
+   {-# INLINE rule134 #-}
+   rule134 = \ _self ->
      _self
 {-# NOINLINE sem_Expression_Comprehension #-}
 sem_Expression_Comprehension :: T_Range  -> T_Expression  -> T_Qualifiers  -> T_Expression 
 sem_Expression_Comprehension arg_range_ arg_expression_ arg_qualifiers_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          _qualifiersX134 = Control.Monad.Identity.runIdentity (attach_T_Qualifiers (arg_qualifiers_))
@@ -1936,59 +1970,63 @@ sem_Expression_Comprehension arg_range_ arg_expression_ arg_qualifiers_ = T_Expr
          (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          (T_Qualifiers_vOut133 _qualifiersIself) = inv_Qualifiers_s134 _qualifiersX134 (T_Qualifiers_vIn133 )
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule129 _expressionIallVariables
-         _self = rule130 _expressionIself _qualifiersIself _rangeIself
+         _lhsOallVariables = rule135 _expressionIallVariables
+         _self = rule136 _expressionIself _qualifiersIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule131 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         _lhsOself = rule137 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule129 #-}
-   rule129 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
+   {-# INLINE rule135 #-}
+   rule135 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
      _expressionIallVariables
-   {-# INLINE rule130 #-}
-   rule130 = \ ((_expressionIself) :: Expression) ((_qualifiersIself) :: Qualifiers) ((_rangeIself) :: Range) ->
+   {-# INLINE rule136 #-}
+   rule136 = \ ((_expressionIself) :: Expression) ((_qualifiersIself) :: Qualifiers) ((_rangeIself) :: Range) ->
      Expression_Comprehension _rangeIself _expressionIself _qualifiersIself
-   {-# INLINE rule131 #-}
-   rule131 = \ _self ->
+   {-# INLINE rule137 #-}
+   rule137 = \ _self ->
      _self
 {-# NOINLINE sem_Expression_Typed #-}
 sem_Expression_Typed :: T_Range  -> T_Expression  -> T_Type  -> T_Expression 
 sem_Expression_Typed arg_range_ arg_expression_ arg_type_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          _typeX173 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 )
+         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 _typeOqualifier)
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule132 _expressionIallVariables
-         _self = rule133 _expressionIself _rangeIself _typeIself
+         _lhsOallVariables = rule138 _expressionIallVariables
+         _self = rule139 _expressionIself _rangeIself _typeIself
          _lhsOself :: Expression
-         _lhsOself = rule134 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         _lhsOself = rule140 _self
+         _typeOqualifier = rule141  ()
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule132 #-}
-   rule132 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
+   {-# INLINE rule138 #-}
+   rule138 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
      _expressionIallVariables
-   {-# INLINE rule133 #-}
-   rule133 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
+   {-# INLINE rule139 #-}
+   rule139 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
      Expression_Typed _rangeIself _expressionIself _typeIself
-   {-# INLINE rule134 #-}
-   rule134 = \ _self ->
+   {-# INLINE rule140 #-}
+   rule140 = \ _self ->
      _self
+   {-# INLINE rule141 #-}
+   rule141 = \  (_ :: ()) ->
+     error "missing rule: Expression.Typed.type.qualifier"
 {-# NOINLINE sem_Expression_RecordConstruction #-}
 sem_Expression_RecordConstruction :: T_Range  -> T_Name  -> T_RecordExpressionBindings  -> T_Expression 
 sem_Expression_RecordConstruction arg_range_ arg_name_ arg_recordExpressionBindings_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _recordExpressionBindingsX143 = Control.Monad.Identity.runIdentity (attach_T_RecordExpressionBindings (arg_recordExpressionBindings_))
@@ -1996,29 +2034,29 @@ sem_Expression_RecordConstruction arg_range_ arg_name_ arg_recordExpressionBindi
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
          (T_RecordExpressionBindings_vOut142 _recordExpressionBindingsIself) = inv_RecordExpressionBindings_s143 _recordExpressionBindingsX143 (T_RecordExpressionBindings_vIn142 )
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule135  ()
-         _self = rule136 _nameIself _rangeIself _recordExpressionBindingsIself
+         _lhsOallVariables = rule142  ()
+         _self = rule143 _nameIself _rangeIself _recordExpressionBindingsIself
          _lhsOself :: Expression
-         _lhsOself = rule137 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         _lhsOself = rule144 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule135 #-}
-   rule135 = \  (_ :: ()) ->
+   {-# INLINE rule142 #-}
+   rule142 = \  (_ :: ()) ->
      []
-   {-# INLINE rule136 #-}
-   rule136 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_recordExpressionBindingsIself) :: RecordExpressionBindings) ->
+   {-# INLINE rule143 #-}
+   rule143 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_recordExpressionBindingsIself) :: RecordExpressionBindings) ->
      Expression_RecordConstruction _rangeIself _nameIself _recordExpressionBindingsIself
-   {-# INLINE rule137 #-}
-   rule137 = \ _self ->
+   {-# INLINE rule144 #-}
+   rule144 = \ _self ->
      _self
 {-# NOINLINE sem_Expression_RecordUpdate #-}
 sem_Expression_RecordUpdate :: T_Range  -> T_Expression  -> T_RecordExpressionBindings  -> T_Expression 
 sem_Expression_RecordUpdate arg_range_ arg_expression_ arg_recordExpressionBindings_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          _recordExpressionBindingsX143 = Control.Monad.Identity.runIdentity (attach_T_RecordExpressionBindings (arg_recordExpressionBindings_))
@@ -2026,29 +2064,29 @@ sem_Expression_RecordUpdate arg_range_ arg_expression_ arg_recordExpressionBindi
          (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          (T_RecordExpressionBindings_vOut142 _recordExpressionBindingsIself) = inv_RecordExpressionBindings_s143 _recordExpressionBindingsX143 (T_RecordExpressionBindings_vIn142 )
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule138 _expressionIallVariables
-         _self = rule139 _expressionIself _rangeIself _recordExpressionBindingsIself
+         _lhsOallVariables = rule145 _expressionIallVariables
+         _self = rule146 _expressionIself _rangeIself _recordExpressionBindingsIself
          _lhsOself :: Expression
-         _lhsOself = rule140 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         _lhsOself = rule147 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule138 #-}
-   rule138 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
+   {-# INLINE rule145 #-}
+   rule145 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
      _expressionIallVariables
-   {-# INLINE rule139 #-}
-   rule139 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ((_recordExpressionBindingsIself) :: RecordExpressionBindings) ->
+   {-# INLINE rule146 #-}
+   rule146 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ((_recordExpressionBindingsIself) :: RecordExpressionBindings) ->
      Expression_RecordUpdate _rangeIself _expressionIself _recordExpressionBindingsIself
-   {-# INLINE rule140 #-}
-   rule140 = \ _self ->
+   {-# INLINE rule147 #-}
+   rule147 = \ _self ->
      _self
 {-# NOINLINE sem_Expression_Enum #-}
 sem_Expression_Enum :: T_Range  -> T_Expression  -> T_MaybeExpression  -> T_MaybeExpression  -> T_Expression 
 sem_Expression_Enum arg_range_ arg_from_ arg_then_ arg_to_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _fromX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_from_))
          _thenX98 = Control.Monad.Identity.runIdentity (attach_T_MaybeExpression (arg_then_))
@@ -2058,90 +2096,90 @@ sem_Expression_Enum arg_range_ arg_from_ arg_then_ arg_to_ = T_Expression (retur
          (T_MaybeExpression_vOut97 _thenIallVariables _thenIself) = inv_MaybeExpression_s98 _thenX98 (T_MaybeExpression_vIn97 )
          (T_MaybeExpression_vOut97 _toIallVariables _toIself) = inv_MaybeExpression_s98 _toX98 (T_MaybeExpression_vIn97 )
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule141 _fromIallVariables _thenIallVariables _toIallVariables
-         _self = rule142 _fromIself _rangeIself _thenIself _toIself
+         _lhsOallVariables = rule148 _fromIallVariables _thenIallVariables _toIallVariables
+         _self = rule149 _fromIself _rangeIself _thenIself _toIself
          _lhsOself :: Expression
-         _lhsOself = rule143 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         _lhsOself = rule150 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule141 #-}
-   rule141 = \ ((_fromIallVariables) :: [(Name,Entity)]) ((_thenIallVariables) :: [(Name,Entity)]) ((_toIallVariables) :: [(Name,Entity)]) ->
+   {-# INLINE rule148 #-}
+   rule148 = \ ((_fromIallVariables) :: [(Name,Entity)]) ((_thenIallVariables) :: [(Name,Entity)]) ((_toIallVariables) :: [(Name,Entity)]) ->
      _fromIallVariables  ++  _thenIallVariables  ++  _toIallVariables
-   {-# INLINE rule142 #-}
-   rule142 = \ ((_fromIself) :: Expression) ((_rangeIself) :: Range) ((_thenIself) :: MaybeExpression) ((_toIself) :: MaybeExpression) ->
+   {-# INLINE rule149 #-}
+   rule149 = \ ((_fromIself) :: Expression) ((_rangeIself) :: Range) ((_thenIself) :: MaybeExpression) ((_toIself) :: MaybeExpression) ->
      Expression_Enum _rangeIself _fromIself _thenIself _toIself
-   {-# INLINE rule143 #-}
-   rule143 = \ _self ->
+   {-# INLINE rule150 #-}
+   rule150 = \ _self ->
      _self
 {-# NOINLINE sem_Expression_Negate #-}
 sem_Expression_Negate :: T_Range  -> T_Expression  -> T_Expression 
 sem_Expression_Negate arg_range_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule144 _expressionIallVariables
-         _self = rule145 _expressionIself _rangeIself
+         _lhsOallVariables = rule151 _expressionIallVariables
+         _self = rule152 _expressionIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule146 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         _lhsOself = rule153 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule144 #-}
-   rule144 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
+   {-# INLINE rule151 #-}
+   rule151 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
      _expressionIallVariables
-   {-# INLINE rule145 #-}
-   rule145 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
+   {-# INLINE rule152 #-}
+   rule152 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
      Expression_Negate _rangeIself _expressionIself
-   {-# INLINE rule146 #-}
-   rule146 = \ _self ->
+   {-# INLINE rule153 #-}
+   rule153 = \ _self ->
      _self
 {-# NOINLINE sem_Expression_NegateFloat #-}
 sem_Expression_NegateFloat :: T_Range  -> T_Expression  -> T_Expression 
 sem_Expression_NegateFloat arg_range_ arg_expression_ = T_Expression (return st41) where
    {-# NOINLINE st41 #-}
-   st41 = let
+   !st41 = let
       v40 :: T_Expression_v40 
-      v40 = \ (T_Expression_vIn40 ) -> ( let
+      v40 = \ !(T_Expression_vIn40 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule147 _expressionIallVariables
-         _self = rule148 _expressionIself _rangeIself
+         _lhsOallVariables = rule154 _expressionIallVariables
+         _self = rule155 _expressionIself _rangeIself
          _lhsOself :: Expression
-         _lhsOself = rule149 _self
-         __result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
+         _lhsOself = rule156 _self
+         !__result_ = T_Expression_vOut40 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expression_s41 v40
-   {-# INLINE rule147 #-}
-   rule147 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
+   {-# INLINE rule154 #-}
+   rule154 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
      _expressionIallVariables
-   {-# INLINE rule148 #-}
-   rule148 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
+   {-# INLINE rule155 #-}
+   rule155 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
      Expression_NegateFloat _rangeIself _expressionIself
-   {-# INLINE rule149 #-}
-   rule149 = \ _self ->
+   {-# INLINE rule156 #-}
+   rule156 = \ _self ->
      _self
 
 -- Expressions -------------------------------------------------
 -- wrapper
 data Inh_Expressions  = Inh_Expressions {  }
-data Syn_Expressions  = Syn_Expressions { allVariables_Syn_Expressions :: ([(Name,Entity)]), self_Syn_Expressions :: (Expressions) }
+data Syn_Expressions  = Syn_Expressions { allVariables_Syn_Expressions :: !([(Name,Entity)]), self_Syn_Expressions :: !(Expressions) }
 {-# INLINABLE wrap_Expressions #-}
 wrap_Expressions :: T_Expressions  -> Inh_Expressions  -> (Syn_Expressions )
-wrap_Expressions (T_Expressions act) (Inh_Expressions ) =
+wrap_Expressions !(T_Expressions act) !(Inh_Expressions ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg43 = T_Expressions_vIn43 
-        (T_Expressions_vOut43 _lhsOallVariables _lhsOself) <- return (inv_Expressions_s44 sem arg43)
+        !(T_Expressions_vOut43 _lhsOallVariables _lhsOself) <- return (inv_Expressions_s44 sem arg43)
         return (Syn_Expressions _lhsOallVariables _lhsOself)
    )
 
@@ -2165,66 +2203,66 @@ data T_Expressions_vOut43  = T_Expressions_vOut43 ([(Name,Entity)]) (Expressions
 sem_Expressions_Cons :: T_Expression  -> T_Expressions  -> T_Expressions 
 sem_Expressions_Cons arg_hd_ arg_tl_ = T_Expressions (return st44) where
    {-# NOINLINE st44 #-}
-   st44 = let
+   !st44 = let
       v43 :: T_Expressions_v43 
-      v43 = \ (T_Expressions_vIn43 ) -> ( let
+      v43 = \ !(T_Expressions_vIn43 ) -> ( let
          _hdX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_hd_))
          _tlX44 = Control.Monad.Identity.runIdentity (attach_T_Expressions (arg_tl_))
          (T_Expression_vOut40 _hdIallVariables _hdIself) = inv_Expression_s41 _hdX41 (T_Expression_vIn40 )
          (T_Expressions_vOut43 _tlIallVariables _tlIself) = inv_Expressions_s44 _tlX44 (T_Expressions_vIn43 )
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule150 _hdIallVariables _tlIallVariables
-         _self = rule151 _hdIself _tlIself
+         _lhsOallVariables = rule157 _hdIallVariables _tlIallVariables
+         _self = rule158 _hdIself _tlIself
          _lhsOself :: Expressions
-         _lhsOself = rule152 _self
-         __result_ = T_Expressions_vOut43 _lhsOallVariables _lhsOself
+         _lhsOself = rule159 _self
+         !__result_ = T_Expressions_vOut43 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expressions_s44 v43
-   {-# INLINE rule150 #-}
-   rule150 = \ ((_hdIallVariables) :: [(Name,Entity)]) ((_tlIallVariables) :: [(Name,Entity)]) ->
+   {-# INLINE rule157 #-}
+   rule157 = \ ((_hdIallVariables) :: [(Name,Entity)]) ((_tlIallVariables) :: [(Name,Entity)]) ->
      _hdIallVariables  ++  _tlIallVariables
-   {-# INLINE rule151 #-}
-   rule151 = \ ((_hdIself) :: Expression) ((_tlIself) :: Expressions) ->
+   {-# INLINE rule158 #-}
+   rule158 = \ ((_hdIself) :: Expression) ((_tlIself) :: Expressions) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule152 #-}
-   rule152 = \ _self ->
+   {-# INLINE rule159 #-}
+   rule159 = \ _self ->
      _self
 {-# NOINLINE sem_Expressions_Nil #-}
 sem_Expressions_Nil ::  T_Expressions 
 sem_Expressions_Nil  = T_Expressions (return st44) where
    {-# NOINLINE st44 #-}
-   st44 = let
+   !st44 = let
       v43 :: T_Expressions_v43 
-      v43 = \ (T_Expressions_vIn43 ) -> ( let
+      v43 = \ !(T_Expressions_vIn43 ) -> ( let
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule153  ()
-         _self = rule154  ()
+         _lhsOallVariables = rule160  ()
+         _self = rule161  ()
          _lhsOself :: Expressions
-         _lhsOself = rule155 _self
-         __result_ = T_Expressions_vOut43 _lhsOallVariables _lhsOself
+         _lhsOself = rule162 _self
+         !__result_ = T_Expressions_vOut43 _lhsOallVariables _lhsOself
          in __result_ )
      in C_Expressions_s44 v43
-   {-# INLINE rule153 #-}
-   rule153 = \  (_ :: ()) ->
+   {-# INLINE rule160 #-}
+   rule160 = \  (_ :: ()) ->
      []
-   {-# INLINE rule154 #-}
-   rule154 = \  (_ :: ()) ->
+   {-# INLINE rule161 #-}
+   rule161 = \  (_ :: ()) ->
      []
-   {-# INLINE rule155 #-}
-   rule155 = \ _self ->
+   {-# INLINE rule162 #-}
+   rule162 = \ _self ->
      _self
 
 -- FieldDeclaration --------------------------------------------
 -- wrapper
 data Inh_FieldDeclaration  = Inh_FieldDeclaration {  }
-data Syn_FieldDeclaration  = Syn_FieldDeclaration { self_Syn_FieldDeclaration :: (FieldDeclaration) }
+data Syn_FieldDeclaration  = Syn_FieldDeclaration { self_Syn_FieldDeclaration :: !(FieldDeclaration) }
 {-# INLINABLE wrap_FieldDeclaration #-}
 wrap_FieldDeclaration :: T_FieldDeclaration  -> Inh_FieldDeclaration  -> (Syn_FieldDeclaration )
-wrap_FieldDeclaration (T_FieldDeclaration act) (Inh_FieldDeclaration ) =
+wrap_FieldDeclaration !(T_FieldDeclaration act) !(Inh_FieldDeclaration ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg46 = T_FieldDeclaration_vIn46 
-        (T_FieldDeclaration_vOut46 _lhsOself) <- return (inv_FieldDeclaration_s47 sem arg46)
+        !(T_FieldDeclaration_vOut46 _lhsOself) <- return (inv_FieldDeclaration_s47 sem arg46)
         return (Syn_FieldDeclaration _lhsOself)
    )
 
@@ -2248,39 +2286,39 @@ data T_FieldDeclaration_vOut46  = T_FieldDeclaration_vOut46 (FieldDeclaration)
 sem_FieldDeclaration_FieldDeclaration :: T_Range  -> T_Names  -> T_AnnotatedType  -> T_FieldDeclaration 
 sem_FieldDeclaration_FieldDeclaration arg_range_ arg_names_ arg_type_ = T_FieldDeclaration (return st47) where
    {-# NOINLINE st47 #-}
-   st47 = let
+   !st47 = let
       v46 :: T_FieldDeclaration_v46 
-      v46 = \ (T_FieldDeclaration_vIn46 ) -> ( let
+      v46 = \ !(T_FieldDeclaration_vIn46 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _namesX119 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_names_))
          _typeX8 = Control.Monad.Identity.runIdentity (attach_T_AnnotatedType (arg_type_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Names_vOut118 _namesIself) = inv_Names_s119 _namesX119 (T_Names_vIn118 )
          (T_AnnotatedType_vOut7 _typeIself) = inv_AnnotatedType_s8 _typeX8 (T_AnnotatedType_vIn7 )
-         _self = rule156 _namesIself _rangeIself _typeIself
+         _self = rule163 _namesIself _rangeIself _typeIself
          _lhsOself :: FieldDeclaration
-         _lhsOself = rule157 _self
-         __result_ = T_FieldDeclaration_vOut46 _lhsOself
+         _lhsOself = rule164 _self
+         !__result_ = T_FieldDeclaration_vOut46 _lhsOself
          in __result_ )
      in C_FieldDeclaration_s47 v46
-   {-# INLINE rule156 #-}
-   rule156 = \ ((_namesIself) :: Names) ((_rangeIself) :: Range) ((_typeIself) :: AnnotatedType) ->
+   {-# INLINE rule163 #-}
+   rule163 = \ ((_namesIself) :: Names) ((_rangeIself) :: Range) ((_typeIself) :: AnnotatedType) ->
      FieldDeclaration_FieldDeclaration _rangeIself _namesIself _typeIself
-   {-# INLINE rule157 #-}
-   rule157 = \ _self ->
+   {-# INLINE rule164 #-}
+   rule164 = \ _self ->
      _self
 
 -- FieldDeclarations -------------------------------------------
 -- wrapper
 data Inh_FieldDeclarations  = Inh_FieldDeclarations {  }
-data Syn_FieldDeclarations  = Syn_FieldDeclarations { self_Syn_FieldDeclarations :: (FieldDeclarations) }
+data Syn_FieldDeclarations  = Syn_FieldDeclarations { self_Syn_FieldDeclarations :: !(FieldDeclarations) }
 {-# INLINABLE wrap_FieldDeclarations #-}
 wrap_FieldDeclarations :: T_FieldDeclarations  -> Inh_FieldDeclarations  -> (Syn_FieldDeclarations )
-wrap_FieldDeclarations (T_FieldDeclarations act) (Inh_FieldDeclarations ) =
+wrap_FieldDeclarations !(T_FieldDeclarations act) !(Inh_FieldDeclarations ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg49 = T_FieldDeclarations_vIn49 
-        (T_FieldDeclarations_vOut49 _lhsOself) <- return (inv_FieldDeclarations_s50 sem arg49)
+        !(T_FieldDeclarations_vOut49 _lhsOself) <- return (inv_FieldDeclarations_s50 sem arg49)
         return (Syn_FieldDeclarations _lhsOself)
    )
 
@@ -2304,56 +2342,56 @@ data T_FieldDeclarations_vOut49  = T_FieldDeclarations_vOut49 (FieldDeclarations
 sem_FieldDeclarations_Cons :: T_FieldDeclaration  -> T_FieldDeclarations  -> T_FieldDeclarations 
 sem_FieldDeclarations_Cons arg_hd_ arg_tl_ = T_FieldDeclarations (return st50) where
    {-# NOINLINE st50 #-}
-   st50 = let
+   !st50 = let
       v49 :: T_FieldDeclarations_v49 
-      v49 = \ (T_FieldDeclarations_vIn49 ) -> ( let
+      v49 = \ !(T_FieldDeclarations_vIn49 ) -> ( let
          _hdX47 = Control.Monad.Identity.runIdentity (attach_T_FieldDeclaration (arg_hd_))
          _tlX50 = Control.Monad.Identity.runIdentity (attach_T_FieldDeclarations (arg_tl_))
          (T_FieldDeclaration_vOut46 _hdIself) = inv_FieldDeclaration_s47 _hdX47 (T_FieldDeclaration_vIn46 )
          (T_FieldDeclarations_vOut49 _tlIself) = inv_FieldDeclarations_s50 _tlX50 (T_FieldDeclarations_vIn49 )
-         _self = rule158 _hdIself _tlIself
+         _self = rule165 _hdIself _tlIself
          _lhsOself :: FieldDeclarations
-         _lhsOself = rule159 _self
-         __result_ = T_FieldDeclarations_vOut49 _lhsOself
+         _lhsOself = rule166 _self
+         !__result_ = T_FieldDeclarations_vOut49 _lhsOself
          in __result_ )
      in C_FieldDeclarations_s50 v49
-   {-# INLINE rule158 #-}
-   rule158 = \ ((_hdIself) :: FieldDeclaration) ((_tlIself) :: FieldDeclarations) ->
+   {-# INLINE rule165 #-}
+   rule165 = \ ((_hdIself) :: FieldDeclaration) ((_tlIself) :: FieldDeclarations) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule159 #-}
-   rule159 = \ _self ->
+   {-# INLINE rule166 #-}
+   rule166 = \ _self ->
      _self
 {-# NOINLINE sem_FieldDeclarations_Nil #-}
 sem_FieldDeclarations_Nil ::  T_FieldDeclarations 
 sem_FieldDeclarations_Nil  = T_FieldDeclarations (return st50) where
    {-# NOINLINE st50 #-}
-   st50 = let
+   !st50 = let
       v49 :: T_FieldDeclarations_v49 
-      v49 = \ (T_FieldDeclarations_vIn49 ) -> ( let
-         _self = rule160  ()
+      v49 = \ !(T_FieldDeclarations_vIn49 ) -> ( let
+         _self = rule167  ()
          _lhsOself :: FieldDeclarations
-         _lhsOself = rule161 _self
-         __result_ = T_FieldDeclarations_vOut49 _lhsOself
+         _lhsOself = rule168 _self
+         !__result_ = T_FieldDeclarations_vOut49 _lhsOself
          in __result_ )
      in C_FieldDeclarations_s50 v49
-   {-# INLINE rule160 #-}
-   rule160 = \  (_ :: ()) ->
+   {-# INLINE rule167 #-}
+   rule167 = \  (_ :: ()) ->
      []
-   {-# INLINE rule161 #-}
-   rule161 = \ _self ->
+   {-# INLINE rule168 #-}
+   rule168 = \ _self ->
      _self
 
 -- Fixity ------------------------------------------------------
 -- wrapper
 data Inh_Fixity  = Inh_Fixity {  }
-data Syn_Fixity  = Syn_Fixity { self_Syn_Fixity :: (Fixity) }
+data Syn_Fixity  = Syn_Fixity { self_Syn_Fixity :: !(Fixity) }
 {-# INLINABLE wrap_Fixity #-}
 wrap_Fixity :: T_Fixity  -> Inh_Fixity  -> (Syn_Fixity )
-wrap_Fixity (T_Fixity act) (Inh_Fixity ) =
+wrap_Fixity !(T_Fixity act) !(Inh_Fixity ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg52 = T_Fixity_vIn52 
-        (T_Fixity_vOut52 _lhsOself) <- return (inv_Fixity_s53 sem arg52)
+        !(T_Fixity_vOut52 _lhsOself) <- return (inv_Fixity_s53 sem arg52)
         return (Syn_Fixity _lhsOself)
    )
 
@@ -2379,85 +2417,85 @@ data T_Fixity_vOut52  = T_Fixity_vOut52 (Fixity)
 sem_Fixity_Infixl :: T_Range  -> T_Fixity 
 sem_Fixity_Infixl arg_range_ = T_Fixity (return st53) where
    {-# NOINLINE st53 #-}
-   st53 = let
+   !st53 = let
       v52 :: T_Fixity_v52 
-      v52 = \ (T_Fixity_vIn52 ) -> ( let
+      v52 = \ !(T_Fixity_vIn52 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         _self = rule162 _rangeIself
+         _self = rule169 _rangeIself
          _lhsOself :: Fixity
-         _lhsOself = rule163 _self
-         __result_ = T_Fixity_vOut52 _lhsOself
+         _lhsOself = rule170 _self
+         !__result_ = T_Fixity_vOut52 _lhsOself
          in __result_ )
      in C_Fixity_s53 v52
-   {-# INLINE rule162 #-}
-   rule162 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule169 #-}
+   rule169 = \ ((_rangeIself) :: Range) ->
      Fixity_Infixl _rangeIself
-   {-# INLINE rule163 #-}
-   rule163 = \ _self ->
+   {-# INLINE rule170 #-}
+   rule170 = \ _self ->
      _self
 {-# NOINLINE sem_Fixity_Infixr #-}
 sem_Fixity_Infixr :: T_Range  -> T_Fixity 
 sem_Fixity_Infixr arg_range_ = T_Fixity (return st53) where
    {-# NOINLINE st53 #-}
-   st53 = let
+   !st53 = let
       v52 :: T_Fixity_v52 
-      v52 = \ (T_Fixity_vIn52 ) -> ( let
+      v52 = \ !(T_Fixity_vIn52 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         _self = rule164 _rangeIself
+         _self = rule171 _rangeIself
          _lhsOself :: Fixity
-         _lhsOself = rule165 _self
-         __result_ = T_Fixity_vOut52 _lhsOself
+         _lhsOself = rule172 _self
+         !__result_ = T_Fixity_vOut52 _lhsOself
          in __result_ )
      in C_Fixity_s53 v52
-   {-# INLINE rule164 #-}
-   rule164 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule171 #-}
+   rule171 = \ ((_rangeIself) :: Range) ->
      Fixity_Infixr _rangeIself
-   {-# INLINE rule165 #-}
-   rule165 = \ _self ->
+   {-# INLINE rule172 #-}
+   rule172 = \ _self ->
      _self
 {-# NOINLINE sem_Fixity_Infix #-}
 sem_Fixity_Infix :: T_Range  -> T_Fixity 
 sem_Fixity_Infix arg_range_ = T_Fixity (return st53) where
    {-# NOINLINE st53 #-}
-   st53 = let
+   !st53 = let
       v52 :: T_Fixity_v52 
-      v52 = \ (T_Fixity_vIn52 ) -> ( let
+      v52 = \ !(T_Fixity_vIn52 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         _self = rule166 _rangeIself
+         _self = rule173 _rangeIself
          _lhsOself :: Fixity
-         _lhsOself = rule167 _self
-         __result_ = T_Fixity_vOut52 _lhsOself
+         _lhsOself = rule174 _self
+         !__result_ = T_Fixity_vOut52 _lhsOself
          in __result_ )
      in C_Fixity_s53 v52
-   {-# INLINE rule166 #-}
-   rule166 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule173 #-}
+   rule173 = \ ((_rangeIself) :: Range) ->
      Fixity_Infix _rangeIself
-   {-# INLINE rule167 #-}
-   rule167 = \ _self ->
+   {-# INLINE rule174 #-}
+   rule174 = \ _self ->
      _self
 
 -- FunctionBinding ---------------------------------------------
 -- wrapper
 data Inh_FunctionBinding  = Inh_FunctionBinding {  }
-data Syn_FunctionBinding  = Syn_FunctionBinding { self_Syn_FunctionBinding :: (FunctionBinding) }
+data Syn_FunctionBinding  = Syn_FunctionBinding { self_Syn_FunctionBinding :: !(FunctionBinding) }
 {-# INLINABLE wrap_FunctionBinding #-}
 wrap_FunctionBinding :: T_FunctionBinding  -> Inh_FunctionBinding  -> (Syn_FunctionBinding )
-wrap_FunctionBinding (T_FunctionBinding act) (Inh_FunctionBinding ) =
+wrap_FunctionBinding !(T_FunctionBinding act) !(Inh_FunctionBinding ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg55 = T_FunctionBinding_vIn55 
-        (T_FunctionBinding_vOut55 _lhsOself) <- return (inv_FunctionBinding_s56 sem arg55)
+        !(T_FunctionBinding_vOut55 _lhsOself) <- return (inv_FunctionBinding_s56 sem arg55)
         return (Syn_FunctionBinding _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_FunctionBinding #-}
 sem_FunctionBinding :: FunctionBinding  -> T_FunctionBinding 
-sem_FunctionBinding ( FunctionBinding_Hole range_ id_ ) = sem_FunctionBinding_Hole ( sem_Range range_ ) id_
-sem_FunctionBinding ( FunctionBinding_Feedback range_ feedback_ functionBinding_ ) = sem_FunctionBinding_Feedback ( sem_Range range_ ) feedback_ ( sem_FunctionBinding functionBinding_ )
+sem_FunctionBinding ( FunctionBinding_Hole range_ !id_ ) = sem_FunctionBinding_Hole ( sem_Range range_ ) id_
+sem_FunctionBinding ( FunctionBinding_Feedback range_ !feedback_ functionBinding_ ) = sem_FunctionBinding_Feedback ( sem_Range range_ ) feedback_ ( sem_FunctionBinding functionBinding_ )
 sem_FunctionBinding ( FunctionBinding_FunctionBinding range_ lefthandside_ righthandside_ ) = sem_FunctionBinding_FunctionBinding ( sem_Range range_ ) ( sem_LeftHandSide lefthandside_ ) ( sem_RightHandSide righthandside_ )
 
 -- semantic domain
@@ -2473,85 +2511,85 @@ data T_FunctionBinding_vIn55  = T_FunctionBinding_vIn55
 data T_FunctionBinding_vOut55  = T_FunctionBinding_vOut55 (FunctionBinding)
 {-# NOINLINE sem_FunctionBinding_Hole #-}
 sem_FunctionBinding_Hole :: T_Range  -> (String) -> T_FunctionBinding 
-sem_FunctionBinding_Hole arg_range_ arg_id_ = T_FunctionBinding (return st56) where
+sem_FunctionBinding_Hole arg_range_ !arg_id_ = T_FunctionBinding (return st56) where
    {-# NOINLINE st56 #-}
-   st56 = let
+   !st56 = let
       v55 :: T_FunctionBinding_v55 
-      v55 = \ (T_FunctionBinding_vIn55 ) -> ( let
+      v55 = \ !(T_FunctionBinding_vIn55 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         _self = rule168 _rangeIself arg_id_
+         _self = rule175 _rangeIself arg_id_
          _lhsOself :: FunctionBinding
-         _lhsOself = rule169 _self
-         __result_ = T_FunctionBinding_vOut55 _lhsOself
+         _lhsOself = rule176 _self
+         !__result_ = T_FunctionBinding_vOut55 _lhsOself
          in __result_ )
      in C_FunctionBinding_s56 v55
-   {-# INLINE rule168 #-}
-   rule168 = \ ((_rangeIself) :: Range) id_ ->
+   {-# INLINE rule175 #-}
+   rule175 = \ ((_rangeIself) :: Range) id_ ->
      FunctionBinding_Hole _rangeIself id_
-   {-# INLINE rule169 #-}
-   rule169 = \ _self ->
+   {-# INLINE rule176 #-}
+   rule176 = \ _self ->
      _self
 {-# NOINLINE sem_FunctionBinding_Feedback #-}
 sem_FunctionBinding_Feedback :: T_Range  -> (String) -> T_FunctionBinding  -> T_FunctionBinding 
-sem_FunctionBinding_Feedback arg_range_ arg_feedback_ arg_functionBinding_ = T_FunctionBinding (return st56) where
+sem_FunctionBinding_Feedback arg_range_ !arg_feedback_ arg_functionBinding_ = T_FunctionBinding (return st56) where
    {-# NOINLINE st56 #-}
-   st56 = let
+   !st56 = let
       v55 :: T_FunctionBinding_v55 
-      v55 = \ (T_FunctionBinding_vIn55 ) -> ( let
+      v55 = \ !(T_FunctionBinding_vIn55 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _functionBindingX56 = Control.Monad.Identity.runIdentity (attach_T_FunctionBinding (arg_functionBinding_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_FunctionBinding_vOut55 _functionBindingIself) = inv_FunctionBinding_s56 _functionBindingX56 (T_FunctionBinding_vIn55 )
-         _self = rule170 _functionBindingIself _rangeIself arg_feedback_
+         _self = rule177 _functionBindingIself _rangeIself arg_feedback_
          _lhsOself :: FunctionBinding
-         _lhsOself = rule171 _self
-         __result_ = T_FunctionBinding_vOut55 _lhsOself
+         _lhsOself = rule178 _self
+         !__result_ = T_FunctionBinding_vOut55 _lhsOself
          in __result_ )
      in C_FunctionBinding_s56 v55
-   {-# INLINE rule170 #-}
-   rule170 = \ ((_functionBindingIself) :: FunctionBinding) ((_rangeIself) :: Range) feedback_ ->
+   {-# INLINE rule177 #-}
+   rule177 = \ ((_functionBindingIself) :: FunctionBinding) ((_rangeIself) :: Range) feedback_ ->
      FunctionBinding_Feedback _rangeIself feedback_ _functionBindingIself
-   {-# INLINE rule171 #-}
-   rule171 = \ _self ->
+   {-# INLINE rule178 #-}
+   rule178 = \ _self ->
      _self
 {-# NOINLINE sem_FunctionBinding_FunctionBinding #-}
 sem_FunctionBinding_FunctionBinding :: T_Range  -> T_LeftHandSide  -> T_RightHandSide  -> T_FunctionBinding 
 sem_FunctionBinding_FunctionBinding arg_range_ arg_lefthandside_ arg_righthandside_ = T_FunctionBinding (return st56) where
    {-# NOINLINE st56 #-}
-   st56 = let
+   !st56 = let
       v55 :: T_FunctionBinding_v55 
-      v55 = \ (T_FunctionBinding_vIn55 ) -> ( let
+      v55 = \ !(T_FunctionBinding_vIn55 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _lefthandsideX86 = Control.Monad.Identity.runIdentity (attach_T_LeftHandSide (arg_lefthandside_))
          _righthandsideX152 = Control.Monad.Identity.runIdentity (attach_T_RightHandSide (arg_righthandside_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_LeftHandSide_vOut85 _lefthandsideIself) = inv_LeftHandSide_s86 _lefthandsideX86 (T_LeftHandSide_vIn85 )
          (T_RightHandSide_vOut151 _righthandsideIself) = inv_RightHandSide_s152 _righthandsideX152 (T_RightHandSide_vIn151 )
-         _self = rule172 _lefthandsideIself _rangeIself _righthandsideIself
+         _self = rule179 _lefthandsideIself _rangeIself _righthandsideIself
          _lhsOself :: FunctionBinding
-         _lhsOself = rule173 _self
-         __result_ = T_FunctionBinding_vOut55 _lhsOself
+         _lhsOself = rule180 _self
+         !__result_ = T_FunctionBinding_vOut55 _lhsOself
          in __result_ )
      in C_FunctionBinding_s56 v55
-   {-# INLINE rule172 #-}
-   rule172 = \ ((_lefthandsideIself) :: LeftHandSide) ((_rangeIself) :: Range) ((_righthandsideIself) :: RightHandSide) ->
+   {-# INLINE rule179 #-}
+   rule179 = \ ((_lefthandsideIself) :: LeftHandSide) ((_rangeIself) :: Range) ((_righthandsideIself) :: RightHandSide) ->
      FunctionBinding_FunctionBinding _rangeIself _lefthandsideIself _righthandsideIself
-   {-# INLINE rule173 #-}
-   rule173 = \ _self ->
+   {-# INLINE rule180 #-}
+   rule180 = \ _self ->
      _self
 
 -- FunctionBindings --------------------------------------------
 -- wrapper
 data Inh_FunctionBindings  = Inh_FunctionBindings {  }
-data Syn_FunctionBindings  = Syn_FunctionBindings { self_Syn_FunctionBindings :: (FunctionBindings) }
+data Syn_FunctionBindings  = Syn_FunctionBindings { self_Syn_FunctionBindings :: !(FunctionBindings) }
 {-# INLINABLE wrap_FunctionBindings #-}
 wrap_FunctionBindings :: T_FunctionBindings  -> Inh_FunctionBindings  -> (Syn_FunctionBindings )
-wrap_FunctionBindings (T_FunctionBindings act) (Inh_FunctionBindings ) =
+wrap_FunctionBindings !(T_FunctionBindings act) !(Inh_FunctionBindings ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg58 = T_FunctionBindings_vIn58 
-        (T_FunctionBindings_vOut58 _lhsOself) <- return (inv_FunctionBindings_s59 sem arg58)
+        !(T_FunctionBindings_vOut58 _lhsOself) <- return (inv_FunctionBindings_s59 sem arg58)
         return (Syn_FunctionBindings _lhsOself)
    )
 
@@ -2575,56 +2613,56 @@ data T_FunctionBindings_vOut58  = T_FunctionBindings_vOut58 (FunctionBindings)
 sem_FunctionBindings_Cons :: T_FunctionBinding  -> T_FunctionBindings  -> T_FunctionBindings 
 sem_FunctionBindings_Cons arg_hd_ arg_tl_ = T_FunctionBindings (return st59) where
    {-# NOINLINE st59 #-}
-   st59 = let
+   !st59 = let
       v58 :: T_FunctionBindings_v58 
-      v58 = \ (T_FunctionBindings_vIn58 ) -> ( let
+      v58 = \ !(T_FunctionBindings_vIn58 ) -> ( let
          _hdX56 = Control.Monad.Identity.runIdentity (attach_T_FunctionBinding (arg_hd_))
          _tlX59 = Control.Monad.Identity.runIdentity (attach_T_FunctionBindings (arg_tl_))
          (T_FunctionBinding_vOut55 _hdIself) = inv_FunctionBinding_s56 _hdX56 (T_FunctionBinding_vIn55 )
          (T_FunctionBindings_vOut58 _tlIself) = inv_FunctionBindings_s59 _tlX59 (T_FunctionBindings_vIn58 )
-         _self = rule174 _hdIself _tlIself
+         _self = rule181 _hdIself _tlIself
          _lhsOself :: FunctionBindings
-         _lhsOself = rule175 _self
-         __result_ = T_FunctionBindings_vOut58 _lhsOself
+         _lhsOself = rule182 _self
+         !__result_ = T_FunctionBindings_vOut58 _lhsOself
          in __result_ )
      in C_FunctionBindings_s59 v58
-   {-# INLINE rule174 #-}
-   rule174 = \ ((_hdIself) :: FunctionBinding) ((_tlIself) :: FunctionBindings) ->
+   {-# INLINE rule181 #-}
+   rule181 = \ ((_hdIself) :: FunctionBinding) ((_tlIself) :: FunctionBindings) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule175 #-}
-   rule175 = \ _self ->
+   {-# INLINE rule182 #-}
+   rule182 = \ _self ->
      _self
 {-# NOINLINE sem_FunctionBindings_Nil #-}
 sem_FunctionBindings_Nil ::  T_FunctionBindings 
 sem_FunctionBindings_Nil  = T_FunctionBindings (return st59) where
    {-# NOINLINE st59 #-}
-   st59 = let
+   !st59 = let
       v58 :: T_FunctionBindings_v58 
-      v58 = \ (T_FunctionBindings_vIn58 ) -> ( let
-         _self = rule176  ()
+      v58 = \ !(T_FunctionBindings_vIn58 ) -> ( let
+         _self = rule183  ()
          _lhsOself :: FunctionBindings
-         _lhsOself = rule177 _self
-         __result_ = T_FunctionBindings_vOut58 _lhsOself
+         _lhsOself = rule184 _self
+         !__result_ = T_FunctionBindings_vOut58 _lhsOself
          in __result_ )
      in C_FunctionBindings_s59 v58
-   {-# INLINE rule176 #-}
-   rule176 = \  (_ :: ()) ->
+   {-# INLINE rule183 #-}
+   rule183 = \  (_ :: ()) ->
      []
-   {-# INLINE rule177 #-}
-   rule177 = \ _self ->
+   {-# INLINE rule184 #-}
+   rule184 = \ _self ->
      _self
 
 -- GuardedExpression -------------------------------------------
 -- wrapper
 data Inh_GuardedExpression  = Inh_GuardedExpression {  }
-data Syn_GuardedExpression  = Syn_GuardedExpression { self_Syn_GuardedExpression :: (GuardedExpression) }
+data Syn_GuardedExpression  = Syn_GuardedExpression { self_Syn_GuardedExpression :: !(GuardedExpression) }
 {-# INLINABLE wrap_GuardedExpression #-}
 wrap_GuardedExpression :: T_GuardedExpression  -> Inh_GuardedExpression  -> (Syn_GuardedExpression )
-wrap_GuardedExpression (T_GuardedExpression act) (Inh_GuardedExpression ) =
+wrap_GuardedExpression !(T_GuardedExpression act) !(Inh_GuardedExpression ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg61 = T_GuardedExpression_vIn61 
-        (T_GuardedExpression_vOut61 _lhsOself) <- return (inv_GuardedExpression_s62 sem arg61)
+        !(T_GuardedExpression_vOut61 _lhsOself) <- return (inv_GuardedExpression_s62 sem arg61)
         return (Syn_GuardedExpression _lhsOself)
    )
 
@@ -2648,39 +2686,39 @@ data T_GuardedExpression_vOut61  = T_GuardedExpression_vOut61 (GuardedExpression
 sem_GuardedExpression_GuardedExpression :: T_Range  -> T_Expression  -> T_Expression  -> T_GuardedExpression 
 sem_GuardedExpression_GuardedExpression arg_range_ arg_guard_ arg_expression_ = T_GuardedExpression (return st62) where
    {-# NOINLINE st62 #-}
-   st62 = let
+   !st62 = let
       v61 :: T_GuardedExpression_v61 
-      v61 = \ (T_GuardedExpression_vIn61 ) -> ( let
+      v61 = \ !(T_GuardedExpression_vIn61 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _guardX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_guard_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Expression_vOut40 _guardIallVariables _guardIself) = inv_Expression_s41 _guardX41 (T_Expression_vIn40 )
          (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         _self = rule178 _expressionIself _guardIself _rangeIself
+         _self = rule185 _expressionIself _guardIself _rangeIself
          _lhsOself :: GuardedExpression
-         _lhsOself = rule179 _self
-         __result_ = T_GuardedExpression_vOut61 _lhsOself
+         _lhsOself = rule186 _self
+         !__result_ = T_GuardedExpression_vOut61 _lhsOself
          in __result_ )
      in C_GuardedExpression_s62 v61
-   {-# INLINE rule178 #-}
-   rule178 = \ ((_expressionIself) :: Expression) ((_guardIself) :: Expression) ((_rangeIself) :: Range) ->
+   {-# INLINE rule185 #-}
+   rule185 = \ ((_expressionIself) :: Expression) ((_guardIself) :: Expression) ((_rangeIself) :: Range) ->
      GuardedExpression_GuardedExpression _rangeIself _guardIself _expressionIself
-   {-# INLINE rule179 #-}
-   rule179 = \ _self ->
+   {-# INLINE rule186 #-}
+   rule186 = \ _self ->
      _self
 
 -- GuardedExpressions ------------------------------------------
 -- wrapper
 data Inh_GuardedExpressions  = Inh_GuardedExpressions {  }
-data Syn_GuardedExpressions  = Syn_GuardedExpressions { self_Syn_GuardedExpressions :: (GuardedExpressions) }
+data Syn_GuardedExpressions  = Syn_GuardedExpressions { self_Syn_GuardedExpressions :: !(GuardedExpressions) }
 {-# INLINABLE wrap_GuardedExpressions #-}
 wrap_GuardedExpressions :: T_GuardedExpressions  -> Inh_GuardedExpressions  -> (Syn_GuardedExpressions )
-wrap_GuardedExpressions (T_GuardedExpressions act) (Inh_GuardedExpressions ) =
+wrap_GuardedExpressions !(T_GuardedExpressions act) !(Inh_GuardedExpressions ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg64 = T_GuardedExpressions_vIn64 
-        (T_GuardedExpressions_vOut64 _lhsOself) <- return (inv_GuardedExpressions_s65 sem arg64)
+        !(T_GuardedExpressions_vOut64 _lhsOself) <- return (inv_GuardedExpressions_s65 sem arg64)
         return (Syn_GuardedExpressions _lhsOself)
    )
 
@@ -2704,56 +2742,56 @@ data T_GuardedExpressions_vOut64  = T_GuardedExpressions_vOut64 (GuardedExpressi
 sem_GuardedExpressions_Cons :: T_GuardedExpression  -> T_GuardedExpressions  -> T_GuardedExpressions 
 sem_GuardedExpressions_Cons arg_hd_ arg_tl_ = T_GuardedExpressions (return st65) where
    {-# NOINLINE st65 #-}
-   st65 = let
+   !st65 = let
       v64 :: T_GuardedExpressions_v64 
-      v64 = \ (T_GuardedExpressions_vIn64 ) -> ( let
+      v64 = \ !(T_GuardedExpressions_vIn64 ) -> ( let
          _hdX62 = Control.Monad.Identity.runIdentity (attach_T_GuardedExpression (arg_hd_))
          _tlX65 = Control.Monad.Identity.runIdentity (attach_T_GuardedExpressions (arg_tl_))
          (T_GuardedExpression_vOut61 _hdIself) = inv_GuardedExpression_s62 _hdX62 (T_GuardedExpression_vIn61 )
          (T_GuardedExpressions_vOut64 _tlIself) = inv_GuardedExpressions_s65 _tlX65 (T_GuardedExpressions_vIn64 )
-         _self = rule180 _hdIself _tlIself
+         _self = rule187 _hdIself _tlIself
          _lhsOself :: GuardedExpressions
-         _lhsOself = rule181 _self
-         __result_ = T_GuardedExpressions_vOut64 _lhsOself
+         _lhsOself = rule188 _self
+         !__result_ = T_GuardedExpressions_vOut64 _lhsOself
          in __result_ )
      in C_GuardedExpressions_s65 v64
-   {-# INLINE rule180 #-}
-   rule180 = \ ((_hdIself) :: GuardedExpression) ((_tlIself) :: GuardedExpressions) ->
+   {-# INLINE rule187 #-}
+   rule187 = \ ((_hdIself) :: GuardedExpression) ((_tlIself) :: GuardedExpressions) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule181 #-}
-   rule181 = \ _self ->
+   {-# INLINE rule188 #-}
+   rule188 = \ _self ->
      _self
 {-# NOINLINE sem_GuardedExpressions_Nil #-}
 sem_GuardedExpressions_Nil ::  T_GuardedExpressions 
 sem_GuardedExpressions_Nil  = T_GuardedExpressions (return st65) where
    {-# NOINLINE st65 #-}
-   st65 = let
+   !st65 = let
       v64 :: T_GuardedExpressions_v64 
-      v64 = \ (T_GuardedExpressions_vIn64 ) -> ( let
-         _self = rule182  ()
+      v64 = \ !(T_GuardedExpressions_vIn64 ) -> ( let
+         _self = rule189  ()
          _lhsOself :: GuardedExpressions
-         _lhsOself = rule183 _self
-         __result_ = T_GuardedExpressions_vOut64 _lhsOself
+         _lhsOself = rule190 _self
+         !__result_ = T_GuardedExpressions_vOut64 _lhsOself
          in __result_ )
      in C_GuardedExpressions_s65 v64
-   {-# INLINE rule182 #-}
-   rule182 = \  (_ :: ()) ->
+   {-# INLINE rule189 #-}
+   rule189 = \  (_ :: ()) ->
      []
-   {-# INLINE rule183 #-}
-   rule183 = \ _self ->
+   {-# INLINE rule190 #-}
+   rule190 = \ _self ->
      _self
 
 -- Import ------------------------------------------------------
 -- wrapper
 data Inh_Import  = Inh_Import {  }
-data Syn_Import  = Syn_Import { self_Syn_Import :: (Import) }
+data Syn_Import  = Syn_Import { self_Syn_Import :: !(Import) }
 {-# INLINABLE wrap_Import #-}
 wrap_Import :: T_Import  -> Inh_Import  -> (Syn_Import )
-wrap_Import (T_Import act) (Inh_Import ) =
+wrap_Import !(T_Import act) !(Inh_Import ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg67 = T_Import_vIn67 
-        (T_Import_vOut67 _lhsOself) <- return (inv_Import_s68 sem arg67)
+        !(T_Import_vOut67 _lhsOself) <- return (inv_Import_s68 sem arg67)
         return (Syn_Import _lhsOself)
    )
 
@@ -2779,92 +2817,92 @@ data T_Import_vOut67  = T_Import_vOut67 (Import)
 sem_Import_Variable :: T_Range  -> T_Name  -> T_Import 
 sem_Import_Variable arg_range_ arg_name_ = T_Import (return st68) where
    {-# NOINLINE st68 #-}
-   st68 = let
+   !st68 = let
       v67 :: T_Import_v67 
-      v67 = \ (T_Import_vIn67 ) -> ( let
+      v67 = \ !(T_Import_vIn67 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
-         _self = rule184 _nameIself _rangeIself
+         _self = rule191 _nameIself _rangeIself
          _lhsOself :: Import
-         _lhsOself = rule185 _self
-         __result_ = T_Import_vOut67 _lhsOself
+         _lhsOself = rule192 _self
+         !__result_ = T_Import_vOut67 _lhsOself
          in __result_ )
      in C_Import_s68 v67
-   {-# INLINE rule184 #-}
-   rule184 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule191 #-}
+   rule191 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Import_Variable _rangeIself _nameIself
-   {-# INLINE rule185 #-}
-   rule185 = \ _self ->
+   {-# INLINE rule192 #-}
+   rule192 = \ _self ->
      _self
 {-# NOINLINE sem_Import_TypeOrClass #-}
 sem_Import_TypeOrClass :: T_Range  -> T_Name  -> T_MaybeNames  -> T_Import 
 sem_Import_TypeOrClass arg_range_ arg_name_ arg_names_ = T_Import (return st68) where
    {-# NOINLINE st68 #-}
-   st68 = let
+   !st68 = let
       v67 :: T_Import_v67 
-      v67 = \ (T_Import_vIn67 ) -> ( let
+      v67 = \ !(T_Import_vIn67 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _namesX110 = Control.Monad.Identity.runIdentity (attach_T_MaybeNames (arg_names_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
          (T_MaybeNames_vOut109 _namesIself) = inv_MaybeNames_s110 _namesX110 (T_MaybeNames_vIn109 )
-         _self = rule186 _nameIself _namesIself _rangeIself
+         _self = rule193 _nameIself _namesIself _rangeIself
          _lhsOself :: Import
-         _lhsOself = rule187 _self
-         __result_ = T_Import_vOut67 _lhsOself
+         _lhsOself = rule194 _self
+         !__result_ = T_Import_vOut67 _lhsOself
          in __result_ )
      in C_Import_s68 v67
-   {-# INLINE rule186 #-}
-   rule186 = \ ((_nameIself) :: Name) ((_namesIself) :: MaybeNames) ((_rangeIself) :: Range) ->
+   {-# INLINE rule193 #-}
+   rule193 = \ ((_nameIself) :: Name) ((_namesIself) :: MaybeNames) ((_rangeIself) :: Range) ->
      Import_TypeOrClass _rangeIself _nameIself _namesIself
-   {-# INLINE rule187 #-}
-   rule187 = \ _self ->
+   {-# INLINE rule194 #-}
+   rule194 = \ _self ->
      _self
 {-# NOINLINE sem_Import_TypeOrClassComplete #-}
 sem_Import_TypeOrClassComplete :: T_Range  -> T_Name  -> T_Import 
 sem_Import_TypeOrClassComplete arg_range_ arg_name_ = T_Import (return st68) where
    {-# NOINLINE st68 #-}
-   st68 = let
+   !st68 = let
       v67 :: T_Import_v67 
-      v67 = \ (T_Import_vIn67 ) -> ( let
+      v67 = \ !(T_Import_vIn67 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
-         _self = rule188 _nameIself _rangeIself
+         _self = rule195 _nameIself _rangeIself
          _lhsOself :: Import
-         _lhsOself = rule189 _self
-         __result_ = T_Import_vOut67 _lhsOself
+         _lhsOself = rule196 _self
+         !__result_ = T_Import_vOut67 _lhsOself
          in __result_ )
      in C_Import_s68 v67
-   {-# INLINE rule188 #-}
-   rule188 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule195 #-}
+   rule195 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Import_TypeOrClassComplete _rangeIself _nameIself
-   {-# INLINE rule189 #-}
-   rule189 = \ _self ->
+   {-# INLINE rule196 #-}
+   rule196 = \ _self ->
      _self
 
 -- ImportDeclaration -------------------------------------------
 -- wrapper
 data Inh_ImportDeclaration  = Inh_ImportDeclaration {  }
-data Syn_ImportDeclaration  = Syn_ImportDeclaration { self_Syn_ImportDeclaration :: (ImportDeclaration) }
+data Syn_ImportDeclaration  = Syn_ImportDeclaration { self_Syn_ImportDeclaration :: !(ImportDeclaration) }
 {-# INLINABLE wrap_ImportDeclaration #-}
 wrap_ImportDeclaration :: T_ImportDeclaration  -> Inh_ImportDeclaration  -> (Syn_ImportDeclaration )
-wrap_ImportDeclaration (T_ImportDeclaration act) (Inh_ImportDeclaration ) =
+wrap_ImportDeclaration !(T_ImportDeclaration act) !(Inh_ImportDeclaration ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg70 = T_ImportDeclaration_vIn70 
-        (T_ImportDeclaration_vOut70 _lhsOself) <- return (inv_ImportDeclaration_s71 sem arg70)
+        !(T_ImportDeclaration_vOut70 _lhsOself) <- return (inv_ImportDeclaration_s71 sem arg70)
         return (Syn_ImportDeclaration _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_ImportDeclaration #-}
 sem_ImportDeclaration :: ImportDeclaration  -> T_ImportDeclaration 
-sem_ImportDeclaration ( ImportDeclaration_Import range_ qualified_ name_ asname_ importspecification_ ) = sem_ImportDeclaration_Import ( sem_Range range_ ) qualified_ ( sem_Name name_ ) ( sem_MaybeName asname_ ) ( sem_MaybeImportSpecification importspecification_ )
+sem_ImportDeclaration ( ImportDeclaration_Import range_ !qualified_ name_ asname_ importspecification_ ) = sem_ImportDeclaration_Import ( sem_Range range_ ) qualified_ ( sem_Name name_ ) ( sem_MaybeName asname_ ) ( sem_MaybeImportSpecification importspecification_ )
 sem_ImportDeclaration ( ImportDeclaration_Empty range_ ) = sem_ImportDeclaration_Empty ( sem_Range range_ )
 
 -- semantic domain
@@ -2880,11 +2918,11 @@ data T_ImportDeclaration_vIn70  = T_ImportDeclaration_vIn70
 data T_ImportDeclaration_vOut70  = T_ImportDeclaration_vOut70 (ImportDeclaration)
 {-# NOINLINE sem_ImportDeclaration_Import #-}
 sem_ImportDeclaration_Import :: T_Range  -> (Bool) -> T_Name  -> T_MaybeName  -> T_MaybeImportSpecification  -> T_ImportDeclaration 
-sem_ImportDeclaration_Import arg_range_ arg_qualified_ arg_name_ arg_asname_ arg_importspecification_ = T_ImportDeclaration (return st71) where
+sem_ImportDeclaration_Import arg_range_ !arg_qualified_ arg_name_ arg_asname_ arg_importspecification_ = T_ImportDeclaration (return st71) where
    {-# NOINLINE st71 #-}
-   st71 = let
+   !st71 = let
       v70 :: T_ImportDeclaration_v70 
-      v70 = \ (T_ImportDeclaration_vIn70 ) -> ( let
+      v70 = \ !(T_ImportDeclaration_vIn70 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _asnameX107 = Control.Monad.Identity.runIdentity (attach_T_MaybeName (arg_asname_))
@@ -2893,51 +2931,51 @@ sem_ImportDeclaration_Import arg_range_ arg_qualified_ arg_name_ arg_asname_ arg
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
          (T_MaybeName_vOut106 _asnameIself) = inv_MaybeName_s107 _asnameX107 (T_MaybeName_vIn106 )
          (T_MaybeImportSpecification_vOut100 _importspecificationIself) = inv_MaybeImportSpecification_s101 _importspecificationX101 (T_MaybeImportSpecification_vIn100 )
-         _self = rule190 _asnameIself _importspecificationIself _nameIself _rangeIself arg_qualified_
+         _self = rule197 _asnameIself _importspecificationIself _nameIself _rangeIself arg_qualified_
          _lhsOself :: ImportDeclaration
-         _lhsOself = rule191 _self
-         __result_ = T_ImportDeclaration_vOut70 _lhsOself
+         _lhsOself = rule198 _self
+         !__result_ = T_ImportDeclaration_vOut70 _lhsOself
          in __result_ )
      in C_ImportDeclaration_s71 v70
-   {-# INLINE rule190 #-}
-   rule190 = \ ((_asnameIself) :: MaybeName) ((_importspecificationIself) :: MaybeImportSpecification) ((_nameIself) :: Name) ((_rangeIself) :: Range) qualified_ ->
+   {-# INLINE rule197 #-}
+   rule197 = \ ((_asnameIself) :: MaybeName) ((_importspecificationIself) :: MaybeImportSpecification) ((_nameIself) :: Name) ((_rangeIself) :: Range) qualified_ ->
      ImportDeclaration_Import _rangeIself qualified_ _nameIself _asnameIself _importspecificationIself
-   {-# INLINE rule191 #-}
-   rule191 = \ _self ->
+   {-# INLINE rule198 #-}
+   rule198 = \ _self ->
      _self
 {-# NOINLINE sem_ImportDeclaration_Empty #-}
 sem_ImportDeclaration_Empty :: T_Range  -> T_ImportDeclaration 
 sem_ImportDeclaration_Empty arg_range_ = T_ImportDeclaration (return st71) where
    {-# NOINLINE st71 #-}
-   st71 = let
+   !st71 = let
       v70 :: T_ImportDeclaration_v70 
-      v70 = \ (T_ImportDeclaration_vIn70 ) -> ( let
+      v70 = \ !(T_ImportDeclaration_vIn70 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         _self = rule192 _rangeIself
+         _self = rule199 _rangeIself
          _lhsOself :: ImportDeclaration
-         _lhsOself = rule193 _self
-         __result_ = T_ImportDeclaration_vOut70 _lhsOself
+         _lhsOself = rule200 _self
+         !__result_ = T_ImportDeclaration_vOut70 _lhsOself
          in __result_ )
      in C_ImportDeclaration_s71 v70
-   {-# INLINE rule192 #-}
-   rule192 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule199 #-}
+   rule199 = \ ((_rangeIself) :: Range) ->
      ImportDeclaration_Empty _rangeIself
-   {-# INLINE rule193 #-}
-   rule193 = \ _self ->
+   {-# INLINE rule200 #-}
+   rule200 = \ _self ->
      _self
 
 -- ImportDeclarations ------------------------------------------
 -- wrapper
 data Inh_ImportDeclarations  = Inh_ImportDeclarations {  }
-data Syn_ImportDeclarations  = Syn_ImportDeclarations { self_Syn_ImportDeclarations :: (ImportDeclarations) }
+data Syn_ImportDeclarations  = Syn_ImportDeclarations { self_Syn_ImportDeclarations :: !(ImportDeclarations) }
 {-# INLINABLE wrap_ImportDeclarations #-}
 wrap_ImportDeclarations :: T_ImportDeclarations  -> Inh_ImportDeclarations  -> (Syn_ImportDeclarations )
-wrap_ImportDeclarations (T_ImportDeclarations act) (Inh_ImportDeclarations ) =
+wrap_ImportDeclarations !(T_ImportDeclarations act) !(Inh_ImportDeclarations ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg73 = T_ImportDeclarations_vIn73 
-        (T_ImportDeclarations_vOut73 _lhsOself) <- return (inv_ImportDeclarations_s74 sem arg73)
+        !(T_ImportDeclarations_vOut73 _lhsOself) <- return (inv_ImportDeclarations_s74 sem arg73)
         return (Syn_ImportDeclarations _lhsOself)
    )
 
@@ -2961,63 +2999,63 @@ data T_ImportDeclarations_vOut73  = T_ImportDeclarations_vOut73 (ImportDeclarati
 sem_ImportDeclarations_Cons :: T_ImportDeclaration  -> T_ImportDeclarations  -> T_ImportDeclarations 
 sem_ImportDeclarations_Cons arg_hd_ arg_tl_ = T_ImportDeclarations (return st74) where
    {-# NOINLINE st74 #-}
-   st74 = let
+   !st74 = let
       v73 :: T_ImportDeclarations_v73 
-      v73 = \ (T_ImportDeclarations_vIn73 ) -> ( let
+      v73 = \ !(T_ImportDeclarations_vIn73 ) -> ( let
          _hdX71 = Control.Monad.Identity.runIdentity (attach_T_ImportDeclaration (arg_hd_))
          _tlX74 = Control.Monad.Identity.runIdentity (attach_T_ImportDeclarations (arg_tl_))
          (T_ImportDeclaration_vOut70 _hdIself) = inv_ImportDeclaration_s71 _hdX71 (T_ImportDeclaration_vIn70 )
          (T_ImportDeclarations_vOut73 _tlIself) = inv_ImportDeclarations_s74 _tlX74 (T_ImportDeclarations_vIn73 )
-         _self = rule194 _hdIself _tlIself
+         _self = rule201 _hdIself _tlIself
          _lhsOself :: ImportDeclarations
-         _lhsOself = rule195 _self
-         __result_ = T_ImportDeclarations_vOut73 _lhsOself
+         _lhsOself = rule202 _self
+         !__result_ = T_ImportDeclarations_vOut73 _lhsOself
          in __result_ )
      in C_ImportDeclarations_s74 v73
-   {-# INLINE rule194 #-}
-   rule194 = \ ((_hdIself) :: ImportDeclaration) ((_tlIself) :: ImportDeclarations) ->
+   {-# INLINE rule201 #-}
+   rule201 = \ ((_hdIself) :: ImportDeclaration) ((_tlIself) :: ImportDeclarations) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule195 #-}
-   rule195 = \ _self ->
+   {-# INLINE rule202 #-}
+   rule202 = \ _self ->
      _self
 {-# NOINLINE sem_ImportDeclarations_Nil #-}
 sem_ImportDeclarations_Nil ::  T_ImportDeclarations 
 sem_ImportDeclarations_Nil  = T_ImportDeclarations (return st74) where
    {-# NOINLINE st74 #-}
-   st74 = let
+   !st74 = let
       v73 :: T_ImportDeclarations_v73 
-      v73 = \ (T_ImportDeclarations_vIn73 ) -> ( let
-         _self = rule196  ()
+      v73 = \ !(T_ImportDeclarations_vIn73 ) -> ( let
+         _self = rule203  ()
          _lhsOself :: ImportDeclarations
-         _lhsOself = rule197 _self
-         __result_ = T_ImportDeclarations_vOut73 _lhsOself
+         _lhsOself = rule204 _self
+         !__result_ = T_ImportDeclarations_vOut73 _lhsOself
          in __result_ )
      in C_ImportDeclarations_s74 v73
-   {-# INLINE rule196 #-}
-   rule196 = \  (_ :: ()) ->
+   {-# INLINE rule203 #-}
+   rule203 = \  (_ :: ()) ->
      []
-   {-# INLINE rule197 #-}
-   rule197 = \ _self ->
+   {-# INLINE rule204 #-}
+   rule204 = \ _self ->
      _self
 
 -- ImportSpecification -----------------------------------------
 -- wrapper
 data Inh_ImportSpecification  = Inh_ImportSpecification {  }
-data Syn_ImportSpecification  = Syn_ImportSpecification { self_Syn_ImportSpecification :: (ImportSpecification) }
+data Syn_ImportSpecification  = Syn_ImportSpecification { self_Syn_ImportSpecification :: !(ImportSpecification) }
 {-# INLINABLE wrap_ImportSpecification #-}
 wrap_ImportSpecification :: T_ImportSpecification  -> Inh_ImportSpecification  -> (Syn_ImportSpecification )
-wrap_ImportSpecification (T_ImportSpecification act) (Inh_ImportSpecification ) =
+wrap_ImportSpecification !(T_ImportSpecification act) !(Inh_ImportSpecification ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg76 = T_ImportSpecification_vIn76 
-        (T_ImportSpecification_vOut76 _lhsOself) <- return (inv_ImportSpecification_s77 sem arg76)
+        !(T_ImportSpecification_vOut76 _lhsOself) <- return (inv_ImportSpecification_s77 sem arg76)
         return (Syn_ImportSpecification _lhsOself)
    )
 
 -- cata
 {-# INLINE sem_ImportSpecification #-}
 sem_ImportSpecification :: ImportSpecification  -> T_ImportSpecification 
-sem_ImportSpecification ( ImportSpecification_Import range_ hiding_ imports_ ) = sem_ImportSpecification_Import ( sem_Range range_ ) hiding_ ( sem_Imports imports_ )
+sem_ImportSpecification ( ImportSpecification_Import range_ !hiding_ imports_ ) = sem_ImportSpecification_Import ( sem_Range range_ ) hiding_ ( sem_Imports imports_ )
 
 -- semantic domain
 newtype T_ImportSpecification  = T_ImportSpecification {
@@ -3032,39 +3070,39 @@ data T_ImportSpecification_vIn76  = T_ImportSpecification_vIn76
 data T_ImportSpecification_vOut76  = T_ImportSpecification_vOut76 (ImportSpecification)
 {-# NOINLINE sem_ImportSpecification_Import #-}
 sem_ImportSpecification_Import :: T_Range  -> (Bool) -> T_Imports  -> T_ImportSpecification 
-sem_ImportSpecification_Import arg_range_ arg_hiding_ arg_imports_ = T_ImportSpecification (return st77) where
+sem_ImportSpecification_Import arg_range_ !arg_hiding_ arg_imports_ = T_ImportSpecification (return st77) where
    {-# NOINLINE st77 #-}
-   st77 = let
+   !st77 = let
       v76 :: T_ImportSpecification_v76 
-      v76 = \ (T_ImportSpecification_vIn76 ) -> ( let
+      v76 = \ !(T_ImportSpecification_vIn76 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _importsX80 = Control.Monad.Identity.runIdentity (attach_T_Imports (arg_imports_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Imports_vOut79 _importsIself) = inv_Imports_s80 _importsX80 (T_Imports_vIn79 )
-         _self = rule198 _importsIself _rangeIself arg_hiding_
+         _self = rule205 _importsIself _rangeIself arg_hiding_
          _lhsOself :: ImportSpecification
-         _lhsOself = rule199 _self
-         __result_ = T_ImportSpecification_vOut76 _lhsOself
+         _lhsOself = rule206 _self
+         !__result_ = T_ImportSpecification_vOut76 _lhsOself
          in __result_ )
      in C_ImportSpecification_s77 v76
-   {-# INLINE rule198 #-}
-   rule198 = \ ((_importsIself) :: Imports) ((_rangeIself) :: Range) hiding_ ->
+   {-# INLINE rule205 #-}
+   rule205 = \ ((_importsIself) :: Imports) ((_rangeIself) :: Range) hiding_ ->
      ImportSpecification_Import _rangeIself hiding_ _importsIself
-   {-# INLINE rule199 #-}
-   rule199 = \ _self ->
+   {-# INLINE rule206 #-}
+   rule206 = \ _self ->
      _self
 
 -- Imports -----------------------------------------------------
 -- wrapper
 data Inh_Imports  = Inh_Imports {  }
-data Syn_Imports  = Syn_Imports { self_Syn_Imports :: (Imports) }
+data Syn_Imports  = Syn_Imports { self_Syn_Imports :: !(Imports) }
 {-# INLINABLE wrap_Imports #-}
 wrap_Imports :: T_Imports  -> Inh_Imports  -> (Syn_Imports )
-wrap_Imports (T_Imports act) (Inh_Imports ) =
+wrap_Imports !(T_Imports act) !(Inh_Imports ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg79 = T_Imports_vIn79 
-        (T_Imports_vOut79 _lhsOself) <- return (inv_Imports_s80 sem arg79)
+        !(T_Imports_vOut79 _lhsOself) <- return (inv_Imports_s80 sem arg79)
         return (Syn_Imports _lhsOself)
    )
 
@@ -3088,56 +3126,56 @@ data T_Imports_vOut79  = T_Imports_vOut79 (Imports)
 sem_Imports_Cons :: T_Import  -> T_Imports  -> T_Imports 
 sem_Imports_Cons arg_hd_ arg_tl_ = T_Imports (return st80) where
    {-# NOINLINE st80 #-}
-   st80 = let
+   !st80 = let
       v79 :: T_Imports_v79 
-      v79 = \ (T_Imports_vIn79 ) -> ( let
+      v79 = \ !(T_Imports_vIn79 ) -> ( let
          _hdX68 = Control.Monad.Identity.runIdentity (attach_T_Import (arg_hd_))
          _tlX80 = Control.Monad.Identity.runIdentity (attach_T_Imports (arg_tl_))
          (T_Import_vOut67 _hdIself) = inv_Import_s68 _hdX68 (T_Import_vIn67 )
          (T_Imports_vOut79 _tlIself) = inv_Imports_s80 _tlX80 (T_Imports_vIn79 )
-         _self = rule200 _hdIself _tlIself
+         _self = rule207 _hdIself _tlIself
          _lhsOself :: Imports
-         _lhsOself = rule201 _self
-         __result_ = T_Imports_vOut79 _lhsOself
+         _lhsOself = rule208 _self
+         !__result_ = T_Imports_vOut79 _lhsOself
          in __result_ )
      in C_Imports_s80 v79
-   {-# INLINE rule200 #-}
-   rule200 = \ ((_hdIself) :: Import) ((_tlIself) :: Imports) ->
+   {-# INLINE rule207 #-}
+   rule207 = \ ((_hdIself) :: Import) ((_tlIself) :: Imports) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule201 #-}
-   rule201 = \ _self ->
+   {-# INLINE rule208 #-}
+   rule208 = \ _self ->
      _self
 {-# NOINLINE sem_Imports_Nil #-}
 sem_Imports_Nil ::  T_Imports 
 sem_Imports_Nil  = T_Imports (return st80) where
    {-# NOINLINE st80 #-}
-   st80 = let
+   !st80 = let
       v79 :: T_Imports_v79 
-      v79 = \ (T_Imports_vIn79 ) -> ( let
-         _self = rule202  ()
+      v79 = \ !(T_Imports_vIn79 ) -> ( let
+         _self = rule209  ()
          _lhsOself :: Imports
-         _lhsOself = rule203 _self
-         __result_ = T_Imports_vOut79 _lhsOself
+         _lhsOself = rule210 _self
+         !__result_ = T_Imports_vOut79 _lhsOself
          in __result_ )
      in C_Imports_s80 v79
-   {-# INLINE rule202 #-}
-   rule202 = \  (_ :: ()) ->
+   {-# INLINE rule209 #-}
+   rule209 = \  (_ :: ()) ->
      []
-   {-# INLINE rule203 #-}
-   rule203 = \ _self ->
+   {-# INLINE rule210 #-}
+   rule210 = \ _self ->
      _self
 
 -- Judgement ---------------------------------------------------
 -- wrapper
-data Inh_Judgement  = Inh_Judgement { nameMap_Inh_Judgement :: ([(Name,Tp)]) }
-data Syn_Judgement  = Syn_Judgement { allVariables_Syn_Judgement :: ([(Name,Entity)]), conclusionType_Syn_Judgement :: (Tp), self_Syn_Judgement :: (Judgement), theExpression_Syn_Judgement :: (Expression), typevariables_Syn_Judgement :: (Names) }
+data Inh_Judgement  = Inh_Judgement { nameMap_Inh_Judgement :: !([(Name,Tp)]), qualifier_Inh_Judgement :: !(Tp -> Tp) }
+data Syn_Judgement  = Syn_Judgement { allVariables_Syn_Judgement :: !([(Name,Entity)]), conclusionType_Syn_Judgement :: !(Tp), self_Syn_Judgement :: !(Judgement), theExpression_Syn_Judgement :: !(Expression), typevariables_Syn_Judgement :: !(Names) }
 {-# INLINABLE wrap_Judgement #-}
 wrap_Judgement :: T_Judgement  -> Inh_Judgement  -> (Syn_Judgement )
-wrap_Judgement (T_Judgement act) (Inh_Judgement _lhsInameMap) =
+wrap_Judgement !(T_Judgement act) !(Inh_Judgement _lhsInameMap _lhsIqualifier) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
-        let arg82 = T_Judgement_vIn82 _lhsInameMap
-        (T_Judgement_vOut82 _lhsOallVariables _lhsOconclusionType _lhsOself _lhsOtheExpression _lhsOtypevariables) <- return (inv_Judgement_s83 sem arg82)
+     do !sem <- act
+        let arg82 = T_Judgement_vIn82 _lhsInameMap _lhsIqualifier
+        !(T_Judgement_vOut82 _lhsOallVariables _lhsOconclusionType _lhsOself _lhsOtheExpression _lhsOtypevariables) <- return (inv_Judgement_s83 sem arg82)
         return (Syn_Judgement _lhsOallVariables _lhsOconclusionType _lhsOself _lhsOtheExpression _lhsOtypevariables)
    )
 
@@ -3155,63 +3193,67 @@ newtype T_Judgement_s83  = C_Judgement_s83 {
                                            }
 data T_Judgement_s84  = C_Judgement_s84
 type T_Judgement_v82  = (T_Judgement_vIn82 ) -> (T_Judgement_vOut82 )
-data T_Judgement_vIn82  = T_Judgement_vIn82 ([(Name,Tp)])
+data T_Judgement_vIn82  = T_Judgement_vIn82 ([(Name,Tp)]) (Tp -> Tp)
 data T_Judgement_vOut82  = T_Judgement_vOut82 ([(Name,Entity)]) (Tp) (Judgement) (Expression) (Names)
 {-# NOINLINE sem_Judgement_Judgement #-}
 sem_Judgement_Judgement :: T_Expression  -> T_Type  -> T_Judgement 
 sem_Judgement_Judgement arg_expression_ arg_type_ = T_Judgement (return st83) where
    {-# NOINLINE st83 #-}
-   st83 = let
+   !st83 = let
       v82 :: T_Judgement_v82 
-      v82 = \ (T_Judgement_vIn82 _lhsInameMap) -> ( let
+      v82 = \ !(T_Judgement_vIn82 _lhsInameMap _lhsIqualifier) -> ( let
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          _typeX173 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
          (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 )
+         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 _typeOqualifier)
          _lhsOconclusionType :: Tp
-         _lhsOconclusionType = rule204 _lhsInameMap _typeIself
+         _lhsOconclusionType = rule211 _lhsInameMap _lhsIqualifier _typeIself
          _lhsOtheExpression :: Expression
-         _lhsOtheExpression = rule205 _expressionIself
+         _lhsOtheExpression = rule212 _expressionIself
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule206 _expressionIallVariables
+         _lhsOallVariables = rule213 _expressionIallVariables
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule207 _typeItypevariables
-         _self = rule208 _expressionIself _typeIself
+         _lhsOtypevariables = rule214 _typeItypevariables
+         _self = rule215 _expressionIself _typeIself
          _lhsOself :: Judgement
-         _lhsOself = rule209 _self
-         __result_ = T_Judgement_vOut82 _lhsOallVariables _lhsOconclusionType _lhsOself _lhsOtheExpression _lhsOtypevariables
+         _lhsOself = rule216 _self
+         _typeOqualifier = rule217 _lhsIqualifier
+         !__result_ = T_Judgement_vOut82 _lhsOallVariables _lhsOconclusionType _lhsOself _lhsOtheExpression _lhsOtypevariables
          in __result_ )
      in C_Judgement_s83 v82
-   {-# INLINE rule204 #-}
-   rule204 = \ ((_lhsInameMap) :: [(Name,Tp)]) ((_typeIself) :: Type) ->
-                                         makeTpFromType _lhsInameMap _typeIself
-   {-# INLINE rule205 #-}
-   rule205 = \ ((_expressionIself) :: Expression) ->
+   {-# INLINE rule211 #-}
+   rule211 = \ ((_lhsInameMap) :: [(Name,Tp)]) ((_lhsIqualifier) :: Tp -> Tp) ((_typeIself) :: Type) ->
+                                         _lhsIqualifier $ makeTpFromType _lhsInameMap _typeIself
+   {-# INLINE rule212 #-}
+   rule212 = \ ((_expressionIself) :: Expression) ->
                                                    _expressionIself
-   {-# INLINE rule206 #-}
-   rule206 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
+   {-# INLINE rule213 #-}
+   rule213 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
      _expressionIallVariables
-   {-# INLINE rule207 #-}
-   rule207 = \ ((_typeItypevariables) :: Names) ->
+   {-# INLINE rule214 #-}
+   rule214 = \ ((_typeItypevariables) :: Names) ->
      _typeItypevariables
-   {-# INLINE rule208 #-}
-   rule208 = \ ((_expressionIself) :: Expression) ((_typeIself) :: Type) ->
+   {-# INLINE rule215 #-}
+   rule215 = \ ((_expressionIself) :: Expression) ((_typeIself) :: Type) ->
      Judgement_Judgement _expressionIself _typeIself
-   {-# INLINE rule209 #-}
-   rule209 = \ _self ->
+   {-# INLINE rule216 #-}
+   rule216 = \ _self ->
      _self
+   {-# INLINE rule217 #-}
+   rule217 = \ ((_lhsIqualifier) :: Tp -> Tp) ->
+     _lhsIqualifier
 
 -- LeftHandSide ------------------------------------------------
 -- wrapper
 data Inh_LeftHandSide  = Inh_LeftHandSide {  }
-data Syn_LeftHandSide  = Syn_LeftHandSide { self_Syn_LeftHandSide :: (LeftHandSide) }
+data Syn_LeftHandSide  = Syn_LeftHandSide { self_Syn_LeftHandSide :: !(LeftHandSide) }
 {-# INLINABLE wrap_LeftHandSide #-}
 wrap_LeftHandSide :: T_LeftHandSide  -> Inh_LeftHandSide  -> (Syn_LeftHandSide )
-wrap_LeftHandSide (T_LeftHandSide act) (Inh_LeftHandSide ) =
+wrap_LeftHandSide !(T_LeftHandSide act) !(Inh_LeftHandSide ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg85 = T_LeftHandSide_vIn85 
-        (T_LeftHandSide_vOut85 _lhsOself) <- return (inv_LeftHandSide_s86 sem arg85)
+        !(T_LeftHandSide_vOut85 _lhsOself) <- return (inv_LeftHandSide_s86 sem arg85)
         return (Syn_LeftHandSide _lhsOself)
    )
 
@@ -3237,34 +3279,34 @@ data T_LeftHandSide_vOut85  = T_LeftHandSide_vOut85 (LeftHandSide)
 sem_LeftHandSide_Function :: T_Range  -> T_Name  -> T_Patterns  -> T_LeftHandSide 
 sem_LeftHandSide_Function arg_range_ arg_name_ arg_patterns_ = T_LeftHandSide (return st86) where
    {-# NOINLINE st86 #-}
-   st86 = let
+   !st86 = let
       v85 :: T_LeftHandSide_v85 
-      v85 = \ (T_LeftHandSide_vIn85 ) -> ( let
+      v85 = \ !(T_LeftHandSide_vIn85 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _patternsX125 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
          (T_Patterns_vOut124 _patternsIself) = inv_Patterns_s125 _patternsX125 (T_Patterns_vIn124 )
-         _self = rule210 _nameIself _patternsIself _rangeIself
+         _self = rule218 _nameIself _patternsIself _rangeIself
          _lhsOself :: LeftHandSide
-         _lhsOself = rule211 _self
-         __result_ = T_LeftHandSide_vOut85 _lhsOself
+         _lhsOself = rule219 _self
+         !__result_ = T_LeftHandSide_vOut85 _lhsOself
          in __result_ )
      in C_LeftHandSide_s86 v85
-   {-# INLINE rule210 #-}
-   rule210 = \ ((_nameIself) :: Name) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
+   {-# INLINE rule218 #-}
+   rule218 = \ ((_nameIself) :: Name) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
      LeftHandSide_Function _rangeIself _nameIself _patternsIself
-   {-# INLINE rule211 #-}
-   rule211 = \ _self ->
+   {-# INLINE rule219 #-}
+   rule219 = \ _self ->
      _self
 {-# NOINLINE sem_LeftHandSide_Infix #-}
 sem_LeftHandSide_Infix :: T_Range  -> T_Pattern  -> T_Name  -> T_Pattern  -> T_LeftHandSide 
 sem_LeftHandSide_Infix arg_range_ arg_leftPattern_ arg_operator_ arg_rightPattern_ = T_LeftHandSide (return st86) where
    {-# NOINLINE st86 #-}
-   st86 = let
+   !st86 = let
       v85 :: T_LeftHandSide_v85 
-      v85 = \ (T_LeftHandSide_vIn85 ) -> ( let
+      v85 = \ !(T_LeftHandSide_vIn85 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _leftPatternX122 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_leftPattern_))
          _operatorX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_operator_))
@@ -3273,65 +3315,65 @@ sem_LeftHandSide_Infix arg_range_ arg_leftPattern_ arg_operator_ arg_rightPatter
          (T_Pattern_vOut121 _leftPatternIself) = inv_Pattern_s122 _leftPatternX122 (T_Pattern_vIn121 )
          (T_Name_vOut115 _operatorIself) = inv_Name_s116 _operatorX116 (T_Name_vIn115 )
          (T_Pattern_vOut121 _rightPatternIself) = inv_Pattern_s122 _rightPatternX122 (T_Pattern_vIn121 )
-         _self = rule212 _leftPatternIself _operatorIself _rangeIself _rightPatternIself
+         _self = rule220 _leftPatternIself _operatorIself _rangeIself _rightPatternIself
          _lhsOself :: LeftHandSide
-         _lhsOself = rule213 _self
-         __result_ = T_LeftHandSide_vOut85 _lhsOself
+         _lhsOself = rule221 _self
+         !__result_ = T_LeftHandSide_vOut85 _lhsOself
          in __result_ )
      in C_LeftHandSide_s86 v85
-   {-# INLINE rule212 #-}
-   rule212 = \ ((_leftPatternIself) :: Pattern) ((_operatorIself) :: Name) ((_rangeIself) :: Range) ((_rightPatternIself) :: Pattern) ->
+   {-# INLINE rule220 #-}
+   rule220 = \ ((_leftPatternIself) :: Pattern) ((_operatorIself) :: Name) ((_rangeIself) :: Range) ((_rightPatternIself) :: Pattern) ->
      LeftHandSide_Infix _rangeIself _leftPatternIself _operatorIself _rightPatternIself
-   {-# INLINE rule213 #-}
-   rule213 = \ _self ->
+   {-# INLINE rule221 #-}
+   rule221 = \ _self ->
      _self
 {-# NOINLINE sem_LeftHandSide_Parenthesized #-}
 sem_LeftHandSide_Parenthesized :: T_Range  -> T_LeftHandSide  -> T_Patterns  -> T_LeftHandSide 
 sem_LeftHandSide_Parenthesized arg_range_ arg_lefthandside_ arg_patterns_ = T_LeftHandSide (return st86) where
    {-# NOINLINE st86 #-}
-   st86 = let
+   !st86 = let
       v85 :: T_LeftHandSide_v85 
-      v85 = \ (T_LeftHandSide_vIn85 ) -> ( let
+      v85 = \ !(T_LeftHandSide_vIn85 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _lefthandsideX86 = Control.Monad.Identity.runIdentity (attach_T_LeftHandSide (arg_lefthandside_))
          _patternsX125 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_LeftHandSide_vOut85 _lefthandsideIself) = inv_LeftHandSide_s86 _lefthandsideX86 (T_LeftHandSide_vIn85 )
          (T_Patterns_vOut124 _patternsIself) = inv_Patterns_s125 _patternsX125 (T_Patterns_vIn124 )
-         _self = rule214 _lefthandsideIself _patternsIself _rangeIself
+         _self = rule222 _lefthandsideIself _patternsIself _rangeIself
          _lhsOself :: LeftHandSide
-         _lhsOself = rule215 _self
-         __result_ = T_LeftHandSide_vOut85 _lhsOself
+         _lhsOself = rule223 _self
+         !__result_ = T_LeftHandSide_vOut85 _lhsOself
          in __result_ )
      in C_LeftHandSide_s86 v85
-   {-# INLINE rule214 #-}
-   rule214 = \ ((_lefthandsideIself) :: LeftHandSide) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
+   {-# INLINE rule222 #-}
+   rule222 = \ ((_lefthandsideIself) :: LeftHandSide) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
      LeftHandSide_Parenthesized _rangeIself _lefthandsideIself _patternsIself
-   {-# INLINE rule215 #-}
-   rule215 = \ _self ->
+   {-# INLINE rule223 #-}
+   rule223 = \ _self ->
      _self
 
 -- Literal -----------------------------------------------------
 -- wrapper
 data Inh_Literal  = Inh_Literal {  }
-data Syn_Literal  = Syn_Literal { self_Syn_Literal :: (Literal) }
+data Syn_Literal  = Syn_Literal { self_Syn_Literal :: !(Literal) }
 {-# INLINABLE wrap_Literal #-}
 wrap_Literal :: T_Literal  -> Inh_Literal  -> (Syn_Literal )
-wrap_Literal (T_Literal act) (Inh_Literal ) =
+wrap_Literal !(T_Literal act) !(Inh_Literal ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg88 = T_Literal_vIn88 
-        (T_Literal_vOut88 _lhsOself) <- return (inv_Literal_s89 sem arg88)
+        !(T_Literal_vOut88 _lhsOself) <- return (inv_Literal_s89 sem arg88)
         return (Syn_Literal _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_Literal #-}
 sem_Literal :: Literal  -> T_Literal 
-sem_Literal ( Literal_Int range_ value_ ) = sem_Literal_Int ( sem_Range range_ ) value_
-sem_Literal ( Literal_Char range_ value_ ) = sem_Literal_Char ( sem_Range range_ ) value_
-sem_Literal ( Literal_Float range_ value_ ) = sem_Literal_Float ( sem_Range range_ ) value_
-sem_Literal ( Literal_String range_ value_ ) = sem_Literal_String ( sem_Range range_ ) value_
+sem_Literal ( Literal_Int range_ !value_ ) = sem_Literal_Int ( sem_Range range_ ) value_
+sem_Literal ( Literal_Char range_ !value_ ) = sem_Literal_Char ( sem_Range range_ ) value_
+sem_Literal ( Literal_Float range_ !value_ ) = sem_Literal_Float ( sem_Range range_ ) value_
+sem_Literal ( Literal_String range_ !value_ ) = sem_Literal_String ( sem_Range range_ ) value_
 
 -- semantic domain
 newtype T_Literal  = T_Literal {
@@ -3346,100 +3388,100 @@ data T_Literal_vIn88  = T_Literal_vIn88
 data T_Literal_vOut88  = T_Literal_vOut88 (Literal)
 {-# NOINLINE sem_Literal_Int #-}
 sem_Literal_Int :: T_Range  -> (String) -> T_Literal 
-sem_Literal_Int arg_range_ arg_value_ = T_Literal (return st89) where
+sem_Literal_Int arg_range_ !arg_value_ = T_Literal (return st89) where
    {-# NOINLINE st89 #-}
-   st89 = let
+   !st89 = let
       v88 :: T_Literal_v88 
-      v88 = \ (T_Literal_vIn88 ) -> ( let
+      v88 = \ !(T_Literal_vIn88 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         _self = rule216 _rangeIself arg_value_
+         _self = rule224 _rangeIself arg_value_
          _lhsOself :: Literal
-         _lhsOself = rule217 _self
-         __result_ = T_Literal_vOut88 _lhsOself
+         _lhsOself = rule225 _self
+         !__result_ = T_Literal_vOut88 _lhsOself
          in __result_ )
      in C_Literal_s89 v88
-   {-# INLINE rule216 #-}
-   rule216 = \ ((_rangeIself) :: Range) value_ ->
+   {-# INLINE rule224 #-}
+   rule224 = \ ((_rangeIself) :: Range) value_ ->
      Literal_Int _rangeIself value_
-   {-# INLINE rule217 #-}
-   rule217 = \ _self ->
+   {-# INLINE rule225 #-}
+   rule225 = \ _self ->
      _self
 {-# NOINLINE sem_Literal_Char #-}
 sem_Literal_Char :: T_Range  -> (String) -> T_Literal 
-sem_Literal_Char arg_range_ arg_value_ = T_Literal (return st89) where
+sem_Literal_Char arg_range_ !arg_value_ = T_Literal (return st89) where
    {-# NOINLINE st89 #-}
-   st89 = let
+   !st89 = let
       v88 :: T_Literal_v88 
-      v88 = \ (T_Literal_vIn88 ) -> ( let
+      v88 = \ !(T_Literal_vIn88 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         _self = rule218 _rangeIself arg_value_
+         _self = rule226 _rangeIself arg_value_
          _lhsOself :: Literal
-         _lhsOself = rule219 _self
-         __result_ = T_Literal_vOut88 _lhsOself
+         _lhsOself = rule227 _self
+         !__result_ = T_Literal_vOut88 _lhsOself
          in __result_ )
      in C_Literal_s89 v88
-   {-# INLINE rule218 #-}
-   rule218 = \ ((_rangeIself) :: Range) value_ ->
+   {-# INLINE rule226 #-}
+   rule226 = \ ((_rangeIself) :: Range) value_ ->
      Literal_Char _rangeIself value_
-   {-# INLINE rule219 #-}
-   rule219 = \ _self ->
+   {-# INLINE rule227 #-}
+   rule227 = \ _self ->
      _self
 {-# NOINLINE sem_Literal_Float #-}
 sem_Literal_Float :: T_Range  -> (String) -> T_Literal 
-sem_Literal_Float arg_range_ arg_value_ = T_Literal (return st89) where
+sem_Literal_Float arg_range_ !arg_value_ = T_Literal (return st89) where
    {-# NOINLINE st89 #-}
-   st89 = let
+   !st89 = let
       v88 :: T_Literal_v88 
-      v88 = \ (T_Literal_vIn88 ) -> ( let
+      v88 = \ !(T_Literal_vIn88 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         _self = rule220 _rangeIself arg_value_
+         _self = rule228 _rangeIself arg_value_
          _lhsOself :: Literal
-         _lhsOself = rule221 _self
-         __result_ = T_Literal_vOut88 _lhsOself
+         _lhsOself = rule229 _self
+         !__result_ = T_Literal_vOut88 _lhsOself
          in __result_ )
      in C_Literal_s89 v88
-   {-# INLINE rule220 #-}
-   rule220 = \ ((_rangeIself) :: Range) value_ ->
+   {-# INLINE rule228 #-}
+   rule228 = \ ((_rangeIself) :: Range) value_ ->
      Literal_Float _rangeIself value_
-   {-# INLINE rule221 #-}
-   rule221 = \ _self ->
+   {-# INLINE rule229 #-}
+   rule229 = \ _self ->
      _self
 {-# NOINLINE sem_Literal_String #-}
 sem_Literal_String :: T_Range  -> (String) -> T_Literal 
-sem_Literal_String arg_range_ arg_value_ = T_Literal (return st89) where
+sem_Literal_String arg_range_ !arg_value_ = T_Literal (return st89) where
    {-# NOINLINE st89 #-}
-   st89 = let
+   !st89 = let
       v88 :: T_Literal_v88 
-      v88 = \ (T_Literal_vIn88 ) -> ( let
+      v88 = \ !(T_Literal_vIn88 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         _self = rule222 _rangeIself arg_value_
+         _self = rule230 _rangeIself arg_value_
          _lhsOself :: Literal
-         _lhsOself = rule223 _self
-         __result_ = T_Literal_vOut88 _lhsOself
+         _lhsOself = rule231 _self
+         !__result_ = T_Literal_vOut88 _lhsOself
          in __result_ )
      in C_Literal_s89 v88
-   {-# INLINE rule222 #-}
-   rule222 = \ ((_rangeIself) :: Range) value_ ->
+   {-# INLINE rule230 #-}
+   rule230 = \ ((_rangeIself) :: Range) value_ ->
      Literal_String _rangeIself value_
-   {-# INLINE rule223 #-}
-   rule223 = \ _self ->
+   {-# INLINE rule231 #-}
+   rule231 = \ _self ->
      _self
 
 -- MaybeDeclarations -------------------------------------------
 -- wrapper
 data Inh_MaybeDeclarations  = Inh_MaybeDeclarations {  }
-data Syn_MaybeDeclarations  = Syn_MaybeDeclarations { self_Syn_MaybeDeclarations :: (MaybeDeclarations) }
+data Syn_MaybeDeclarations  = Syn_MaybeDeclarations { self_Syn_MaybeDeclarations :: !(MaybeDeclarations) }
 {-# INLINABLE wrap_MaybeDeclarations #-}
 wrap_MaybeDeclarations :: T_MaybeDeclarations  -> Inh_MaybeDeclarations  -> (Syn_MaybeDeclarations )
-wrap_MaybeDeclarations (T_MaybeDeclarations act) (Inh_MaybeDeclarations ) =
+wrap_MaybeDeclarations !(T_MaybeDeclarations act) !(Inh_MaybeDeclarations ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg91 = T_MaybeDeclarations_vIn91 
-        (T_MaybeDeclarations_vOut91 _lhsOself) <- return (inv_MaybeDeclarations_s92 sem arg91)
+        !(T_MaybeDeclarations_vOut91 _lhsOself) <- return (inv_MaybeDeclarations_s92 sem arg91)
         return (Syn_MaybeDeclarations _lhsOself)
    )
 
@@ -3464,54 +3506,54 @@ data T_MaybeDeclarations_vOut91  = T_MaybeDeclarations_vOut91 (MaybeDeclarations
 sem_MaybeDeclarations_Nothing ::  T_MaybeDeclarations 
 sem_MaybeDeclarations_Nothing  = T_MaybeDeclarations (return st92) where
    {-# NOINLINE st92 #-}
-   st92 = let
+   !st92 = let
       v91 :: T_MaybeDeclarations_v91 
-      v91 = \ (T_MaybeDeclarations_vIn91 ) -> ( let
-         _self = rule224  ()
+      v91 = \ !(T_MaybeDeclarations_vIn91 ) -> ( let
+         _self = rule232  ()
          _lhsOself :: MaybeDeclarations
-         _lhsOself = rule225 _self
-         __result_ = T_MaybeDeclarations_vOut91 _lhsOself
+         _lhsOself = rule233 _self
+         !__result_ = T_MaybeDeclarations_vOut91 _lhsOself
          in __result_ )
      in C_MaybeDeclarations_s92 v91
-   {-# INLINE rule224 #-}
-   rule224 = \  (_ :: ()) ->
+   {-# INLINE rule232 #-}
+   rule232 = \  (_ :: ()) ->
      MaybeDeclarations_Nothing
-   {-# INLINE rule225 #-}
-   rule225 = \ _self ->
+   {-# INLINE rule233 #-}
+   rule233 = \ _self ->
      _self
 {-# NOINLINE sem_MaybeDeclarations_Just #-}
 sem_MaybeDeclarations_Just :: T_Declarations  -> T_MaybeDeclarations 
 sem_MaybeDeclarations_Just arg_declarations_ = T_MaybeDeclarations (return st92) where
    {-# NOINLINE st92 #-}
-   st92 = let
+   !st92 = let
       v91 :: T_MaybeDeclarations_v91 
-      v91 = \ (T_MaybeDeclarations_vIn91 ) -> ( let
+      v91 = \ !(T_MaybeDeclarations_vIn91 ) -> ( let
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          (T_Declarations_vOut31 _declarationsIself) = inv_Declarations_s32 _declarationsX32 (T_Declarations_vIn31 )
-         _self = rule226 _declarationsIself
+         _self = rule234 _declarationsIself
          _lhsOself :: MaybeDeclarations
-         _lhsOself = rule227 _self
-         __result_ = T_MaybeDeclarations_vOut91 _lhsOself
+         _lhsOself = rule235 _self
+         !__result_ = T_MaybeDeclarations_vOut91 _lhsOself
          in __result_ )
      in C_MaybeDeclarations_s92 v91
-   {-# INLINE rule226 #-}
-   rule226 = \ ((_declarationsIself) :: Declarations) ->
+   {-# INLINE rule234 #-}
+   rule234 = \ ((_declarationsIself) :: Declarations) ->
      MaybeDeclarations_Just _declarationsIself
-   {-# INLINE rule227 #-}
-   rule227 = \ _self ->
+   {-# INLINE rule235 #-}
+   rule235 = \ _self ->
      _self
 
 -- MaybeExports ------------------------------------------------
 -- wrapper
 data Inh_MaybeExports  = Inh_MaybeExports {  }
-data Syn_MaybeExports  = Syn_MaybeExports { self_Syn_MaybeExports :: (MaybeExports) }
+data Syn_MaybeExports  = Syn_MaybeExports { self_Syn_MaybeExports :: !(MaybeExports) }
 {-# INLINABLE wrap_MaybeExports #-}
 wrap_MaybeExports :: T_MaybeExports  -> Inh_MaybeExports  -> (Syn_MaybeExports )
-wrap_MaybeExports (T_MaybeExports act) (Inh_MaybeExports ) =
+wrap_MaybeExports !(T_MaybeExports act) !(Inh_MaybeExports ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg94 = T_MaybeExports_vIn94 
-        (T_MaybeExports_vOut94 _lhsOself) <- return (inv_MaybeExports_s95 sem arg94)
+        !(T_MaybeExports_vOut94 _lhsOself) <- return (inv_MaybeExports_s95 sem arg94)
         return (Syn_MaybeExports _lhsOself)
    )
 
@@ -3536,54 +3578,54 @@ data T_MaybeExports_vOut94  = T_MaybeExports_vOut94 (MaybeExports)
 sem_MaybeExports_Nothing ::  T_MaybeExports 
 sem_MaybeExports_Nothing  = T_MaybeExports (return st95) where
    {-# NOINLINE st95 #-}
-   st95 = let
+   !st95 = let
       v94 :: T_MaybeExports_v94 
-      v94 = \ (T_MaybeExports_vIn94 ) -> ( let
-         _self = rule228  ()
+      v94 = \ !(T_MaybeExports_vIn94 ) -> ( let
+         _self = rule236  ()
          _lhsOself :: MaybeExports
-         _lhsOself = rule229 _self
-         __result_ = T_MaybeExports_vOut94 _lhsOself
+         _lhsOself = rule237 _self
+         !__result_ = T_MaybeExports_vOut94 _lhsOself
          in __result_ )
      in C_MaybeExports_s95 v94
-   {-# INLINE rule228 #-}
-   rule228 = \  (_ :: ()) ->
+   {-# INLINE rule236 #-}
+   rule236 = \  (_ :: ()) ->
      MaybeExports_Nothing
-   {-# INLINE rule229 #-}
-   rule229 = \ _self ->
+   {-# INLINE rule237 #-}
+   rule237 = \ _self ->
      _self
 {-# NOINLINE sem_MaybeExports_Just #-}
 sem_MaybeExports_Just :: T_Exports  -> T_MaybeExports 
 sem_MaybeExports_Just arg_exports_ = T_MaybeExports (return st95) where
    {-# NOINLINE st95 #-}
-   st95 = let
+   !st95 = let
       v94 :: T_MaybeExports_v94 
-      v94 = \ (T_MaybeExports_vIn94 ) -> ( let
+      v94 = \ !(T_MaybeExports_vIn94 ) -> ( let
          _exportsX38 = Control.Monad.Identity.runIdentity (attach_T_Exports (arg_exports_))
          (T_Exports_vOut37 _exportsIself) = inv_Exports_s38 _exportsX38 (T_Exports_vIn37 )
-         _self = rule230 _exportsIself
+         _self = rule238 _exportsIself
          _lhsOself :: MaybeExports
-         _lhsOself = rule231 _self
-         __result_ = T_MaybeExports_vOut94 _lhsOself
+         _lhsOself = rule239 _self
+         !__result_ = T_MaybeExports_vOut94 _lhsOself
          in __result_ )
      in C_MaybeExports_s95 v94
-   {-# INLINE rule230 #-}
-   rule230 = \ ((_exportsIself) :: Exports) ->
+   {-# INLINE rule238 #-}
+   rule238 = \ ((_exportsIself) :: Exports) ->
      MaybeExports_Just _exportsIself
-   {-# INLINE rule231 #-}
-   rule231 = \ _self ->
+   {-# INLINE rule239 #-}
+   rule239 = \ _self ->
      _self
 
 -- MaybeExpression ---------------------------------------------
 -- wrapper
 data Inh_MaybeExpression  = Inh_MaybeExpression {  }
-data Syn_MaybeExpression  = Syn_MaybeExpression { allVariables_Syn_MaybeExpression :: ([(Name,Entity)]), self_Syn_MaybeExpression :: (MaybeExpression) }
+data Syn_MaybeExpression  = Syn_MaybeExpression { allVariables_Syn_MaybeExpression :: !([(Name,Entity)]), self_Syn_MaybeExpression :: !(MaybeExpression) }
 {-# INLINABLE wrap_MaybeExpression #-}
 wrap_MaybeExpression :: T_MaybeExpression  -> Inh_MaybeExpression  -> (Syn_MaybeExpression )
-wrap_MaybeExpression (T_MaybeExpression act) (Inh_MaybeExpression ) =
+wrap_MaybeExpression !(T_MaybeExpression act) !(Inh_MaybeExpression ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg97 = T_MaybeExpression_vIn97 
-        (T_MaybeExpression_vOut97 _lhsOallVariables _lhsOself) <- return (inv_MaybeExpression_s98 sem arg97)
+        !(T_MaybeExpression_vOut97 _lhsOallVariables _lhsOself) <- return (inv_MaybeExpression_s98 sem arg97)
         return (Syn_MaybeExpression _lhsOallVariables _lhsOself)
    )
 
@@ -3608,64 +3650,64 @@ data T_MaybeExpression_vOut97  = T_MaybeExpression_vOut97 ([(Name,Entity)]) (May
 sem_MaybeExpression_Nothing ::  T_MaybeExpression 
 sem_MaybeExpression_Nothing  = T_MaybeExpression (return st98) where
    {-# NOINLINE st98 #-}
-   st98 = let
+   !st98 = let
       v97 :: T_MaybeExpression_v97 
-      v97 = \ (T_MaybeExpression_vIn97 ) -> ( let
+      v97 = \ !(T_MaybeExpression_vIn97 ) -> ( let
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule232  ()
-         _self = rule233  ()
+         _lhsOallVariables = rule240  ()
+         _self = rule241  ()
          _lhsOself :: MaybeExpression
-         _lhsOself = rule234 _self
-         __result_ = T_MaybeExpression_vOut97 _lhsOallVariables _lhsOself
+         _lhsOself = rule242 _self
+         !__result_ = T_MaybeExpression_vOut97 _lhsOallVariables _lhsOself
          in __result_ )
      in C_MaybeExpression_s98 v97
-   {-# INLINE rule232 #-}
-   rule232 = \  (_ :: ()) ->
+   {-# INLINE rule240 #-}
+   rule240 = \  (_ :: ()) ->
      []
-   {-# INLINE rule233 #-}
-   rule233 = \  (_ :: ()) ->
+   {-# INLINE rule241 #-}
+   rule241 = \  (_ :: ()) ->
      MaybeExpression_Nothing
-   {-# INLINE rule234 #-}
-   rule234 = \ _self ->
+   {-# INLINE rule242 #-}
+   rule242 = \ _self ->
      _self
 {-# NOINLINE sem_MaybeExpression_Just #-}
 sem_MaybeExpression_Just :: T_Expression  -> T_MaybeExpression 
 sem_MaybeExpression_Just arg_expression_ = T_MaybeExpression (return st98) where
    {-# NOINLINE st98 #-}
-   st98 = let
+   !st98 = let
       v97 :: T_MaybeExpression_v97 
-      v97 = \ (T_MaybeExpression_vIn97 ) -> ( let
+      v97 = \ !(T_MaybeExpression_vIn97 ) -> ( let
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          _lhsOallVariables :: [(Name,Entity)]
-         _lhsOallVariables = rule235 _expressionIallVariables
-         _self = rule236 _expressionIself
+         _lhsOallVariables = rule243 _expressionIallVariables
+         _self = rule244 _expressionIself
          _lhsOself :: MaybeExpression
-         _lhsOself = rule237 _self
-         __result_ = T_MaybeExpression_vOut97 _lhsOallVariables _lhsOself
+         _lhsOself = rule245 _self
+         !__result_ = T_MaybeExpression_vOut97 _lhsOallVariables _lhsOself
          in __result_ )
      in C_MaybeExpression_s98 v97
-   {-# INLINE rule235 #-}
-   rule235 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
+   {-# INLINE rule243 #-}
+   rule243 = \ ((_expressionIallVariables) :: [(Name,Entity)]) ->
      _expressionIallVariables
-   {-# INLINE rule236 #-}
-   rule236 = \ ((_expressionIself) :: Expression) ->
+   {-# INLINE rule244 #-}
+   rule244 = \ ((_expressionIself) :: Expression) ->
      MaybeExpression_Just _expressionIself
-   {-# INLINE rule237 #-}
-   rule237 = \ _self ->
+   {-# INLINE rule245 #-}
+   rule245 = \ _self ->
      _self
 
 -- MaybeImportSpecification ------------------------------------
 -- wrapper
 data Inh_MaybeImportSpecification  = Inh_MaybeImportSpecification {  }
-data Syn_MaybeImportSpecification  = Syn_MaybeImportSpecification { self_Syn_MaybeImportSpecification :: (MaybeImportSpecification) }
+data Syn_MaybeImportSpecification  = Syn_MaybeImportSpecification { self_Syn_MaybeImportSpecification :: !(MaybeImportSpecification) }
 {-# INLINABLE wrap_MaybeImportSpecification #-}
 wrap_MaybeImportSpecification :: T_MaybeImportSpecification  -> Inh_MaybeImportSpecification  -> (Syn_MaybeImportSpecification )
-wrap_MaybeImportSpecification (T_MaybeImportSpecification act) (Inh_MaybeImportSpecification ) =
+wrap_MaybeImportSpecification !(T_MaybeImportSpecification act) !(Inh_MaybeImportSpecification ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg100 = T_MaybeImportSpecification_vIn100 
-        (T_MaybeImportSpecification_vOut100 _lhsOself) <- return (inv_MaybeImportSpecification_s101 sem arg100)
+        !(T_MaybeImportSpecification_vOut100 _lhsOself) <- return (inv_MaybeImportSpecification_s101 sem arg100)
         return (Syn_MaybeImportSpecification _lhsOself)
    )
 
@@ -3690,54 +3732,54 @@ data T_MaybeImportSpecification_vOut100  = T_MaybeImportSpecification_vOut100 (M
 sem_MaybeImportSpecification_Nothing ::  T_MaybeImportSpecification 
 sem_MaybeImportSpecification_Nothing  = T_MaybeImportSpecification (return st101) where
    {-# NOINLINE st101 #-}
-   st101 = let
+   !st101 = let
       v100 :: T_MaybeImportSpecification_v100 
-      v100 = \ (T_MaybeImportSpecification_vIn100 ) -> ( let
-         _self = rule238  ()
+      v100 = \ !(T_MaybeImportSpecification_vIn100 ) -> ( let
+         _self = rule246  ()
          _lhsOself :: MaybeImportSpecification
-         _lhsOself = rule239 _self
-         __result_ = T_MaybeImportSpecification_vOut100 _lhsOself
+         _lhsOself = rule247 _self
+         !__result_ = T_MaybeImportSpecification_vOut100 _lhsOself
          in __result_ )
      in C_MaybeImportSpecification_s101 v100
-   {-# INLINE rule238 #-}
-   rule238 = \  (_ :: ()) ->
+   {-# INLINE rule246 #-}
+   rule246 = \  (_ :: ()) ->
      MaybeImportSpecification_Nothing
-   {-# INLINE rule239 #-}
-   rule239 = \ _self ->
+   {-# INLINE rule247 #-}
+   rule247 = \ _self ->
      _self
 {-# NOINLINE sem_MaybeImportSpecification_Just #-}
 sem_MaybeImportSpecification_Just :: T_ImportSpecification  -> T_MaybeImportSpecification 
 sem_MaybeImportSpecification_Just arg_importspecification_ = T_MaybeImportSpecification (return st101) where
    {-# NOINLINE st101 #-}
-   st101 = let
+   !st101 = let
       v100 :: T_MaybeImportSpecification_v100 
-      v100 = \ (T_MaybeImportSpecification_vIn100 ) -> ( let
+      v100 = \ !(T_MaybeImportSpecification_vIn100 ) -> ( let
          _importspecificationX77 = Control.Monad.Identity.runIdentity (attach_T_ImportSpecification (arg_importspecification_))
          (T_ImportSpecification_vOut76 _importspecificationIself) = inv_ImportSpecification_s77 _importspecificationX77 (T_ImportSpecification_vIn76 )
-         _self = rule240 _importspecificationIself
+         _self = rule248 _importspecificationIself
          _lhsOself :: MaybeImportSpecification
-         _lhsOself = rule241 _self
-         __result_ = T_MaybeImportSpecification_vOut100 _lhsOself
+         _lhsOself = rule249 _self
+         !__result_ = T_MaybeImportSpecification_vOut100 _lhsOself
          in __result_ )
      in C_MaybeImportSpecification_s101 v100
-   {-# INLINE rule240 #-}
-   rule240 = \ ((_importspecificationIself) :: ImportSpecification) ->
+   {-# INLINE rule248 #-}
+   rule248 = \ ((_importspecificationIself) :: ImportSpecification) ->
      MaybeImportSpecification_Just _importspecificationIself
-   {-# INLINE rule241 #-}
-   rule241 = \ _self ->
+   {-# INLINE rule249 #-}
+   rule249 = \ _self ->
      _self
 
 -- MaybeInt ----------------------------------------------------
 -- wrapper
 data Inh_MaybeInt  = Inh_MaybeInt {  }
-data Syn_MaybeInt  = Syn_MaybeInt { self_Syn_MaybeInt :: (MaybeInt) }
+data Syn_MaybeInt  = Syn_MaybeInt { self_Syn_MaybeInt :: !(MaybeInt) }
 {-# INLINABLE wrap_MaybeInt #-}
 wrap_MaybeInt :: T_MaybeInt  -> Inh_MaybeInt  -> (Syn_MaybeInt )
-wrap_MaybeInt (T_MaybeInt act) (Inh_MaybeInt ) =
+wrap_MaybeInt !(T_MaybeInt act) !(Inh_MaybeInt ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg103 = T_MaybeInt_vIn103 
-        (T_MaybeInt_vOut103 _lhsOself) <- return (inv_MaybeInt_s104 sem arg103)
+        !(T_MaybeInt_vOut103 _lhsOself) <- return (inv_MaybeInt_s104 sem arg103)
         return (Syn_MaybeInt _lhsOself)
    )
 
@@ -3745,7 +3787,7 @@ wrap_MaybeInt (T_MaybeInt act) (Inh_MaybeInt ) =
 {-# NOINLINE sem_MaybeInt #-}
 sem_MaybeInt :: MaybeInt  -> T_MaybeInt 
 sem_MaybeInt ( MaybeInt_Nothing  ) = sem_MaybeInt_Nothing 
-sem_MaybeInt ( MaybeInt_Just int_ ) = sem_MaybeInt_Just int_
+sem_MaybeInt ( MaybeInt_Just !int_ ) = sem_MaybeInt_Just int_
 
 -- semantic domain
 newtype T_MaybeInt  = T_MaybeInt {
@@ -3762,52 +3804,52 @@ data T_MaybeInt_vOut103  = T_MaybeInt_vOut103 (MaybeInt)
 sem_MaybeInt_Nothing ::  T_MaybeInt 
 sem_MaybeInt_Nothing  = T_MaybeInt (return st104) where
    {-# NOINLINE st104 #-}
-   st104 = let
+   !st104 = let
       v103 :: T_MaybeInt_v103 
-      v103 = \ (T_MaybeInt_vIn103 ) -> ( let
-         _self = rule242  ()
+      v103 = \ !(T_MaybeInt_vIn103 ) -> ( let
+         _self = rule250  ()
          _lhsOself :: MaybeInt
-         _lhsOself = rule243 _self
-         __result_ = T_MaybeInt_vOut103 _lhsOself
+         _lhsOself = rule251 _self
+         !__result_ = T_MaybeInt_vOut103 _lhsOself
          in __result_ )
      in C_MaybeInt_s104 v103
-   {-# INLINE rule242 #-}
-   rule242 = \  (_ :: ()) ->
+   {-# INLINE rule250 #-}
+   rule250 = \  (_ :: ()) ->
      MaybeInt_Nothing
-   {-# INLINE rule243 #-}
-   rule243 = \ _self ->
+   {-# INLINE rule251 #-}
+   rule251 = \ _self ->
      _self
 {-# NOINLINE sem_MaybeInt_Just #-}
 sem_MaybeInt_Just :: (Int) -> T_MaybeInt 
-sem_MaybeInt_Just arg_int_ = T_MaybeInt (return st104) where
+sem_MaybeInt_Just !arg_int_ = T_MaybeInt (return st104) where
    {-# NOINLINE st104 #-}
-   st104 = let
+   !st104 = let
       v103 :: T_MaybeInt_v103 
-      v103 = \ (T_MaybeInt_vIn103 ) -> ( let
-         _self = rule244 arg_int_
+      v103 = \ !(T_MaybeInt_vIn103 ) -> ( let
+         _self = rule252 arg_int_
          _lhsOself :: MaybeInt
-         _lhsOself = rule245 _self
-         __result_ = T_MaybeInt_vOut103 _lhsOself
+         _lhsOself = rule253 _self
+         !__result_ = T_MaybeInt_vOut103 _lhsOself
          in __result_ )
      in C_MaybeInt_s104 v103
-   {-# INLINE rule244 #-}
-   rule244 = \ int_ ->
+   {-# INLINE rule252 #-}
+   rule252 = \ int_ ->
      MaybeInt_Just int_
-   {-# INLINE rule245 #-}
-   rule245 = \ _self ->
+   {-# INLINE rule253 #-}
+   rule253 = \ _self ->
      _self
 
 -- MaybeName ---------------------------------------------------
 -- wrapper
 data Inh_MaybeName  = Inh_MaybeName {  }
-data Syn_MaybeName  = Syn_MaybeName { self_Syn_MaybeName :: (MaybeName) }
+data Syn_MaybeName  = Syn_MaybeName { self_Syn_MaybeName :: !(MaybeName) }
 {-# INLINABLE wrap_MaybeName #-}
 wrap_MaybeName :: T_MaybeName  -> Inh_MaybeName  -> (Syn_MaybeName )
-wrap_MaybeName (T_MaybeName act) (Inh_MaybeName ) =
+wrap_MaybeName !(T_MaybeName act) !(Inh_MaybeName ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg106 = T_MaybeName_vIn106 
-        (T_MaybeName_vOut106 _lhsOself) <- return (inv_MaybeName_s107 sem arg106)
+        !(T_MaybeName_vOut106 _lhsOself) <- return (inv_MaybeName_s107 sem arg106)
         return (Syn_MaybeName _lhsOself)
    )
 
@@ -3832,54 +3874,54 @@ data T_MaybeName_vOut106  = T_MaybeName_vOut106 (MaybeName)
 sem_MaybeName_Nothing ::  T_MaybeName 
 sem_MaybeName_Nothing  = T_MaybeName (return st107) where
    {-# NOINLINE st107 #-}
-   st107 = let
+   !st107 = let
       v106 :: T_MaybeName_v106 
-      v106 = \ (T_MaybeName_vIn106 ) -> ( let
-         _self = rule246  ()
+      v106 = \ !(T_MaybeName_vIn106 ) -> ( let
+         _self = rule254  ()
          _lhsOself :: MaybeName
-         _lhsOself = rule247 _self
-         __result_ = T_MaybeName_vOut106 _lhsOself
+         _lhsOself = rule255 _self
+         !__result_ = T_MaybeName_vOut106 _lhsOself
          in __result_ )
      in C_MaybeName_s107 v106
-   {-# INLINE rule246 #-}
-   rule246 = \  (_ :: ()) ->
+   {-# INLINE rule254 #-}
+   rule254 = \  (_ :: ()) ->
      MaybeName_Nothing
-   {-# INLINE rule247 #-}
-   rule247 = \ _self ->
+   {-# INLINE rule255 #-}
+   rule255 = \ _self ->
      _self
 {-# NOINLINE sem_MaybeName_Just #-}
 sem_MaybeName_Just :: T_Name  -> T_MaybeName 
 sem_MaybeName_Just arg_name_ = T_MaybeName (return st107) where
    {-# NOINLINE st107 #-}
-   st107 = let
+   !st107 = let
       v106 :: T_MaybeName_v106 
-      v106 = \ (T_MaybeName_vIn106 ) -> ( let
+      v106 = \ !(T_MaybeName_vIn106 ) -> ( let
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
-         _self = rule248 _nameIself
+         _self = rule256 _nameIself
          _lhsOself :: MaybeName
-         _lhsOself = rule249 _self
-         __result_ = T_MaybeName_vOut106 _lhsOself
+         _lhsOself = rule257 _self
+         !__result_ = T_MaybeName_vOut106 _lhsOself
          in __result_ )
      in C_MaybeName_s107 v106
-   {-# INLINE rule248 #-}
-   rule248 = \ ((_nameIself) :: Name) ->
+   {-# INLINE rule256 #-}
+   rule256 = \ ((_nameIself) :: Name) ->
      MaybeName_Just _nameIself
-   {-# INLINE rule249 #-}
-   rule249 = \ _self ->
+   {-# INLINE rule257 #-}
+   rule257 = \ _self ->
      _self
 
 -- MaybeNames --------------------------------------------------
 -- wrapper
 data Inh_MaybeNames  = Inh_MaybeNames {  }
-data Syn_MaybeNames  = Syn_MaybeNames { self_Syn_MaybeNames :: (MaybeNames) }
+data Syn_MaybeNames  = Syn_MaybeNames { self_Syn_MaybeNames :: !(MaybeNames) }
 {-# INLINABLE wrap_MaybeNames #-}
 wrap_MaybeNames :: T_MaybeNames  -> Inh_MaybeNames  -> (Syn_MaybeNames )
-wrap_MaybeNames (T_MaybeNames act) (Inh_MaybeNames ) =
+wrap_MaybeNames !(T_MaybeNames act) !(Inh_MaybeNames ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg109 = T_MaybeNames_vIn109 
-        (T_MaybeNames_vOut109 _lhsOself) <- return (inv_MaybeNames_s110 sem arg109)
+        !(T_MaybeNames_vOut109 _lhsOself) <- return (inv_MaybeNames_s110 sem arg109)
         return (Syn_MaybeNames _lhsOself)
    )
 
@@ -3904,54 +3946,54 @@ data T_MaybeNames_vOut109  = T_MaybeNames_vOut109 (MaybeNames)
 sem_MaybeNames_Nothing ::  T_MaybeNames 
 sem_MaybeNames_Nothing  = T_MaybeNames (return st110) where
    {-# NOINLINE st110 #-}
-   st110 = let
+   !st110 = let
       v109 :: T_MaybeNames_v109 
-      v109 = \ (T_MaybeNames_vIn109 ) -> ( let
-         _self = rule250  ()
+      v109 = \ !(T_MaybeNames_vIn109 ) -> ( let
+         _self = rule258  ()
          _lhsOself :: MaybeNames
-         _lhsOself = rule251 _self
-         __result_ = T_MaybeNames_vOut109 _lhsOself
+         _lhsOself = rule259 _self
+         !__result_ = T_MaybeNames_vOut109 _lhsOself
          in __result_ )
      in C_MaybeNames_s110 v109
-   {-# INLINE rule250 #-}
-   rule250 = \  (_ :: ()) ->
+   {-# INLINE rule258 #-}
+   rule258 = \  (_ :: ()) ->
      MaybeNames_Nothing
-   {-# INLINE rule251 #-}
-   rule251 = \ _self ->
+   {-# INLINE rule259 #-}
+   rule259 = \ _self ->
      _self
 {-# NOINLINE sem_MaybeNames_Just #-}
 sem_MaybeNames_Just :: T_Names  -> T_MaybeNames 
 sem_MaybeNames_Just arg_names_ = T_MaybeNames (return st110) where
    {-# NOINLINE st110 #-}
-   st110 = let
+   !st110 = let
       v109 :: T_MaybeNames_v109 
-      v109 = \ (T_MaybeNames_vIn109 ) -> ( let
+      v109 = \ !(T_MaybeNames_vIn109 ) -> ( let
          _namesX119 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_names_))
          (T_Names_vOut118 _namesIself) = inv_Names_s119 _namesX119 (T_Names_vIn118 )
-         _self = rule252 _namesIself
+         _self = rule260 _namesIself
          _lhsOself :: MaybeNames
-         _lhsOself = rule253 _self
-         __result_ = T_MaybeNames_vOut109 _lhsOself
+         _lhsOself = rule261 _self
+         !__result_ = T_MaybeNames_vOut109 _lhsOself
          in __result_ )
      in C_MaybeNames_s110 v109
-   {-# INLINE rule252 #-}
-   rule252 = \ ((_namesIself) :: Names) ->
+   {-# INLINE rule260 #-}
+   rule260 = \ ((_namesIself) :: Names) ->
      MaybeNames_Just _namesIself
-   {-# INLINE rule253 #-}
-   rule253 = \ _self ->
+   {-# INLINE rule261 #-}
+   rule261 = \ _self ->
      _self
 
 -- Module ------------------------------------------------------
 -- wrapper
 data Inh_Module  = Inh_Module {  }
-data Syn_Module  = Syn_Module { self_Syn_Module :: (Module) }
+data Syn_Module  = Syn_Module { self_Syn_Module :: !(Module) }
 {-# INLINABLE wrap_Module #-}
 wrap_Module :: T_Module  -> Inh_Module  -> (Syn_Module )
-wrap_Module (T_Module act) (Inh_Module ) =
+wrap_Module !(T_Module act) !(Inh_Module ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg112 = T_Module_vIn112 
-        (T_Module_vOut112 _lhsOself) <- return (inv_Module_s113 sem arg112)
+        !(T_Module_vOut112 _lhsOself) <- return (inv_Module_s113 sem arg112)
         return (Syn_Module _lhsOself)
    )
 
@@ -3975,9 +4017,9 @@ data T_Module_vOut112  = T_Module_vOut112 (Module)
 sem_Module_Module :: T_Range  -> T_MaybeName  -> T_MaybeExports  -> T_Body  -> T_Module 
 sem_Module_Module arg_range_ arg_name_ arg_exports_ arg_body_ = T_Module (return st113) where
    {-# NOINLINE st113 #-}
-   st113 = let
+   !st113 = let
       v112 :: T_Module_v112 
-      v112 = \ (T_Module_vIn112 ) -> ( let
+      v112 = \ !(T_Module_vIn112 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX107 = Control.Monad.Identity.runIdentity (attach_T_MaybeName (arg_name_))
          _exportsX95 = Control.Monad.Identity.runIdentity (attach_T_MaybeExports (arg_exports_))
@@ -3986,39 +4028,39 @@ sem_Module_Module arg_range_ arg_name_ arg_exports_ arg_body_ = T_Module (return
          (T_MaybeName_vOut106 _nameIself) = inv_MaybeName_s107 _nameX107 (T_MaybeName_vIn106 )
          (T_MaybeExports_vOut94 _exportsIself) = inv_MaybeExports_s95 _exportsX95 (T_MaybeExports_vIn94 )
          (T_Body_vOut13 _bodyIself) = inv_Body_s14 _bodyX14 (T_Body_vIn13 )
-         _self = rule254 _bodyIself _exportsIself _nameIself _rangeIself
+         _self = rule262 _bodyIself _exportsIself _nameIself _rangeIself
          _lhsOself :: Module
-         _lhsOself = rule255 _self
-         __result_ = T_Module_vOut112 _lhsOself
+         _lhsOself = rule263 _self
+         !__result_ = T_Module_vOut112 _lhsOself
          in __result_ )
      in C_Module_s113 v112
-   {-# INLINE rule254 #-}
-   rule254 = \ ((_bodyIself) :: Body) ((_exportsIself) :: MaybeExports) ((_nameIself) :: MaybeName) ((_rangeIself) :: Range) ->
+   {-# INLINE rule262 #-}
+   rule262 = \ ((_bodyIself) :: Body) ((_exportsIself) :: MaybeExports) ((_nameIself) :: MaybeName) ((_rangeIself) :: Range) ->
      Module_Module _rangeIself _nameIself _exportsIself _bodyIself
-   {-# INLINE rule255 #-}
-   rule255 = \ _self ->
+   {-# INLINE rule263 #-}
+   rule263 = \ _self ->
      _self
 
 -- Name --------------------------------------------------------
 -- wrapper
 data Inh_Name  = Inh_Name {  }
-data Syn_Name  = Syn_Name { self_Syn_Name :: (Name) }
+data Syn_Name  = Syn_Name { self_Syn_Name :: !(Name) }
 {-# INLINABLE wrap_Name #-}
 wrap_Name :: T_Name  -> Inh_Name  -> (Syn_Name )
-wrap_Name (T_Name act) (Inh_Name ) =
+wrap_Name !(T_Name act) !(Inh_Name ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg115 = T_Name_vIn115 
-        (T_Name_vOut115 _lhsOself) <- return (inv_Name_s116 sem arg115)
+        !(T_Name_vOut115 _lhsOself) <- return (inv_Name_s116 sem arg115)
         return (Syn_Name _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_Name #-}
 sem_Name :: Name  -> T_Name 
-sem_Name ( Name_Identifier range_ module_ name_ ) = sem_Name_Identifier ( sem_Range range_ ) ( sem_Strings module_ ) name_
-sem_Name ( Name_Operator range_ module_ name_ ) = sem_Name_Operator ( sem_Range range_ ) ( sem_Strings module_ ) name_
-sem_Name ( Name_Special range_ module_ name_ ) = sem_Name_Special ( sem_Range range_ ) ( sem_Strings module_ ) name_
+sem_Name ( Name_Identifier range_ module_ !origin_ !name_ ) = sem_Name_Identifier ( sem_Range range_ ) ( sem_Strings module_ ) origin_ name_
+sem_Name ( Name_Operator range_ module_ !origin_ !name_ ) = sem_Name_Operator ( sem_Range range_ ) ( sem_Strings module_ ) origin_ name_
+sem_Name ( Name_Special range_ module_ !origin_ !name_ ) = sem_Name_Special ( sem_Range range_ ) ( sem_Strings module_ ) origin_ name_
 
 -- semantic domain
 newtype T_Name  = T_Name {
@@ -4032,86 +4074,86 @@ type T_Name_v115  = (T_Name_vIn115 ) -> (T_Name_vOut115 )
 data T_Name_vIn115  = T_Name_vIn115 
 data T_Name_vOut115  = T_Name_vOut115 (Name)
 {-# NOINLINE sem_Name_Identifier #-}
-sem_Name_Identifier :: T_Range  -> T_Strings  -> (String) -> T_Name 
-sem_Name_Identifier arg_range_ arg_module_ arg_name_ = T_Name (return st116) where
+sem_Name_Identifier :: T_Range  -> T_Strings  -> (String) -> (String) -> T_Name 
+sem_Name_Identifier arg_range_ arg_module_ !arg_origin_ !arg_name_ = T_Name (return st116) where
    {-# NOINLINE st116 #-}
-   st116 = let
+   !st116 = let
       v115 :: T_Name_v115 
-      v115 = \ (T_Name_vIn115 ) -> ( let
+      v115 = \ !(T_Name_vIn115 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _moduleX170 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_module_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Strings_vOut169 _moduleIself) = inv_Strings_s170 _moduleX170 (T_Strings_vIn169 )
-         _self = rule256 _moduleIself _rangeIself arg_name_
+         _self = rule264 _moduleIself _rangeIself arg_name_ arg_origin_
          _lhsOself :: Name
-         _lhsOself = rule257 _self
-         __result_ = T_Name_vOut115 _lhsOself
+         _lhsOself = rule265 _self
+         !__result_ = T_Name_vOut115 _lhsOself
          in __result_ )
      in C_Name_s116 v115
-   {-# INLINE rule256 #-}
-   rule256 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ ->
-     Name_Identifier _rangeIself _moduleIself name_
-   {-# INLINE rule257 #-}
-   rule257 = \ _self ->
+   {-# INLINE rule264 #-}
+   rule264 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ origin_ ->
+     Name_Identifier _rangeIself _moduleIself origin_ name_
+   {-# INLINE rule265 #-}
+   rule265 = \ _self ->
      _self
 {-# NOINLINE sem_Name_Operator #-}
-sem_Name_Operator :: T_Range  -> T_Strings  -> (String) -> T_Name 
-sem_Name_Operator arg_range_ arg_module_ arg_name_ = T_Name (return st116) where
+sem_Name_Operator :: T_Range  -> T_Strings  -> (String) -> (String) -> T_Name 
+sem_Name_Operator arg_range_ arg_module_ !arg_origin_ !arg_name_ = T_Name (return st116) where
    {-# NOINLINE st116 #-}
-   st116 = let
+   !st116 = let
       v115 :: T_Name_v115 
-      v115 = \ (T_Name_vIn115 ) -> ( let
+      v115 = \ !(T_Name_vIn115 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _moduleX170 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_module_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Strings_vOut169 _moduleIself) = inv_Strings_s170 _moduleX170 (T_Strings_vIn169 )
-         _self = rule258 _moduleIself _rangeIself arg_name_
+         _self = rule266 _moduleIself _rangeIself arg_name_ arg_origin_
          _lhsOself :: Name
-         _lhsOself = rule259 _self
-         __result_ = T_Name_vOut115 _lhsOself
+         _lhsOself = rule267 _self
+         !__result_ = T_Name_vOut115 _lhsOself
          in __result_ )
      in C_Name_s116 v115
-   {-# INLINE rule258 #-}
-   rule258 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ ->
-     Name_Operator _rangeIself _moduleIself name_
-   {-# INLINE rule259 #-}
-   rule259 = \ _self ->
+   {-# INLINE rule266 #-}
+   rule266 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ origin_ ->
+     Name_Operator _rangeIself _moduleIself origin_ name_
+   {-# INLINE rule267 #-}
+   rule267 = \ _self ->
      _self
 {-# NOINLINE sem_Name_Special #-}
-sem_Name_Special :: T_Range  -> T_Strings  -> (String) -> T_Name 
-sem_Name_Special arg_range_ arg_module_ arg_name_ = T_Name (return st116) where
+sem_Name_Special :: T_Range  -> T_Strings  -> (String) -> (String) -> T_Name 
+sem_Name_Special arg_range_ arg_module_ !arg_origin_ !arg_name_ = T_Name (return st116) where
    {-# NOINLINE st116 #-}
-   st116 = let
+   !st116 = let
       v115 :: T_Name_v115 
-      v115 = \ (T_Name_vIn115 ) -> ( let
+      v115 = \ !(T_Name_vIn115 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _moduleX170 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_module_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Strings_vOut169 _moduleIself) = inv_Strings_s170 _moduleX170 (T_Strings_vIn169 )
-         _self = rule260 _moduleIself _rangeIself arg_name_
+         _self = rule268 _moduleIself _rangeIself arg_name_ arg_origin_
          _lhsOself :: Name
-         _lhsOself = rule261 _self
-         __result_ = T_Name_vOut115 _lhsOself
+         _lhsOself = rule269 _self
+         !__result_ = T_Name_vOut115 _lhsOself
          in __result_ )
      in C_Name_s116 v115
-   {-# INLINE rule260 #-}
-   rule260 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ ->
-     Name_Special _rangeIself _moduleIself name_
-   {-# INLINE rule261 #-}
-   rule261 = \ _self ->
+   {-# INLINE rule268 #-}
+   rule268 = \ ((_moduleIself) :: Strings) ((_rangeIself) :: Range) name_ origin_ ->
+     Name_Special _rangeIself _moduleIself origin_ name_
+   {-# INLINE rule269 #-}
+   rule269 = \ _self ->
      _self
 
 -- Names -------------------------------------------------------
 -- wrapper
 data Inh_Names  = Inh_Names {  }
-data Syn_Names  = Syn_Names { self_Syn_Names :: (Names) }
+data Syn_Names  = Syn_Names { self_Syn_Names :: !(Names) }
 {-# INLINABLE wrap_Names #-}
 wrap_Names :: T_Names  -> Inh_Names  -> (Syn_Names )
-wrap_Names (T_Names act) (Inh_Names ) =
+wrap_Names !(T_Names act) !(Inh_Names ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg118 = T_Names_vIn118 
-        (T_Names_vOut118 _lhsOself) <- return (inv_Names_s119 sem arg118)
+        !(T_Names_vOut118 _lhsOself) <- return (inv_Names_s119 sem arg118)
         return (Syn_Names _lhsOself)
    )
 
@@ -4135,63 +4177,63 @@ data T_Names_vOut118  = T_Names_vOut118 (Names)
 sem_Names_Cons :: T_Name  -> T_Names  -> T_Names 
 sem_Names_Cons arg_hd_ arg_tl_ = T_Names (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Names_v118 
-      v118 = \ (T_Names_vIn118 ) -> ( let
+      v118 = \ !(T_Names_vIn118 ) -> ( let
          _hdX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_hd_))
          _tlX119 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_tl_))
          (T_Name_vOut115 _hdIself) = inv_Name_s116 _hdX116 (T_Name_vIn115 )
          (T_Names_vOut118 _tlIself) = inv_Names_s119 _tlX119 (T_Names_vIn118 )
-         _self = rule262 _hdIself _tlIself
+         _self = rule270 _hdIself _tlIself
          _lhsOself :: Names
-         _lhsOself = rule263 _self
-         __result_ = T_Names_vOut118 _lhsOself
+         _lhsOself = rule271 _self
+         !__result_ = T_Names_vOut118 _lhsOself
          in __result_ )
      in C_Names_s119 v118
-   {-# INLINE rule262 #-}
-   rule262 = \ ((_hdIself) :: Name) ((_tlIself) :: Names) ->
+   {-# INLINE rule270 #-}
+   rule270 = \ ((_hdIself) :: Name) ((_tlIself) :: Names) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule263 #-}
-   rule263 = \ _self ->
+   {-# INLINE rule271 #-}
+   rule271 = \ _self ->
      _self
 {-# NOINLINE sem_Names_Nil #-}
 sem_Names_Nil ::  T_Names 
 sem_Names_Nil  = T_Names (return st119) where
    {-# NOINLINE st119 #-}
-   st119 = let
+   !st119 = let
       v118 :: T_Names_v118 
-      v118 = \ (T_Names_vIn118 ) -> ( let
-         _self = rule264  ()
+      v118 = \ !(T_Names_vIn118 ) -> ( let
+         _self = rule272  ()
          _lhsOself :: Names
-         _lhsOself = rule265 _self
-         __result_ = T_Names_vOut118 _lhsOself
+         _lhsOself = rule273 _self
+         !__result_ = T_Names_vOut118 _lhsOself
          in __result_ )
      in C_Names_s119 v118
-   {-# INLINE rule264 #-}
-   rule264 = \  (_ :: ()) ->
+   {-# INLINE rule272 #-}
+   rule272 = \  (_ :: ()) ->
      []
-   {-# INLINE rule265 #-}
-   rule265 = \ _self ->
+   {-# INLINE rule273 #-}
+   rule273 = \ _self ->
      _self
 
 -- Pattern -----------------------------------------------------
 -- wrapper
 data Inh_Pattern  = Inh_Pattern {  }
-data Syn_Pattern  = Syn_Pattern { self_Syn_Pattern :: (Pattern) }
+data Syn_Pattern  = Syn_Pattern { self_Syn_Pattern :: !(Pattern) }
 {-# INLINABLE wrap_Pattern #-}
 wrap_Pattern :: T_Pattern  -> Inh_Pattern  -> (Syn_Pattern )
-wrap_Pattern (T_Pattern act) (Inh_Pattern ) =
+wrap_Pattern !(T_Pattern act) !(Inh_Pattern ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg121 = T_Pattern_vIn121 
-        (T_Pattern_vOut121 _lhsOself) <- return (inv_Pattern_s122 sem arg121)
+        !(T_Pattern_vOut121 _lhsOself) <- return (inv_Pattern_s122 sem arg121)
         return (Syn_Pattern _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_Pattern #-}
 sem_Pattern :: Pattern  -> T_Pattern 
-sem_Pattern ( Pattern_Hole range_ id_ ) = sem_Pattern_Hole ( sem_Range range_ ) id_
+sem_Pattern ( Pattern_Hole range_ !id_ ) = sem_Pattern_Hole ( sem_Range range_ ) id_
 sem_Pattern ( Pattern_Literal range_ literal_ ) = sem_Pattern_Literal ( sem_Range range_ ) ( sem_Literal literal_ )
 sem_Pattern ( Pattern_Variable range_ name_ ) = sem_Pattern_Variable ( sem_Range range_ ) ( sem_Name name_ )
 sem_Pattern ( Pattern_Constructor range_ name_ patterns_ ) = sem_Pattern_Constructor ( sem_Range range_ ) ( sem_Name name_ ) ( sem_Patterns patterns_ )
@@ -4220,126 +4262,126 @@ data T_Pattern_vIn121  = T_Pattern_vIn121
 data T_Pattern_vOut121  = T_Pattern_vOut121 (Pattern)
 {-# NOINLINE sem_Pattern_Hole #-}
 sem_Pattern_Hole :: T_Range  -> (String) -> T_Pattern 
-sem_Pattern_Hole arg_range_ arg_id_ = T_Pattern (return st122) where
+sem_Pattern_Hole arg_range_ !arg_id_ = T_Pattern (return st122) where
    {-# NOINLINE st122 #-}
-   st122 = let
+   !st122 = let
       v121 :: T_Pattern_v121 
-      v121 = \ (T_Pattern_vIn121 ) -> ( let
+      v121 = \ !(T_Pattern_vIn121 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         _self = rule266 _rangeIself arg_id_
+         _self = rule274 _rangeIself arg_id_
          _lhsOself :: Pattern
-         _lhsOself = rule267 _self
-         __result_ = T_Pattern_vOut121 _lhsOself
+         _lhsOself = rule275 _self
+         !__result_ = T_Pattern_vOut121 _lhsOself
          in __result_ )
      in C_Pattern_s122 v121
-   {-# INLINE rule266 #-}
-   rule266 = \ ((_rangeIself) :: Range) id_ ->
+   {-# INLINE rule274 #-}
+   rule274 = \ ((_rangeIself) :: Range) id_ ->
      Pattern_Hole _rangeIself id_
-   {-# INLINE rule267 #-}
-   rule267 = \ _self ->
+   {-# INLINE rule275 #-}
+   rule275 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Literal #-}
 sem_Pattern_Literal :: T_Range  -> T_Literal  -> T_Pattern 
 sem_Pattern_Literal arg_range_ arg_literal_ = T_Pattern (return st122) where
    {-# NOINLINE st122 #-}
-   st122 = let
+   !st122 = let
       v121 :: T_Pattern_v121 
-      v121 = \ (T_Pattern_vIn121 ) -> ( let
+      v121 = \ !(T_Pattern_vIn121 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _literalX89 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Literal_vOut88 _literalIself) = inv_Literal_s89 _literalX89 (T_Literal_vIn88 )
-         _self = rule268 _literalIself _rangeIself
+         _self = rule276 _literalIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule269 _self
-         __result_ = T_Pattern_vOut121 _lhsOself
+         _lhsOself = rule277 _self
+         !__result_ = T_Pattern_vOut121 _lhsOself
          in __result_ )
      in C_Pattern_s122 v121
-   {-# INLINE rule268 #-}
-   rule268 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
+   {-# INLINE rule276 #-}
+   rule276 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
      Pattern_Literal _rangeIself _literalIself
-   {-# INLINE rule269 #-}
-   rule269 = \ _self ->
+   {-# INLINE rule277 #-}
+   rule277 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Variable #-}
 sem_Pattern_Variable :: T_Range  -> T_Name  -> T_Pattern 
 sem_Pattern_Variable arg_range_ arg_name_ = T_Pattern (return st122) where
    {-# NOINLINE st122 #-}
-   st122 = let
+   !st122 = let
       v121 :: T_Pattern_v121 
-      v121 = \ (T_Pattern_vIn121 ) -> ( let
+      v121 = \ !(T_Pattern_vIn121 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
-         _self = rule270 _nameIself _rangeIself
+         _self = rule278 _nameIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule271 _self
-         __result_ = T_Pattern_vOut121 _lhsOself
+         _lhsOself = rule279 _self
+         !__result_ = T_Pattern_vOut121 _lhsOself
          in __result_ )
      in C_Pattern_s122 v121
-   {-# INLINE rule270 #-}
-   rule270 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule278 #-}
+   rule278 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Pattern_Variable _rangeIself _nameIself
-   {-# INLINE rule271 #-}
-   rule271 = \ _self ->
+   {-# INLINE rule279 #-}
+   rule279 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Constructor #-}
 sem_Pattern_Constructor :: T_Range  -> T_Name  -> T_Patterns  -> T_Pattern 
 sem_Pattern_Constructor arg_range_ arg_name_ arg_patterns_ = T_Pattern (return st122) where
    {-# NOINLINE st122 #-}
-   st122 = let
+   !st122 = let
       v121 :: T_Pattern_v121 
-      v121 = \ (T_Pattern_vIn121 ) -> ( let
+      v121 = \ !(T_Pattern_vIn121 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _patternsX125 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
          (T_Patterns_vOut124 _patternsIself) = inv_Patterns_s125 _patternsX125 (T_Patterns_vIn124 )
-         _self = rule272 _nameIself _patternsIself _rangeIself
+         _self = rule280 _nameIself _patternsIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule273 _self
-         __result_ = T_Pattern_vOut121 _lhsOself
+         _lhsOself = rule281 _self
+         !__result_ = T_Pattern_vOut121 _lhsOself
          in __result_ )
      in C_Pattern_s122 v121
-   {-# INLINE rule272 #-}
-   rule272 = \ ((_nameIself) :: Name) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
+   {-# INLINE rule280 #-}
+   rule280 = \ ((_nameIself) :: Name) ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
      Pattern_Constructor _rangeIself _nameIself _patternsIself
-   {-# INLINE rule273 #-}
-   rule273 = \ _self ->
+   {-# INLINE rule281 #-}
+   rule281 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Parenthesized #-}
 sem_Pattern_Parenthesized :: T_Range  -> T_Pattern  -> T_Pattern 
 sem_Pattern_Parenthesized arg_range_ arg_pattern_ = T_Pattern (return st122) where
    {-# NOINLINE st122 #-}
-   st122 = let
+   !st122 = let
       v121 :: T_Pattern_v121 
-      v121 = \ (T_Pattern_vIn121 ) -> ( let
+      v121 = \ !(T_Pattern_vIn121 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternX122 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Pattern_vOut121 _patternIself) = inv_Pattern_s122 _patternX122 (T_Pattern_vIn121 )
-         _self = rule274 _patternIself _rangeIself
+         _self = rule282 _patternIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule275 _self
-         __result_ = T_Pattern_vOut121 _lhsOself
+         _lhsOself = rule283 _self
+         !__result_ = T_Pattern_vOut121 _lhsOself
          in __result_ )
      in C_Pattern_s122 v121
-   {-# INLINE rule274 #-}
-   rule274 = \ ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
+   {-# INLINE rule282 #-}
+   rule282 = \ ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
      Pattern_Parenthesized _rangeIself _patternIself
-   {-# INLINE rule275 #-}
-   rule275 = \ _self ->
+   {-# INLINE rule283 #-}
+   rule283 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_InfixConstructor #-}
 sem_Pattern_InfixConstructor :: T_Range  -> T_Pattern  -> T_Name  -> T_Pattern  -> T_Pattern 
 sem_Pattern_InfixConstructor arg_range_ arg_leftPattern_ arg_constructorOperator_ arg_rightPattern_ = T_Pattern (return st122) where
    {-# NOINLINE st122 #-}
-   st122 = let
+   !st122 = let
       v121 :: T_Pattern_v121 
-      v121 = \ (T_Pattern_vIn121 ) -> ( let
+      v121 = \ !(T_Pattern_vIn121 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _leftPatternX122 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_leftPattern_))
          _constructorOperatorX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_constructorOperator_))
@@ -4348,241 +4390,241 @@ sem_Pattern_InfixConstructor arg_range_ arg_leftPattern_ arg_constructorOperator
          (T_Pattern_vOut121 _leftPatternIself) = inv_Pattern_s122 _leftPatternX122 (T_Pattern_vIn121 )
          (T_Name_vOut115 _constructorOperatorIself) = inv_Name_s116 _constructorOperatorX116 (T_Name_vIn115 )
          (T_Pattern_vOut121 _rightPatternIself) = inv_Pattern_s122 _rightPatternX122 (T_Pattern_vIn121 )
-         _self = rule276 _constructorOperatorIself _leftPatternIself _rangeIself _rightPatternIself
+         _self = rule284 _constructorOperatorIself _leftPatternIself _rangeIself _rightPatternIself
          _lhsOself :: Pattern
-         _lhsOself = rule277 _self
-         __result_ = T_Pattern_vOut121 _lhsOself
+         _lhsOself = rule285 _self
+         !__result_ = T_Pattern_vOut121 _lhsOself
          in __result_ )
      in C_Pattern_s122 v121
-   {-# INLINE rule276 #-}
-   rule276 = \ ((_constructorOperatorIself) :: Name) ((_leftPatternIself) :: Pattern) ((_rangeIself) :: Range) ((_rightPatternIself) :: Pattern) ->
+   {-# INLINE rule284 #-}
+   rule284 = \ ((_constructorOperatorIself) :: Name) ((_leftPatternIself) :: Pattern) ((_rangeIself) :: Range) ((_rightPatternIself) :: Pattern) ->
      Pattern_InfixConstructor _rangeIself _leftPatternIself _constructorOperatorIself _rightPatternIself
-   {-# INLINE rule277 #-}
-   rule277 = \ _self ->
+   {-# INLINE rule285 #-}
+   rule285 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_List #-}
 sem_Pattern_List :: T_Range  -> T_Patterns  -> T_Pattern 
 sem_Pattern_List arg_range_ arg_patterns_ = T_Pattern (return st122) where
    {-# NOINLINE st122 #-}
-   st122 = let
+   !st122 = let
       v121 :: T_Pattern_v121 
-      v121 = \ (T_Pattern_vIn121 ) -> ( let
+      v121 = \ !(T_Pattern_vIn121 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternsX125 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Patterns_vOut124 _patternsIself) = inv_Patterns_s125 _patternsX125 (T_Patterns_vIn124 )
-         _self = rule278 _patternsIself _rangeIself
+         _self = rule286 _patternsIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule279 _self
-         __result_ = T_Pattern_vOut121 _lhsOself
+         _lhsOself = rule287 _self
+         !__result_ = T_Pattern_vOut121 _lhsOself
          in __result_ )
      in C_Pattern_s122 v121
-   {-# INLINE rule278 #-}
-   rule278 = \ ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
+   {-# INLINE rule286 #-}
+   rule286 = \ ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
      Pattern_List _rangeIself _patternsIself
-   {-# INLINE rule279 #-}
-   rule279 = \ _self ->
+   {-# INLINE rule287 #-}
+   rule287 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Tuple #-}
 sem_Pattern_Tuple :: T_Range  -> T_Patterns  -> T_Pattern 
 sem_Pattern_Tuple arg_range_ arg_patterns_ = T_Pattern (return st122) where
    {-# NOINLINE st122 #-}
-   st122 = let
+   !st122 = let
       v121 :: T_Pattern_v121 
-      v121 = \ (T_Pattern_vIn121 ) -> ( let
+      v121 = \ !(T_Pattern_vIn121 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternsX125 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_patterns_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Patterns_vOut124 _patternsIself) = inv_Patterns_s125 _patternsX125 (T_Patterns_vIn124 )
-         _self = rule280 _patternsIself _rangeIself
+         _self = rule288 _patternsIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule281 _self
-         __result_ = T_Pattern_vOut121 _lhsOself
+         _lhsOself = rule289 _self
+         !__result_ = T_Pattern_vOut121 _lhsOself
          in __result_ )
      in C_Pattern_s122 v121
-   {-# INLINE rule280 #-}
-   rule280 = \ ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
+   {-# INLINE rule288 #-}
+   rule288 = \ ((_patternsIself) :: Patterns) ((_rangeIself) :: Range) ->
      Pattern_Tuple _rangeIself _patternsIself
-   {-# INLINE rule281 #-}
-   rule281 = \ _self ->
+   {-# INLINE rule289 #-}
+   rule289 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Record #-}
 sem_Pattern_Record :: T_Range  -> T_Name  -> T_RecordPatternBindings  -> T_Pattern 
 sem_Pattern_Record arg_range_ arg_name_ arg_recordPatternBindings_ = T_Pattern (return st122) where
    {-# NOINLINE st122 #-}
-   st122 = let
+   !st122 = let
       v121 :: T_Pattern_v121 
-      v121 = \ (T_Pattern_vIn121 ) -> ( let
+      v121 = \ !(T_Pattern_vIn121 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _recordPatternBindingsX149 = Control.Monad.Identity.runIdentity (attach_T_RecordPatternBindings (arg_recordPatternBindings_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
          (T_RecordPatternBindings_vOut148 _recordPatternBindingsIself) = inv_RecordPatternBindings_s149 _recordPatternBindingsX149 (T_RecordPatternBindings_vIn148 )
-         _self = rule282 _nameIself _rangeIself _recordPatternBindingsIself
+         _self = rule290 _nameIself _rangeIself _recordPatternBindingsIself
          _lhsOself :: Pattern
-         _lhsOself = rule283 _self
-         __result_ = T_Pattern_vOut121 _lhsOself
+         _lhsOself = rule291 _self
+         !__result_ = T_Pattern_vOut121 _lhsOself
          in __result_ )
      in C_Pattern_s122 v121
-   {-# INLINE rule282 #-}
-   rule282 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_recordPatternBindingsIself) :: RecordPatternBindings) ->
+   {-# INLINE rule290 #-}
+   rule290 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_recordPatternBindingsIself) :: RecordPatternBindings) ->
      Pattern_Record _rangeIself _nameIself _recordPatternBindingsIself
-   {-# INLINE rule283 #-}
-   rule283 = \ _self ->
+   {-# INLINE rule291 #-}
+   rule291 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Negate #-}
 sem_Pattern_Negate :: T_Range  -> T_Literal  -> T_Pattern 
 sem_Pattern_Negate arg_range_ arg_literal_ = T_Pattern (return st122) where
    {-# NOINLINE st122 #-}
-   st122 = let
+   !st122 = let
       v121 :: T_Pattern_v121 
-      v121 = \ (T_Pattern_vIn121 ) -> ( let
+      v121 = \ !(T_Pattern_vIn121 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _literalX89 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Literal_vOut88 _literalIself) = inv_Literal_s89 _literalX89 (T_Literal_vIn88 )
-         _self = rule284 _literalIself _rangeIself
+         _self = rule292 _literalIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule285 _self
-         __result_ = T_Pattern_vOut121 _lhsOself
+         _lhsOself = rule293 _self
+         !__result_ = T_Pattern_vOut121 _lhsOself
          in __result_ )
      in C_Pattern_s122 v121
-   {-# INLINE rule284 #-}
-   rule284 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
+   {-# INLINE rule292 #-}
+   rule292 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
      Pattern_Negate _rangeIself _literalIself
-   {-# INLINE rule285 #-}
-   rule285 = \ _self ->
+   {-# INLINE rule293 #-}
+   rule293 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_As #-}
 sem_Pattern_As :: T_Range  -> T_Name  -> T_Pattern  -> T_Pattern 
 sem_Pattern_As arg_range_ arg_name_ arg_pattern_ = T_Pattern (return st122) where
    {-# NOINLINE st122 #-}
-   st122 = let
+   !st122 = let
       v121 :: T_Pattern_v121 
-      v121 = \ (T_Pattern_vIn121 ) -> ( let
+      v121 = \ !(T_Pattern_vIn121 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _patternX122 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
          (T_Pattern_vOut121 _patternIself) = inv_Pattern_s122 _patternX122 (T_Pattern_vIn121 )
-         _self = rule286 _nameIself _patternIself _rangeIself
+         _self = rule294 _nameIself _patternIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule287 _self
-         __result_ = T_Pattern_vOut121 _lhsOself
+         _lhsOself = rule295 _self
+         !__result_ = T_Pattern_vOut121 _lhsOself
          in __result_ )
      in C_Pattern_s122 v121
-   {-# INLINE rule286 #-}
-   rule286 = \ ((_nameIself) :: Name) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
+   {-# INLINE rule294 #-}
+   rule294 = \ ((_nameIself) :: Name) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
      Pattern_As _rangeIself _nameIself _patternIself
-   {-# INLINE rule287 #-}
-   rule287 = \ _self ->
+   {-# INLINE rule295 #-}
+   rule295 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Wildcard #-}
 sem_Pattern_Wildcard :: T_Range  -> T_Pattern 
 sem_Pattern_Wildcard arg_range_ = T_Pattern (return st122) where
    {-# NOINLINE st122 #-}
-   st122 = let
+   !st122 = let
       v121 :: T_Pattern_v121 
-      v121 = \ (T_Pattern_vIn121 ) -> ( let
+      v121 = \ !(T_Pattern_vIn121 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         _self = rule288 _rangeIself
+         _self = rule296 _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule289 _self
-         __result_ = T_Pattern_vOut121 _lhsOself
+         _lhsOself = rule297 _self
+         !__result_ = T_Pattern_vOut121 _lhsOself
          in __result_ )
      in C_Pattern_s122 v121
-   {-# INLINE rule288 #-}
-   rule288 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule296 #-}
+   rule296 = \ ((_rangeIself) :: Range) ->
      Pattern_Wildcard _rangeIself
-   {-# INLINE rule289 #-}
-   rule289 = \ _self ->
+   {-# INLINE rule297 #-}
+   rule297 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Irrefutable #-}
 sem_Pattern_Irrefutable :: T_Range  -> T_Pattern  -> T_Pattern 
 sem_Pattern_Irrefutable arg_range_ arg_pattern_ = T_Pattern (return st122) where
    {-# NOINLINE st122 #-}
-   st122 = let
+   !st122 = let
       v121 :: T_Pattern_v121 
-      v121 = \ (T_Pattern_vIn121 ) -> ( let
+      v121 = \ !(T_Pattern_vIn121 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternX122 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Pattern_vOut121 _patternIself) = inv_Pattern_s122 _patternX122 (T_Pattern_vIn121 )
-         _self = rule290 _patternIself _rangeIself
+         _self = rule298 _patternIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule291 _self
-         __result_ = T_Pattern_vOut121 _lhsOself
+         _lhsOself = rule299 _self
+         !__result_ = T_Pattern_vOut121 _lhsOself
          in __result_ )
      in C_Pattern_s122 v121
-   {-# INLINE rule290 #-}
-   rule290 = \ ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
+   {-# INLINE rule298 #-}
+   rule298 = \ ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
      Pattern_Irrefutable _rangeIself _patternIself
-   {-# INLINE rule291 #-}
-   rule291 = \ _self ->
+   {-# INLINE rule299 #-}
+   rule299 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_Successor #-}
 sem_Pattern_Successor :: T_Range  -> T_Name  -> T_Literal  -> T_Pattern 
 sem_Pattern_Successor arg_range_ arg_name_ arg_literal_ = T_Pattern (return st122) where
    {-# NOINLINE st122 #-}
-   st122 = let
+   !st122 = let
       v121 :: T_Pattern_v121 
-      v121 = \ (T_Pattern_vIn121 ) -> ( let
+      v121 = \ !(T_Pattern_vIn121 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _literalX89 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
          (T_Literal_vOut88 _literalIself) = inv_Literal_s89 _literalX89 (T_Literal_vIn88 )
-         _self = rule292 _literalIself _nameIself _rangeIself
+         _self = rule300 _literalIself _nameIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule293 _self
-         __result_ = T_Pattern_vOut121 _lhsOself
+         _lhsOself = rule301 _self
+         !__result_ = T_Pattern_vOut121 _lhsOself
          in __result_ )
      in C_Pattern_s122 v121
-   {-# INLINE rule292 #-}
-   rule292 = \ ((_literalIself) :: Literal) ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule300 #-}
+   rule300 = \ ((_literalIself) :: Literal) ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Pattern_Successor _rangeIself _nameIself _literalIself
-   {-# INLINE rule293 #-}
-   rule293 = \ _self ->
+   {-# INLINE rule301 #-}
+   rule301 = \ _self ->
      _self
 {-# NOINLINE sem_Pattern_NegateFloat #-}
 sem_Pattern_NegateFloat :: T_Range  -> T_Literal  -> T_Pattern 
 sem_Pattern_NegateFloat arg_range_ arg_literal_ = T_Pattern (return st122) where
    {-# NOINLINE st122 #-}
-   st122 = let
+   !st122 = let
       v121 :: T_Pattern_v121 
-      v121 = \ (T_Pattern_vIn121 ) -> ( let
+      v121 = \ !(T_Pattern_vIn121 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _literalX89 = Control.Monad.Identity.runIdentity (attach_T_Literal (arg_literal_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Literal_vOut88 _literalIself) = inv_Literal_s89 _literalX89 (T_Literal_vIn88 )
-         _self = rule294 _literalIself _rangeIself
+         _self = rule302 _literalIself _rangeIself
          _lhsOself :: Pattern
-         _lhsOself = rule295 _self
-         __result_ = T_Pattern_vOut121 _lhsOself
+         _lhsOself = rule303 _self
+         !__result_ = T_Pattern_vOut121 _lhsOself
          in __result_ )
      in C_Pattern_s122 v121
-   {-# INLINE rule294 #-}
-   rule294 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
+   {-# INLINE rule302 #-}
+   rule302 = \ ((_literalIself) :: Literal) ((_rangeIself) :: Range) ->
      Pattern_NegateFloat _rangeIself _literalIself
-   {-# INLINE rule295 #-}
-   rule295 = \ _self ->
+   {-# INLINE rule303 #-}
+   rule303 = \ _self ->
      _self
 
 -- Patterns ----------------------------------------------------
 -- wrapper
 data Inh_Patterns  = Inh_Patterns {  }
-data Syn_Patterns  = Syn_Patterns { self_Syn_Patterns :: (Patterns) }
+data Syn_Patterns  = Syn_Patterns { self_Syn_Patterns :: !(Patterns) }
 {-# INLINABLE wrap_Patterns #-}
 wrap_Patterns :: T_Patterns  -> Inh_Patterns  -> (Syn_Patterns )
-wrap_Patterns (T_Patterns act) (Inh_Patterns ) =
+wrap_Patterns !(T_Patterns act) !(Inh_Patterns ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg124 = T_Patterns_vIn124 
-        (T_Patterns_vOut124 _lhsOself) <- return (inv_Patterns_s125 sem arg124)
+        !(T_Patterns_vOut124 _lhsOself) <- return (inv_Patterns_s125 sem arg124)
         return (Syn_Patterns _lhsOself)
    )
 
@@ -4606,63 +4648,63 @@ data T_Patterns_vOut124  = T_Patterns_vOut124 (Patterns)
 sem_Patterns_Cons :: T_Pattern  -> T_Patterns  -> T_Patterns 
 sem_Patterns_Cons arg_hd_ arg_tl_ = T_Patterns (return st125) where
    {-# NOINLINE st125 #-}
-   st125 = let
+   !st125 = let
       v124 :: T_Patterns_v124 
-      v124 = \ (T_Patterns_vIn124 ) -> ( let
+      v124 = \ !(T_Patterns_vIn124 ) -> ( let
          _hdX122 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_hd_))
          _tlX125 = Control.Monad.Identity.runIdentity (attach_T_Patterns (arg_tl_))
          (T_Pattern_vOut121 _hdIself) = inv_Pattern_s122 _hdX122 (T_Pattern_vIn121 )
          (T_Patterns_vOut124 _tlIself) = inv_Patterns_s125 _tlX125 (T_Patterns_vIn124 )
-         _self = rule296 _hdIself _tlIself
+         _self = rule304 _hdIself _tlIself
          _lhsOself :: Patterns
-         _lhsOself = rule297 _self
-         __result_ = T_Patterns_vOut124 _lhsOself
+         _lhsOself = rule305 _self
+         !__result_ = T_Patterns_vOut124 _lhsOself
          in __result_ )
      in C_Patterns_s125 v124
-   {-# INLINE rule296 #-}
-   rule296 = \ ((_hdIself) :: Pattern) ((_tlIself) :: Patterns) ->
+   {-# INLINE rule304 #-}
+   rule304 = \ ((_hdIself) :: Pattern) ((_tlIself) :: Patterns) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule297 #-}
-   rule297 = \ _self ->
+   {-# INLINE rule305 #-}
+   rule305 = \ _self ->
      _self
 {-# NOINLINE sem_Patterns_Nil #-}
 sem_Patterns_Nil ::  T_Patterns 
 sem_Patterns_Nil  = T_Patterns (return st125) where
    {-# NOINLINE st125 #-}
-   st125 = let
+   !st125 = let
       v124 :: T_Patterns_v124 
-      v124 = \ (T_Patterns_vIn124 ) -> ( let
-         _self = rule298  ()
+      v124 = \ !(T_Patterns_vIn124 ) -> ( let
+         _self = rule306  ()
          _lhsOself :: Patterns
-         _lhsOself = rule299 _self
-         __result_ = T_Patterns_vOut124 _lhsOself
+         _lhsOself = rule307 _self
+         !__result_ = T_Patterns_vOut124 _lhsOself
          in __result_ )
      in C_Patterns_s125 v124
-   {-# INLINE rule298 #-}
-   rule298 = \  (_ :: ()) ->
+   {-# INLINE rule306 #-}
+   rule306 = \  (_ :: ()) ->
      []
-   {-# INLINE rule299 #-}
-   rule299 = \ _self ->
+   {-# INLINE rule307 #-}
+   rule307 = \ _self ->
      _self
 
 -- Position ----------------------------------------------------
 -- wrapper
 data Inh_Position  = Inh_Position {  }
-data Syn_Position  = Syn_Position { self_Syn_Position :: (Position) }
+data Syn_Position  = Syn_Position { self_Syn_Position :: !(Position) }
 {-# INLINABLE wrap_Position #-}
 wrap_Position :: T_Position  -> Inh_Position  -> (Syn_Position )
-wrap_Position (T_Position act) (Inh_Position ) =
+wrap_Position !(T_Position act) !(Inh_Position ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg127 = T_Position_vIn127 
-        (T_Position_vOut127 _lhsOself) <- return (inv_Position_s128 sem arg127)
+        !(T_Position_vOut127 _lhsOself) <- return (inv_Position_s128 sem arg127)
         return (Syn_Position _lhsOself)
    )
 
 -- cata
 {-# NOINLINE sem_Position #-}
 sem_Position :: Position  -> T_Position 
-sem_Position ( Position_Position filename_ line_ column_ ) = sem_Position_Position filename_ line_ column_
+sem_Position ( Position_Position !filename_ !line_ !column_ ) = sem_Position_Position filename_ line_ column_
 sem_Position ( Position_Unknown  ) = sem_Position_Unknown 
 
 -- semantic domain
@@ -4678,54 +4720,54 @@ data T_Position_vIn127  = T_Position_vIn127
 data T_Position_vOut127  = T_Position_vOut127 (Position)
 {-# NOINLINE sem_Position_Position #-}
 sem_Position_Position :: (String) -> (Int) -> (Int) -> T_Position 
-sem_Position_Position arg_filename_ arg_line_ arg_column_ = T_Position (return st128) where
+sem_Position_Position !arg_filename_ !arg_line_ !arg_column_ = T_Position (return st128) where
    {-# NOINLINE st128 #-}
-   st128 = let
+   !st128 = let
       v127 :: T_Position_v127 
-      v127 = \ (T_Position_vIn127 ) -> ( let
-         _self = rule300 arg_column_ arg_filename_ arg_line_
+      v127 = \ !(T_Position_vIn127 ) -> ( let
+         _self = rule308 arg_column_ arg_filename_ arg_line_
          _lhsOself :: Position
-         _lhsOself = rule301 _self
-         __result_ = T_Position_vOut127 _lhsOself
+         _lhsOself = rule309 _self
+         !__result_ = T_Position_vOut127 _lhsOself
          in __result_ )
      in C_Position_s128 v127
-   {-# INLINE rule300 #-}
-   rule300 = \ column_ filename_ line_ ->
+   {-# INLINE rule308 #-}
+   rule308 = \ column_ filename_ line_ ->
      Position_Position filename_ line_ column_
-   {-# INLINE rule301 #-}
-   rule301 = \ _self ->
+   {-# INLINE rule309 #-}
+   rule309 = \ _self ->
      _self
 {-# NOINLINE sem_Position_Unknown #-}
 sem_Position_Unknown ::  T_Position 
 sem_Position_Unknown  = T_Position (return st128) where
    {-# NOINLINE st128 #-}
-   st128 = let
+   !st128 = let
       v127 :: T_Position_v127 
-      v127 = \ (T_Position_vIn127 ) -> ( let
-         _self = rule302  ()
+      v127 = \ !(T_Position_vIn127 ) -> ( let
+         _self = rule310  ()
          _lhsOself :: Position
-         _lhsOself = rule303 _self
-         __result_ = T_Position_vOut127 _lhsOself
+         _lhsOself = rule311 _self
+         !__result_ = T_Position_vOut127 _lhsOself
          in __result_ )
      in C_Position_s128 v127
-   {-# INLINE rule302 #-}
-   rule302 = \  (_ :: ()) ->
+   {-# INLINE rule310 #-}
+   rule310 = \  (_ :: ()) ->
      Position_Unknown
-   {-# INLINE rule303 #-}
-   rule303 = \ _self ->
+   {-# INLINE rule311 #-}
+   rule311 = \ _self ->
      _self
 
 -- Qualifier ---------------------------------------------------
 -- wrapper
 data Inh_Qualifier  = Inh_Qualifier {  }
-data Syn_Qualifier  = Syn_Qualifier { self_Syn_Qualifier :: (Qualifier) }
+data Syn_Qualifier  = Syn_Qualifier { self_Syn_Qualifier :: !(Qualifier) }
 {-# INLINABLE wrap_Qualifier #-}
 wrap_Qualifier :: T_Qualifier  -> Inh_Qualifier  -> (Syn_Qualifier )
-wrap_Qualifier (T_Qualifier act) (Inh_Qualifier ) =
+wrap_Qualifier !(T_Qualifier act) !(Inh_Qualifier ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg130 = T_Qualifier_vIn130 
-        (T_Qualifier_vOut130 _lhsOself) <- return (inv_Qualifier_s131 sem arg130)
+        !(T_Qualifier_vOut130 _lhsOself) <- return (inv_Qualifier_s131 sem arg130)
         return (Syn_Qualifier _lhsOself)
    )
 
@@ -4752,106 +4794,106 @@ data T_Qualifier_vOut130  = T_Qualifier_vOut130 (Qualifier)
 sem_Qualifier_Guard :: T_Range  -> T_Expression  -> T_Qualifier 
 sem_Qualifier_Guard arg_range_ arg_guard_ = T_Qualifier (return st131) where
    {-# NOINLINE st131 #-}
-   st131 = let
+   !st131 = let
       v130 :: T_Qualifier_v130 
-      v130 = \ (T_Qualifier_vIn130 ) -> ( let
+      v130 = \ !(T_Qualifier_vIn130 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _guardX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_guard_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Expression_vOut40 _guardIallVariables _guardIself) = inv_Expression_s41 _guardX41 (T_Expression_vIn40 )
-         _self = rule304 _guardIself _rangeIself
+         _self = rule312 _guardIself _rangeIself
          _lhsOself :: Qualifier
-         _lhsOself = rule305 _self
-         __result_ = T_Qualifier_vOut130 _lhsOself
+         _lhsOself = rule313 _self
+         !__result_ = T_Qualifier_vOut130 _lhsOself
          in __result_ )
      in C_Qualifier_s131 v130
-   {-# INLINE rule304 #-}
-   rule304 = \ ((_guardIself) :: Expression) ((_rangeIself) :: Range) ->
+   {-# INLINE rule312 #-}
+   rule312 = \ ((_guardIself) :: Expression) ((_rangeIself) :: Range) ->
      Qualifier_Guard _rangeIself _guardIself
-   {-# INLINE rule305 #-}
-   rule305 = \ _self ->
+   {-# INLINE rule313 #-}
+   rule313 = \ _self ->
      _self
 {-# NOINLINE sem_Qualifier_Let #-}
 sem_Qualifier_Let :: T_Range  -> T_Declarations  -> T_Qualifier 
 sem_Qualifier_Let arg_range_ arg_declarations_ = T_Qualifier (return st131) where
    {-# NOINLINE st131 #-}
-   st131 = let
+   !st131 = let
       v130 :: T_Qualifier_v130 
-      v130 = \ (T_Qualifier_vIn130 ) -> ( let
+      v130 = \ !(T_Qualifier_vIn130 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Declarations_vOut31 _declarationsIself) = inv_Declarations_s32 _declarationsX32 (T_Declarations_vIn31 )
-         _self = rule306 _declarationsIself _rangeIself
+         _self = rule314 _declarationsIself _rangeIself
          _lhsOself :: Qualifier
-         _lhsOself = rule307 _self
-         __result_ = T_Qualifier_vOut130 _lhsOself
+         _lhsOself = rule315 _self
+         !__result_ = T_Qualifier_vOut130 _lhsOself
          in __result_ )
      in C_Qualifier_s131 v130
-   {-# INLINE rule306 #-}
-   rule306 = \ ((_declarationsIself) :: Declarations) ((_rangeIself) :: Range) ->
+   {-# INLINE rule314 #-}
+   rule314 = \ ((_declarationsIself) :: Declarations) ((_rangeIself) :: Range) ->
      Qualifier_Let _rangeIself _declarationsIself
-   {-# INLINE rule307 #-}
-   rule307 = \ _self ->
+   {-# INLINE rule315 #-}
+   rule315 = \ _self ->
      _self
 {-# NOINLINE sem_Qualifier_Generator #-}
 sem_Qualifier_Generator :: T_Range  -> T_Pattern  -> T_Expression  -> T_Qualifier 
 sem_Qualifier_Generator arg_range_ arg_pattern_ arg_expression_ = T_Qualifier (return st131) where
    {-# NOINLINE st131 #-}
-   st131 = let
+   !st131 = let
       v130 :: T_Qualifier_v130 
-      v130 = \ (T_Qualifier_vIn130 ) -> ( let
+      v130 = \ !(T_Qualifier_vIn130 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternX122 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Pattern_vOut121 _patternIself) = inv_Pattern_s122 _patternX122 (T_Pattern_vIn121 )
          (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         _self = rule308 _expressionIself _patternIself _rangeIself
+         _self = rule316 _expressionIself _patternIself _rangeIself
          _lhsOself :: Qualifier
-         _lhsOself = rule309 _self
-         __result_ = T_Qualifier_vOut130 _lhsOself
+         _lhsOself = rule317 _self
+         !__result_ = T_Qualifier_vOut130 _lhsOself
          in __result_ )
      in C_Qualifier_s131 v130
-   {-# INLINE rule308 #-}
-   rule308 = \ ((_expressionIself) :: Expression) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
+   {-# INLINE rule316 #-}
+   rule316 = \ ((_expressionIself) :: Expression) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
      Qualifier_Generator _rangeIself _patternIself _expressionIself
-   {-# INLINE rule309 #-}
-   rule309 = \ _self ->
+   {-# INLINE rule317 #-}
+   rule317 = \ _self ->
      _self
 {-# NOINLINE sem_Qualifier_Empty #-}
 sem_Qualifier_Empty :: T_Range  -> T_Qualifier 
 sem_Qualifier_Empty arg_range_ = T_Qualifier (return st131) where
    {-# NOINLINE st131 #-}
-   st131 = let
+   !st131 = let
       v130 :: T_Qualifier_v130 
-      v130 = \ (T_Qualifier_vIn130 ) -> ( let
+      v130 = \ !(T_Qualifier_vIn130 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         _self = rule310 _rangeIself
+         _self = rule318 _rangeIself
          _lhsOself :: Qualifier
-         _lhsOself = rule311 _self
-         __result_ = T_Qualifier_vOut130 _lhsOself
+         _lhsOself = rule319 _self
+         !__result_ = T_Qualifier_vOut130 _lhsOself
          in __result_ )
      in C_Qualifier_s131 v130
-   {-# INLINE rule310 #-}
-   rule310 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule318 #-}
+   rule318 = \ ((_rangeIself) :: Range) ->
      Qualifier_Empty _rangeIself
-   {-# INLINE rule311 #-}
-   rule311 = \ _self ->
+   {-# INLINE rule319 #-}
+   rule319 = \ _self ->
      _self
 
 -- Qualifiers --------------------------------------------------
 -- wrapper
 data Inh_Qualifiers  = Inh_Qualifiers {  }
-data Syn_Qualifiers  = Syn_Qualifiers { self_Syn_Qualifiers :: (Qualifiers) }
+data Syn_Qualifiers  = Syn_Qualifiers { self_Syn_Qualifiers :: !(Qualifiers) }
 {-# INLINABLE wrap_Qualifiers #-}
 wrap_Qualifiers :: T_Qualifiers  -> Inh_Qualifiers  -> (Syn_Qualifiers )
-wrap_Qualifiers (T_Qualifiers act) (Inh_Qualifiers ) =
+wrap_Qualifiers !(T_Qualifiers act) !(Inh_Qualifiers ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg133 = T_Qualifiers_vIn133 
-        (T_Qualifiers_vOut133 _lhsOself) <- return (inv_Qualifiers_s134 sem arg133)
+        !(T_Qualifiers_vOut133 _lhsOself) <- return (inv_Qualifiers_s134 sem arg133)
         return (Syn_Qualifiers _lhsOself)
    )
 
@@ -4875,56 +4917,56 @@ data T_Qualifiers_vOut133  = T_Qualifiers_vOut133 (Qualifiers)
 sem_Qualifiers_Cons :: T_Qualifier  -> T_Qualifiers  -> T_Qualifiers 
 sem_Qualifiers_Cons arg_hd_ arg_tl_ = T_Qualifiers (return st134) where
    {-# NOINLINE st134 #-}
-   st134 = let
+   !st134 = let
       v133 :: T_Qualifiers_v133 
-      v133 = \ (T_Qualifiers_vIn133 ) -> ( let
+      v133 = \ !(T_Qualifiers_vIn133 ) -> ( let
          _hdX131 = Control.Monad.Identity.runIdentity (attach_T_Qualifier (arg_hd_))
          _tlX134 = Control.Monad.Identity.runIdentity (attach_T_Qualifiers (arg_tl_))
          (T_Qualifier_vOut130 _hdIself) = inv_Qualifier_s131 _hdX131 (T_Qualifier_vIn130 )
          (T_Qualifiers_vOut133 _tlIself) = inv_Qualifiers_s134 _tlX134 (T_Qualifiers_vIn133 )
-         _self = rule312 _hdIself _tlIself
+         _self = rule320 _hdIself _tlIself
          _lhsOself :: Qualifiers
-         _lhsOself = rule313 _self
-         __result_ = T_Qualifiers_vOut133 _lhsOself
+         _lhsOself = rule321 _self
+         !__result_ = T_Qualifiers_vOut133 _lhsOself
          in __result_ )
      in C_Qualifiers_s134 v133
-   {-# INLINE rule312 #-}
-   rule312 = \ ((_hdIself) :: Qualifier) ((_tlIself) :: Qualifiers) ->
+   {-# INLINE rule320 #-}
+   rule320 = \ ((_hdIself) :: Qualifier) ((_tlIself) :: Qualifiers) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule313 #-}
-   rule313 = \ _self ->
+   {-# INLINE rule321 #-}
+   rule321 = \ _self ->
      _self
 {-# NOINLINE sem_Qualifiers_Nil #-}
 sem_Qualifiers_Nil ::  T_Qualifiers 
 sem_Qualifiers_Nil  = T_Qualifiers (return st134) where
    {-# NOINLINE st134 #-}
-   st134 = let
+   !st134 = let
       v133 :: T_Qualifiers_v133 
-      v133 = \ (T_Qualifiers_vIn133 ) -> ( let
-         _self = rule314  ()
+      v133 = \ !(T_Qualifiers_vIn133 ) -> ( let
+         _self = rule322  ()
          _lhsOself :: Qualifiers
-         _lhsOself = rule315 _self
-         __result_ = T_Qualifiers_vOut133 _lhsOself
+         _lhsOself = rule323 _self
+         !__result_ = T_Qualifiers_vOut133 _lhsOself
          in __result_ )
      in C_Qualifiers_s134 v133
-   {-# INLINE rule314 #-}
-   rule314 = \  (_ :: ()) ->
+   {-# INLINE rule322 #-}
+   rule322 = \  (_ :: ()) ->
      []
-   {-# INLINE rule315 #-}
-   rule315 = \ _self ->
+   {-# INLINE rule323 #-}
+   rule323 = \ _self ->
      _self
 
 -- Range -------------------------------------------------------
 -- wrapper
 data Inh_Range  = Inh_Range {  }
-data Syn_Range  = Syn_Range { self_Syn_Range :: (Range) }
+data Syn_Range  = Syn_Range { self_Syn_Range :: !(Range) }
 {-# INLINABLE wrap_Range #-}
 wrap_Range :: T_Range  -> Inh_Range  -> (Syn_Range )
-wrap_Range (T_Range act) (Inh_Range ) =
+wrap_Range !(T_Range act) !(Inh_Range ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg136 = T_Range_vIn136 
-        (T_Range_vOut136 _lhsOself) <- return (inv_Range_s137 sem arg136)
+        !(T_Range_vOut136 _lhsOself) <- return (inv_Range_s137 sem arg136)
         return (Syn_Range _lhsOself)
    )
 
@@ -4948,37 +4990,37 @@ data T_Range_vOut136  = T_Range_vOut136 (Range)
 sem_Range_Range :: T_Position  -> T_Position  -> T_Range 
 sem_Range_Range arg_start_ arg_stop_ = T_Range (return st137) where
    {-# NOINLINE st137 #-}
-   st137 = let
+   !st137 = let
       v136 :: T_Range_v136 
-      v136 = \ (T_Range_vIn136 ) -> ( let
+      v136 = \ !(T_Range_vIn136 ) -> ( let
          _startX128 = Control.Monad.Identity.runIdentity (attach_T_Position (arg_start_))
          _stopX128 = Control.Monad.Identity.runIdentity (attach_T_Position (arg_stop_))
          (T_Position_vOut127 _startIself) = inv_Position_s128 _startX128 (T_Position_vIn127 )
          (T_Position_vOut127 _stopIself) = inv_Position_s128 _stopX128 (T_Position_vIn127 )
-         _self = rule316 _startIself _stopIself
+         _self = rule324 _startIself _stopIself
          _lhsOself :: Range
-         _lhsOself = rule317 _self
-         __result_ = T_Range_vOut136 _lhsOself
+         _lhsOself = rule325 _self
+         !__result_ = T_Range_vOut136 _lhsOself
          in __result_ )
      in C_Range_s137 v136
-   {-# INLINE rule316 #-}
-   rule316 = \ ((_startIself) :: Position) ((_stopIself) :: Position) ->
+   {-# INLINE rule324 #-}
+   rule324 = \ ((_startIself) :: Position) ((_stopIself) :: Position) ->
      Range_Range _startIself _stopIself
-   {-# INLINE rule317 #-}
-   rule317 = \ _self ->
+   {-# INLINE rule325 #-}
+   rule325 = \ _self ->
      _self
 
 -- RecordExpressionBinding -------------------------------------
 -- wrapper
 data Inh_RecordExpressionBinding  = Inh_RecordExpressionBinding {  }
-data Syn_RecordExpressionBinding  = Syn_RecordExpressionBinding { self_Syn_RecordExpressionBinding :: (RecordExpressionBinding) }
+data Syn_RecordExpressionBinding  = Syn_RecordExpressionBinding { self_Syn_RecordExpressionBinding :: !(RecordExpressionBinding) }
 {-# INLINABLE wrap_RecordExpressionBinding #-}
 wrap_RecordExpressionBinding :: T_RecordExpressionBinding  -> Inh_RecordExpressionBinding  -> (Syn_RecordExpressionBinding )
-wrap_RecordExpressionBinding (T_RecordExpressionBinding act) (Inh_RecordExpressionBinding ) =
+wrap_RecordExpressionBinding !(T_RecordExpressionBinding act) !(Inh_RecordExpressionBinding ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg139 = T_RecordExpressionBinding_vIn139 
-        (T_RecordExpressionBinding_vOut139 _lhsOself) <- return (inv_RecordExpressionBinding_s140 sem arg139)
+        !(T_RecordExpressionBinding_vOut139 _lhsOself) <- return (inv_RecordExpressionBinding_s140 sem arg139)
         return (Syn_RecordExpressionBinding _lhsOself)
    )
 
@@ -5002,39 +5044,39 @@ data T_RecordExpressionBinding_vOut139  = T_RecordExpressionBinding_vOut139 (Rec
 sem_RecordExpressionBinding_RecordExpressionBinding :: T_Range  -> T_Name  -> T_Expression  -> T_RecordExpressionBinding 
 sem_RecordExpressionBinding_RecordExpressionBinding arg_range_ arg_name_ arg_expression_ = T_RecordExpressionBinding (return st140) where
    {-# NOINLINE st140 #-}
-   st140 = let
+   !st140 = let
       v139 :: T_RecordExpressionBinding_v139 
-      v139 = \ (T_RecordExpressionBinding_vIn139 ) -> ( let
+      v139 = \ !(T_RecordExpressionBinding_vIn139 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
          (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         _self = rule318 _expressionIself _nameIself _rangeIself
+         _self = rule326 _expressionIself _nameIself _rangeIself
          _lhsOself :: RecordExpressionBinding
-         _lhsOself = rule319 _self
-         __result_ = T_RecordExpressionBinding_vOut139 _lhsOself
+         _lhsOself = rule327 _self
+         !__result_ = T_RecordExpressionBinding_vOut139 _lhsOself
          in __result_ )
      in C_RecordExpressionBinding_s140 v139
-   {-# INLINE rule318 #-}
-   rule318 = \ ((_expressionIself) :: Expression) ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule326 #-}
+   rule326 = \ ((_expressionIself) :: Expression) ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      RecordExpressionBinding_RecordExpressionBinding _rangeIself _nameIself _expressionIself
-   {-# INLINE rule319 #-}
-   rule319 = \ _self ->
+   {-# INLINE rule327 #-}
+   rule327 = \ _self ->
      _self
 
 -- RecordExpressionBindings ------------------------------------
 -- wrapper
 data Inh_RecordExpressionBindings  = Inh_RecordExpressionBindings {  }
-data Syn_RecordExpressionBindings  = Syn_RecordExpressionBindings { self_Syn_RecordExpressionBindings :: (RecordExpressionBindings) }
+data Syn_RecordExpressionBindings  = Syn_RecordExpressionBindings { self_Syn_RecordExpressionBindings :: !(RecordExpressionBindings) }
 {-# INLINABLE wrap_RecordExpressionBindings #-}
 wrap_RecordExpressionBindings :: T_RecordExpressionBindings  -> Inh_RecordExpressionBindings  -> (Syn_RecordExpressionBindings )
-wrap_RecordExpressionBindings (T_RecordExpressionBindings act) (Inh_RecordExpressionBindings ) =
+wrap_RecordExpressionBindings !(T_RecordExpressionBindings act) !(Inh_RecordExpressionBindings ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg142 = T_RecordExpressionBindings_vIn142 
-        (T_RecordExpressionBindings_vOut142 _lhsOself) <- return (inv_RecordExpressionBindings_s143 sem arg142)
+        !(T_RecordExpressionBindings_vOut142 _lhsOself) <- return (inv_RecordExpressionBindings_s143 sem arg142)
         return (Syn_RecordExpressionBindings _lhsOself)
    )
 
@@ -5058,56 +5100,56 @@ data T_RecordExpressionBindings_vOut142  = T_RecordExpressionBindings_vOut142 (R
 sem_RecordExpressionBindings_Cons :: T_RecordExpressionBinding  -> T_RecordExpressionBindings  -> T_RecordExpressionBindings 
 sem_RecordExpressionBindings_Cons arg_hd_ arg_tl_ = T_RecordExpressionBindings (return st143) where
    {-# NOINLINE st143 #-}
-   st143 = let
+   !st143 = let
       v142 :: T_RecordExpressionBindings_v142 
-      v142 = \ (T_RecordExpressionBindings_vIn142 ) -> ( let
+      v142 = \ !(T_RecordExpressionBindings_vIn142 ) -> ( let
          _hdX140 = Control.Monad.Identity.runIdentity (attach_T_RecordExpressionBinding (arg_hd_))
          _tlX143 = Control.Monad.Identity.runIdentity (attach_T_RecordExpressionBindings (arg_tl_))
          (T_RecordExpressionBinding_vOut139 _hdIself) = inv_RecordExpressionBinding_s140 _hdX140 (T_RecordExpressionBinding_vIn139 )
          (T_RecordExpressionBindings_vOut142 _tlIself) = inv_RecordExpressionBindings_s143 _tlX143 (T_RecordExpressionBindings_vIn142 )
-         _self = rule320 _hdIself _tlIself
+         _self = rule328 _hdIself _tlIself
          _lhsOself :: RecordExpressionBindings
-         _lhsOself = rule321 _self
-         __result_ = T_RecordExpressionBindings_vOut142 _lhsOself
+         _lhsOself = rule329 _self
+         !__result_ = T_RecordExpressionBindings_vOut142 _lhsOself
          in __result_ )
      in C_RecordExpressionBindings_s143 v142
-   {-# INLINE rule320 #-}
-   rule320 = \ ((_hdIself) :: RecordExpressionBinding) ((_tlIself) :: RecordExpressionBindings) ->
+   {-# INLINE rule328 #-}
+   rule328 = \ ((_hdIself) :: RecordExpressionBinding) ((_tlIself) :: RecordExpressionBindings) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule321 #-}
-   rule321 = \ _self ->
+   {-# INLINE rule329 #-}
+   rule329 = \ _self ->
      _self
 {-# NOINLINE sem_RecordExpressionBindings_Nil #-}
 sem_RecordExpressionBindings_Nil ::  T_RecordExpressionBindings 
 sem_RecordExpressionBindings_Nil  = T_RecordExpressionBindings (return st143) where
    {-# NOINLINE st143 #-}
-   st143 = let
+   !st143 = let
       v142 :: T_RecordExpressionBindings_v142 
-      v142 = \ (T_RecordExpressionBindings_vIn142 ) -> ( let
-         _self = rule322  ()
+      v142 = \ !(T_RecordExpressionBindings_vIn142 ) -> ( let
+         _self = rule330  ()
          _lhsOself :: RecordExpressionBindings
-         _lhsOself = rule323 _self
-         __result_ = T_RecordExpressionBindings_vOut142 _lhsOself
+         _lhsOself = rule331 _self
+         !__result_ = T_RecordExpressionBindings_vOut142 _lhsOself
          in __result_ )
      in C_RecordExpressionBindings_s143 v142
-   {-# INLINE rule322 #-}
-   rule322 = \  (_ :: ()) ->
+   {-# INLINE rule330 #-}
+   rule330 = \  (_ :: ()) ->
      []
-   {-# INLINE rule323 #-}
-   rule323 = \ _self ->
+   {-# INLINE rule331 #-}
+   rule331 = \ _self ->
      _self
 
 -- RecordPatternBinding ----------------------------------------
 -- wrapper
 data Inh_RecordPatternBinding  = Inh_RecordPatternBinding {  }
-data Syn_RecordPatternBinding  = Syn_RecordPatternBinding { self_Syn_RecordPatternBinding :: (RecordPatternBinding) }
+data Syn_RecordPatternBinding  = Syn_RecordPatternBinding { self_Syn_RecordPatternBinding :: !(RecordPatternBinding) }
 {-# INLINABLE wrap_RecordPatternBinding #-}
 wrap_RecordPatternBinding :: T_RecordPatternBinding  -> Inh_RecordPatternBinding  -> (Syn_RecordPatternBinding )
-wrap_RecordPatternBinding (T_RecordPatternBinding act) (Inh_RecordPatternBinding ) =
+wrap_RecordPatternBinding !(T_RecordPatternBinding act) !(Inh_RecordPatternBinding ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg145 = T_RecordPatternBinding_vIn145 
-        (T_RecordPatternBinding_vOut145 _lhsOself) <- return (inv_RecordPatternBinding_s146 sem arg145)
+        !(T_RecordPatternBinding_vOut145 _lhsOself) <- return (inv_RecordPatternBinding_s146 sem arg145)
         return (Syn_RecordPatternBinding _lhsOself)
    )
 
@@ -5131,39 +5173,39 @@ data T_RecordPatternBinding_vOut145  = T_RecordPatternBinding_vOut145 (RecordPat
 sem_RecordPatternBinding_RecordPatternBinding :: T_Range  -> T_Name  -> T_Pattern  -> T_RecordPatternBinding 
 sem_RecordPatternBinding_RecordPatternBinding arg_range_ arg_name_ arg_pattern_ = T_RecordPatternBinding (return st146) where
    {-# NOINLINE st146 #-}
-   st146 = let
+   !st146 = let
       v145 :: T_RecordPatternBinding_v145 
-      v145 = \ (T_RecordPatternBinding_vIn145 ) -> ( let
+      v145 = \ !(T_RecordPatternBinding_vIn145 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _patternX122 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
          (T_Pattern_vOut121 _patternIself) = inv_Pattern_s122 _patternX122 (T_Pattern_vIn121 )
-         _self = rule324 _nameIself _patternIself _rangeIself
+         _self = rule332 _nameIself _patternIself _rangeIself
          _lhsOself :: RecordPatternBinding
-         _lhsOself = rule325 _self
-         __result_ = T_RecordPatternBinding_vOut145 _lhsOself
+         _lhsOself = rule333 _self
+         !__result_ = T_RecordPatternBinding_vOut145 _lhsOself
          in __result_ )
      in C_RecordPatternBinding_s146 v145
-   {-# INLINE rule324 #-}
-   rule324 = \ ((_nameIself) :: Name) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
+   {-# INLINE rule332 #-}
+   rule332 = \ ((_nameIself) :: Name) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
      RecordPatternBinding_RecordPatternBinding _rangeIself _nameIself _patternIself
-   {-# INLINE rule325 #-}
-   rule325 = \ _self ->
+   {-# INLINE rule333 #-}
+   rule333 = \ _self ->
      _self
 
 -- RecordPatternBindings ---------------------------------------
 -- wrapper
 data Inh_RecordPatternBindings  = Inh_RecordPatternBindings {  }
-data Syn_RecordPatternBindings  = Syn_RecordPatternBindings { self_Syn_RecordPatternBindings :: (RecordPatternBindings) }
+data Syn_RecordPatternBindings  = Syn_RecordPatternBindings { self_Syn_RecordPatternBindings :: !(RecordPatternBindings) }
 {-# INLINABLE wrap_RecordPatternBindings #-}
 wrap_RecordPatternBindings :: T_RecordPatternBindings  -> Inh_RecordPatternBindings  -> (Syn_RecordPatternBindings )
-wrap_RecordPatternBindings (T_RecordPatternBindings act) (Inh_RecordPatternBindings ) =
+wrap_RecordPatternBindings !(T_RecordPatternBindings act) !(Inh_RecordPatternBindings ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg148 = T_RecordPatternBindings_vIn148 
-        (T_RecordPatternBindings_vOut148 _lhsOself) <- return (inv_RecordPatternBindings_s149 sem arg148)
+        !(T_RecordPatternBindings_vOut148 _lhsOself) <- return (inv_RecordPatternBindings_s149 sem arg148)
         return (Syn_RecordPatternBindings _lhsOself)
    )
 
@@ -5187,56 +5229,56 @@ data T_RecordPatternBindings_vOut148  = T_RecordPatternBindings_vOut148 (RecordP
 sem_RecordPatternBindings_Cons :: T_RecordPatternBinding  -> T_RecordPatternBindings  -> T_RecordPatternBindings 
 sem_RecordPatternBindings_Cons arg_hd_ arg_tl_ = T_RecordPatternBindings (return st149) where
    {-# NOINLINE st149 #-}
-   st149 = let
+   !st149 = let
       v148 :: T_RecordPatternBindings_v148 
-      v148 = \ (T_RecordPatternBindings_vIn148 ) -> ( let
+      v148 = \ !(T_RecordPatternBindings_vIn148 ) -> ( let
          _hdX146 = Control.Monad.Identity.runIdentity (attach_T_RecordPatternBinding (arg_hd_))
          _tlX149 = Control.Monad.Identity.runIdentity (attach_T_RecordPatternBindings (arg_tl_))
          (T_RecordPatternBinding_vOut145 _hdIself) = inv_RecordPatternBinding_s146 _hdX146 (T_RecordPatternBinding_vIn145 )
          (T_RecordPatternBindings_vOut148 _tlIself) = inv_RecordPatternBindings_s149 _tlX149 (T_RecordPatternBindings_vIn148 )
-         _self = rule326 _hdIself _tlIself
+         _self = rule334 _hdIself _tlIself
          _lhsOself :: RecordPatternBindings
-         _lhsOself = rule327 _self
-         __result_ = T_RecordPatternBindings_vOut148 _lhsOself
+         _lhsOself = rule335 _self
+         !__result_ = T_RecordPatternBindings_vOut148 _lhsOself
          in __result_ )
      in C_RecordPatternBindings_s149 v148
-   {-# INLINE rule326 #-}
-   rule326 = \ ((_hdIself) :: RecordPatternBinding) ((_tlIself) :: RecordPatternBindings) ->
+   {-# INLINE rule334 #-}
+   rule334 = \ ((_hdIself) :: RecordPatternBinding) ((_tlIself) :: RecordPatternBindings) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule327 #-}
-   rule327 = \ _self ->
+   {-# INLINE rule335 #-}
+   rule335 = \ _self ->
      _self
 {-# NOINLINE sem_RecordPatternBindings_Nil #-}
 sem_RecordPatternBindings_Nil ::  T_RecordPatternBindings 
 sem_RecordPatternBindings_Nil  = T_RecordPatternBindings (return st149) where
    {-# NOINLINE st149 #-}
-   st149 = let
+   !st149 = let
       v148 :: T_RecordPatternBindings_v148 
-      v148 = \ (T_RecordPatternBindings_vIn148 ) -> ( let
-         _self = rule328  ()
+      v148 = \ !(T_RecordPatternBindings_vIn148 ) -> ( let
+         _self = rule336  ()
          _lhsOself :: RecordPatternBindings
-         _lhsOself = rule329 _self
-         __result_ = T_RecordPatternBindings_vOut148 _lhsOself
+         _lhsOself = rule337 _self
+         !__result_ = T_RecordPatternBindings_vOut148 _lhsOself
          in __result_ )
      in C_RecordPatternBindings_s149 v148
-   {-# INLINE rule328 #-}
-   rule328 = \  (_ :: ()) ->
+   {-# INLINE rule336 #-}
+   rule336 = \  (_ :: ()) ->
      []
-   {-# INLINE rule329 #-}
-   rule329 = \ _self ->
+   {-# INLINE rule337 #-}
+   rule337 = \ _self ->
      _self
 
 -- RightHandSide -----------------------------------------------
 -- wrapper
 data Inh_RightHandSide  = Inh_RightHandSide {  }
-data Syn_RightHandSide  = Syn_RightHandSide { self_Syn_RightHandSide :: (RightHandSide) }
+data Syn_RightHandSide  = Syn_RightHandSide { self_Syn_RightHandSide :: !(RightHandSide) }
 {-# INLINABLE wrap_RightHandSide #-}
 wrap_RightHandSide :: T_RightHandSide  -> Inh_RightHandSide  -> (Syn_RightHandSide )
-wrap_RightHandSide (T_RightHandSide act) (Inh_RightHandSide ) =
+wrap_RightHandSide !(T_RightHandSide act) !(Inh_RightHandSide ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg151 = T_RightHandSide_vIn151 
-        (T_RightHandSide_vOut151 _lhsOself) <- return (inv_RightHandSide_s152 sem arg151)
+        !(T_RightHandSide_vOut151 _lhsOself) <- return (inv_RightHandSide_s152 sem arg151)
         return (Syn_RightHandSide _lhsOself)
    )
 
@@ -5261,64 +5303,64 @@ data T_RightHandSide_vOut151  = T_RightHandSide_vOut151 (RightHandSide)
 sem_RightHandSide_Expression :: T_Range  -> T_Expression  -> T_MaybeDeclarations  -> T_RightHandSide 
 sem_RightHandSide_Expression arg_range_ arg_expression_ arg_where_ = T_RightHandSide (return st152) where
    {-# NOINLINE st152 #-}
-   st152 = let
+   !st152 = let
       v151 :: T_RightHandSide_v151 
-      v151 = \ (T_RightHandSide_vIn151 ) -> ( let
+      v151 = \ !(T_RightHandSide_vIn151 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          _whereX92 = Control.Monad.Identity.runIdentity (attach_T_MaybeDeclarations (arg_where_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
          (T_MaybeDeclarations_vOut91 _whereIself) = inv_MaybeDeclarations_s92 _whereX92 (T_MaybeDeclarations_vIn91 )
-         _self = rule330 _expressionIself _rangeIself _whereIself
+         _self = rule338 _expressionIself _rangeIself _whereIself
          _lhsOself :: RightHandSide
-         _lhsOself = rule331 _self
-         __result_ = T_RightHandSide_vOut151 _lhsOself
+         _lhsOself = rule339 _self
+         !__result_ = T_RightHandSide_vOut151 _lhsOself
          in __result_ )
      in C_RightHandSide_s152 v151
-   {-# INLINE rule330 #-}
-   rule330 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ((_whereIself) :: MaybeDeclarations) ->
+   {-# INLINE rule338 #-}
+   rule338 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ((_whereIself) :: MaybeDeclarations) ->
      RightHandSide_Expression _rangeIself _expressionIself _whereIself
-   {-# INLINE rule331 #-}
-   rule331 = \ _self ->
+   {-# INLINE rule339 #-}
+   rule339 = \ _self ->
      _self
 {-# NOINLINE sem_RightHandSide_Guarded #-}
 sem_RightHandSide_Guarded :: T_Range  -> T_GuardedExpressions  -> T_MaybeDeclarations  -> T_RightHandSide 
 sem_RightHandSide_Guarded arg_range_ arg_guardedexpressions_ arg_where_ = T_RightHandSide (return st152) where
    {-# NOINLINE st152 #-}
-   st152 = let
+   !st152 = let
       v151 :: T_RightHandSide_v151 
-      v151 = \ (T_RightHandSide_vIn151 ) -> ( let
+      v151 = \ !(T_RightHandSide_vIn151 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _guardedexpressionsX65 = Control.Monad.Identity.runIdentity (attach_T_GuardedExpressions (arg_guardedexpressions_))
          _whereX92 = Control.Monad.Identity.runIdentity (attach_T_MaybeDeclarations (arg_where_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_GuardedExpressions_vOut64 _guardedexpressionsIself) = inv_GuardedExpressions_s65 _guardedexpressionsX65 (T_GuardedExpressions_vIn64 )
          (T_MaybeDeclarations_vOut91 _whereIself) = inv_MaybeDeclarations_s92 _whereX92 (T_MaybeDeclarations_vIn91 )
-         _self = rule332 _guardedexpressionsIself _rangeIself _whereIself
+         _self = rule340 _guardedexpressionsIself _rangeIself _whereIself
          _lhsOself :: RightHandSide
-         _lhsOself = rule333 _self
-         __result_ = T_RightHandSide_vOut151 _lhsOself
+         _lhsOself = rule341 _self
+         !__result_ = T_RightHandSide_vOut151 _lhsOself
          in __result_ )
      in C_RightHandSide_s152 v151
-   {-# INLINE rule332 #-}
-   rule332 = \ ((_guardedexpressionsIself) :: GuardedExpressions) ((_rangeIself) :: Range) ((_whereIself) :: MaybeDeclarations) ->
+   {-# INLINE rule340 #-}
+   rule340 = \ ((_guardedexpressionsIself) :: GuardedExpressions) ((_rangeIself) :: Range) ((_whereIself) :: MaybeDeclarations) ->
      RightHandSide_Guarded _rangeIself _guardedexpressionsIself _whereIself
-   {-# INLINE rule333 #-}
-   rule333 = \ _self ->
+   {-# INLINE rule341 #-}
+   rule341 = \ _self ->
      _self
 
 -- SimpleJudgement ---------------------------------------------
 -- wrapper
-data Inh_SimpleJudgement  = Inh_SimpleJudgement { nameMap_Inh_SimpleJudgement :: ([(Name,Tp)]), simpleJudgements_Inh_SimpleJudgement :: ([(String,Tp)]) }
-data Syn_SimpleJudgement  = Syn_SimpleJudgement { self_Syn_SimpleJudgement :: (SimpleJudgement), simpleJudgements_Syn_SimpleJudgement :: ([(String,Tp)]), typevariables_Syn_SimpleJudgement :: (Names) }
+data Inh_SimpleJudgement  = Inh_SimpleJudgement { nameMap_Inh_SimpleJudgement :: !([(Name,Tp)]), qualifier_Inh_SimpleJudgement :: !(Tp -> Tp), simpleJudgements_Inh_SimpleJudgement :: !([(String,Tp)]) }
+data Syn_SimpleJudgement  = Syn_SimpleJudgement { self_Syn_SimpleJudgement :: !(SimpleJudgement), simpleJudgements_Syn_SimpleJudgement :: !([(String,Tp)]), typevariables_Syn_SimpleJudgement :: !(Names) }
 {-# INLINABLE wrap_SimpleJudgement #-}
 wrap_SimpleJudgement :: T_SimpleJudgement  -> Inh_SimpleJudgement  -> (Syn_SimpleJudgement )
-wrap_SimpleJudgement (T_SimpleJudgement act) (Inh_SimpleJudgement _lhsInameMap _lhsIsimpleJudgements) =
+wrap_SimpleJudgement !(T_SimpleJudgement act) !(Inh_SimpleJudgement _lhsInameMap _lhsIqualifier _lhsIsimpleJudgements) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
-        let arg154 = T_SimpleJudgement_vIn154 _lhsInameMap _lhsIsimpleJudgements
-        (T_SimpleJudgement_vOut154 _lhsOself _lhsOsimpleJudgements _lhsOtypevariables) <- return (inv_SimpleJudgement_s155 sem arg154)
+     do !sem <- act
+        let arg154 = T_SimpleJudgement_vIn154 _lhsInameMap _lhsIqualifier _lhsIsimpleJudgements
+        !(T_SimpleJudgement_vOut154 _lhsOself _lhsOsimpleJudgements _lhsOtypevariables) <- return (inv_SimpleJudgement_s155 sem arg154)
         return (Syn_SimpleJudgement _lhsOself _lhsOsimpleJudgements _lhsOtypevariables)
    )
 
@@ -5336,57 +5378,61 @@ newtype T_SimpleJudgement_s155  = C_SimpleJudgement_s155 {
                                                          }
 data T_SimpleJudgement_s156  = C_SimpleJudgement_s156
 type T_SimpleJudgement_v154  = (T_SimpleJudgement_vIn154 ) -> (T_SimpleJudgement_vOut154 )
-data T_SimpleJudgement_vIn154  = T_SimpleJudgement_vIn154 ([(Name,Tp)]) ([(String,Tp)])
+data T_SimpleJudgement_vIn154  = T_SimpleJudgement_vIn154 ([(Name,Tp)]) (Tp -> Tp) ([(String,Tp)])
 data T_SimpleJudgement_vOut154  = T_SimpleJudgement_vOut154 (SimpleJudgement) ([(String,Tp)]) (Names)
 {-# NOINLINE sem_SimpleJudgement_SimpleJudgement #-}
 sem_SimpleJudgement_SimpleJudgement :: T_Name  -> T_Type  -> T_SimpleJudgement 
 sem_SimpleJudgement_SimpleJudgement arg_name_ arg_type_ = T_SimpleJudgement (return st155) where
    {-# NOINLINE st155 #-}
-   st155 = let
+   !st155 = let
       v154 :: T_SimpleJudgement_v154 
-      v154 = \ (T_SimpleJudgement_vIn154 _lhsInameMap _lhsIsimpleJudgements) -> ( let
+      v154 = \ !(T_SimpleJudgement_vIn154 _lhsInameMap _lhsIqualifier _lhsIsimpleJudgements) -> ( let
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _typeX173 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
-         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 )
+         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 _typeOqualifier)
          _lhsOsimpleJudgements :: [(String,Tp)]
-         _lhsOsimpleJudgements = rule334 _lhsIsimpleJudgements _newJudgement
-         _newJudgement = rule335 _lhsInameMap _nameIself _typeIself
+         _lhsOsimpleJudgements = rule342 _lhsIsimpleJudgements _newJudgement
+         _newJudgement = rule343 _lhsInameMap _lhsIqualifier _nameIself _typeIself
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule336 _typeItypevariables
-         _self = rule337 _nameIself _typeIself
+         _lhsOtypevariables = rule344 _typeItypevariables
+         _self = rule345 _nameIself _typeIself
          _lhsOself :: SimpleJudgement
-         _lhsOself = rule338 _self
-         __result_ = T_SimpleJudgement_vOut154 _lhsOself _lhsOsimpleJudgements _lhsOtypevariables
+         _lhsOself = rule346 _self
+         _typeOqualifier = rule347 _lhsIqualifier
+         !__result_ = T_SimpleJudgement_vOut154 _lhsOself _lhsOsimpleJudgements _lhsOtypevariables
          in __result_ )
      in C_SimpleJudgement_s155 v154
-   {-# INLINE rule334 #-}
-   rule334 = \ ((_lhsIsimpleJudgements) :: [(String,Tp)]) _newJudgement ->
+   {-# INLINE rule342 #-}
+   rule342 = \ ((_lhsIsimpleJudgements) :: [(String,Tp)]) _newJudgement ->
                                   _newJudgement : _lhsIsimpleJudgements
-   {-# INLINE rule335 #-}
-   rule335 = \ ((_lhsInameMap) :: [(Name,Tp)]) ((_nameIself) :: Name) ((_typeIself) :: Type) ->
-                               (show _nameIself, makeTpFromType _lhsInameMap _typeIself)
-   {-# INLINE rule336 #-}
-   rule336 = \ ((_typeItypevariables) :: Names) ->
+   {-# INLINE rule343 #-}
+   rule343 = \ ((_lhsInameMap) :: [(Name,Tp)]) ((_lhsIqualifier) :: Tp -> Tp) ((_nameIself) :: Name) ((_typeIself) :: Type) ->
+                               (show _nameIself, _lhsIqualifier $ makeTpFromType _lhsInameMap _typeIself)
+   {-# INLINE rule344 #-}
+   rule344 = \ ((_typeItypevariables) :: Names) ->
      _typeItypevariables
-   {-# INLINE rule337 #-}
-   rule337 = \ ((_nameIself) :: Name) ((_typeIself) :: Type) ->
+   {-# INLINE rule345 #-}
+   rule345 = \ ((_nameIself) :: Name) ((_typeIself) :: Type) ->
      SimpleJudgement_SimpleJudgement _nameIself _typeIself
-   {-# INLINE rule338 #-}
-   rule338 = \ _self ->
+   {-# INLINE rule346 #-}
+   rule346 = \ _self ->
      _self
+   {-# INLINE rule347 #-}
+   rule347 = \ ((_lhsIqualifier) :: Tp -> Tp) ->
+     _lhsIqualifier
 
 -- SimpleJudgements --------------------------------------------
 -- wrapper
-data Inh_SimpleJudgements  = Inh_SimpleJudgements { nameMap_Inh_SimpleJudgements :: ([(Name,Tp)]), simpleJudgements_Inh_SimpleJudgements :: ([(String,Tp)]) }
-data Syn_SimpleJudgements  = Syn_SimpleJudgements { self_Syn_SimpleJudgements :: (SimpleJudgements), simpleJudgements_Syn_SimpleJudgements :: ([(String,Tp)]), typevariables_Syn_SimpleJudgements :: (Names) }
+data Inh_SimpleJudgements  = Inh_SimpleJudgements { nameMap_Inh_SimpleJudgements :: !([(Name,Tp)]), qualifier_Inh_SimpleJudgements :: !(Tp -> Tp), simpleJudgements_Inh_SimpleJudgements :: !([(String,Tp)]) }
+data Syn_SimpleJudgements  = Syn_SimpleJudgements { self_Syn_SimpleJudgements :: !(SimpleJudgements), simpleJudgements_Syn_SimpleJudgements :: !([(String,Tp)]), typevariables_Syn_SimpleJudgements :: !(Names) }
 {-# INLINABLE wrap_SimpleJudgements #-}
 wrap_SimpleJudgements :: T_SimpleJudgements  -> Inh_SimpleJudgements  -> (Syn_SimpleJudgements )
-wrap_SimpleJudgements (T_SimpleJudgements act) (Inh_SimpleJudgements _lhsInameMap _lhsIsimpleJudgements) =
+wrap_SimpleJudgements !(T_SimpleJudgements act) !(Inh_SimpleJudgements _lhsInameMap _lhsIqualifier _lhsIsimpleJudgements) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
-        let arg157 = T_SimpleJudgements_vIn157 _lhsInameMap _lhsIsimpleJudgements
-        (T_SimpleJudgements_vOut157 _lhsOself _lhsOsimpleJudgements _lhsOtypevariables) <- return (inv_SimpleJudgements_s158 sem arg157)
+     do !sem <- act
+        let arg157 = T_SimpleJudgements_vIn157 _lhsInameMap _lhsIqualifier _lhsIsimpleJudgements
+        !(T_SimpleJudgements_vOut157 _lhsOself _lhsOsimpleJudgements _lhsOtypevariables) <- return (inv_SimpleJudgements_s158 sem arg157)
         return (Syn_SimpleJudgements _lhsOself _lhsOsimpleJudgements _lhsOtypevariables)
    )
 
@@ -5404,98 +5450,106 @@ newtype T_SimpleJudgements_s158  = C_SimpleJudgements_s158 {
                                                            }
 data T_SimpleJudgements_s159  = C_SimpleJudgements_s159
 type T_SimpleJudgements_v157  = (T_SimpleJudgements_vIn157 ) -> (T_SimpleJudgements_vOut157 )
-data T_SimpleJudgements_vIn157  = T_SimpleJudgements_vIn157 ([(Name,Tp)]) ([(String,Tp)])
+data T_SimpleJudgements_vIn157  = T_SimpleJudgements_vIn157 ([(Name,Tp)]) (Tp -> Tp) ([(String,Tp)])
 data T_SimpleJudgements_vOut157  = T_SimpleJudgements_vOut157 (SimpleJudgements) ([(String,Tp)]) (Names)
 {-# NOINLINE sem_SimpleJudgements_Cons #-}
 sem_SimpleJudgements_Cons :: T_SimpleJudgement  -> T_SimpleJudgements  -> T_SimpleJudgements 
 sem_SimpleJudgements_Cons arg_hd_ arg_tl_ = T_SimpleJudgements (return st158) where
    {-# NOINLINE st158 #-}
-   st158 = let
+   !st158 = let
       v157 :: T_SimpleJudgements_v157 
-      v157 = \ (T_SimpleJudgements_vIn157 _lhsInameMap _lhsIsimpleJudgements) -> ( let
+      v157 = \ !(T_SimpleJudgements_vIn157 _lhsInameMap _lhsIqualifier _lhsIsimpleJudgements) -> ( let
          _hdX155 = Control.Monad.Identity.runIdentity (attach_T_SimpleJudgement (arg_hd_))
          _tlX158 = Control.Monad.Identity.runIdentity (attach_T_SimpleJudgements (arg_tl_))
-         (T_SimpleJudgement_vOut154 _hdIself _hdIsimpleJudgements _hdItypevariables) = inv_SimpleJudgement_s155 _hdX155 (T_SimpleJudgement_vIn154 _hdOnameMap _hdOsimpleJudgements)
-         (T_SimpleJudgements_vOut157 _tlIself _tlIsimpleJudgements _tlItypevariables) = inv_SimpleJudgements_s158 _tlX158 (T_SimpleJudgements_vIn157 _tlOnameMap _tlOsimpleJudgements)
+         (T_SimpleJudgement_vOut154 _hdIself _hdIsimpleJudgements _hdItypevariables) = inv_SimpleJudgement_s155 _hdX155 (T_SimpleJudgement_vIn154 _hdOnameMap _hdOqualifier _hdOsimpleJudgements)
+         (T_SimpleJudgements_vOut157 _tlIself _tlIsimpleJudgements _tlItypevariables) = inv_SimpleJudgements_s158 _tlX158 (T_SimpleJudgements_vIn157 _tlOnameMap _tlOqualifier _tlOsimpleJudgements)
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule339 _hdItypevariables _tlItypevariables
-         _self = rule340 _hdIself _tlIself
+         _lhsOtypevariables = rule348 _hdItypevariables _tlItypevariables
+         _self = rule349 _hdIself _tlIself
          _lhsOself :: SimpleJudgements
-         _lhsOself = rule341 _self
+         _lhsOself = rule350 _self
          _lhsOsimpleJudgements :: [(String,Tp)]
-         _lhsOsimpleJudgements = rule342 _tlIsimpleJudgements
-         _hdOnameMap = rule343 _lhsInameMap
-         _hdOsimpleJudgements = rule344 _lhsIsimpleJudgements
-         _tlOnameMap = rule345 _lhsInameMap
-         _tlOsimpleJudgements = rule346 _hdIsimpleJudgements
-         __result_ = T_SimpleJudgements_vOut157 _lhsOself _lhsOsimpleJudgements _lhsOtypevariables
+         _lhsOsimpleJudgements = rule351 _tlIsimpleJudgements
+         _hdOnameMap = rule352 _lhsInameMap
+         _hdOqualifier = rule353 _lhsIqualifier
+         _hdOsimpleJudgements = rule354 _lhsIsimpleJudgements
+         _tlOnameMap = rule355 _lhsInameMap
+         _tlOqualifier = rule356 _lhsIqualifier
+         _tlOsimpleJudgements = rule357 _hdIsimpleJudgements
+         !__result_ = T_SimpleJudgements_vOut157 _lhsOself _lhsOsimpleJudgements _lhsOtypevariables
          in __result_ )
      in C_SimpleJudgements_s158 v157
-   {-# INLINE rule339 #-}
-   rule339 = \ ((_hdItypevariables) :: Names) ((_tlItypevariables) :: Names) ->
+   {-# INLINE rule348 #-}
+   rule348 = \ ((_hdItypevariables) :: Names) ((_tlItypevariables) :: Names) ->
      _hdItypevariables  ++  _tlItypevariables
-   {-# INLINE rule340 #-}
-   rule340 = \ ((_hdIself) :: SimpleJudgement) ((_tlIself) :: SimpleJudgements) ->
+   {-# INLINE rule349 #-}
+   rule349 = \ ((_hdIself) :: SimpleJudgement) ((_tlIself) :: SimpleJudgements) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule341 #-}
-   rule341 = \ _self ->
+   {-# INLINE rule350 #-}
+   rule350 = \ _self ->
      _self
-   {-# INLINE rule342 #-}
-   rule342 = \ ((_tlIsimpleJudgements) :: [(String,Tp)]) ->
+   {-# INLINE rule351 #-}
+   rule351 = \ ((_tlIsimpleJudgements) :: [(String,Tp)]) ->
      _tlIsimpleJudgements
-   {-# INLINE rule343 #-}
-   rule343 = \ ((_lhsInameMap) :: [(Name,Tp)]) ->
+   {-# INLINE rule352 #-}
+   rule352 = \ ((_lhsInameMap) :: [(Name,Tp)]) ->
      _lhsInameMap
-   {-# INLINE rule344 #-}
-   rule344 = \ ((_lhsIsimpleJudgements) :: [(String,Tp)]) ->
+   {-# INLINE rule353 #-}
+   rule353 = \ ((_lhsIqualifier) :: Tp -> Tp) ->
+     _lhsIqualifier
+   {-# INLINE rule354 #-}
+   rule354 = \ ((_lhsIsimpleJudgements) :: [(String,Tp)]) ->
      _lhsIsimpleJudgements
-   {-# INLINE rule345 #-}
-   rule345 = \ ((_lhsInameMap) :: [(Name,Tp)]) ->
+   {-# INLINE rule355 #-}
+   rule355 = \ ((_lhsInameMap) :: [(Name,Tp)]) ->
      _lhsInameMap
-   {-# INLINE rule346 #-}
-   rule346 = \ ((_hdIsimpleJudgements) :: [(String,Tp)]) ->
+   {-# INLINE rule356 #-}
+   rule356 = \ ((_lhsIqualifier) :: Tp -> Tp) ->
+     _lhsIqualifier
+   {-# INLINE rule357 #-}
+   rule357 = \ ((_hdIsimpleJudgements) :: [(String,Tp)]) ->
      _hdIsimpleJudgements
 {-# NOINLINE sem_SimpleJudgements_Nil #-}
 sem_SimpleJudgements_Nil ::  T_SimpleJudgements 
 sem_SimpleJudgements_Nil  = T_SimpleJudgements (return st158) where
    {-# NOINLINE st158 #-}
-   st158 = let
+   !st158 = let
       v157 :: T_SimpleJudgements_v157 
-      v157 = \ (T_SimpleJudgements_vIn157 _lhsInameMap _lhsIsimpleJudgements) -> ( let
+      v157 = \ !(T_SimpleJudgements_vIn157 _lhsInameMap _lhsIqualifier _lhsIsimpleJudgements) -> ( let
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule347  ()
-         _self = rule348  ()
+         _lhsOtypevariables = rule358  ()
+         _self = rule359  ()
          _lhsOself :: SimpleJudgements
-         _lhsOself = rule349 _self
+         _lhsOself = rule360 _self
          _lhsOsimpleJudgements :: [(String,Tp)]
-         _lhsOsimpleJudgements = rule350 _lhsIsimpleJudgements
-         __result_ = T_SimpleJudgements_vOut157 _lhsOself _lhsOsimpleJudgements _lhsOtypevariables
+         _lhsOsimpleJudgements = rule361 _lhsIsimpleJudgements
+         !__result_ = T_SimpleJudgements_vOut157 _lhsOself _lhsOsimpleJudgements _lhsOtypevariables
          in __result_ )
      in C_SimpleJudgements_s158 v157
-   {-# INLINE rule347 #-}
-   rule347 = \  (_ :: ()) ->
+   {-# INLINE rule358 #-}
+   rule358 = \  (_ :: ()) ->
      []
-   {-# INLINE rule348 #-}
-   rule348 = \  (_ :: ()) ->
+   {-# INLINE rule359 #-}
+   rule359 = \  (_ :: ()) ->
      []
-   {-# INLINE rule349 #-}
-   rule349 = \ _self ->
+   {-# INLINE rule360 #-}
+   rule360 = \ _self ->
      _self
-   {-# INLINE rule350 #-}
-   rule350 = \ ((_lhsIsimpleJudgements) :: [(String,Tp)]) ->
+   {-# INLINE rule361 #-}
+   rule361 = \ ((_lhsIsimpleJudgements) :: [(String,Tp)]) ->
      _lhsIsimpleJudgements
 
 -- SimpleType --------------------------------------------------
 -- wrapper
 data Inh_SimpleType  = Inh_SimpleType {  }
-data Syn_SimpleType  = Syn_SimpleType { self_Syn_SimpleType :: (SimpleType) }
+data Syn_SimpleType  = Syn_SimpleType { self_Syn_SimpleType :: !(SimpleType) }
 {-# INLINABLE wrap_SimpleType #-}
 wrap_SimpleType :: T_SimpleType  -> Inh_SimpleType  -> (Syn_SimpleType )
-wrap_SimpleType (T_SimpleType act) (Inh_SimpleType ) =
+wrap_SimpleType !(T_SimpleType act) !(Inh_SimpleType ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg160 = T_SimpleType_vIn160 
-        (T_SimpleType_vOut160 _lhsOself) <- return (inv_SimpleType_s161 sem arg160)
+        !(T_SimpleType_vOut160 _lhsOself) <- return (inv_SimpleType_s161 sem arg160)
         return (Syn_SimpleType _lhsOself)
    )
 
@@ -5519,39 +5573,39 @@ data T_SimpleType_vOut160  = T_SimpleType_vOut160 (SimpleType)
 sem_SimpleType_SimpleType :: T_Range  -> T_Name  -> T_Names  -> T_SimpleType 
 sem_SimpleType_SimpleType arg_range_ arg_name_ arg_typevariables_ = T_SimpleType (return st161) where
    {-# NOINLINE st161 #-}
-   st161 = let
+   !st161 = let
       v160 :: T_SimpleType_v160 
-      v160 = \ (T_SimpleType_vIn160 ) -> ( let
+      v160 = \ !(T_SimpleType_vIn160 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          _typevariablesX119 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_typevariables_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
          (T_Names_vOut118 _typevariablesIself) = inv_Names_s119 _typevariablesX119 (T_Names_vIn118 )
-         _self = rule351 _nameIself _rangeIself _typevariablesIself
+         _self = rule362 _nameIself _rangeIself _typevariablesIself
          _lhsOself :: SimpleType
-         _lhsOself = rule352 _self
-         __result_ = T_SimpleType_vOut160 _lhsOself
+         _lhsOself = rule363 _self
+         !__result_ = T_SimpleType_vOut160 _lhsOself
          in __result_ )
      in C_SimpleType_s161 v160
-   {-# INLINE rule351 #-}
-   rule351 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_typevariablesIself) :: Names) ->
+   {-# INLINE rule362 #-}
+   rule362 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ((_typevariablesIself) :: Names) ->
      SimpleType_SimpleType _rangeIself _nameIself _typevariablesIself
-   {-# INLINE rule352 #-}
-   rule352 = \ _self ->
+   {-# INLINE rule363 #-}
+   rule363 = \ _self ->
      _self
 
 -- Statement ---------------------------------------------------
 -- wrapper
 data Inh_Statement  = Inh_Statement {  }
-data Syn_Statement  = Syn_Statement { self_Syn_Statement :: (Statement) }
+data Syn_Statement  = Syn_Statement { self_Syn_Statement :: !(Statement) }
 {-# INLINABLE wrap_Statement #-}
 wrap_Statement :: T_Statement  -> Inh_Statement  -> (Syn_Statement )
-wrap_Statement (T_Statement act) (Inh_Statement ) =
+wrap_Statement !(T_Statement act) !(Inh_Statement ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg163 = T_Statement_vIn163 
-        (T_Statement_vOut163 _lhsOself) <- return (inv_Statement_s164 sem arg163)
+        !(T_Statement_vOut163 _lhsOself) <- return (inv_Statement_s164 sem arg163)
         return (Syn_Statement _lhsOself)
    )
 
@@ -5578,106 +5632,106 @@ data T_Statement_vOut163  = T_Statement_vOut163 (Statement)
 sem_Statement_Expression :: T_Range  -> T_Expression  -> T_Statement 
 sem_Statement_Expression arg_range_ arg_expression_ = T_Statement (return st164) where
    {-# NOINLINE st164 #-}
-   st164 = let
+   !st164 = let
       v163 :: T_Statement_v163 
-      v163 = \ (T_Statement_vIn163 ) -> ( let
+      v163 = \ !(T_Statement_vIn163 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         _self = rule353 _expressionIself _rangeIself
+         _self = rule364 _expressionIself _rangeIself
          _lhsOself :: Statement
-         _lhsOself = rule354 _self
-         __result_ = T_Statement_vOut163 _lhsOself
+         _lhsOself = rule365 _self
+         !__result_ = T_Statement_vOut163 _lhsOself
          in __result_ )
      in C_Statement_s164 v163
-   {-# INLINE rule353 #-}
-   rule353 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
+   {-# INLINE rule364 #-}
+   rule364 = \ ((_expressionIself) :: Expression) ((_rangeIself) :: Range) ->
      Statement_Expression _rangeIself _expressionIself
-   {-# INLINE rule354 #-}
-   rule354 = \ _self ->
+   {-# INLINE rule365 #-}
+   rule365 = \ _self ->
      _self
 {-# NOINLINE sem_Statement_Let #-}
 sem_Statement_Let :: T_Range  -> T_Declarations  -> T_Statement 
 sem_Statement_Let arg_range_ arg_declarations_ = T_Statement (return st164) where
    {-# NOINLINE st164 #-}
-   st164 = let
+   !st164 = let
       v163 :: T_Statement_v163 
-      v163 = \ (T_Statement_vIn163 ) -> ( let
+      v163 = \ !(T_Statement_vIn163 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _declarationsX32 = Control.Monad.Identity.runIdentity (attach_T_Declarations (arg_declarations_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Declarations_vOut31 _declarationsIself) = inv_Declarations_s32 _declarationsX32 (T_Declarations_vIn31 )
-         _self = rule355 _declarationsIself _rangeIself
+         _self = rule366 _declarationsIself _rangeIself
          _lhsOself :: Statement
-         _lhsOself = rule356 _self
-         __result_ = T_Statement_vOut163 _lhsOself
+         _lhsOself = rule367 _self
+         !__result_ = T_Statement_vOut163 _lhsOself
          in __result_ )
      in C_Statement_s164 v163
-   {-# INLINE rule355 #-}
-   rule355 = \ ((_declarationsIself) :: Declarations) ((_rangeIself) :: Range) ->
+   {-# INLINE rule366 #-}
+   rule366 = \ ((_declarationsIself) :: Declarations) ((_rangeIself) :: Range) ->
      Statement_Let _rangeIself _declarationsIself
-   {-# INLINE rule356 #-}
-   rule356 = \ _self ->
+   {-# INLINE rule367 #-}
+   rule367 = \ _self ->
      _self
 {-# NOINLINE sem_Statement_Generator #-}
 sem_Statement_Generator :: T_Range  -> T_Pattern  -> T_Expression  -> T_Statement 
 sem_Statement_Generator arg_range_ arg_pattern_ arg_expression_ = T_Statement (return st164) where
    {-# NOINLINE st164 #-}
-   st164 = let
+   !st164 = let
       v163 :: T_Statement_v163 
-      v163 = \ (T_Statement_vIn163 ) -> ( let
+      v163 = \ !(T_Statement_vIn163 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _patternX122 = Control.Monad.Identity.runIdentity (attach_T_Pattern (arg_pattern_))
          _expressionX41 = Control.Monad.Identity.runIdentity (attach_T_Expression (arg_expression_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Pattern_vOut121 _patternIself) = inv_Pattern_s122 _patternX122 (T_Pattern_vIn121 )
          (T_Expression_vOut40 _expressionIallVariables _expressionIself) = inv_Expression_s41 _expressionX41 (T_Expression_vIn40 )
-         _self = rule357 _expressionIself _patternIself _rangeIself
+         _self = rule368 _expressionIself _patternIself _rangeIself
          _lhsOself :: Statement
-         _lhsOself = rule358 _self
-         __result_ = T_Statement_vOut163 _lhsOself
+         _lhsOself = rule369 _self
+         !__result_ = T_Statement_vOut163 _lhsOself
          in __result_ )
      in C_Statement_s164 v163
-   {-# INLINE rule357 #-}
-   rule357 = \ ((_expressionIself) :: Expression) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
+   {-# INLINE rule368 #-}
+   rule368 = \ ((_expressionIself) :: Expression) ((_patternIself) :: Pattern) ((_rangeIself) :: Range) ->
      Statement_Generator _rangeIself _patternIself _expressionIself
-   {-# INLINE rule358 #-}
-   rule358 = \ _self ->
+   {-# INLINE rule369 #-}
+   rule369 = \ _self ->
      _self
 {-# NOINLINE sem_Statement_Empty #-}
 sem_Statement_Empty :: T_Range  -> T_Statement 
 sem_Statement_Empty arg_range_ = T_Statement (return st164) where
    {-# NOINLINE st164 #-}
-   st164 = let
+   !st164 = let
       v163 :: T_Statement_v163 
-      v163 = \ (T_Statement_vIn163 ) -> ( let
+      v163 = \ !(T_Statement_vIn163 ) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         _self = rule359 _rangeIself
+         _self = rule370 _rangeIself
          _lhsOself :: Statement
-         _lhsOself = rule360 _self
-         __result_ = T_Statement_vOut163 _lhsOself
+         _lhsOself = rule371 _self
+         !__result_ = T_Statement_vOut163 _lhsOself
          in __result_ )
      in C_Statement_s164 v163
-   {-# INLINE rule359 #-}
-   rule359 = \ ((_rangeIself) :: Range) ->
+   {-# INLINE rule370 #-}
+   rule370 = \ ((_rangeIself) :: Range) ->
      Statement_Empty _rangeIself
-   {-# INLINE rule360 #-}
-   rule360 = \ _self ->
+   {-# INLINE rule371 #-}
+   rule371 = \ _self ->
      _self
 
 -- Statements --------------------------------------------------
 -- wrapper
 data Inh_Statements  = Inh_Statements {  }
-data Syn_Statements  = Syn_Statements { self_Syn_Statements :: (Statements) }
+data Syn_Statements  = Syn_Statements { self_Syn_Statements :: !(Statements) }
 {-# INLINABLE wrap_Statements #-}
 wrap_Statements :: T_Statements  -> Inh_Statements  -> (Syn_Statements )
-wrap_Statements (T_Statements act) (Inh_Statements ) =
+wrap_Statements !(T_Statements act) !(Inh_Statements ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg166 = T_Statements_vIn166 
-        (T_Statements_vOut166 _lhsOself) <- return (inv_Statements_s167 sem arg166)
+        !(T_Statements_vOut166 _lhsOself) <- return (inv_Statements_s167 sem arg166)
         return (Syn_Statements _lhsOself)
    )
 
@@ -5701,56 +5755,56 @@ data T_Statements_vOut166  = T_Statements_vOut166 (Statements)
 sem_Statements_Cons :: T_Statement  -> T_Statements  -> T_Statements 
 sem_Statements_Cons arg_hd_ arg_tl_ = T_Statements (return st167) where
    {-# NOINLINE st167 #-}
-   st167 = let
+   !st167 = let
       v166 :: T_Statements_v166 
-      v166 = \ (T_Statements_vIn166 ) -> ( let
+      v166 = \ !(T_Statements_vIn166 ) -> ( let
          _hdX164 = Control.Monad.Identity.runIdentity (attach_T_Statement (arg_hd_))
          _tlX167 = Control.Monad.Identity.runIdentity (attach_T_Statements (arg_tl_))
          (T_Statement_vOut163 _hdIself) = inv_Statement_s164 _hdX164 (T_Statement_vIn163 )
          (T_Statements_vOut166 _tlIself) = inv_Statements_s167 _tlX167 (T_Statements_vIn166 )
-         _self = rule361 _hdIself _tlIself
+         _self = rule372 _hdIself _tlIself
          _lhsOself :: Statements
-         _lhsOself = rule362 _self
-         __result_ = T_Statements_vOut166 _lhsOself
+         _lhsOself = rule373 _self
+         !__result_ = T_Statements_vOut166 _lhsOself
          in __result_ )
      in C_Statements_s167 v166
-   {-# INLINE rule361 #-}
-   rule361 = \ ((_hdIself) :: Statement) ((_tlIself) :: Statements) ->
+   {-# INLINE rule372 #-}
+   rule372 = \ ((_hdIself) :: Statement) ((_tlIself) :: Statements) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule362 #-}
-   rule362 = \ _self ->
+   {-# INLINE rule373 #-}
+   rule373 = \ _self ->
      _self
 {-# NOINLINE sem_Statements_Nil #-}
 sem_Statements_Nil ::  T_Statements 
 sem_Statements_Nil  = T_Statements (return st167) where
    {-# NOINLINE st167 #-}
-   st167 = let
+   !st167 = let
       v166 :: T_Statements_v166 
-      v166 = \ (T_Statements_vIn166 ) -> ( let
-         _self = rule363  ()
+      v166 = \ !(T_Statements_vIn166 ) -> ( let
+         _self = rule374  ()
          _lhsOself :: Statements
-         _lhsOself = rule364 _self
-         __result_ = T_Statements_vOut166 _lhsOself
+         _lhsOself = rule375 _self
+         !__result_ = T_Statements_vOut166 _lhsOself
          in __result_ )
      in C_Statements_s167 v166
-   {-# INLINE rule363 #-}
-   rule363 = \  (_ :: ()) ->
+   {-# INLINE rule374 #-}
+   rule374 = \  (_ :: ()) ->
      []
-   {-# INLINE rule364 #-}
-   rule364 = \ _self ->
+   {-# INLINE rule375 #-}
+   rule375 = \ _self ->
      _self
 
 -- Strings -----------------------------------------------------
 -- wrapper
 data Inh_Strings  = Inh_Strings {  }
-data Syn_Strings  = Syn_Strings { self_Syn_Strings :: (Strings) }
+data Syn_Strings  = Syn_Strings { self_Syn_Strings :: !(Strings) }
 {-# INLINABLE wrap_Strings #-}
 wrap_Strings :: T_Strings  -> Inh_Strings  -> (Syn_Strings )
-wrap_Strings (T_Strings act) (Inh_Strings ) =
+wrap_Strings !(T_Strings act) !(Inh_Strings ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg169 = T_Strings_vIn169 
-        (T_Strings_vOut169 _lhsOself) <- return (inv_Strings_s170 sem arg169)
+        !(T_Strings_vOut169 _lhsOself) <- return (inv_Strings_s170 sem arg169)
         return (Syn_Strings _lhsOself)
    )
 
@@ -5772,63 +5826,63 @@ data T_Strings_vIn169  = T_Strings_vIn169
 data T_Strings_vOut169  = T_Strings_vOut169 (Strings)
 {-# NOINLINE sem_Strings_Cons #-}
 sem_Strings_Cons :: (String) -> T_Strings  -> T_Strings 
-sem_Strings_Cons arg_hd_ arg_tl_ = T_Strings (return st170) where
+sem_Strings_Cons !arg_hd_ arg_tl_ = T_Strings (return st170) where
    {-# NOINLINE st170 #-}
-   st170 = let
+   !st170 = let
       v169 :: T_Strings_v169 
-      v169 = \ (T_Strings_vIn169 ) -> ( let
+      v169 = \ !(T_Strings_vIn169 ) -> ( let
          _tlX170 = Control.Monad.Identity.runIdentity (attach_T_Strings (arg_tl_))
          (T_Strings_vOut169 _tlIself) = inv_Strings_s170 _tlX170 (T_Strings_vIn169 )
-         _self = rule365 _tlIself arg_hd_
+         _self = rule376 _tlIself arg_hd_
          _lhsOself :: Strings
-         _lhsOself = rule366 _self
-         __result_ = T_Strings_vOut169 _lhsOself
+         _lhsOself = rule377 _self
+         !__result_ = T_Strings_vOut169 _lhsOself
          in __result_ )
      in C_Strings_s170 v169
-   {-# INLINE rule365 #-}
-   rule365 = \ ((_tlIself) :: Strings) hd_ ->
+   {-# INLINE rule376 #-}
+   rule376 = \ ((_tlIself) :: Strings) hd_ ->
      (:) hd_ _tlIself
-   {-# INLINE rule366 #-}
-   rule366 = \ _self ->
+   {-# INLINE rule377 #-}
+   rule377 = \ _self ->
      _self
 {-# NOINLINE sem_Strings_Nil #-}
 sem_Strings_Nil ::  T_Strings 
 sem_Strings_Nil  = T_Strings (return st170) where
    {-# NOINLINE st170 #-}
-   st170 = let
+   !st170 = let
       v169 :: T_Strings_v169 
-      v169 = \ (T_Strings_vIn169 ) -> ( let
-         _self = rule367  ()
+      v169 = \ !(T_Strings_vIn169 ) -> ( let
+         _self = rule378  ()
          _lhsOself :: Strings
-         _lhsOself = rule368 _self
-         __result_ = T_Strings_vOut169 _lhsOself
+         _lhsOself = rule379 _self
+         !__result_ = T_Strings_vOut169 _lhsOself
          in __result_ )
      in C_Strings_s170 v169
-   {-# INLINE rule367 #-}
-   rule367 = \  (_ :: ()) ->
+   {-# INLINE rule378 #-}
+   rule378 = \  (_ :: ()) ->
      []
-   {-# INLINE rule368 #-}
-   rule368 = \ _self ->
+   {-# INLINE rule379 #-}
+   rule379 = \ _self ->
      _self
 
 -- Type --------------------------------------------------------
 -- wrapper
-data Inh_Type  = Inh_Type {  }
-data Syn_Type  = Syn_Type { self_Syn_Type :: (Type), typevariables_Syn_Type :: (Names) }
+data Inh_Type  = Inh_Type { qualifier_Inh_Type :: !(Tp -> Tp) }
+data Syn_Type  = Syn_Type { self_Syn_Type :: !(Type), typevariables_Syn_Type :: !(Names) }
 {-# INLINABLE wrap_Type #-}
 wrap_Type :: T_Type  -> Inh_Type  -> (Syn_Type )
-wrap_Type (T_Type act) (Inh_Type ) =
+wrap_Type !(T_Type act) !(Inh_Type _lhsIqualifier) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
-        let arg172 = T_Type_vIn172 
-        (T_Type_vOut172 _lhsOself _lhsOtypevariables) <- return (inv_Type_s173 sem arg172)
+     do !sem <- act
+        let arg172 = T_Type_vIn172 _lhsIqualifier
+        !(T_Type_vOut172 _lhsOself _lhsOtypevariables) <- return (inv_Type_s173 sem arg172)
         return (Syn_Type _lhsOself _lhsOtypevariables)
    )
 
 -- cata
 {-# NOINLINE sem_Type #-}
 sem_Type :: Type  -> T_Type 
-sem_Type ( Type_Application range_ prefix_ function_ arguments_ ) = sem_Type_Application ( sem_Range range_ ) prefix_ ( sem_Type function_ ) ( sem_Types arguments_ )
+sem_Type ( Type_Application range_ !prefix_ function_ arguments_ ) = sem_Type_Application ( sem_Range range_ ) prefix_ ( sem_Type function_ ) ( sem_Types arguments_ )
 sem_Type ( Type_Variable range_ name_ ) = sem_Type_Variable ( sem_Range range_ ) ( sem_Name name_ )
 sem_Type ( Type_Constructor range_ name_ ) = sem_Type_Constructor ( sem_Range range_ ) ( sem_Name name_ )
 sem_Type ( Type_Qualified range_ context_ type_ ) = sem_Type_Qualified ( sem_Range range_ ) ( sem_ContextItems context_ ) ( sem_Type type_ )
@@ -5845,224 +5899,248 @@ newtype T_Type_s173  = C_Type_s173 {
                                    }
 data T_Type_s174  = C_Type_s174
 type T_Type_v172  = (T_Type_vIn172 ) -> (T_Type_vOut172 )
-data T_Type_vIn172  = T_Type_vIn172 
+data T_Type_vIn172  = T_Type_vIn172 (Tp -> Tp)
 data T_Type_vOut172  = T_Type_vOut172 (Type) (Names)
 {-# NOINLINE sem_Type_Application #-}
 sem_Type_Application :: T_Range  -> (Bool) -> T_Type  -> T_Types  -> T_Type 
-sem_Type_Application arg_range_ arg_prefix_ arg_function_ arg_arguments_ = T_Type (return st173) where
+sem_Type_Application arg_range_ !arg_prefix_ arg_function_ arg_arguments_ = T_Type (return st173) where
    {-# NOINLINE st173 #-}
-   st173 = let
+   !st173 = let
       v172 :: T_Type_v172 
-      v172 = \ (T_Type_vIn172 ) -> ( let
+      v172 = \ !(T_Type_vIn172 _lhsIqualifier) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _functionX173 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_function_))
          _argumentsX179 = Control.Monad.Identity.runIdentity (attach_T_Types (arg_arguments_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         (T_Type_vOut172 _functionIself _functionItypevariables) = inv_Type_s173 _functionX173 (T_Type_vIn172 )
-         (T_Types_vOut178 _argumentsIself _argumentsItypevariables) = inv_Types_s179 _argumentsX179 (T_Types_vIn178 )
+         (T_Type_vOut172 _functionIself _functionItypevariables) = inv_Type_s173 _functionX173 (T_Type_vIn172 _functionOqualifier)
+         (T_Types_vOut178 _argumentsIself _argumentsItypevariables) = inv_Types_s179 _argumentsX179 (T_Types_vIn178 _argumentsOqualifier)
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule369 _argumentsItypevariables _functionItypevariables
-         _self = rule370 _argumentsIself _functionIself _rangeIself arg_prefix_
+         _lhsOtypevariables = rule380 _argumentsItypevariables _functionItypevariables
+         _self = rule381 _argumentsIself _functionIself _rangeIself arg_prefix_
          _lhsOself :: Type
-         _lhsOself = rule371 _self
-         __result_ = T_Type_vOut172 _lhsOself _lhsOtypevariables
+         _lhsOself = rule382 _self
+         _functionOqualifier = rule383 _lhsIqualifier
+         _argumentsOqualifier = rule384 _lhsIqualifier
+         !__result_ = T_Type_vOut172 _lhsOself _lhsOtypevariables
          in __result_ )
      in C_Type_s173 v172
-   {-# INLINE rule369 #-}
-   rule369 = \ ((_argumentsItypevariables) :: Names) ((_functionItypevariables) :: Names) ->
+   {-# INLINE rule380 #-}
+   rule380 = \ ((_argumentsItypevariables) :: Names) ((_functionItypevariables) :: Names) ->
      _functionItypevariables  ++  _argumentsItypevariables
-   {-# INLINE rule370 #-}
-   rule370 = \ ((_argumentsIself) :: Types) ((_functionIself) :: Type) ((_rangeIself) :: Range) prefix_ ->
+   {-# INLINE rule381 #-}
+   rule381 = \ ((_argumentsIself) :: Types) ((_functionIself) :: Type) ((_rangeIself) :: Range) prefix_ ->
      Type_Application _rangeIself prefix_ _functionIself _argumentsIself
-   {-# INLINE rule371 #-}
-   rule371 = \ _self ->
+   {-# INLINE rule382 #-}
+   rule382 = \ _self ->
      _self
+   {-# INLINE rule383 #-}
+   rule383 = \ ((_lhsIqualifier) :: Tp -> Tp) ->
+     _lhsIqualifier
+   {-# INLINE rule384 #-}
+   rule384 = \ ((_lhsIqualifier) :: Tp -> Tp) ->
+     _lhsIqualifier
 {-# NOINLINE sem_Type_Variable #-}
 sem_Type_Variable :: T_Range  -> T_Name  -> T_Type 
 sem_Type_Variable arg_range_ arg_name_ = T_Type (return st173) where
    {-# NOINLINE st173 #-}
-   st173 = let
+   !st173 = let
       v172 :: T_Type_v172 
-      v172 = \ (T_Type_vIn172 ) -> ( let
+      v172 = \ !(T_Type_vIn172 _lhsIqualifier) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule372 _nameIself
-         _self = rule373 _nameIself _rangeIself
+         _lhsOtypevariables = rule385 _nameIself
+         _self = rule386 _nameIself _rangeIself
          _lhsOself :: Type
-         _lhsOself = rule374 _self
-         __result_ = T_Type_vOut172 _lhsOself _lhsOtypevariables
+         _lhsOself = rule387 _self
+         !__result_ = T_Type_vOut172 _lhsOself _lhsOtypevariables
          in __result_ )
      in C_Type_s173 v172
-   {-# INLINE rule372 #-}
-   rule372 = \ ((_nameIself) :: Name) ->
+   {-# INLINE rule385 #-}
+   rule385 = \ ((_nameIself) :: Name) ->
                                       [ _nameIself ]
-   {-# INLINE rule373 #-}
-   rule373 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule386 #-}
+   rule386 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Type_Variable _rangeIself _nameIself
-   {-# INLINE rule374 #-}
-   rule374 = \ _self ->
+   {-# INLINE rule387 #-}
+   rule387 = \ _self ->
      _self
 {-# NOINLINE sem_Type_Constructor #-}
 sem_Type_Constructor :: T_Range  -> T_Name  -> T_Type 
 sem_Type_Constructor arg_range_ arg_name_ = T_Type (return st173) where
    {-# NOINLINE st173 #-}
-   st173 = let
+   !st173 = let
       v172 :: T_Type_v172 
-      v172 = \ (T_Type_vIn172 ) -> ( let
+      v172 = \ !(T_Type_vIn172 _lhsIqualifier) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule375  ()
-         _self = rule376 _nameIself _rangeIself
+         _lhsOtypevariables = rule388  ()
+         _self = rule389 _nameIself _rangeIself
          _lhsOself :: Type
-         _lhsOself = rule377 _self
-         __result_ = T_Type_vOut172 _lhsOself _lhsOtypevariables
+         _lhsOself = rule390 _self
+         !__result_ = T_Type_vOut172 _lhsOself _lhsOtypevariables
          in __result_ )
      in C_Type_s173 v172
-   {-# INLINE rule375 #-}
-   rule375 = \  (_ :: ()) ->
+   {-# INLINE rule388 #-}
+   rule388 = \  (_ :: ()) ->
      []
-   {-# INLINE rule376 #-}
-   rule376 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
+   {-# INLINE rule389 #-}
+   rule389 = \ ((_nameIself) :: Name) ((_rangeIself) :: Range) ->
      Type_Constructor _rangeIself _nameIself
-   {-# INLINE rule377 #-}
-   rule377 = \ _self ->
+   {-# INLINE rule390 #-}
+   rule390 = \ _self ->
      _self
 {-# NOINLINE sem_Type_Qualified #-}
 sem_Type_Qualified :: T_Range  -> T_ContextItems  -> T_Type  -> T_Type 
 sem_Type_Qualified arg_range_ arg_context_ arg_type_ = T_Type (return st173) where
    {-# NOINLINE st173 #-}
-   st173 = let
+   !st173 = let
       v172 :: T_Type_v172 
-      v172 = \ (T_Type_vIn172 ) -> ( let
+      v172 = \ !(T_Type_vIn172 _lhsIqualifier) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _contextX26 = Control.Monad.Identity.runIdentity (attach_T_ContextItems (arg_context_))
          _typeX173 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_ContextItems_vOut25 _contextIself) = inv_ContextItems_s26 _contextX26 (T_ContextItems_vIn25 )
-         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 )
+         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 _typeOqualifier)
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule378 _typeItypevariables
-         _self = rule379 _contextIself _rangeIself _typeIself
+         _lhsOtypevariables = rule391 _typeItypevariables
+         _self = rule392 _contextIself _rangeIself _typeIself
          _lhsOself :: Type
-         _lhsOself = rule380 _self
-         __result_ = T_Type_vOut172 _lhsOself _lhsOtypevariables
+         _lhsOself = rule393 _self
+         _typeOqualifier = rule394 _lhsIqualifier
+         !__result_ = T_Type_vOut172 _lhsOself _lhsOtypevariables
          in __result_ )
      in C_Type_s173 v172
-   {-# INLINE rule378 #-}
-   rule378 = \ ((_typeItypevariables) :: Names) ->
+   {-# INLINE rule391 #-}
+   rule391 = \ ((_typeItypevariables) :: Names) ->
      _typeItypevariables
-   {-# INLINE rule379 #-}
-   rule379 = \ ((_contextIself) :: ContextItems) ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
+   {-# INLINE rule392 #-}
+   rule392 = \ ((_contextIself) :: ContextItems) ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
      Type_Qualified _rangeIself _contextIself _typeIself
-   {-# INLINE rule380 #-}
-   rule380 = \ _self ->
+   {-# INLINE rule393 #-}
+   rule393 = \ _self ->
      _self
+   {-# INLINE rule394 #-}
+   rule394 = \ ((_lhsIqualifier) :: Tp -> Tp) ->
+     _lhsIqualifier
 {-# NOINLINE sem_Type_Forall #-}
 sem_Type_Forall :: T_Range  -> T_Names  -> T_Type  -> T_Type 
 sem_Type_Forall arg_range_ arg_typevariables_ arg_type_ = T_Type (return st173) where
    {-# NOINLINE st173 #-}
-   st173 = let
+   !st173 = let
       v172 :: T_Type_v172 
-      v172 = \ (T_Type_vIn172 ) -> ( let
+      v172 = \ !(T_Type_vIn172 _lhsIqualifier) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _typevariablesX119 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_typevariables_))
          _typeX173 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Names_vOut118 _typevariablesIself) = inv_Names_s119 _typevariablesX119 (T_Names_vIn118 )
-         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 )
+         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 _typeOqualifier)
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule381 _typeItypevariables
-         _self = rule382 _rangeIself _typeIself _typevariablesIself
+         _lhsOtypevariables = rule395 _typeItypevariables
+         _self = rule396 _rangeIself _typeIself _typevariablesIself
          _lhsOself :: Type
-         _lhsOself = rule383 _self
-         __result_ = T_Type_vOut172 _lhsOself _lhsOtypevariables
+         _lhsOself = rule397 _self
+         _typeOqualifier = rule398 _lhsIqualifier
+         !__result_ = T_Type_vOut172 _lhsOself _lhsOtypevariables
          in __result_ )
      in C_Type_s173 v172
-   {-# INLINE rule381 #-}
-   rule381 = \ ((_typeItypevariables) :: Names) ->
+   {-# INLINE rule395 #-}
+   rule395 = \ ((_typeItypevariables) :: Names) ->
      _typeItypevariables
-   {-# INLINE rule382 #-}
-   rule382 = \ ((_rangeIself) :: Range) ((_typeIself) :: Type) ((_typevariablesIself) :: Names) ->
+   {-# INLINE rule396 #-}
+   rule396 = \ ((_rangeIself) :: Range) ((_typeIself) :: Type) ((_typevariablesIself) :: Names) ->
      Type_Forall _rangeIself _typevariablesIself _typeIself
-   {-# INLINE rule383 #-}
-   rule383 = \ _self ->
+   {-# INLINE rule397 #-}
+   rule397 = \ _self ->
      _self
+   {-# INLINE rule398 #-}
+   rule398 = \ ((_lhsIqualifier) :: Tp -> Tp) ->
+     _lhsIqualifier
 {-# NOINLINE sem_Type_Exists #-}
 sem_Type_Exists :: T_Range  -> T_Names  -> T_Type  -> T_Type 
 sem_Type_Exists arg_range_ arg_typevariables_ arg_type_ = T_Type (return st173) where
    {-# NOINLINE st173 #-}
-   st173 = let
+   !st173 = let
       v172 :: T_Type_v172 
-      v172 = \ (T_Type_vIn172 ) -> ( let
+      v172 = \ !(T_Type_vIn172 _lhsIqualifier) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _typevariablesX119 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_typevariables_))
          _typeX173 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
          (T_Names_vOut118 _typevariablesIself) = inv_Names_s119 _typevariablesX119 (T_Names_vIn118 )
-         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 )
+         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 _typeOqualifier)
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule384 _typeItypevariables
-         _self = rule385 _rangeIself _typeIself _typevariablesIself
+         _lhsOtypevariables = rule399 _typeItypevariables
+         _self = rule400 _rangeIself _typeIself _typevariablesIself
          _lhsOself :: Type
-         _lhsOself = rule386 _self
-         __result_ = T_Type_vOut172 _lhsOself _lhsOtypevariables
+         _lhsOself = rule401 _self
+         _typeOqualifier = rule402 _lhsIqualifier
+         !__result_ = T_Type_vOut172 _lhsOself _lhsOtypevariables
          in __result_ )
      in C_Type_s173 v172
-   {-# INLINE rule384 #-}
-   rule384 = \ ((_typeItypevariables) :: Names) ->
+   {-# INLINE rule399 #-}
+   rule399 = \ ((_typeItypevariables) :: Names) ->
      _typeItypevariables
-   {-# INLINE rule385 #-}
-   rule385 = \ ((_rangeIself) :: Range) ((_typeIself) :: Type) ((_typevariablesIself) :: Names) ->
+   {-# INLINE rule400 #-}
+   rule400 = \ ((_rangeIself) :: Range) ((_typeIself) :: Type) ((_typevariablesIself) :: Names) ->
      Type_Exists _rangeIself _typevariablesIself _typeIself
-   {-# INLINE rule386 #-}
-   rule386 = \ _self ->
+   {-# INLINE rule401 #-}
+   rule401 = \ _self ->
      _self
+   {-# INLINE rule402 #-}
+   rule402 = \ ((_lhsIqualifier) :: Tp -> Tp) ->
+     _lhsIqualifier
 {-# NOINLINE sem_Type_Parenthesized #-}
 sem_Type_Parenthesized :: T_Range  -> T_Type  -> T_Type 
 sem_Type_Parenthesized arg_range_ arg_type_ = T_Type (return st173) where
    {-# NOINLINE st173 #-}
-   st173 = let
+   !st173 = let
       v172 :: T_Type_v172 
-      v172 = \ (T_Type_vIn172 ) -> ( let
+      v172 = \ !(T_Type_vIn172 _lhsIqualifier) -> ( let
          _rangeX137 = Control.Monad.Identity.runIdentity (attach_T_Range (arg_range_))
          _typeX173 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_type_))
          (T_Range_vOut136 _rangeIself) = inv_Range_s137 _rangeX137 (T_Range_vIn136 )
-         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 )
+         (T_Type_vOut172 _typeIself _typeItypevariables) = inv_Type_s173 _typeX173 (T_Type_vIn172 _typeOqualifier)
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule387 _typeItypevariables
-         _self = rule388 _rangeIself _typeIself
+         _lhsOtypevariables = rule403 _typeItypevariables
+         _self = rule404 _rangeIself _typeIself
          _lhsOself :: Type
-         _lhsOself = rule389 _self
-         __result_ = T_Type_vOut172 _lhsOself _lhsOtypevariables
+         _lhsOself = rule405 _self
+         _typeOqualifier = rule406 _lhsIqualifier
+         !__result_ = T_Type_vOut172 _lhsOself _lhsOtypevariables
          in __result_ )
      in C_Type_s173 v172
-   {-# INLINE rule387 #-}
-   rule387 = \ ((_typeItypevariables) :: Names) ->
+   {-# INLINE rule403 #-}
+   rule403 = \ ((_typeItypevariables) :: Names) ->
      _typeItypevariables
-   {-# INLINE rule388 #-}
-   rule388 = \ ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
+   {-# INLINE rule404 #-}
+   rule404 = \ ((_rangeIself) :: Range) ((_typeIself) :: Type) ->
      Type_Parenthesized _rangeIself _typeIself
-   {-# INLINE rule389 #-}
-   rule389 = \ _self ->
+   {-# INLINE rule405 #-}
+   rule405 = \ _self ->
      _self
+   {-# INLINE rule406 #-}
+   rule406 = \ ((_lhsIqualifier) :: Tp -> Tp) ->
+     _lhsIqualifier
 
 -- TypeRule ----------------------------------------------------
 -- wrapper
-data Inh_TypeRule  = Inh_TypeRule { nameMap_Inh_TypeRule :: ([(Name,Tp)]), simpleJudgements_Inh_TypeRule :: ([(String,Tp)]) }
-data Syn_TypeRule  = Syn_TypeRule { conclusionAllVariables_Syn_TypeRule :: ([(Name,Entity)]), conclusionExpression_Syn_TypeRule :: (Expression), conclusionType_Syn_TypeRule :: (Tp), self_Syn_TypeRule :: (TypeRule), simpleJudgements_Syn_TypeRule :: ([(String,Tp)]), typevariables_Syn_TypeRule :: (Names) }
+data Inh_TypeRule  = Inh_TypeRule { nameMap_Inh_TypeRule :: !([(Name,Tp)]), qualifier_Inh_TypeRule :: !(Tp -> Tp), simpleJudgements_Inh_TypeRule :: !([(String,Tp)]) }
+data Syn_TypeRule  = Syn_TypeRule { conclusionAllVariables_Syn_TypeRule :: !([(Name,Entity)]), conclusionExpression_Syn_TypeRule :: !(Expression), conclusionType_Syn_TypeRule :: !(Tp), self_Syn_TypeRule :: !(TypeRule), simpleJudgements_Syn_TypeRule :: !([(String,Tp)]), typevariables_Syn_TypeRule :: !(Names) }
 {-# INLINABLE wrap_TypeRule #-}
 wrap_TypeRule :: T_TypeRule  -> Inh_TypeRule  -> (Syn_TypeRule )
-wrap_TypeRule (T_TypeRule act) (Inh_TypeRule _lhsInameMap _lhsIsimpleJudgements) =
+wrap_TypeRule !(T_TypeRule act) !(Inh_TypeRule _lhsInameMap _lhsIqualifier _lhsIsimpleJudgements) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
-        let arg175 = T_TypeRule_vIn175 _lhsInameMap _lhsIsimpleJudgements
-        (T_TypeRule_vOut175 _lhsOconclusionAllVariables _lhsOconclusionExpression _lhsOconclusionType _lhsOself _lhsOsimpleJudgements _lhsOtypevariables) <- return (inv_TypeRule_s176 sem arg175)
+     do !sem <- act
+        let arg175 = T_TypeRule_vIn175 _lhsInameMap _lhsIqualifier _lhsIsimpleJudgements
+        !(T_TypeRule_vOut175 _lhsOconclusionAllVariables _lhsOconclusionExpression _lhsOconclusionType _lhsOself _lhsOsimpleJudgements _lhsOtypevariables) <- return (inv_TypeRule_s176 sem arg175)
         return (Syn_TypeRule _lhsOconclusionAllVariables _lhsOconclusionExpression _lhsOconclusionType _lhsOself _lhsOsimpleJudgements _lhsOtypevariables)
    )
 
@@ -6080,80 +6158,88 @@ newtype T_TypeRule_s176  = C_TypeRule_s176 {
                                            }
 data T_TypeRule_s177  = C_TypeRule_s177
 type T_TypeRule_v175  = (T_TypeRule_vIn175 ) -> (T_TypeRule_vOut175 )
-data T_TypeRule_vIn175  = T_TypeRule_vIn175 ([(Name,Tp)]) ([(String,Tp)])
+data T_TypeRule_vIn175  = T_TypeRule_vIn175 ([(Name,Tp)]) (Tp -> Tp) ([(String,Tp)])
 data T_TypeRule_vOut175  = T_TypeRule_vOut175 ([(Name,Entity)]) (Expression) (Tp) (TypeRule) ([(String,Tp)]) (Names)
 {-# NOINLINE sem_TypeRule_TypeRule #-}
 sem_TypeRule_TypeRule :: T_SimpleJudgements  -> T_Judgement  -> T_TypeRule 
 sem_TypeRule_TypeRule arg_premises_ arg_conclusion_ = T_TypeRule (return st176) where
    {-# NOINLINE st176 #-}
-   st176 = let
+   !st176 = let
       v175 :: T_TypeRule_v175 
-      v175 = \ (T_TypeRule_vIn175 _lhsInameMap _lhsIsimpleJudgements) -> ( let
+      v175 = \ !(T_TypeRule_vIn175 _lhsInameMap _lhsIqualifier _lhsIsimpleJudgements) -> ( let
          _premisesX158 = Control.Monad.Identity.runIdentity (attach_T_SimpleJudgements (arg_premises_))
          _conclusionX83 = Control.Monad.Identity.runIdentity (attach_T_Judgement (arg_conclusion_))
-         (T_SimpleJudgements_vOut157 _premisesIself _premisesIsimpleJudgements _premisesItypevariables) = inv_SimpleJudgements_s158 _premisesX158 (T_SimpleJudgements_vIn157 _premisesOnameMap _premisesOsimpleJudgements)
-         (T_Judgement_vOut82 _conclusionIallVariables _conclusionIconclusionType _conclusionIself _conclusionItheExpression _conclusionItypevariables) = inv_Judgement_s83 _conclusionX83 (T_Judgement_vIn82 _conclusionOnameMap)
+         (T_SimpleJudgements_vOut157 _premisesIself _premisesIsimpleJudgements _premisesItypevariables) = inv_SimpleJudgements_s158 _premisesX158 (T_SimpleJudgements_vIn157 _premisesOnameMap _premisesOqualifier _premisesOsimpleJudgements)
+         (T_Judgement_vOut82 _conclusionIallVariables _conclusionIconclusionType _conclusionIself _conclusionItheExpression _conclusionItypevariables) = inv_Judgement_s83 _conclusionX83 (T_Judgement_vIn82 _conclusionOnameMap _conclusionOqualifier)
          _lhsOconclusionExpression :: Expression
-         _lhsOconclusionExpression = rule390 _conclusionItheExpression
+         _lhsOconclusionExpression = rule407 _conclusionItheExpression
          _lhsOconclusionAllVariables :: [(Name,Entity)]
-         _lhsOconclusionAllVariables = rule391 _conclusionIallVariables
+         _lhsOconclusionAllVariables = rule408 _conclusionIallVariables
+         _conclusionOqualifier = rule409 _lhsIqualifier
+         _premisesOqualifier = rule410 _lhsIqualifier
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule392 _conclusionItypevariables _premisesItypevariables
-         _self = rule393 _conclusionIself _premisesIself
+         _lhsOtypevariables = rule411 _conclusionItypevariables _premisesItypevariables
+         _self = rule412 _conclusionIself _premisesIself
          _lhsOself :: TypeRule
-         _lhsOself = rule394 _self
+         _lhsOself = rule413 _self
          _lhsOconclusionType :: Tp
-         _lhsOconclusionType = rule395 _conclusionIconclusionType
+         _lhsOconclusionType = rule414 _conclusionIconclusionType
          _lhsOsimpleJudgements :: [(String,Tp)]
-         _lhsOsimpleJudgements = rule396 _premisesIsimpleJudgements
-         _premisesOnameMap = rule397 _lhsInameMap
-         _premisesOsimpleJudgements = rule398 _lhsIsimpleJudgements
-         _conclusionOnameMap = rule399 _lhsInameMap
-         __result_ = T_TypeRule_vOut175 _lhsOconclusionAllVariables _lhsOconclusionExpression _lhsOconclusionType _lhsOself _lhsOsimpleJudgements _lhsOtypevariables
+         _lhsOsimpleJudgements = rule415 _premisesIsimpleJudgements
+         _premisesOnameMap = rule416 _lhsInameMap
+         _premisesOsimpleJudgements = rule417 _lhsIsimpleJudgements
+         _conclusionOnameMap = rule418 _lhsInameMap
+         !__result_ = T_TypeRule_vOut175 _lhsOconclusionAllVariables _lhsOconclusionExpression _lhsOconclusionType _lhsOself _lhsOsimpleJudgements _lhsOtypevariables
          in __result_ )
      in C_TypeRule_s176 v175
-   {-# INLINE rule390 #-}
-   rule390 = \ ((_conclusionItheExpression) :: Expression) ->
+   {-# INLINE rule407 #-}
+   rule407 = \ ((_conclusionItheExpression) :: Expression) ->
                                                           _conclusionItheExpression
-   {-# INLINE rule391 #-}
-   rule391 = \ ((_conclusionIallVariables) :: [(Name,Entity)]) ->
-                                                         _conclusionIallVariables
-   {-# INLINE rule392 #-}
-   rule392 = \ ((_conclusionItypevariables) :: Names) ((_premisesItypevariables) :: Names) ->
+   {-# INLINE rule408 #-}
+   rule408 = \ ((_conclusionIallVariables) :: [(Name,Entity)]) ->
+                                     _conclusionIallVariables
+   {-# INLINE rule409 #-}
+   rule409 = \ ((_lhsIqualifier) :: Tp -> Tp) ->
+                               _lhsIqualifier
+   {-# INLINE rule410 #-}
+   rule410 = \ ((_lhsIqualifier) :: Tp -> Tp) ->
+                               _lhsIqualifier
+   {-# INLINE rule411 #-}
+   rule411 = \ ((_conclusionItypevariables) :: Names) ((_premisesItypevariables) :: Names) ->
      _premisesItypevariables  ++  _conclusionItypevariables
-   {-# INLINE rule393 #-}
-   rule393 = \ ((_conclusionIself) :: Judgement) ((_premisesIself) :: SimpleJudgements) ->
+   {-# INLINE rule412 #-}
+   rule412 = \ ((_conclusionIself) :: Judgement) ((_premisesIself) :: SimpleJudgements) ->
      TypeRule_TypeRule _premisesIself _conclusionIself
-   {-# INLINE rule394 #-}
-   rule394 = \ _self ->
+   {-# INLINE rule413 #-}
+   rule413 = \ _self ->
      _self
-   {-# INLINE rule395 #-}
-   rule395 = \ ((_conclusionIconclusionType) :: Tp) ->
+   {-# INLINE rule414 #-}
+   rule414 = \ ((_conclusionIconclusionType) :: Tp) ->
      _conclusionIconclusionType
-   {-# INLINE rule396 #-}
-   rule396 = \ ((_premisesIsimpleJudgements) :: [(String,Tp)]) ->
+   {-# INLINE rule415 #-}
+   rule415 = \ ((_premisesIsimpleJudgements) :: [(String,Tp)]) ->
      _premisesIsimpleJudgements
-   {-# INLINE rule397 #-}
-   rule397 = \ ((_lhsInameMap) :: [(Name,Tp)]) ->
+   {-# INLINE rule416 #-}
+   rule416 = \ ((_lhsInameMap) :: [(Name,Tp)]) ->
      _lhsInameMap
-   {-# INLINE rule398 #-}
-   rule398 = \ ((_lhsIsimpleJudgements) :: [(String,Tp)]) ->
+   {-# INLINE rule417 #-}
+   rule417 = \ ((_lhsIsimpleJudgements) :: [(String,Tp)]) ->
      _lhsIsimpleJudgements
-   {-# INLINE rule399 #-}
-   rule399 = \ ((_lhsInameMap) :: [(Name,Tp)]) ->
+   {-# INLINE rule418 #-}
+   rule418 = \ ((_lhsInameMap) :: [(Name,Tp)]) ->
      _lhsInameMap
 
 -- Types -------------------------------------------------------
 -- wrapper
-data Inh_Types  = Inh_Types {  }
-data Syn_Types  = Syn_Types { self_Syn_Types :: (Types), typevariables_Syn_Types :: (Names) }
+data Inh_Types  = Inh_Types { qualifier_Inh_Types :: !(Tp -> Tp) }
+data Syn_Types  = Syn_Types { self_Syn_Types :: !(Types), typevariables_Syn_Types :: !(Names) }
 {-# INLINABLE wrap_Types #-}
 wrap_Types :: T_Types  -> Inh_Types  -> (Syn_Types )
-wrap_Types (T_Types act) (Inh_Types ) =
+wrap_Types !(T_Types act) !(Inh_Types _lhsIqualifier) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
-        let arg178 = T_Types_vIn178 
-        (T_Types_vOut178 _lhsOself _lhsOtypevariables) <- return (inv_Types_s179 sem arg178)
+     do !sem <- act
+        let arg178 = T_Types_vIn178 _lhsIqualifier
+        !(T_Types_vOut178 _lhsOself _lhsOtypevariables) <- return (inv_Types_s179 sem arg178)
         return (Syn_Types _lhsOself _lhsOtypevariables)
    )
 
@@ -6171,72 +6257,80 @@ newtype T_Types_s179  = C_Types_s179 {
                                      }
 data T_Types_s180  = C_Types_s180
 type T_Types_v178  = (T_Types_vIn178 ) -> (T_Types_vOut178 )
-data T_Types_vIn178  = T_Types_vIn178 
+data T_Types_vIn178  = T_Types_vIn178 (Tp -> Tp)
 data T_Types_vOut178  = T_Types_vOut178 (Types) (Names)
 {-# NOINLINE sem_Types_Cons #-}
 sem_Types_Cons :: T_Type  -> T_Types  -> T_Types 
 sem_Types_Cons arg_hd_ arg_tl_ = T_Types (return st179) where
    {-# NOINLINE st179 #-}
-   st179 = let
+   !st179 = let
       v178 :: T_Types_v178 
-      v178 = \ (T_Types_vIn178 ) -> ( let
+      v178 = \ !(T_Types_vIn178 _lhsIqualifier) -> ( let
          _hdX173 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_hd_))
          _tlX179 = Control.Monad.Identity.runIdentity (attach_T_Types (arg_tl_))
-         (T_Type_vOut172 _hdIself _hdItypevariables) = inv_Type_s173 _hdX173 (T_Type_vIn172 )
-         (T_Types_vOut178 _tlIself _tlItypevariables) = inv_Types_s179 _tlX179 (T_Types_vIn178 )
+         (T_Type_vOut172 _hdIself _hdItypevariables) = inv_Type_s173 _hdX173 (T_Type_vIn172 _hdOqualifier)
+         (T_Types_vOut178 _tlIself _tlItypevariables) = inv_Types_s179 _tlX179 (T_Types_vIn178 _tlOqualifier)
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule400 _hdItypevariables _tlItypevariables
-         _self = rule401 _hdIself _tlIself
+         _lhsOtypevariables = rule419 _hdItypevariables _tlItypevariables
+         _self = rule420 _hdIself _tlIself
          _lhsOself :: Types
-         _lhsOself = rule402 _self
-         __result_ = T_Types_vOut178 _lhsOself _lhsOtypevariables
+         _lhsOself = rule421 _self
+         _hdOqualifier = rule422 _lhsIqualifier
+         _tlOqualifier = rule423 _lhsIqualifier
+         !__result_ = T_Types_vOut178 _lhsOself _lhsOtypevariables
          in __result_ )
      in C_Types_s179 v178
-   {-# INLINE rule400 #-}
-   rule400 = \ ((_hdItypevariables) :: Names) ((_tlItypevariables) :: Names) ->
+   {-# INLINE rule419 #-}
+   rule419 = \ ((_hdItypevariables) :: Names) ((_tlItypevariables) :: Names) ->
      _hdItypevariables  ++  _tlItypevariables
-   {-# INLINE rule401 #-}
-   rule401 = \ ((_hdIself) :: Type) ((_tlIself) :: Types) ->
+   {-# INLINE rule420 #-}
+   rule420 = \ ((_hdIself) :: Type) ((_tlIself) :: Types) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule402 #-}
-   rule402 = \ _self ->
+   {-# INLINE rule421 #-}
+   rule421 = \ _self ->
      _self
+   {-# INLINE rule422 #-}
+   rule422 = \ ((_lhsIqualifier) :: Tp -> Tp) ->
+     _lhsIqualifier
+   {-# INLINE rule423 #-}
+   rule423 = \ ((_lhsIqualifier) :: Tp -> Tp) ->
+     _lhsIqualifier
 {-# NOINLINE sem_Types_Nil #-}
 sem_Types_Nil ::  T_Types 
 sem_Types_Nil  = T_Types (return st179) where
    {-# NOINLINE st179 #-}
-   st179 = let
+   !st179 = let
       v178 :: T_Types_v178 
-      v178 = \ (T_Types_vIn178 ) -> ( let
+      v178 = \ !(T_Types_vIn178 _lhsIqualifier) -> ( let
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule403  ()
-         _self = rule404  ()
+         _lhsOtypevariables = rule424  ()
+         _self = rule425  ()
          _lhsOself :: Types
-         _lhsOself = rule405 _self
-         __result_ = T_Types_vOut178 _lhsOself _lhsOtypevariables
+         _lhsOself = rule426 _self
+         !__result_ = T_Types_vOut178 _lhsOself _lhsOtypevariables
          in __result_ )
      in C_Types_s179 v178
-   {-# INLINE rule403 #-}
-   rule403 = \  (_ :: ()) ->
+   {-# INLINE rule424 #-}
+   rule424 = \  (_ :: ()) ->
      []
-   {-# INLINE rule404 #-}
-   rule404 = \  (_ :: ()) ->
+   {-# INLINE rule425 #-}
+   rule425 = \  (_ :: ()) ->
      []
-   {-# INLINE rule405 #-}
-   rule405 = \ _self ->
+   {-# INLINE rule426 #-}
+   rule426 = \ _self ->
      _self
 
 -- TypingStrategies --------------------------------------------
 -- wrapper
 data Inh_TypingStrategies  = Inh_TypingStrategies {  }
-data Syn_TypingStrategies  = Syn_TypingStrategies { self_Syn_TypingStrategies :: (TypingStrategies) }
+data Syn_TypingStrategies  = Syn_TypingStrategies { self_Syn_TypingStrategies :: !(TypingStrategies) }
 {-# INLINABLE wrap_TypingStrategies #-}
 wrap_TypingStrategies :: T_TypingStrategies  -> Inh_TypingStrategies  -> (Syn_TypingStrategies )
-wrap_TypingStrategies (T_TypingStrategies act) (Inh_TypingStrategies ) =
+wrap_TypingStrategies !(T_TypingStrategies act) !(Inh_TypingStrategies ) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg181 = T_TypingStrategies_vIn181 
-        (T_TypingStrategies_vOut181 _lhsOself) <- return (inv_TypingStrategies_s182 sem arg181)
+        !(T_TypingStrategies_vOut181 _lhsOself) <- return (inv_TypingStrategies_s182 sem arg181)
         return (Syn_TypingStrategies _lhsOself)
    )
 
@@ -6260,64 +6354,64 @@ data T_TypingStrategies_vOut181  = T_TypingStrategies_vOut181 (TypingStrategies)
 sem_TypingStrategies_Cons :: T_TypingStrategy  -> T_TypingStrategies  -> T_TypingStrategies 
 sem_TypingStrategies_Cons arg_hd_ arg_tl_ = T_TypingStrategies (return st182) where
    {-# NOINLINE st182 #-}
-   st182 = let
+   !st182 = let
       v181 :: T_TypingStrategies_v181 
-      v181 = \ (T_TypingStrategies_vIn181 ) -> ( let
+      v181 = \ !(T_TypingStrategies_vIn181 ) -> ( let
          _hdX185 = Control.Monad.Identity.runIdentity (attach_T_TypingStrategy (arg_hd_))
          _tlX182 = Control.Monad.Identity.runIdentity (attach_T_TypingStrategies (arg_tl_))
          (T_TypingStrategy_vOut184 _hdIerrors _hdIself _hdIwarnings) = inv_TypingStrategy_s185 _hdX185 (T_TypingStrategy_vIn184 _hdOimportEnvironment)
          (T_TypingStrategies_vOut181 _tlIself) = inv_TypingStrategies_s182 _tlX182 (T_TypingStrategies_vIn181 )
-         _importEnvironment = rule406  ()
-         _self = rule407 _hdIself _tlIself
+         _importEnvironment = rule427  ()
+         _self = rule428 _hdIself _tlIself
          _lhsOself :: TypingStrategies
-         _lhsOself = rule408 _self
-         _hdOimportEnvironment = rule409 _importEnvironment
-         __result_ = T_TypingStrategies_vOut181 _lhsOself
+         _lhsOself = rule429 _self
+         _hdOimportEnvironment = rule430 _importEnvironment
+         !__result_ = T_TypingStrategies_vOut181 _lhsOself
          in __result_ )
      in C_TypingStrategies_s182 v181
-   {-# INLINE rule406 #-}
-   rule406 = \  (_ :: ()) ->
+   {-# INLINE rule427 #-}
+   rule427 = \  (_ :: ()) ->
      internalError "TS_Analyse.ag" "n/a" "TS_Analyse.ag"
-   {-# INLINE rule407 #-}
-   rule407 = \ ((_hdIself) :: TypingStrategy) ((_tlIself) :: TypingStrategies) ->
+   {-# INLINE rule428 #-}
+   rule428 = \ ((_hdIself) :: TypingStrategy) ((_tlIself) :: TypingStrategies) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule408 #-}
-   rule408 = \ _self ->
+   {-# INLINE rule429 #-}
+   rule429 = \ _self ->
      _self
-   {-# INLINE rule409 #-}
-   rule409 = \ _importEnvironment ->
+   {-# INLINE rule430 #-}
+   rule430 = \ _importEnvironment ->
      _importEnvironment
 {-# NOINLINE sem_TypingStrategies_Nil #-}
 sem_TypingStrategies_Nil ::  T_TypingStrategies 
 sem_TypingStrategies_Nil  = T_TypingStrategies (return st182) where
    {-# NOINLINE st182 #-}
-   st182 = let
+   !st182 = let
       v181 :: T_TypingStrategies_v181 
-      v181 = \ (T_TypingStrategies_vIn181 ) -> ( let
-         _self = rule410  ()
+      v181 = \ !(T_TypingStrategies_vIn181 ) -> ( let
+         _self = rule431  ()
          _lhsOself :: TypingStrategies
-         _lhsOself = rule411 _self
-         __result_ = T_TypingStrategies_vOut181 _lhsOself
+         _lhsOself = rule432 _self
+         !__result_ = T_TypingStrategies_vOut181 _lhsOself
          in __result_ )
      in C_TypingStrategies_s182 v181
-   {-# INLINE rule410 #-}
-   rule410 = \  (_ :: ()) ->
+   {-# INLINE rule431 #-}
+   rule431 = \  (_ :: ()) ->
      []
-   {-# INLINE rule411 #-}
-   rule411 = \ _self ->
+   {-# INLINE rule432 #-}
+   rule432 = \ _self ->
      _self
 
 -- TypingStrategy ----------------------------------------------
 -- wrapper
-data Inh_TypingStrategy  = Inh_TypingStrategy { importEnvironment_Inh_TypingStrategy :: (ImportEnvironment) }
-data Syn_TypingStrategy  = Syn_TypingStrategy { errors_Syn_TypingStrategy :: (TS_Errors), self_Syn_TypingStrategy :: (TypingStrategy), warnings_Syn_TypingStrategy :: (TS_Warnings) }
+data Inh_TypingStrategy  = Inh_TypingStrategy { importEnvironment_Inh_TypingStrategy :: !(ImportEnvironment) }
+data Syn_TypingStrategy  = Syn_TypingStrategy { errors_Syn_TypingStrategy :: !(TS_Errors), self_Syn_TypingStrategy :: !(TypingStrategy), warnings_Syn_TypingStrategy :: !(TS_Warnings) }
 {-# INLINABLE wrap_TypingStrategy #-}
 wrap_TypingStrategy :: T_TypingStrategy  -> Inh_TypingStrategy  -> (Syn_TypingStrategy )
-wrap_TypingStrategy (T_TypingStrategy act) (Inh_TypingStrategy _lhsIimportEnvironment) =
+wrap_TypingStrategy !(T_TypingStrategy act) !(Inh_TypingStrategy _lhsIimportEnvironment) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
+     do !sem <- act
         let arg184 = T_TypingStrategy_vIn184 _lhsIimportEnvironment
-        (T_TypingStrategy_vOut184 _lhsOerrors _lhsOself _lhsOwarnings) <- return (inv_TypingStrategy_s185 sem arg184)
+        !(T_TypingStrategy_vOut184 _lhsOerrors _lhsOself _lhsOwarnings) <- return (inv_TypingStrategy_s185 sem arg184)
         return (Syn_TypingStrategy _lhsOerrors _lhsOself _lhsOwarnings)
    )
 
@@ -6325,6 +6419,10 @@ wrap_TypingStrategy (T_TypingStrategy act) (Inh_TypingStrategy _lhsIimportEnviro
 {-# NOINLINE sem_TypingStrategy #-}
 sem_TypingStrategy :: TypingStrategy  -> T_TypingStrategy 
 sem_TypingStrategy ( TypingStrategy_Siblings names_ ) = sem_TypingStrategy_Siblings ( sem_Names names_ )
+sem_TypingStrategy ( TypingStrategy_Never predName_ predType_ !message_ ) = sem_TypingStrategy_Never ( sem_Name predName_ ) ( sem_Type predType_ ) message_
+sem_TypingStrategy ( TypingStrategy_Close name_ !message_ ) = sem_TypingStrategy_Close ( sem_Name name_ ) message_
+sem_TypingStrategy ( TypingStrategy_Disjoint names_ !message_ ) = sem_TypingStrategy_Disjoint ( sem_Names names_ ) message_
+sem_TypingStrategy ( TypingStrategy_Default className_ !constructors_ ) = sem_TypingStrategy_Default ( sem_Name className_ ) constructors_
 sem_TypingStrategy ( TypingStrategy_TypingStrategy typerule_ statements_ ) = sem_TypingStrategy_TypingStrategy ( sem_TypeRule typerule_ ) ( sem_UserStatements statements_ )
 
 -- semantic domain
@@ -6342,117 +6440,263 @@ data T_TypingStrategy_vOut184  = T_TypingStrategy_vOut184 (TS_Errors) (TypingStr
 sem_TypingStrategy_Siblings :: T_Names  -> T_TypingStrategy 
 sem_TypingStrategy_Siblings arg_names_ = T_TypingStrategy (return st185) where
    {-# NOINLINE st185 #-}
-   st185 = let
+   !st185 = let
       v184 :: T_TypingStrategy_v184 
-      v184 = \ (T_TypingStrategy_vIn184 _lhsIimportEnvironment) -> ( let
+      v184 = \ !(T_TypingStrategy_vIn184 _lhsIimportEnvironment) -> ( let
          _namesX119 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_names_))
          (T_Names_vOut118 _namesIself) = inv_Names_s119 _namesX119 (T_Names_vIn118 )
          _lhsOerrors :: TS_Errors
-         _lhsOerrors = rule412  ()
+         _lhsOerrors = rule433  ()
          _lhsOwarnings :: TS_Warnings
-         _lhsOwarnings = rule413  ()
-         _self = rule414 _namesIself
+         _lhsOwarnings = rule434  ()
+         _self = rule435 _namesIself
          _lhsOself :: TypingStrategy
-         _lhsOself = rule415 _self
-         __result_ = T_TypingStrategy_vOut184 _lhsOerrors _lhsOself _lhsOwarnings
+         _lhsOself = rule436 _self
+         !__result_ = T_TypingStrategy_vOut184 _lhsOerrors _lhsOself _lhsOwarnings
          in __result_ )
      in C_TypingStrategy_s185 v184
-   {-# INLINE rule412 #-}
-   rule412 = \  (_ :: ()) ->
+   {-# INLINE rule433 #-}
+   rule433 = \  (_ :: ()) ->
                               []
-   {-# INLINE rule413 #-}
-   rule413 = \  (_ :: ()) ->
+   {-# INLINE rule434 #-}
+   rule434 = \  (_ :: ()) ->
                               []
-   {-# INLINE rule414 #-}
-   rule414 = \ ((_namesIself) :: Names) ->
+   {-# INLINE rule435 #-}
+   rule435 = \ ((_namesIself) :: Names) ->
      TypingStrategy_Siblings _namesIself
-   {-# INLINE rule415 #-}
-   rule415 = \ _self ->
+   {-# INLINE rule436 #-}
+   rule436 = \ _self ->
+     _self
+{-# NOINLINE sem_TypingStrategy_Never #-}
+sem_TypingStrategy_Never :: T_Name  -> T_Type  -> (String) -> T_TypingStrategy 
+sem_TypingStrategy_Never arg_predName_ arg_predType_ !arg_message_ = T_TypingStrategy (return st185) where
+   {-# NOINLINE st185 #-}
+   !st185 = let
+      v184 :: T_TypingStrategy_v184 
+      v184 = \ !(T_TypingStrategy_vIn184 _lhsIimportEnvironment) -> ( let
+         _predNameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_predName_))
+         _predTypeX173 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_predType_))
+         (T_Name_vOut115 _predNameIself) = inv_Name_s116 _predNameX116 (T_Name_vIn115 )
+         (T_Type_vOut172 _predTypeIself _predTypeItypevariables) = inv_Type_s173 _predTypeX173 (T_Type_vIn172 _predTypeOqualifier)
+         _lhsOerrors :: TS_Errors
+         _lhsOerrors = rule437  ()
+         _lhsOwarnings :: TS_Warnings
+         _lhsOwarnings = rule438  ()
+         _self = rule439 _predNameIself _predTypeIself arg_message_
+         _lhsOself :: TypingStrategy
+         _lhsOself = rule440 _self
+         _predTypeOqualifier = rule441  ()
+         !__result_ = T_TypingStrategy_vOut184 _lhsOerrors _lhsOself _lhsOwarnings
+         in __result_ )
+     in C_TypingStrategy_s185 v184
+   {-# INLINE rule437 #-}
+   rule437 = \  (_ :: ()) ->
+                            []
+   {-# INLINE rule438 #-}
+   rule438 = \  (_ :: ()) ->
+                            []
+   {-# INLINE rule439 #-}
+   rule439 = \ ((_predNameIself) :: Name) ((_predTypeIself) :: Type) message_ ->
+     TypingStrategy_Never _predNameIself _predTypeIself message_
+   {-# INLINE rule440 #-}
+   rule440 = \ _self ->
+     _self
+   {-# INLINE rule441 #-}
+   rule441 = \  (_ :: ()) ->
+     error "missing rule: TypingStrategy.Never.predType.qualifier"
+{-# NOINLINE sem_TypingStrategy_Close #-}
+sem_TypingStrategy_Close :: T_Name  -> (String) -> T_TypingStrategy 
+sem_TypingStrategy_Close arg_name_ !arg_message_ = T_TypingStrategy (return st185) where
+   {-# NOINLINE st185 #-}
+   !st185 = let
+      v184 :: T_TypingStrategy_v184 
+      v184 = \ !(T_TypingStrategy_vIn184 _lhsIimportEnvironment) -> ( let
+         _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
+         (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
+         _lhsOerrors :: TS_Errors
+         _lhsOerrors = rule442  ()
+         _lhsOwarnings :: TS_Warnings
+         _lhsOwarnings = rule443  ()
+         _self = rule444 _nameIself arg_message_
+         _lhsOself :: TypingStrategy
+         _lhsOself = rule445 _self
+         !__result_ = T_TypingStrategy_vOut184 _lhsOerrors _lhsOself _lhsOwarnings
+         in __result_ )
+     in C_TypingStrategy_s185 v184
+   {-# INLINE rule442 #-}
+   rule442 = \  (_ :: ()) ->
+                            []
+   {-# INLINE rule443 #-}
+   rule443 = \  (_ :: ()) ->
+                            []
+   {-# INLINE rule444 #-}
+   rule444 = \ ((_nameIself) :: Name) message_ ->
+     TypingStrategy_Close _nameIself message_
+   {-# INLINE rule445 #-}
+   rule445 = \ _self ->
+     _self
+{-# NOINLINE sem_TypingStrategy_Disjoint #-}
+sem_TypingStrategy_Disjoint :: T_Names  -> (String) -> T_TypingStrategy 
+sem_TypingStrategy_Disjoint arg_names_ !arg_message_ = T_TypingStrategy (return st185) where
+   {-# NOINLINE st185 #-}
+   !st185 = let
+      v184 :: T_TypingStrategy_v184 
+      v184 = \ !(T_TypingStrategy_vIn184 _lhsIimportEnvironment) -> ( let
+         _namesX119 = Control.Monad.Identity.runIdentity (attach_T_Names (arg_names_))
+         (T_Names_vOut118 _namesIself) = inv_Names_s119 _namesX119 (T_Names_vIn118 )
+         _lhsOerrors :: TS_Errors
+         _lhsOerrors = rule446  ()
+         _lhsOwarnings :: TS_Warnings
+         _lhsOwarnings = rule447  ()
+         _self = rule448 _namesIself arg_message_
+         _lhsOself :: TypingStrategy
+         _lhsOself = rule449 _self
+         !__result_ = T_TypingStrategy_vOut184 _lhsOerrors _lhsOself _lhsOwarnings
+         in __result_ )
+     in C_TypingStrategy_s185 v184
+   {-# INLINE rule446 #-}
+   rule446 = \  (_ :: ()) ->
+                            []
+   {-# INLINE rule447 #-}
+   rule447 = \  (_ :: ()) ->
+                            []
+   {-# INLINE rule448 #-}
+   rule448 = \ ((_namesIself) :: Names) message_ ->
+     TypingStrategy_Disjoint _namesIself message_
+   {-# INLINE rule449 #-}
+   rule449 = \ _self ->
+     _self
+{-# NOINLINE sem_TypingStrategy_Default #-}
+sem_TypingStrategy_Default :: T_Name  -> ([Type]) -> T_TypingStrategy 
+sem_TypingStrategy_Default arg_className_ !arg_constructors_ = T_TypingStrategy (return st185) where
+   {-# NOINLINE st185 #-}
+   !st185 = let
+      v184 :: T_TypingStrategy_v184 
+      v184 = \ !(T_TypingStrategy_vIn184 _lhsIimportEnvironment) -> ( let
+         _classNameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_className_))
+         (T_Name_vOut115 _classNameIself) = inv_Name_s116 _classNameX116 (T_Name_vIn115 )
+         _lhsOerrors :: TS_Errors
+         _lhsOerrors = rule450  ()
+         _lhsOwarnings :: TS_Warnings
+         _lhsOwarnings = rule451  ()
+         _self = rule452 _classNameIself arg_constructors_
+         _lhsOself :: TypingStrategy
+         _lhsOself = rule453 _self
+         !__result_ = T_TypingStrategy_vOut184 _lhsOerrors _lhsOself _lhsOwarnings
+         in __result_ )
+     in C_TypingStrategy_s185 v184
+   {-# INLINE rule450 #-}
+   rule450 = \  (_ :: ()) ->
+                            []
+   {-# INLINE rule451 #-}
+   rule451 = \  (_ :: ()) ->
+                            []
+   {-# INLINE rule452 #-}
+   rule452 = \ ((_classNameIself) :: Name) constructors_ ->
+     TypingStrategy_Default _classNameIself constructors_
+   {-# INLINE rule453 #-}
+   rule453 = \ _self ->
      _self
 {-# NOINLINE sem_TypingStrategy_TypingStrategy #-}
 sem_TypingStrategy_TypingStrategy :: T_TypeRule  -> T_UserStatements  -> T_TypingStrategy 
 sem_TypingStrategy_TypingStrategy arg_typerule_ arg_statements_ = T_TypingStrategy (return st185) where
    {-# NOINLINE st185 #-}
-   st185 = let
+   !st185 = let
       v184 :: T_TypingStrategy_v184 
-      v184 = \ (T_TypingStrategy_vIn184 _lhsIimportEnvironment) -> ( let
+      v184 = \ !(T_TypingStrategy_vIn184 _lhsIimportEnvironment) -> ( let
          _typeruleX176 = Control.Monad.Identity.runIdentity (attach_T_TypeRule (arg_typerule_))
          _statementsX191 = Control.Monad.Identity.runIdentity (attach_T_UserStatements (arg_statements_))
-         (T_TypeRule_vOut175 _typeruleIconclusionAllVariables _typeruleIconclusionExpression _typeruleIconclusionType _typeruleIself _typeruleIsimpleJudgements _typeruleItypevariables) = inv_TypeRule_s176 _typeruleX176 (T_TypeRule_vIn175 _typeruleOnameMap _typeruleOsimpleJudgements)
-         (T_UserStatements_vOut190 _statementsImetaVariableConstraintNames _statementsIself _statementsItypevariables _statementsIuserConstraints _statementsIuserPredicates) = inv_UserStatements_s191 _statementsX191 (T_UserStatements_vIn190 _statementsOattributeTable _statementsOmetaVariableConstraintNames _statementsOnameMap _statementsOstandardConstraintInfo _statementsOuserConstraints _statementsOuserPredicates)
-         _uniqueTypevariables = rule416 _statementsItypevariables _typeruleItypevariables
-         _statementsOuserConstraints = rule417  ()
-         _statementsOuserPredicates = rule418  ()
-         _typeruleOsimpleJudgements = rule419  ()
-         _statementsOmetaVariableConstraintNames = rule420  ()
-         _allMetaVariables = rule421 _typeruleIsimpleJudgements
-         _constraintsNotExplicit = rule422 _allMetaVariables _statementsImetaVariableConstraintNames
-         _standardConstraintInfo = rule423  ()
-         _attributeTable = rule424  ()
-         _name = rule425 _typeruleIconclusionExpression
-         _nameMap = rule426 _uniqueTypevariables
-         _errors = rule427 _soundnessErrors _staticErrors
-         _staticErrors = rule428 _allImportedVariables _allMetaVariables _name _solveErrors _statementsImetaVariableConstraintNames _typeruleIconclusionAllVariables
-         _warnings = rule429  ()
-         _substitution = rule430 _solveResult
-         _solveErrors = rule431 _solveResult
-         _solveResult = rule432 _classEnv _lhsIimportEnvironment _statementsIuserConstraints _uniqueTypevariables
-         _classEnv = rule433 _lhsIimportEnvironment
-         _soundnessErrors = rule434 _classEnv _lhsIimportEnvironment _name _statementsIuserPredicates _staticErrors _substitution _typeruleIconclusionExpression _typeruleIconclusionType _typeruleIsimpleJudgements
-         _allImportedVariables = rule435 _lhsIimportEnvironment
-         _self = rule436 _statementsIself _typeruleIself
+         (T_TypeRule_vOut175 _typeruleIconclusionAllVariables _typeruleIconclusionExpression _typeruleIconclusionType _typeruleIself _typeruleIsimpleJudgements _typeruleItypevariables) = inv_TypeRule_s176 _typeruleX176 (T_TypeRule_vIn175 _typeruleOnameMap _typeruleOqualifier _typeruleOsimpleJudgements)
+         (T_UserStatements_vOut190 _statementsImetaVariableConstraintNames _statementsIself _statementsItypevariables _statementsIuserConstraints _statementsIuserPredicates) = inv_UserStatements_s191 _statementsX191 (T_UserStatements_vIn190 _statementsOattributeTable _statementsOmetaVariableConstraintNames _statementsOnameMap _statementsOqualifier _statementsOstandardConstraintInfo _statementsOuserConstraints _statementsOuserPredicates)
+         _uniqueTypevariables = rule454 _statementsItypevariables _typeruleItypevariables
+         _statementsOuserConstraints = rule455  ()
+         _statementsOuserPredicates = rule456  ()
+         _typeruleOsimpleJudgements = rule457  ()
+         _statementsOmetaVariableConstraintNames = rule458  ()
+         _allMetaVariables = rule459 _typeruleIsimpleJudgements
+         _constraintsNotExplicit = rule460 _allMetaVariables _statementsImetaVariableConstraintNames
+         _standardConstraintInfo = rule461  ()
+         _attributeTable = rule462  ()
+         _typeruleOqualifier = rule463 _qualifier
+         _statementsOqualifier = rule464 _qualifier
+         _qualifier = rule465 _lhsIimportEnvironment
+         _unqualifier = rule466 _lhsIimportEnvironment
+         _name = rule467 _typeruleIconclusionExpression
+         _nameMap = rule468 _uniqueTypevariables
+         _errors = rule469 _soundnessErrors _staticErrors
+         _staticErrors = rule470 _allImportedVariables _allMetaVariables _lhsIimportEnvironment _name _solveErrors _statementsImetaVariableConstraintNames _typeruleIconclusionAllVariables
+         _warnings = rule471  ()
+         _substitution = rule472 _solveResult
+         _solveErrors = rule473 _solveResult
+         _solveResult = rule474 _classEnv _lhsIimportEnvironment _statementsIuserConstraints _uniqueTypevariables
+         _classEnv = rule475 _lhsIimportEnvironment
+         _soundnessErrors = rule476 _classEnv _lhsIimportEnvironment _name _statementsIuserPredicates _staticErrors _substitution _typeruleIconclusionExpression _typeruleIconclusionType _typeruleIsimpleJudgements _unqualifier
+         _allImportedVariables = rule477 _lhsIimportEnvironment
+         _self = rule478 _statementsIself _typeruleIself
          _lhsOself :: TypingStrategy
-         _lhsOself = rule437 _self
+         _lhsOself = rule479 _self
          _lhsOerrors :: TS_Errors
-         _lhsOerrors = rule438 _errors
+         _lhsOerrors = rule480 _errors
          _lhsOwarnings :: TS_Warnings
-         _lhsOwarnings = rule439 _warnings
-         _typeruleOnameMap = rule440 _nameMap
-         _statementsOattributeTable = rule441 _attributeTable
-         _statementsOnameMap = rule442 _nameMap
-         _statementsOstandardConstraintInfo = rule443 _standardConstraintInfo
-         __result_ = T_TypingStrategy_vOut184 _lhsOerrors _lhsOself _lhsOwarnings
+         _lhsOwarnings = rule481 _warnings
+         _typeruleOnameMap = rule482 _nameMap
+         _statementsOattributeTable = rule483 _attributeTable
+         _statementsOnameMap = rule484 _nameMap
+         _statementsOstandardConstraintInfo = rule485 _standardConstraintInfo
+         !__result_ = T_TypingStrategy_vOut184 _lhsOerrors _lhsOself _lhsOwarnings
          in __result_ )
      in C_TypingStrategy_s185 v184
-   {-# INLINE rule416 #-}
-   rule416 = \ ((_statementsItypevariables) :: Names) ((_typeruleItypevariables) :: Names) ->
+   {-# INLINE rule454 #-}
+   rule454 = \ ((_statementsItypevariables) :: Names) ((_typeruleItypevariables) :: Names) ->
                                      nub (_typeruleItypevariables ++ _statementsItypevariables)
-   {-# INLINE rule417 #-}
-   rule417 = \  (_ :: ()) ->
+   {-# INLINE rule455 #-}
+   rule455 = \  (_ :: ()) ->
                                         []
-   {-# INLINE rule418 #-}
-   rule418 = \  (_ :: ()) ->
+   {-# INLINE rule456 #-}
+   rule456 = \  (_ :: ()) ->
                                         []
-   {-# INLINE rule419 #-}
-   rule419 = \  (_ :: ()) ->
+   {-# INLINE rule457 #-}
+   rule457 = \  (_ :: ()) ->
                                        []
-   {-# INLINE rule420 #-}
-   rule420 = \  (_ :: ()) ->
+   {-# INLINE rule458 #-}
+   rule458 = \  (_ :: ()) ->
                                                     []
-   {-# INLINE rule421 #-}
-   rule421 = \ ((_typeruleIsimpleJudgements) :: [(String,Tp)]) ->
+   {-# INLINE rule459 #-}
+   rule459 = \ ((_typeruleIsimpleJudgements) :: [(String,Tp)]) ->
                                       map fst _typeruleIsimpleJudgements
-   {-# INLINE rule422 #-}
-   rule422 = \ _allMetaVariables ((_statementsImetaVariableConstraintNames) :: Names) ->
+   {-# INLINE rule460 #-}
+   rule460 = \ _allMetaVariables ((_statementsImetaVariableConstraintNames) :: Names) ->
                                         filter (`notElem` (map show _statementsImetaVariableConstraintNames)) _allMetaVariables
-   {-# INLINE rule423 #-}
-   rule423 = \  (_ :: ()) ->
+   {-# INLINE rule461 #-}
+   rule461 = \  (_ :: ()) ->
                                         standardConstraintInfo
-   {-# INLINE rule424 #-}
-   rule424 = \  (_ :: ()) ->
+   {-# INLINE rule462 #-}
+   rule462 = \  (_ :: ()) ->
                                         []
-   {-# INLINE rule425 #-}
-   rule425 = \ ((_typeruleIconclusionExpression) :: Expression) ->
+   {-# INLINE rule463 #-}
+   rule463 = \ _qualifier ->
+                                  _qualifier
+   {-# INLINE rule464 #-}
+   rule464 = \ _qualifier ->
+                                  _qualifier
+   {-# INLINE rule465 #-}
+   rule465 = \ ((_lhsIimportEnvironment) :: ImportEnvironment) ->
+                              convertTpToQualified _lhsIimportEnvironment
+   {-# INLINE rule466 #-}
+   rule466 = \ ((_lhsIimportEnvironment) :: ImportEnvironment) ->
+                              convertTpScheme (unQualifyName _lhsIimportEnvironment)
+   {-# INLINE rule467 #-}
+   rule467 = \ ((_typeruleIconclusionExpression) :: Expression) ->
                               show (PP.text_Syn_Expression $ PP.wrap_Expression (PP.sem_Expression _typeruleIconclusionExpression) PP.Inh_Expression)
-   {-# INLINE rule426 #-}
-   rule426 = \ _uniqueTypevariables ->
+   {-# INLINE rule468 #-}
+   rule468 = \ _uniqueTypevariables ->
                               zip _uniqueTypevariables (map TVar [0..])
-   {-# INLINE rule427 #-}
-   rule427 = \ _soundnessErrors _staticErrors ->
+   {-# INLINE rule469 #-}
+   rule469 = \ _soundnessErrors _staticErrors ->
                               _staticErrors ++ _soundnessErrors
-   {-# INLINE rule428 #-}
-   rule428 = \ _allImportedVariables _allMetaVariables _name _solveErrors ((_statementsImetaVariableConstraintNames) :: Names) ((_typeruleIconclusionAllVariables) :: [(Name,Entity)]) ->
-                              [ InconsistentConstraint _name x | (x, _) <- _solveErrors ] ++
+   {-# INLINE rule470 #-}
+   rule470 = \ _allImportedVariables _allMetaVariables ((_lhsIimportEnvironment) :: ImportEnvironment) _name _solveErrors ((_statementsImetaVariableConstraintNames) :: Names) ((_typeruleIconclusionAllVariables) :: [(Name,Entity)]) ->
+                              [ InconsistentConstraint _name (unQualifyTypePair _lhsIimportEnvironment x) | (x, _) <- _solveErrors ] ++
                               [ UndefinedTS _name name entity
                               | (name, entity) <- _typeruleIconclusionAllVariables
                               , show name `notElem` (_allMetaVariables ++ map show _allImportedVariables)
@@ -6471,27 +6715,27 @@ sem_TypingStrategy_TypingStrategy arg_typerule_ arg_statements_ = T_TypingStrate
                               [ DuplicatedMetaVariableConstraints _name (show x)
                               | x:_ <- findDuplicates _statementsImetaVariableConstraintNames
                               ]
-   {-# INLINE rule429 #-}
-   rule429 = \  (_ :: ()) ->
+   {-# INLINE rule471 #-}
+   rule471 = \  (_ :: ()) ->
                               []
-   {-# INLINE rule430 #-}
-   rule430 = \ _solveResult ->
+   {-# INLINE rule472 #-}
+   rule472 = \ _solveResult ->
                               substitutionFromResult _solveResult
-   {-# INLINE rule431 #-}
-   rule431 = \ _solveResult ->
+   {-# INLINE rule473 #-}
+   rule473 = \ _solveResult ->
                               errorsFromResult _solveResult
-   {-# INLINE rule432 #-}
-   rule432 = \ _classEnv ((_lhsIimportEnvironment) :: ImportEnvironment) ((_statementsIuserConstraints) :: TypeConstraints ConstraintInfo) _uniqueTypevariables ->
+   {-# INLINE rule474 #-}
+   rule474 = \ _classEnv ((_lhsIimportEnvironment) :: ImportEnvironment) ((_statementsIuserConstraints) :: TypeConstraints ConstraintInfo) _uniqueTypevariables ->
                   let options = solveOptions { uniqueCounter = length _uniqueTypevariables
                                              , Top.Solver.typeSynonyms = getOrderedTypeSynonyms _lhsIimportEnvironment
                                              , classEnvironment = _classEnv
                                              }
                   in fst (solve options (reverse _statementsIuserConstraints) greedyConstraintSolver)
-   {-# INLINE rule433 #-}
-   rule433 = \ ((_lhsIimportEnvironment) :: ImportEnvironment) ->
-                          createClassEnvironment _lhsIimportEnvironment
-   {-# INLINE rule434 #-}
-   rule434 = \ _classEnv ((_lhsIimportEnvironment) :: ImportEnvironment) _name ((_statementsIuserPredicates) :: Predicates) _staticErrors _substitution ((_typeruleIconclusionExpression) :: Expression) ((_typeruleIconclusionType) :: Tp) ((_typeruleIsimpleJudgements) :: [(String,Tp)]) ->
+   {-# INLINE rule475 #-}
+   rule475 = \ ((_lhsIimportEnvironment) :: ImportEnvironment) ->
+                          IE.classEnvironment _lhsIimportEnvironment
+   {-# INLINE rule476 #-}
+   rule476 = \ _classEnv ((_lhsIimportEnvironment) :: ImportEnvironment) _name ((_statementsIuserPredicates) :: Predicates) _staticErrors _substitution ((_typeruleIconclusionExpression) :: Expression) ((_typeruleIconclusionType) :: Tp) ((_typeruleIsimpleJudgements) :: [(String,Tp)]) _unqualifier ->
                   if not (null _staticErrors)
                     then []
                     else let orderedMetaList =
@@ -6511,57 +6755,57 @@ sem_TypingStrategy_TypingStrategy arg_typerule_ arg_statements_ = T_TypingStrate
                                           &&
                                       genericInstanceOf synonyms _classEnv constraintsTpScheme inferredTpScheme
                                         then []
-                                        else [ Soundness _name inferredTpScheme constraintsTpScheme ]
-   {-# INLINE rule435 #-}
-   rule435 = \ ((_lhsIimportEnvironment) :: ImportEnvironment) ->
+                                        else [ Soundness _name (_unqualifier     inferredTpScheme) (_unqualifier     constraintsTpScheme) ]
+   {-# INLINE rule477 #-}
+   rule477 = \ ((_lhsIimportEnvironment) :: ImportEnvironment) ->
             M.keys (typeEnvironment   _lhsIimportEnvironment) ++
             M.keys (valueConstructors _lhsIimportEnvironment)
-   {-# INLINE rule436 #-}
-   rule436 = \ ((_statementsIself) :: UserStatements) ((_typeruleIself) :: TypeRule) ->
+   {-# INLINE rule478 #-}
+   rule478 = \ ((_statementsIself) :: UserStatements) ((_typeruleIself) :: TypeRule) ->
      TypingStrategy_TypingStrategy _typeruleIself _statementsIself
-   {-# INLINE rule437 #-}
-   rule437 = \ _self ->
+   {-# INLINE rule479 #-}
+   rule479 = \ _self ->
      _self
-   {-# INLINE rule438 #-}
-   rule438 = \ _errors ->
+   {-# INLINE rule480 #-}
+   rule480 = \ _errors ->
      _errors
-   {-# INLINE rule439 #-}
-   rule439 = \ _warnings ->
+   {-# INLINE rule481 #-}
+   rule481 = \ _warnings ->
      _warnings
-   {-# INLINE rule440 #-}
-   rule440 = \ _nameMap ->
+   {-# INLINE rule482 #-}
+   rule482 = \ _nameMap ->
      _nameMap
-   {-# INLINE rule441 #-}
-   rule441 = \ _attributeTable ->
+   {-# INLINE rule483 #-}
+   rule483 = \ _attributeTable ->
      _attributeTable
-   {-# INLINE rule442 #-}
-   rule442 = \ _nameMap ->
+   {-# INLINE rule484 #-}
+   rule484 = \ _nameMap ->
      _nameMap
-   {-# INLINE rule443 #-}
-   rule443 = \ _standardConstraintInfo ->
+   {-# INLINE rule485 #-}
+   rule485 = \ _standardConstraintInfo ->
      _standardConstraintInfo
 
 -- UserStatement -----------------------------------------------
 -- wrapper
-data Inh_UserStatement  = Inh_UserStatement { attributeTable_Inh_UserStatement :: ([((String, Maybe String), MessageBlock)]), metaVariableConstraintNames_Inh_UserStatement :: (Names), nameMap_Inh_UserStatement :: ([(Name,Tp)]), standardConstraintInfo_Inh_UserStatement :: (ConstraintInfo), userConstraints_Inh_UserStatement :: (TypeConstraints ConstraintInfo), userPredicates_Inh_UserStatement :: (Predicates) }
-data Syn_UserStatement  = Syn_UserStatement { metaVariableConstraintNames_Syn_UserStatement :: (Names), self_Syn_UserStatement :: (UserStatement), typevariables_Syn_UserStatement :: (Names), userConstraints_Syn_UserStatement :: (TypeConstraints ConstraintInfo), userPredicates_Syn_UserStatement :: (Predicates) }
+data Inh_UserStatement  = Inh_UserStatement { attributeTable_Inh_UserStatement :: !([((String, Maybe String), MessageBlock)]), metaVariableConstraintNames_Inh_UserStatement :: !(Names), nameMap_Inh_UserStatement :: !([(Name,Tp)]), qualifier_Inh_UserStatement :: !(Tp -> Tp), standardConstraintInfo_Inh_UserStatement :: !(ConstraintInfo), userConstraints_Inh_UserStatement :: !(TypeConstraints ConstraintInfo), userPredicates_Inh_UserStatement :: !(Predicates) }
+data Syn_UserStatement  = Syn_UserStatement { metaVariableConstraintNames_Syn_UserStatement :: !(Names), self_Syn_UserStatement :: !(UserStatement), typevariables_Syn_UserStatement :: !(Names), userConstraints_Syn_UserStatement :: !(TypeConstraints ConstraintInfo), userPredicates_Syn_UserStatement :: !(Predicates) }
 {-# INLINABLE wrap_UserStatement #-}
 wrap_UserStatement :: T_UserStatement  -> Inh_UserStatement  -> (Syn_UserStatement )
-wrap_UserStatement (T_UserStatement act) (Inh_UserStatement _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) =
+wrap_UserStatement !(T_UserStatement act) !(Inh_UserStatement _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIqualifier _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
-        let arg187 = T_UserStatement_vIn187 _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates
-        (T_UserStatement_vOut187 _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates) <- return (inv_UserStatement_s188 sem arg187)
+     do !sem <- act
+        let arg187 = T_UserStatement_vIn187 _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIqualifier _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates
+        !(T_UserStatement_vOut187 _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates) <- return (inv_UserStatement_s188 sem arg187)
         return (Syn_UserStatement _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates)
    )
 
 -- cata
 {-# NOINLINE sem_UserStatement #-}
 sem_UserStatement :: UserStatement  -> T_UserStatement 
-sem_UserStatement ( UserStatement_Equal leftType_ rightType_ message_ ) = sem_UserStatement_Equal ( sem_Type leftType_ ) ( sem_Type rightType_ ) message_
-sem_UserStatement ( UserStatement_Pred predClass_ predType_ message_ ) = sem_UserStatement_Pred ( sem_Name predClass_ ) ( sem_Type predType_ ) message_
+sem_UserStatement ( UserStatement_Equal leftType_ rightType_ !message_ ) = sem_UserStatement_Equal ( sem_Type leftType_ ) ( sem_Type rightType_ ) message_
+sem_UserStatement ( UserStatement_Pred predClass_ predType_ !message_ ) = sem_UserStatement_Pred ( sem_Name predClass_ ) ( sem_Type predType_ ) message_
 sem_UserStatement ( UserStatement_MetaVariableConstraints name_ ) = sem_UserStatement_MetaVariableConstraints ( sem_Name name_ )
-sem_UserStatement ( UserStatement_Phase phase_ ) = sem_UserStatement_Phase phase_
+sem_UserStatement ( UserStatement_Phase !phase_ ) = sem_UserStatement_Phase phase_
 
 -- semantic domain
 newtype T_UserStatement  = T_UserStatement {
@@ -6572,194 +6816,206 @@ newtype T_UserStatement_s188  = C_UserStatement_s188 {
                                                      }
 data T_UserStatement_s189  = C_UserStatement_s189
 type T_UserStatement_v187  = (T_UserStatement_vIn187 ) -> (T_UserStatement_vOut187 )
-data T_UserStatement_vIn187  = T_UserStatement_vIn187 ([((String, Maybe String), MessageBlock)]) (Names) ([(Name,Tp)]) (ConstraintInfo) (TypeConstraints ConstraintInfo) (Predicates)
+data T_UserStatement_vIn187  = T_UserStatement_vIn187 ([((String, Maybe String), MessageBlock)]) (Names) ([(Name,Tp)]) (Tp -> Tp) (ConstraintInfo) (TypeConstraints ConstraintInfo) (Predicates)
 data T_UserStatement_vOut187  = T_UserStatement_vOut187 (Names) (UserStatement) (Names) (TypeConstraints ConstraintInfo) (Predicates)
 {-# NOINLINE sem_UserStatement_Equal #-}
 sem_UserStatement_Equal :: T_Type  -> T_Type  -> (String) -> T_UserStatement 
-sem_UserStatement_Equal arg_leftType_ arg_rightType_ arg_message_ = T_UserStatement (return st188) where
+sem_UserStatement_Equal arg_leftType_ arg_rightType_ !arg_message_ = T_UserStatement (return st188) where
    {-# NOINLINE st188 #-}
-   st188 = let
+   !st188 = let
       v187 :: T_UserStatement_v187 
-      v187 = \ (T_UserStatement_vIn187 _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) -> ( let
+      v187 = \ !(T_UserStatement_vIn187 _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIqualifier _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) -> ( let
          _leftTypeX173 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_leftType_))
          _rightTypeX173 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_rightType_))
-         (T_Type_vOut172 _leftTypeIself _leftTypeItypevariables) = inv_Type_s173 _leftTypeX173 (T_Type_vIn172 )
-         (T_Type_vOut172 _rightTypeIself _rightTypeItypevariables) = inv_Type_s173 _rightTypeX173 (T_Type_vIn172 )
+         (T_Type_vOut172 _leftTypeIself _leftTypeItypevariables) = inv_Type_s173 _leftTypeX173 (T_Type_vIn172 _leftTypeOqualifier)
+         (T_Type_vOut172 _rightTypeIself _rightTypeItypevariables) = inv_Type_s173 _rightTypeX173 (T_Type_vIn172 _rightTypeOqualifier)
          _lhsOuserConstraints :: TypeConstraints ConstraintInfo
-         _lhsOuserConstraints = rule444 _lhsIuserConstraints _newConstraint
-         _newConstraint = rule445 _leftTypeIself _lhsInameMap _lhsIstandardConstraintInfo _rightTypeIself
+         _lhsOuserConstraints = rule486 _lhsIuserConstraints _newConstraint
+         _newConstraint = rule487 _leftTypeIself _lhsInameMap _lhsIqualifier _lhsIstandardConstraintInfo _rightTypeIself
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule446 _leftTypeItypevariables _rightTypeItypevariables
-         _self = rule447 _leftTypeIself _rightTypeIself arg_message_
+         _lhsOtypevariables = rule488 _leftTypeItypevariables _rightTypeItypevariables
+         _self = rule489 _leftTypeIself _rightTypeIself arg_message_
          _lhsOself :: UserStatement
-         _lhsOself = rule448 _self
+         _lhsOself = rule490 _self
          _lhsOmetaVariableConstraintNames :: Names
-         _lhsOmetaVariableConstraintNames = rule449 _lhsImetaVariableConstraintNames
+         _lhsOmetaVariableConstraintNames = rule491 _lhsImetaVariableConstraintNames
          _lhsOuserPredicates :: Predicates
-         _lhsOuserPredicates = rule450 _lhsIuserPredicates
-         __result_ = T_UserStatement_vOut187 _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates
+         _lhsOuserPredicates = rule492 _lhsIuserPredicates
+         _leftTypeOqualifier = rule493 _lhsIqualifier
+         _rightTypeOqualifier = rule494 _lhsIqualifier
+         !__result_ = T_UserStatement_vOut187 _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates
          in __result_ )
      in C_UserStatement_s188 v187
-   {-# INLINE rule444 #-}
-   rule444 = \ ((_lhsIuserConstraints) :: TypeConstraints ConstraintInfo) _newConstraint ->
+   {-# INLINE rule486 #-}
+   rule486 = \ ((_lhsIuserConstraints) :: TypeConstraints ConstraintInfo) _newConstraint ->
                                  _newConstraint : _lhsIuserConstraints
-   {-# INLINE rule445 #-}
-   rule445 = \ ((_leftTypeIself) :: Type) ((_lhsInameMap) :: [(Name,Tp)]) ((_lhsIstandardConstraintInfo) :: ConstraintInfo) ((_rightTypeIself) :: Type) ->
-                                 (makeTpFromType _lhsInameMap _leftTypeIself .==. makeTpFromType _lhsInameMap _rightTypeIself) _lhsIstandardConstraintInfo
-   {-# INLINE rule446 #-}
-   rule446 = \ ((_leftTypeItypevariables) :: Names) ((_rightTypeItypevariables) :: Names) ->
+   {-# INLINE rule487 #-}
+   rule487 = \ ((_leftTypeIself) :: Type) ((_lhsInameMap) :: [(Name,Tp)]) ((_lhsIqualifier) :: Tp -> Tp) ((_lhsIstandardConstraintInfo) :: ConstraintInfo) ((_rightTypeIself) :: Type) ->
+                                 (makeTpFromType _lhsInameMap _leftTypeIself .==. (_lhsIqualifier $ makeTpFromType _lhsInameMap _rightTypeIself)) _lhsIstandardConstraintInfo
+   {-# INLINE rule488 #-}
+   rule488 = \ ((_leftTypeItypevariables) :: Names) ((_rightTypeItypevariables) :: Names) ->
      _leftTypeItypevariables  ++  _rightTypeItypevariables
-   {-# INLINE rule447 #-}
-   rule447 = \ ((_leftTypeIself) :: Type) ((_rightTypeIself) :: Type) message_ ->
+   {-# INLINE rule489 #-}
+   rule489 = \ ((_leftTypeIself) :: Type) ((_rightTypeIself) :: Type) message_ ->
      UserStatement_Equal _leftTypeIself _rightTypeIself message_
-   {-# INLINE rule448 #-}
-   rule448 = \ _self ->
+   {-# INLINE rule490 #-}
+   rule490 = \ _self ->
      _self
-   {-# INLINE rule449 #-}
-   rule449 = \ ((_lhsImetaVariableConstraintNames) :: Names) ->
+   {-# INLINE rule491 #-}
+   rule491 = \ ((_lhsImetaVariableConstraintNames) :: Names) ->
      _lhsImetaVariableConstraintNames
-   {-# INLINE rule450 #-}
-   rule450 = \ ((_lhsIuserPredicates) :: Predicates) ->
+   {-# INLINE rule492 #-}
+   rule492 = \ ((_lhsIuserPredicates) :: Predicates) ->
      _lhsIuserPredicates
+   {-# INLINE rule493 #-}
+   rule493 = \ ((_lhsIqualifier) :: Tp -> Tp) ->
+     _lhsIqualifier
+   {-# INLINE rule494 #-}
+   rule494 = \ ((_lhsIqualifier) :: Tp -> Tp) ->
+     _lhsIqualifier
 {-# NOINLINE sem_UserStatement_Pred #-}
 sem_UserStatement_Pred :: T_Name  -> T_Type  -> (String) -> T_UserStatement 
-sem_UserStatement_Pred arg_predClass_ arg_predType_ arg_message_ = T_UserStatement (return st188) where
+sem_UserStatement_Pred arg_predClass_ arg_predType_ !arg_message_ = T_UserStatement (return st188) where
    {-# NOINLINE st188 #-}
-   st188 = let
+   !st188 = let
       v187 :: T_UserStatement_v187 
-      v187 = \ (T_UserStatement_vIn187 _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) -> ( let
+      v187 = \ !(T_UserStatement_vIn187 _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIqualifier _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) -> ( let
          _predClassX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_predClass_))
          _predTypeX173 = Control.Monad.Identity.runIdentity (attach_T_Type (arg_predType_))
          (T_Name_vOut115 _predClassIself) = inv_Name_s116 _predClassX116 (T_Name_vIn115 )
-         (T_Type_vOut172 _predTypeIself _predTypeItypevariables) = inv_Type_s173 _predTypeX173 (T_Type_vIn172 )
+         (T_Type_vOut172 _predTypeIself _predTypeItypevariables) = inv_Type_s173 _predTypeX173 (T_Type_vIn172 _predTypeOqualifier)
          _lhsOuserPredicates :: Predicates
-         _lhsOuserPredicates = rule451 _lhsIuserPredicates _newPredicate
-         _newPredicate = rule452 _lhsInameMap _predClassIself _predTypeIself
+         _lhsOuserPredicates = rule495 _lhsIuserPredicates _newPredicate
+         _newPredicate = rule496 _lhsInameMap _predClassIself _predTypeIself
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule453 _predTypeItypevariables
-         _self = rule454 _predClassIself _predTypeIself arg_message_
+         _lhsOtypevariables = rule497 _predTypeItypevariables
+         _self = rule498 _predClassIself _predTypeIself arg_message_
          _lhsOself :: UserStatement
-         _lhsOself = rule455 _self
+         _lhsOself = rule499 _self
          _lhsOmetaVariableConstraintNames :: Names
-         _lhsOmetaVariableConstraintNames = rule456 _lhsImetaVariableConstraintNames
+         _lhsOmetaVariableConstraintNames = rule500 _lhsImetaVariableConstraintNames
          _lhsOuserConstraints :: TypeConstraints ConstraintInfo
-         _lhsOuserConstraints = rule457 _lhsIuserConstraints
-         __result_ = T_UserStatement_vOut187 _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates
+         _lhsOuserConstraints = rule501 _lhsIuserConstraints
+         _predTypeOqualifier = rule502 _lhsIqualifier
+         !__result_ = T_UserStatement_vOut187 _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates
          in __result_ )
      in C_UserStatement_s188 v187
-   {-# INLINE rule451 #-}
-   rule451 = \ ((_lhsIuserPredicates) :: Predicates) _newPredicate ->
+   {-# INLINE rule495 #-}
+   rule495 = \ ((_lhsIuserPredicates) :: Predicates) _newPredicate ->
                                 _newPredicate : _lhsIuserPredicates
-   {-# INLINE rule452 #-}
-   rule452 = \ ((_lhsInameMap) :: [(Name,Tp)]) ((_predClassIself) :: Name) ((_predTypeIself) :: Type) ->
+   {-# INLINE rule496 #-}
+   rule496 = \ ((_lhsInameMap) :: [(Name,Tp)]) ((_predClassIself) :: Name) ((_predTypeIself) :: Type) ->
                                 Predicate (show _predClassIself) (makeTpFromType _lhsInameMap _predTypeIself)
-   {-# INLINE rule453 #-}
-   rule453 = \ ((_predTypeItypevariables) :: Names) ->
+   {-# INLINE rule497 #-}
+   rule497 = \ ((_predTypeItypevariables) :: Names) ->
      _predTypeItypevariables
-   {-# INLINE rule454 #-}
-   rule454 = \ ((_predClassIself) :: Name) ((_predTypeIself) :: Type) message_ ->
+   {-# INLINE rule498 #-}
+   rule498 = \ ((_predClassIself) :: Name) ((_predTypeIself) :: Type) message_ ->
      UserStatement_Pred _predClassIself _predTypeIself message_
-   {-# INLINE rule455 #-}
-   rule455 = \ _self ->
+   {-# INLINE rule499 #-}
+   rule499 = \ _self ->
      _self
-   {-# INLINE rule456 #-}
-   rule456 = \ ((_lhsImetaVariableConstraintNames) :: Names) ->
+   {-# INLINE rule500 #-}
+   rule500 = \ ((_lhsImetaVariableConstraintNames) :: Names) ->
      _lhsImetaVariableConstraintNames
-   {-# INLINE rule457 #-}
-   rule457 = \ ((_lhsIuserConstraints) :: TypeConstraints ConstraintInfo) ->
+   {-# INLINE rule501 #-}
+   rule501 = \ ((_lhsIuserConstraints) :: TypeConstraints ConstraintInfo) ->
      _lhsIuserConstraints
+   {-# INLINE rule502 #-}
+   rule502 = \ ((_lhsIqualifier) :: Tp -> Tp) ->
+     _lhsIqualifier
 {-# NOINLINE sem_UserStatement_MetaVariableConstraints #-}
 sem_UserStatement_MetaVariableConstraints :: T_Name  -> T_UserStatement 
 sem_UserStatement_MetaVariableConstraints arg_name_ = T_UserStatement (return st188) where
    {-# NOINLINE st188 #-}
-   st188 = let
+   !st188 = let
       v187 :: T_UserStatement_v187 
-      v187 = \ (T_UserStatement_vIn187 _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) -> ( let
+      v187 = \ !(T_UserStatement_vIn187 _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIqualifier _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) -> ( let
          _nameX116 = Control.Monad.Identity.runIdentity (attach_T_Name (arg_name_))
          (T_Name_vOut115 _nameIself) = inv_Name_s116 _nameX116 (T_Name_vIn115 )
          _lhsOmetaVariableConstraintNames :: Names
-         _lhsOmetaVariableConstraintNames = rule458 _lhsImetaVariableConstraintNames _nameIself
+         _lhsOmetaVariableConstraintNames = rule503 _lhsImetaVariableConstraintNames _nameIself
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule459  ()
-         _self = rule460 _nameIself
+         _lhsOtypevariables = rule504  ()
+         _self = rule505 _nameIself
          _lhsOself :: UserStatement
-         _lhsOself = rule461 _self
+         _lhsOself = rule506 _self
          _lhsOuserConstraints :: TypeConstraints ConstraintInfo
-         _lhsOuserConstraints = rule462 _lhsIuserConstraints
+         _lhsOuserConstraints = rule507 _lhsIuserConstraints
          _lhsOuserPredicates :: Predicates
-         _lhsOuserPredicates = rule463 _lhsIuserPredicates
-         __result_ = T_UserStatement_vOut187 _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates
+         _lhsOuserPredicates = rule508 _lhsIuserPredicates
+         !__result_ = T_UserStatement_vOut187 _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates
          in __result_ )
      in C_UserStatement_s188 v187
-   {-# INLINE rule458 #-}
-   rule458 = \ ((_lhsImetaVariableConstraintNames) :: Names) ((_nameIself) :: Name) ->
+   {-# INLINE rule503 #-}
+   rule503 = \ ((_lhsImetaVariableConstraintNames) :: Names) ((_nameIself) :: Name) ->
                                              _nameIself : _lhsImetaVariableConstraintNames
-   {-# INLINE rule459 #-}
-   rule459 = \  (_ :: ()) ->
+   {-# INLINE rule504 #-}
+   rule504 = \  (_ :: ()) ->
      []
-   {-# INLINE rule460 #-}
-   rule460 = \ ((_nameIself) :: Name) ->
+   {-# INLINE rule505 #-}
+   rule505 = \ ((_nameIself) :: Name) ->
      UserStatement_MetaVariableConstraints _nameIself
-   {-# INLINE rule461 #-}
-   rule461 = \ _self ->
+   {-# INLINE rule506 #-}
+   rule506 = \ _self ->
      _self
-   {-# INLINE rule462 #-}
-   rule462 = \ ((_lhsIuserConstraints) :: TypeConstraints ConstraintInfo) ->
+   {-# INLINE rule507 #-}
+   rule507 = \ ((_lhsIuserConstraints) :: TypeConstraints ConstraintInfo) ->
      _lhsIuserConstraints
-   {-# INLINE rule463 #-}
-   rule463 = \ ((_lhsIuserPredicates) :: Predicates) ->
+   {-# INLINE rule508 #-}
+   rule508 = \ ((_lhsIuserPredicates) :: Predicates) ->
      _lhsIuserPredicates
 {-# NOINLINE sem_UserStatement_Phase #-}
 sem_UserStatement_Phase :: (Int) -> T_UserStatement 
-sem_UserStatement_Phase arg_phase_ = T_UserStatement (return st188) where
+sem_UserStatement_Phase !arg_phase_ = T_UserStatement (return st188) where
    {-# NOINLINE st188 #-}
-   st188 = let
+   !st188 = let
       v187 :: T_UserStatement_v187 
-      v187 = \ (T_UserStatement_vIn187 _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) -> ( let
+      v187 = \ !(T_UserStatement_vIn187 _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIqualifier _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) -> ( let
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule464  ()
-         _self = rule465 arg_phase_
+         _lhsOtypevariables = rule509  ()
+         _self = rule510 arg_phase_
          _lhsOself :: UserStatement
-         _lhsOself = rule466 _self
+         _lhsOself = rule511 _self
          _lhsOmetaVariableConstraintNames :: Names
-         _lhsOmetaVariableConstraintNames = rule467 _lhsImetaVariableConstraintNames
+         _lhsOmetaVariableConstraintNames = rule512 _lhsImetaVariableConstraintNames
          _lhsOuserConstraints :: TypeConstraints ConstraintInfo
-         _lhsOuserConstraints = rule468 _lhsIuserConstraints
+         _lhsOuserConstraints = rule513 _lhsIuserConstraints
          _lhsOuserPredicates :: Predicates
-         _lhsOuserPredicates = rule469 _lhsIuserPredicates
-         __result_ = T_UserStatement_vOut187 _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates
+         _lhsOuserPredicates = rule514 _lhsIuserPredicates
+         !__result_ = T_UserStatement_vOut187 _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates
          in __result_ )
      in C_UserStatement_s188 v187
-   {-# INLINE rule464 #-}
-   rule464 = \  (_ :: ()) ->
+   {-# INLINE rule509 #-}
+   rule509 = \  (_ :: ()) ->
      []
-   {-# INLINE rule465 #-}
-   rule465 = \ phase_ ->
+   {-# INLINE rule510 #-}
+   rule510 = \ phase_ ->
      UserStatement_Phase phase_
-   {-# INLINE rule466 #-}
-   rule466 = \ _self ->
+   {-# INLINE rule511 #-}
+   rule511 = \ _self ->
      _self
-   {-# INLINE rule467 #-}
-   rule467 = \ ((_lhsImetaVariableConstraintNames) :: Names) ->
+   {-# INLINE rule512 #-}
+   rule512 = \ ((_lhsImetaVariableConstraintNames) :: Names) ->
      _lhsImetaVariableConstraintNames
-   {-# INLINE rule468 #-}
-   rule468 = \ ((_lhsIuserConstraints) :: TypeConstraints ConstraintInfo) ->
+   {-# INLINE rule513 #-}
+   rule513 = \ ((_lhsIuserConstraints) :: TypeConstraints ConstraintInfo) ->
      _lhsIuserConstraints
-   {-# INLINE rule469 #-}
-   rule469 = \ ((_lhsIuserPredicates) :: Predicates) ->
+   {-# INLINE rule514 #-}
+   rule514 = \ ((_lhsIuserPredicates) :: Predicates) ->
      _lhsIuserPredicates
 
 -- UserStatements ----------------------------------------------
 -- wrapper
-data Inh_UserStatements  = Inh_UserStatements { attributeTable_Inh_UserStatements :: ([((String, Maybe String), MessageBlock)]), metaVariableConstraintNames_Inh_UserStatements :: (Names), nameMap_Inh_UserStatements :: ([(Name,Tp)]), standardConstraintInfo_Inh_UserStatements :: (ConstraintInfo), userConstraints_Inh_UserStatements :: (TypeConstraints ConstraintInfo), userPredicates_Inh_UserStatements :: (Predicates) }
-data Syn_UserStatements  = Syn_UserStatements { metaVariableConstraintNames_Syn_UserStatements :: (Names), self_Syn_UserStatements :: (UserStatements), typevariables_Syn_UserStatements :: (Names), userConstraints_Syn_UserStatements :: (TypeConstraints ConstraintInfo), userPredicates_Syn_UserStatements :: (Predicates) }
+data Inh_UserStatements  = Inh_UserStatements { attributeTable_Inh_UserStatements :: !([((String, Maybe String), MessageBlock)]), metaVariableConstraintNames_Inh_UserStatements :: !(Names), nameMap_Inh_UserStatements :: !([(Name,Tp)]), qualifier_Inh_UserStatements :: !(Tp -> Tp), standardConstraintInfo_Inh_UserStatements :: !(ConstraintInfo), userConstraints_Inh_UserStatements :: !(TypeConstraints ConstraintInfo), userPredicates_Inh_UserStatements :: !(Predicates) }
+data Syn_UserStatements  = Syn_UserStatements { metaVariableConstraintNames_Syn_UserStatements :: !(Names), self_Syn_UserStatements :: !(UserStatements), typevariables_Syn_UserStatements :: !(Names), userConstraints_Syn_UserStatements :: !(TypeConstraints ConstraintInfo), userPredicates_Syn_UserStatements :: !(Predicates) }
 {-# INLINABLE wrap_UserStatements #-}
 wrap_UserStatements :: T_UserStatements  -> Inh_UserStatements  -> (Syn_UserStatements )
-wrap_UserStatements (T_UserStatements act) (Inh_UserStatements _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) =
+wrap_UserStatements !(T_UserStatements act) !(Inh_UserStatements _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIqualifier _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) =
    Control.Monad.Identity.runIdentity (
-     do sem <- act
-        let arg190 = T_UserStatements_vIn190 _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates
-        (T_UserStatements_vOut190 _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates) <- return (inv_UserStatements_s191 sem arg190)
+     do !sem <- act
+        let arg190 = T_UserStatements_vIn190 _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIqualifier _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates
+        !(T_UserStatements_vOut190 _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates) <- return (inv_UserStatements_s191 sem arg190)
         return (Syn_UserStatements _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates)
    )
 
@@ -6777,135 +7033,143 @@ newtype T_UserStatements_s191  = C_UserStatements_s191 {
                                                        }
 data T_UserStatements_s192  = C_UserStatements_s192
 type T_UserStatements_v190  = (T_UserStatements_vIn190 ) -> (T_UserStatements_vOut190 )
-data T_UserStatements_vIn190  = T_UserStatements_vIn190 ([((String, Maybe String), MessageBlock)]) (Names) ([(Name,Tp)]) (ConstraintInfo) (TypeConstraints ConstraintInfo) (Predicates)
+data T_UserStatements_vIn190  = T_UserStatements_vIn190 ([((String, Maybe String), MessageBlock)]) (Names) ([(Name,Tp)]) (Tp -> Tp) (ConstraintInfo) (TypeConstraints ConstraintInfo) (Predicates)
 data T_UserStatements_vOut190  = T_UserStatements_vOut190 (Names) (UserStatements) (Names) (TypeConstraints ConstraintInfo) (Predicates)
 {-# NOINLINE sem_UserStatements_Cons #-}
 sem_UserStatements_Cons :: T_UserStatement  -> T_UserStatements  -> T_UserStatements 
 sem_UserStatements_Cons arg_hd_ arg_tl_ = T_UserStatements (return st191) where
    {-# NOINLINE st191 #-}
-   st191 = let
+   !st191 = let
       v190 :: T_UserStatements_v190 
-      v190 = \ (T_UserStatements_vIn190 _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) -> ( let
+      v190 = \ !(T_UserStatements_vIn190 _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIqualifier _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) -> ( let
          _hdX188 = Control.Monad.Identity.runIdentity (attach_T_UserStatement (arg_hd_))
          _tlX191 = Control.Monad.Identity.runIdentity (attach_T_UserStatements (arg_tl_))
-         (T_UserStatement_vOut187 _hdImetaVariableConstraintNames _hdIself _hdItypevariables _hdIuserConstraints _hdIuserPredicates) = inv_UserStatement_s188 _hdX188 (T_UserStatement_vIn187 _hdOattributeTable _hdOmetaVariableConstraintNames _hdOnameMap _hdOstandardConstraintInfo _hdOuserConstraints _hdOuserPredicates)
-         (T_UserStatements_vOut190 _tlImetaVariableConstraintNames _tlIself _tlItypevariables _tlIuserConstraints _tlIuserPredicates) = inv_UserStatements_s191 _tlX191 (T_UserStatements_vIn190 _tlOattributeTable _tlOmetaVariableConstraintNames _tlOnameMap _tlOstandardConstraintInfo _tlOuserConstraints _tlOuserPredicates)
+         (T_UserStatement_vOut187 _hdImetaVariableConstraintNames _hdIself _hdItypevariables _hdIuserConstraints _hdIuserPredicates) = inv_UserStatement_s188 _hdX188 (T_UserStatement_vIn187 _hdOattributeTable _hdOmetaVariableConstraintNames _hdOnameMap _hdOqualifier _hdOstandardConstraintInfo _hdOuserConstraints _hdOuserPredicates)
+         (T_UserStatements_vOut190 _tlImetaVariableConstraintNames _tlIself _tlItypevariables _tlIuserConstraints _tlIuserPredicates) = inv_UserStatements_s191 _tlX191 (T_UserStatements_vIn190 _tlOattributeTable _tlOmetaVariableConstraintNames _tlOnameMap _tlOqualifier _tlOstandardConstraintInfo _tlOuserConstraints _tlOuserPredicates)
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule470 _hdItypevariables _tlItypevariables
-         _self = rule471 _hdIself _tlIself
+         _lhsOtypevariables = rule515 _hdItypevariables _tlItypevariables
+         _self = rule516 _hdIself _tlIself
          _lhsOself :: UserStatements
-         _lhsOself = rule472 _self
+         _lhsOself = rule517 _self
          _lhsOmetaVariableConstraintNames :: Names
-         _lhsOmetaVariableConstraintNames = rule473 _tlImetaVariableConstraintNames
+         _lhsOmetaVariableConstraintNames = rule518 _tlImetaVariableConstraintNames
          _lhsOuserConstraints :: TypeConstraints ConstraintInfo
-         _lhsOuserConstraints = rule474 _tlIuserConstraints
+         _lhsOuserConstraints = rule519 _tlIuserConstraints
          _lhsOuserPredicates :: Predicates
-         _lhsOuserPredicates = rule475 _tlIuserPredicates
-         _hdOattributeTable = rule476 _lhsIattributeTable
-         _hdOmetaVariableConstraintNames = rule477 _lhsImetaVariableConstraintNames
-         _hdOnameMap = rule478 _lhsInameMap
-         _hdOstandardConstraintInfo = rule479 _lhsIstandardConstraintInfo
-         _hdOuserConstraints = rule480 _lhsIuserConstraints
-         _hdOuserPredicates = rule481 _lhsIuserPredicates
-         _tlOattributeTable = rule482 _lhsIattributeTable
-         _tlOmetaVariableConstraintNames = rule483 _hdImetaVariableConstraintNames
-         _tlOnameMap = rule484 _lhsInameMap
-         _tlOstandardConstraintInfo = rule485 _lhsIstandardConstraintInfo
-         _tlOuserConstraints = rule486 _hdIuserConstraints
-         _tlOuserPredicates = rule487 _hdIuserPredicates
-         __result_ = T_UserStatements_vOut190 _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates
+         _lhsOuserPredicates = rule520 _tlIuserPredicates
+         _hdOattributeTable = rule521 _lhsIattributeTable
+         _hdOmetaVariableConstraintNames = rule522 _lhsImetaVariableConstraintNames
+         _hdOnameMap = rule523 _lhsInameMap
+         _hdOqualifier = rule524 _lhsIqualifier
+         _hdOstandardConstraintInfo = rule525 _lhsIstandardConstraintInfo
+         _hdOuserConstraints = rule526 _lhsIuserConstraints
+         _hdOuserPredicates = rule527 _lhsIuserPredicates
+         _tlOattributeTable = rule528 _lhsIattributeTable
+         _tlOmetaVariableConstraintNames = rule529 _hdImetaVariableConstraintNames
+         _tlOnameMap = rule530 _lhsInameMap
+         _tlOqualifier = rule531 _lhsIqualifier
+         _tlOstandardConstraintInfo = rule532 _lhsIstandardConstraintInfo
+         _tlOuserConstraints = rule533 _hdIuserConstraints
+         _tlOuserPredicates = rule534 _hdIuserPredicates
+         !__result_ = T_UserStatements_vOut190 _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates
          in __result_ )
      in C_UserStatements_s191 v190
-   {-# INLINE rule470 #-}
-   rule470 = \ ((_hdItypevariables) :: Names) ((_tlItypevariables) :: Names) ->
+   {-# INLINE rule515 #-}
+   rule515 = \ ((_hdItypevariables) :: Names) ((_tlItypevariables) :: Names) ->
      _hdItypevariables  ++  _tlItypevariables
-   {-# INLINE rule471 #-}
-   rule471 = \ ((_hdIself) :: UserStatement) ((_tlIself) :: UserStatements) ->
+   {-# INLINE rule516 #-}
+   rule516 = \ ((_hdIself) :: UserStatement) ((_tlIself) :: UserStatements) ->
      (:) _hdIself _tlIself
-   {-# INLINE rule472 #-}
-   rule472 = \ _self ->
+   {-# INLINE rule517 #-}
+   rule517 = \ _self ->
      _self
-   {-# INLINE rule473 #-}
-   rule473 = \ ((_tlImetaVariableConstraintNames) :: Names) ->
+   {-# INLINE rule518 #-}
+   rule518 = \ ((_tlImetaVariableConstraintNames) :: Names) ->
      _tlImetaVariableConstraintNames
-   {-# INLINE rule474 #-}
-   rule474 = \ ((_tlIuserConstraints) :: TypeConstraints ConstraintInfo) ->
+   {-# INLINE rule519 #-}
+   rule519 = \ ((_tlIuserConstraints) :: TypeConstraints ConstraintInfo) ->
      _tlIuserConstraints
-   {-# INLINE rule475 #-}
-   rule475 = \ ((_tlIuserPredicates) :: Predicates) ->
+   {-# INLINE rule520 #-}
+   rule520 = \ ((_tlIuserPredicates) :: Predicates) ->
      _tlIuserPredicates
-   {-# INLINE rule476 #-}
-   rule476 = \ ((_lhsIattributeTable) :: [((String, Maybe String), MessageBlock)]) ->
+   {-# INLINE rule521 #-}
+   rule521 = \ ((_lhsIattributeTable) :: [((String, Maybe String), MessageBlock)]) ->
      _lhsIattributeTable
-   {-# INLINE rule477 #-}
-   rule477 = \ ((_lhsImetaVariableConstraintNames) :: Names) ->
+   {-# INLINE rule522 #-}
+   rule522 = \ ((_lhsImetaVariableConstraintNames) :: Names) ->
      _lhsImetaVariableConstraintNames
-   {-# INLINE rule478 #-}
-   rule478 = \ ((_lhsInameMap) :: [(Name,Tp)]) ->
+   {-# INLINE rule523 #-}
+   rule523 = \ ((_lhsInameMap) :: [(Name,Tp)]) ->
      _lhsInameMap
-   {-# INLINE rule479 #-}
-   rule479 = \ ((_lhsIstandardConstraintInfo) :: ConstraintInfo) ->
+   {-# INLINE rule524 #-}
+   rule524 = \ ((_lhsIqualifier) :: Tp -> Tp) ->
+     _lhsIqualifier
+   {-# INLINE rule525 #-}
+   rule525 = \ ((_lhsIstandardConstraintInfo) :: ConstraintInfo) ->
      _lhsIstandardConstraintInfo
-   {-# INLINE rule480 #-}
-   rule480 = \ ((_lhsIuserConstraints) :: TypeConstraints ConstraintInfo) ->
+   {-# INLINE rule526 #-}
+   rule526 = \ ((_lhsIuserConstraints) :: TypeConstraints ConstraintInfo) ->
      _lhsIuserConstraints
-   {-# INLINE rule481 #-}
-   rule481 = \ ((_lhsIuserPredicates) :: Predicates) ->
+   {-# INLINE rule527 #-}
+   rule527 = \ ((_lhsIuserPredicates) :: Predicates) ->
      _lhsIuserPredicates
-   {-# INLINE rule482 #-}
-   rule482 = \ ((_lhsIattributeTable) :: [((String, Maybe String), MessageBlock)]) ->
+   {-# INLINE rule528 #-}
+   rule528 = \ ((_lhsIattributeTable) :: [((String, Maybe String), MessageBlock)]) ->
      _lhsIattributeTable
-   {-# INLINE rule483 #-}
-   rule483 = \ ((_hdImetaVariableConstraintNames) :: Names) ->
+   {-# INLINE rule529 #-}
+   rule529 = \ ((_hdImetaVariableConstraintNames) :: Names) ->
      _hdImetaVariableConstraintNames
-   {-# INLINE rule484 #-}
-   rule484 = \ ((_lhsInameMap) :: [(Name,Tp)]) ->
+   {-# INLINE rule530 #-}
+   rule530 = \ ((_lhsInameMap) :: [(Name,Tp)]) ->
      _lhsInameMap
-   {-# INLINE rule485 #-}
-   rule485 = \ ((_lhsIstandardConstraintInfo) :: ConstraintInfo) ->
+   {-# INLINE rule531 #-}
+   rule531 = \ ((_lhsIqualifier) :: Tp -> Tp) ->
+     _lhsIqualifier
+   {-# INLINE rule532 #-}
+   rule532 = \ ((_lhsIstandardConstraintInfo) :: ConstraintInfo) ->
      _lhsIstandardConstraintInfo
-   {-# INLINE rule486 #-}
-   rule486 = \ ((_hdIuserConstraints) :: TypeConstraints ConstraintInfo) ->
+   {-# INLINE rule533 #-}
+   rule533 = \ ((_hdIuserConstraints) :: TypeConstraints ConstraintInfo) ->
      _hdIuserConstraints
-   {-# INLINE rule487 #-}
-   rule487 = \ ((_hdIuserPredicates) :: Predicates) ->
+   {-# INLINE rule534 #-}
+   rule534 = \ ((_hdIuserPredicates) :: Predicates) ->
      _hdIuserPredicates
 {-# NOINLINE sem_UserStatements_Nil #-}
 sem_UserStatements_Nil ::  T_UserStatements 
 sem_UserStatements_Nil  = T_UserStatements (return st191) where
    {-# NOINLINE st191 #-}
-   st191 = let
+   !st191 = let
       v190 :: T_UserStatements_v190 
-      v190 = \ (T_UserStatements_vIn190 _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) -> ( let
+      v190 = \ !(T_UserStatements_vIn190 _lhsIattributeTable _lhsImetaVariableConstraintNames _lhsInameMap _lhsIqualifier _lhsIstandardConstraintInfo _lhsIuserConstraints _lhsIuserPredicates) -> ( let
          _lhsOtypevariables :: Names
-         _lhsOtypevariables = rule488  ()
-         _self = rule489  ()
+         _lhsOtypevariables = rule535  ()
+         _self = rule536  ()
          _lhsOself :: UserStatements
-         _lhsOself = rule490 _self
+         _lhsOself = rule537 _self
          _lhsOmetaVariableConstraintNames :: Names
-         _lhsOmetaVariableConstraintNames = rule491 _lhsImetaVariableConstraintNames
+         _lhsOmetaVariableConstraintNames = rule538 _lhsImetaVariableConstraintNames
          _lhsOuserConstraints :: TypeConstraints ConstraintInfo
-         _lhsOuserConstraints = rule492 _lhsIuserConstraints
+         _lhsOuserConstraints = rule539 _lhsIuserConstraints
          _lhsOuserPredicates :: Predicates
-         _lhsOuserPredicates = rule493 _lhsIuserPredicates
-         __result_ = T_UserStatements_vOut190 _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates
+         _lhsOuserPredicates = rule540 _lhsIuserPredicates
+         !__result_ = T_UserStatements_vOut190 _lhsOmetaVariableConstraintNames _lhsOself _lhsOtypevariables _lhsOuserConstraints _lhsOuserPredicates
          in __result_ )
      in C_UserStatements_s191 v190
-   {-# INLINE rule488 #-}
-   rule488 = \  (_ :: ()) ->
+   {-# INLINE rule535 #-}
+   rule535 = \  (_ :: ()) ->
      []
-   {-# INLINE rule489 #-}
-   rule489 = \  (_ :: ()) ->
+   {-# INLINE rule536 #-}
+   rule536 = \  (_ :: ()) ->
      []
-   {-# INLINE rule490 #-}
-   rule490 = \ _self ->
+   {-# INLINE rule537 #-}
+   rule537 = \ _self ->
      _self
-   {-# INLINE rule491 #-}
-   rule491 = \ ((_lhsImetaVariableConstraintNames) :: Names) ->
+   {-# INLINE rule538 #-}
+   rule538 = \ ((_lhsImetaVariableConstraintNames) :: Names) ->
      _lhsImetaVariableConstraintNames
-   {-# INLINE rule492 #-}
-   rule492 = \ ((_lhsIuserConstraints) :: TypeConstraints ConstraintInfo) ->
+   {-# INLINE rule539 #-}
+   rule539 = \ ((_lhsIuserConstraints) :: TypeConstraints ConstraintInfo) ->
      _lhsIuserConstraints
-   {-# INLINE rule493 #-}
-   rule493 = \ ((_lhsIuserPredicates) :: Predicates) ->
+   {-# INLINE rule540 #-}
+   rule540 = \ ((_lhsIuserPredicates) :: Predicates) ->
      _lhsIuserPredicates

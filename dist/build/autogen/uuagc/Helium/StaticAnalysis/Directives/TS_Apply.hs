@@ -1,6 +1,7 @@
 
 
--- UUAGC 0.9.52.1 (Helium/StaticAnalysis/Directives/TS_Apply.ag)
+  {-# OPTIONS_GHC -fno-warn-unused-matches #-}
+-- UUAGC 0.9.52.2 (Helium/StaticAnalysis/Directives/TS_Apply.ag)
 module Helium.StaticAnalysis.Directives.TS_Apply where
 
 import Top.Types
@@ -254,6 +255,14 @@ sem_Core_TypingStrategy :: Core_TypingStrategy ->
                            T_Core_TypingStrategy
 sem_Core_TypingStrategy (Siblings _functions) =
     (sem_Core_TypingStrategy_Siblings _functions)
+sem_Core_TypingStrategy (Never _predName _predType _message) =
+    (sem_Core_TypingStrategy_Never _predName _predType _message)
+sem_Core_TypingStrategy (Close _name _message) =
+    (sem_Core_TypingStrategy_Close _name _message)
+sem_Core_TypingStrategy (Disjoint _classNames _message) =
+    (sem_Core_TypingStrategy_Disjoint _classNames _message)
+sem_Core_TypingStrategy (Default _className _types) =
+    (sem_Core_TypingStrategy_Default _className _types)
 sem_Core_TypingStrategy (TypingStrategy _typeEnv _typerule _statements) =
     (sem_Core_TypingStrategy_TypingStrategy _typeEnv (sem_Core_TypeRule _typerule) (sem_Core_UserStatements _statements))
 -- semantic domain
@@ -285,6 +294,87 @@ sem_Core_TypingStrategy_Siblings functions_ =
                   emptyTree
               _lhsOdebugIO =
                   return ()
+              _lhsOunique =
+                  _lhsIunique
+          in  ( _lhsOassumptions,_lhsOconstraintSet,_lhsOdebugIO,_lhsOunique)))
+sem_Core_TypingStrategy_Never :: String ->
+                                 Tp ->
+                                 String ->
+                                 T_Core_TypingStrategy
+sem_Core_TypingStrategy_Never predName_ predType_ message_ =
+    (\ _lhsIinfoTuple
+       _lhsImetaVariableTable
+       _lhsIunique ->
+         (let _lhsOassumptions :: Assumptions
+              _lhsOconstraintSet :: ConstraintSet
+              _lhsOdebugIO :: (IO ())
+              _lhsOunique :: Int
+              _lhsOassumptions =
+                  error "missing rule: Core_TypingStrategy.Never.lhs.assumptions"
+              _lhsOconstraintSet =
+                  error "missing rule: Core_TypingStrategy.Never.lhs.constraintSet"
+              _lhsOdebugIO =
+                  error "missing rule: Core_TypingStrategy.Never.lhs.debugIO"
+              _lhsOunique =
+                  _lhsIunique
+          in  ( _lhsOassumptions,_lhsOconstraintSet,_lhsOdebugIO,_lhsOunique)))
+sem_Core_TypingStrategy_Close :: String ->
+                                 String ->
+                                 T_Core_TypingStrategy
+sem_Core_TypingStrategy_Close name_ message_ =
+    (\ _lhsIinfoTuple
+       _lhsImetaVariableTable
+       _lhsIunique ->
+         (let _lhsOassumptions :: Assumptions
+              _lhsOconstraintSet :: ConstraintSet
+              _lhsOdebugIO :: (IO ())
+              _lhsOunique :: Int
+              _lhsOassumptions =
+                  error "missing rule: Core_TypingStrategy.Close.lhs.assumptions"
+              _lhsOconstraintSet =
+                  error "missing rule: Core_TypingStrategy.Close.lhs.constraintSet"
+              _lhsOdebugIO =
+                  error "missing rule: Core_TypingStrategy.Close.lhs.debugIO"
+              _lhsOunique =
+                  _lhsIunique
+          in  ( _lhsOassumptions,_lhsOconstraintSet,_lhsOdebugIO,_lhsOunique)))
+sem_Core_TypingStrategy_Disjoint :: ([String]) ->
+                                    String ->
+                                    T_Core_TypingStrategy
+sem_Core_TypingStrategy_Disjoint classNames_ message_ =
+    (\ _lhsIinfoTuple
+       _lhsImetaVariableTable
+       _lhsIunique ->
+         (let _lhsOassumptions :: Assumptions
+              _lhsOconstraintSet :: ConstraintSet
+              _lhsOdebugIO :: (IO ())
+              _lhsOunique :: Int
+              _lhsOassumptions =
+                  error "missing rule: Core_TypingStrategy.Disjoint.lhs.assumptions"
+              _lhsOconstraintSet =
+                  error "missing rule: Core_TypingStrategy.Disjoint.lhs.constraintSet"
+              _lhsOdebugIO =
+                  error "missing rule: Core_TypingStrategy.Disjoint.lhs.debugIO"
+              _lhsOunique =
+                  _lhsIunique
+          in  ( _lhsOassumptions,_lhsOconstraintSet,_lhsOdebugIO,_lhsOunique)))
+sem_Core_TypingStrategy_Default :: String ->
+                                   Tps ->
+                                   T_Core_TypingStrategy
+sem_Core_TypingStrategy_Default className_ types_ =
+    (\ _lhsIinfoTuple
+       _lhsImetaVariableTable
+       _lhsIunique ->
+         (let _lhsOassumptions :: Assumptions
+              _lhsOconstraintSet :: ConstraintSet
+              _lhsOdebugIO :: (IO ())
+              _lhsOunique :: Int
+              _lhsOassumptions =
+                  error "missing rule: Core_TypingStrategy.Default.lhs.assumptions"
+              _lhsOconstraintSet =
+                  error "missing rule: Core_TypingStrategy.Default.lhs.constraintSet"
+              _lhsOdebugIO =
+                  error "missing rule: Core_TypingStrategy.Default.lhs.debugIO"
               _lhsOunique =
                   _lhsIunique
           in  ( _lhsOassumptions,_lhsOconstraintSet,_lhsOdebugIO,_lhsOunique)))

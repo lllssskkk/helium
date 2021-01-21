@@ -1,6 +1,6 @@
 
 
--- UUAGC 0.9.52.1 (Helium/StaticAnalysis/Directives/TS_CoreSyntax.ag)
+-- UUAGC 0.9.52.2 (Helium/StaticAnalysis/Directives/TS_CoreSyntax.ag)
 module Helium.StaticAnalysis.Directives.TS_CoreSyntax where
 
 import Top.Types
@@ -16,6 +16,10 @@ data Core_TypeRule = TypeRule (Core_Judgements) (Core_Judgement)
                    deriving ( Read,Show)
 -- Core_TypingStrategy -----------------------------------------
 data Core_TypingStrategy = Siblings (([String]))
+                         | Never (String) (Tp) (String)
+                         | Close (String) (String)
+                         | Disjoint (([String])) (String)
+                         | Default (String) (Tps)
                          | TypingStrategy (([(String, Tp)])) (Core_TypeRule) (Core_UserStatements)
                          deriving ( Read,Show)
 -- Core_UserStatement ------------------------------------------
