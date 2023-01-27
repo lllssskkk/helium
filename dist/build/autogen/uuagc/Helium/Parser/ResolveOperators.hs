@@ -58,7 +58,7 @@ operatorsFromModule m =
   where
     declToOps (Declaration_Fixity _ f (MaybeInt_Just p) os) = 
         [ (o, (p, fixityToAssoc f)) | o <- os ]
-    declToOps _ = error "not supported"    
+    declToOps _ = []   -- error "not supported"    
     fixityToAssoc f = case f of
         Fixity_Infixl _ -> AssocLeft
         Fixity_Infixr _ -> AssocRight
@@ -78,7 +78,7 @@ collectInfixdecls
         whereFixities (MaybeDeclarations_Nothing) = []
 
 
-collectInfixdecls (Module_Module _ _ _ (Body_Hole _ _)) = error "not supported"        
+collectInfixdecls (Module_Module _ _ _ (Body_Hole _ _)) = [] -- error "not supported"        
 
             
 type State expr = 

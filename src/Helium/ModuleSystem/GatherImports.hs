@@ -86,7 +86,7 @@ addImplicitImports (Module_Module moduleRange maybeName exports
             (Name_Identifier noRange [] [] moduleName) -- !!!Name
             MaybeName_Nothing
             MaybeImportSpecification_Nothing
-addImplicitImports (Module_Module _ _ _ (Body_Hole _ _)) = internalError "PhaseImport" "addImplicitImports" "Not supported Body_Hole"
+addImplicitImports m@(Module_Module _ _ _ (Body_Hole _ _)) = m --  internalError "PhaseImport" "addImplicitImports" "Not supported Body_Hole"
 
 getRightImports :: Maybe Bool -> Bool -> Name -> (IdSet,IdSet,IdSet,IdSet) -> [Core.CoreDecl] -> [Core.CoreDecl]
 getRightImports importspec qualified asName (values, confieldormethods, typeorclassesCompl, typeorclasses)
