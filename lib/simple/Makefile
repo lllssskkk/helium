@@ -17,7 +17,7 @@ all : $(LIBRARIES)
 	echo $(LIBRARIES)
 
 %.lvm : %.core
-	$(COREASM) $<
+	$(COREASM) $(basename $<)
 
 %.o : %.hs
 	"$(HELIUM)" -b --no-overloading $<
